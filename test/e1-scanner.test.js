@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { runE1Experiment } from '../experiments/e1-scanner.js';
+import { runE1Experiment } from '../research/experiments/e1-scanner.js';
 
 describe('E1 Scanner Experiments', () => {
   it('should test 4 candidates against ATR14 baseline', () => {

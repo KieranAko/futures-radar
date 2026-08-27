@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { runE2Experiment } from '../experiments/e2-eligibility.js';
+import { runE2Experiment } from '../research/experiments/e2-eligibility.js';
 
 describe('E2 Eligibility Ablation', () => {
   it('should test 3 variants against combined gate baseline', () => {

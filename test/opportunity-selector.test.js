@@ -7,8 +7,8 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { selectOpportunitiesO0, selectOpportunitiesO1 } from '../experiments/lib/opportunity-orthogonal.js';
-import { calculateER } from '../experiments/lib/opportunity-features.js';
+import { selectOpportunitiesO0, selectOpportunitiesO1 } from '../research/experiments/lib/opportunity-orthogonal.js';
+import { calculateER } from '../research/experiments/lib/opportunity-features.js';
 
 // Mock raw data structure
 function createMockRaw(contracts) {

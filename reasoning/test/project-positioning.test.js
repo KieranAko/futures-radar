@@ -17,9 +17,9 @@ function readDoc(rel) {
 }
 
 const SKILL = readDoc('SKILL.md');
-const README = readDoc(path.join('backtest', 'README.md'));
-const BLUEPRINT = readDoc(path.join('backtest', 'blueprint.md'));
-const STATUS = readDoc(path.join('experiments', 'STATUS.md'));
+const README = readDoc(path.join('research', 'backtest', 'README.md'));
+const BLUEPRINT = readDoc(path.join('research', 'backtest', 'blueprint.md'));
+const STATUS = readDoc(path.join('research', 'experiments', 'STATUS.md'));
 const PHASE1 = readDoc(path.join('reasoning', 'PHASE1_REPORT.md'));
 
 describe('project positioning 文档断言', () => {

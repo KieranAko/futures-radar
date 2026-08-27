@@ -7,7 +7,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { calculateER } from '../experiments/lib/opportunity-features.js';
+import { calculateER } from '../research/experiments/lib/opportunity-features.js';
 import { calculateER20 } from '../lib/features.js';
 
 describe('Opportunity Features - ER20', () => {

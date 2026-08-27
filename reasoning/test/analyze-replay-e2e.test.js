@@ -12,9 +12,9 @@ import { createRequire } from 'node:module';
 import { hashPacket } from '../lib/reasoning-artifact.js';
 
 const require = createRequire(import.meta.url);
-const { replayReasoning } = require('../../backtest/llm-replay.cjs');
-const { scoreReasoningOutcome } = require('../../backtest/llm-outcome.cjs');
-const { buildLlmScorecard } = require('../../backtest/llm-scorecard.cjs');
+const { replayReasoning } = require('../../research/backtest/llm-replay.cjs');
+const { scoreReasoningOutcome } = require('../../research/backtest/llm-outcome.cjs');
+const { buildLlmScorecard } = require('../../research/backtest/llm-scorecard.cjs');
 
 const SIGNAL_DATE = '2026-07-01';
 

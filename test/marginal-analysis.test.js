@@ -10,7 +10,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { compareAdjacentThresholds } from '../experiments/lib/er-marginal-analysis.js';
+import { compareAdjacentThresholds } from '../research/experiments/lib/er-marginal-analysis.js';
 
 describe('Marginal Analysis - compareAdjacentThresholds', () => {
   it('should handle pure removal (strictly nested sets)', () => {

@@ -1,6 +1,7 @@
 /**
  * FinCoT Outcome Calculator
- * 计算单个候选的净收益，严格对齐 shared-backtest-lib 真相源
+ * 计算单个候选的净收益，严格对齐 lib/costs.cjs 真相源
+ * （shared-backtest-lib 也引用同一 lib/costs.cjs，口径唯一）
  *
  * @param {string} direction - 'long' | 'short' | 'pass'
  * @param {number} entryPrice - 进场价格
@@ -8,7 +9,7 @@
  * @returns {number} 净收益（归一化百分比，pass返回0）
  */
 
-import { calculateCosts } from '../../backtest/shared-backtest-lib.cjs';
+import { calculateCosts } from '../../lib/costs.cjs';
 
 export function calculateOutcome(direction, entryPrice, exitPrice) {
   // pass 必须返回 0

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { runE3Experiment } from '../experiments/e3-direction.js';
+import { runE3Experiment } from '../research/experiments/e3-direction.js';
 
 describe('E3 Input Invariants', () => {
   it('should reject baseline returns length mismatch', () => {

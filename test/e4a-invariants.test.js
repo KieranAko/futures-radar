@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { runE4aExperiment } from '../experiments/e4a-holdperiod.js';
+import { runE4aExperiment } from '../research/experiments/e4a-holdperiod.js';
 
 describe('E4a Input Invariants', () => {
   it('should reject baseline returns length mismatch', () => {

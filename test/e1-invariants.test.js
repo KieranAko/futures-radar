@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { runE1Experiment } from '../experiments/e1-scanner.js';
+import { runE1Experiment } from '../research/experiments/e1-scanner.js';
 
 describe('E1 Input Invariants', () => {
   it('should reject baseline returns length mismatch', () => {

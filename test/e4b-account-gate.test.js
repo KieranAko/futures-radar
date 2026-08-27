@@ -7,7 +7,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateAccountGate, compareAccountPerformance } from '../experiments/e4b-account-gate.js';
+import { validateAccountGate, compareAccountPerformance } from '../research/experiments/e4b-account-gate.js';
 
 test('E4b Account Gate', async (t) => {
   await t.test('should pass when all criteria met', () => {

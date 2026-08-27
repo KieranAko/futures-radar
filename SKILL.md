@@ -1,7 +1,7 @@
 ---
 name: futures-radar
-description: 期货短期机会分析 + 离线模型回测——每日扫描~60个国内期货主力合约，波动率排名→Top 3深挖→4章短报告；backtest/ 支持 deterministic 与 LLM replay 回测
-version: 0.1.3
+description: 期货短期机会分析 + 离线模型回测——每日扫描~60个国内期货主力合约，波动率排名→Top 3深挖→4章短报告；research/backtest/ 支持 deterministic 与 LLM replay 回测
+version: 0.1.4
 ---
 
 # futures-radar
@@ -13,7 +13,8 @@ version: 0.1.3
 ## 两个入口
 
 - **日常雷达**：`pipeline/run.cjs` 编排监测管道（采集→扫描→筛选→分析→报告）
-- **离线回测**：`backtest/`（deterministic 批量回测；`runMiniPipeline` 可选 LLM replay，见 `backtest/README.md`）
+- **离线回测**：`research/backtest/`（deterministic 批量回测；`runMiniPipeline` 可选 LLM replay，见 `research/backtest/README.md`）
+- **数据文件库**：`data/` + `data-store/`（每日行情/ledger/合约bars/宏观快照，维护命令见 `data/README.md`）
 
 ## 触发条件
 
@@ -132,6 +133,14 @@ LLM 读 `analyze/blueprint.md` → 冻结 evidence packets → FinCoT 结构化�
 
 ### 阶段6: Publish (manual)
 LLM 更新 `current.md` → 提取 runId + Top 3 摘要
+
+## 数据文件库（v0.1.4）
+
+- 采集层写完 `raw.json` 后自动镜像到 `data/daily/<SYMBOL>.json` + `data/ledger/`；raw.json 仍是每个 run 的冻结权威
+- 增量采集优先从文件库读取；`research/backtest/` 的切片/采样也从文件库读取（旧 `historical-cache.json` 仅作回退）
+- 维护命令：`npm run store:seed|verify|stats|export|compact`（规则见 `data/README.md`）
+- `npm run filter:quant -- --runId <id>` 为软过滤 shadow（写 `filtered.quant.json`，不覆盖 `filtered.json`）
+- `npm run prefill -- --runId <id>` 为六问草稿预填充（只写 `analysis.draft.json`，Q1/Q4/Q5 仍必须由 LLM 完成）
 
 ## 数据纪律
 

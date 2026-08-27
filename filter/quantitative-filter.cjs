@@ -16,6 +16,8 @@
  * Usage:
  *   node filter/quantitative-filter.cjs --runId 20260730-1701-auto
  *   node filter/quantitative-filter.cjs --runId bt-20250117 --runDir backtest/runs/bt-20250117
+ *   node filter/quantitative-filter.cjs --runId 20260730-1701-auto --shadow
+ *     # shadow 模式：写 filtered.quant.json，绝不覆盖 LLM 的 filtered.json
  */
 
 const fs = require('fs');
@@ -28,6 +30,7 @@ const runIdIdx = args.indexOf('--runId');
 const runId = runIdIdx >= 0 ? args[runIdIdx + 1] : null;
 const runDirIdx = args.indexOf('--runDir');
 const customRunDir = runDirIdx >= 0 ? args[runDirIdx + 1] : null;
+const shadow = args.includes('--shadow');
 
 if (!runId) {
   console.error('ERROR: --runId is required');
@@ -318,13 +321,14 @@ function main() {
     note: k.summary
   }));
 
-  // ── Output filtered.json ───────────────────────────────────
+  // ── Output ─────────────────────────────────────────────────
   const output = {
     meta: {
       runId,
       filteredAt: new Date().toISOString(),
       pipelineVersion: '0.1.0',
-      filterType: 'quantitative',
+      filterType: shadow ? 'quantitative-shadow' : 'quantitative',
+      mode: shadow ? 'shadow' : 'default',
       inputCount: candidates.length,
       outputCount: finalKept.length,
       hardFilterRejectsImmutable: true
@@ -333,12 +337,13 @@ function main() {
     downgraded: [...downgraded, ...extraDowngraded]
   };
 
-  const outPath = path.join(RUN_DIR, 'filtered.json');
+  // shadow 模式只写 filtered.quant.json，绝对不碰 filtered.json（LLM 边界保持权威）
+  const outPath = path.join(RUN_DIR, shadow ? 'filtered.quant.json' : 'filtered.json');
   fs.writeFileSync(outPath, JSON.stringify(output, null, 2));
-  console.log(`\nfiltered.json → ${outPath}`);
+  console.log(`\n${path.basename(outPath)} → ${outPath}`);
 
   // ── Summary ────────────────────────────────────────────────
-  console.log(`\n=== FILTER COMPLETE ===`);
+  console.log(`\n=== FILTER COMPLETE${shadow ? ' (SHADOW)' : ''} ===`);
   console.log(`${finalKept.length} KEEP / ${downgraded.length + extraDowngraded.length} downgraded (from ${candidates.length} candidates)`);
 
   if (finalKept.length > 0) {

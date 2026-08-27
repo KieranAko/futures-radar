@@ -2,7 +2,7 @@
 
 > **期货短期机会分析 + 离线模型回测** 的 AI Agent Skill。
 > 每日扫描约 60 个国内期货主力合约 → 波动率排名 → Top 3 深挖 → 4 章短报告；
-> backtest/ 提供 deterministic 批量回测与 LLM replay 回测评估模型表现。
+> research/backtest/ 提供 deterministic 批量回测与 LLM replay 回测评估模型表现。
 > **所有输出不构成投资建议、不执行真实交易。**
 
 ## 特性
@@ -12,8 +12,10 @@
 - **收盘快照快速通道（v0.1.2）**：sina 日线接口滞后时，用收盘快照（date==今日 && time>=15:00 完整会话）兜底补当日 bar，实测与监控中心官方日线一致
 - **快照优先增量（v0.1.3）**：日线已发布今日 + 缓存落后一根时跳过 ~59 次日线重拉，快照一次性补当日 bar（实测全序列与官方日线逐字段一致，采集 ~13s → ~1s）
 - **FinCoT 推理层**：evidence packet 冻结 → 三分支蓝图 → 门禁 + grounding 校验（fail-closed 降级）
+- **轻量数据文件库（v0.1.4）**：`data/daily` + `data/ledger` 纯 JSON/JSONL，采集后自动镜像，增量采集与回测统一从这里读取；`data-store/` 提供 seed/verify/export/compact 维护命令
+- **保守自动化（v0.1.4）**：软过滤 `--shadow` 输出 `filtered.quant.json`；六问预填充只生成 `analysis.draft.json`，LLM 边界不撤销
 - **离线回测**：strict no-look-ahead 实现 + LLM replay 评分卡；方向层已被大样本证伪并收口（诚实披露）
-- **532 个测试全绿**（84 套件），测试夹具内置、无机器路径依赖
+- **542 个测试全绿**（87 套件），测试夹具内置、无机器路径依赖
 
 ## 目录结构
 
@@ -27,13 +29,17 @@ futures-radar/
 ├── pipeline/                # 管道编排（run.cjs + 契约 contracts.cjs）
 ├── collector/               # 采集（akshare 行情 / 宏观锚点 / 源探测）
 ├── scanner/                 # 波动率扫描与排名
-├── filter/                  # 硬过滤（确定性）+ 软过滤（LLM 蓝图）
-├── analyze/                 # evidence packet 冻结 + 结果组装
+├── filter/                  # 硬过滤（确定性）+ 量化软过滤（shadow）
+├── analyze/                 # evidence packet 冻结 + 结果组装 + 六问预填充
 ├── reasoning/               # FinCoT 推理框架（lib + prompts + tests）
 ├── probability/             # HV 概率锥（Yang-Zhang）
 ├── report/                  # 报告三段式（facts → model → markdown）
-├── backtest/                # 离线回测（deterministic + LLM replay）
-├── experiments/             # 已收口实验档案（机会层/方向层结论）
+├── data-store/              # 轻量文件库维护 API（JSON/JSONL，无 SQL）
+├── data/                    # 数据文件库（daily/ledger/contract-bars/macro/export）
+├── research/                # 离线回测核心 + 实验 + 归档
+│   ├── backtest/
+│   ├── experiments/
+│   └── archive/
 └── config/                  # 品种白名单 / 数据源 / 宏观传导路由
 ```
 
@@ -71,9 +77,27 @@ node pipeline/run.cjs --runId <id> --from probability   # 续跑概率锥+报告
 2. **analyze**：`node analyze/freeze-packets.mjs --runId <id>` → FinCoT 推理文档 → `node analyze/assemble-results.mjs --runId <id>` → 六问 `analysis.json`
 3. **publish**：更新 `<runtimeRoot>/current.md`
 
-### 4. 离线回测
+### 4. 数据文件库维护
 
-见 `backtest/README.md`（deterministic 批量验证 + LLM replay 评分卡）。
+```bash
+npm run store:init      # 初始化目录/索引
+npm run store:seed      # 从已有 runs 回填（首次安装/迁移）
+npm run store:verify    # 校验日期升序/数组等长/无未来日期/ledger 合法
+npm run store:stats     # 品种与日期覆盖统计
+npm run store:export    # 重建回测兼容缓存 data/export/historical-cache.json
+npm run store:compact   # 从 ledger 重建 daily，压缩 12 个月前 ledger
+```
+
+软过滤 shadow 与六问预填充：
+
+```bash
+npm run filter:quant -- --runId <id>   # 写 filtered.quant.json，不覆盖 filtered.json
+npm run prefill -- --runId <id>        # 写 analysis.draft.json，LLM 仍负责 Q1/Q4/Q5
+```
+
+### 5. 离线回测
+
+见 `research/backtest/README.md`（deterministic 批量验证 + LLM replay 评分卡）。
 
 ## 环境变量
 
@@ -81,6 +105,7 @@ node pipeline/run.cjs --runId <id> --from probability   # 续跑概率锥+报告
 |------|------|------|
 | `FUTURES_SKILL_ROOT` | 否 | skill 根目录（默认自动探测：向上找 SKILL.md） |
 | `FUTURES_RUNTIME_ROOT` | 否 | 运行产物目录。默认 `<skill>/output`（runs 落在 `<skill>/output/runs/<runId>/`，已 gitignore） |
+| `FUTURES_DATA_ROOT` | 否 | 文件库根目录。默认 `<skill>/data`（测试隔离时也可重定向） |
 | `MX_DATA_PATH` | 否 | `mx_data.py` 完整路径 |
 | `MX_APIKEY` | 否 | mx-data API key |
 | `FUTURES_TEST_RAW_JSON` | 否 | 测试用 raw.json（默认内置夹具） |

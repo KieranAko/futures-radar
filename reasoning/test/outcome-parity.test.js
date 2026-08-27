@@ -14,7 +14,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert';
 import { calculateOutcome } from '../lib/fincot-outcome.js';
-import { calculateCosts } from '../../backtest/shared-backtest-lib.cjs';
+import { calculateCosts } from '../../research/backtest/shared-backtest-lib.cjs';
 
 describe('Outcome Parity Test', () => {
   test('场景1: long 上涨 → 正收益', () => {

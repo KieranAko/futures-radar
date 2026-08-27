@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.4（2026-08-27）
+
+- **轻量数据文件库**：新增 `data-store/` 与 `data/` 文件库（JSON/JSONL，无 SQL）——`daily/<SYMBOL>.json` 当前最优序列 + `ledger/<SYMBOL>/<YYYY-MM>.jsonl` append-only 流水 + `contract-bars/` + `macro/`；采集层写完 raw.json 后自动镜像（失败 warn-only，raw.json 仍是 run 权威）
+- **文件库真实接入**：增量缓存优先从文件库读取（旧 raw.json 扫描回退）；回测 `cache-slicer`/`time-sampler`/`batch-runner` 从文件库加载缓存；probability 在 `main-series.json` 缺失时按 runId 回退 `contract-bars`；report 在 `macro-snapshot.json` 缺失时按 runId 回退 `macro`
+- **成本口径解耦**：新增 `lib/costs.cjs` 单一真相源，`reasoning/lib/fincot-outcome.js` 不再依赖 backtest
+- **保守自动化**：`filter/quantitative-filter.cjs --shadow` 只写 `filtered.quant.json`；新增 `analyze/prefill-analysis.cjs` 只写 `analysis.draft.json`（Q1/Q4/Q5 仍必须 LLM 完成）
+- **回测瘦身**：`backtest/` → `research/backtest/`，仅保留核心设计与测试；一次性实验脚本/模型/历史报告移入 `research/archive/`；`experiments/` → `research/experiments/`
+- **Golden 基线**：新增 scanner 输出字段级回归测试；全量测试 532 → 542（87 套件）
+
 ## 0.1.3（2026-08-27）
 
 - **快照优先增量（snapshot-first）**：日线接口已发布今日 bar 且缓存恰好落后一根时，跳过 ~59 次日线重拉（实测全量 ~13s），用收盘快照一次性补当日 bar（1 次 HTTP 调用）；覆盖率 <90% 或任一品种落后超过一根 → 自动回退日线重拉（fail-open）；CFMMC 交叉验证照常。`collector/futures_collector.py --probe-latest` 新增输出 PREV（上一交易日）；`collector/incremental-cache.cjs` 新增 `probeLatestSinaBarDates` / `planSnapshotFirst`。实测 2026-08-27：59/59 品种补入，raw.json 全序列与官方日线逐字段一致，Top10 扫描排名/分数不变（对照组 20260827-timing-full vs zz-sim-test）；采集阶段 ~13s → ~1s（另加 CFMMC ~3s，DCE 接口故障日受既定退避策略影响约 +7s）。不变量 #8

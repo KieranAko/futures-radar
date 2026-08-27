@@ -17,25 +17,25 @@ __pycache__/
 *.log
 logs/
 
-# ── backtest 可重建产物（结论见 backtest/*.md 报告）──
-/backtest/data/
-/backtest/logs/
-/backtest/runs/
-/backtest/.claude/
-/backtest/archive-invalidated/
-/backtest/strict-*.json
-/backtest/account-sim-*.json
-/backtest/purged-walkforward-*.json
-/backtest/threshold-ablation-*.json
-/backtest/fixed-window-*.json
-/backtest/replay-gate-result-*.json
-/backtest/gate-d-*.json
-/backtest/random-selection-*.json
-/backtest/random-direction-*.json
-/backtest/v3.1-*.json
-/backtest/sample-structure-*.json
-/backtest/verification-results.json
-/backtest/data-quality-report*.json
+# ── 回测可重建产物（结论见 research/backtest/*.md 报告）──
+/research/backtest/data/
+/research/backtest/logs/
+/research/backtest/runs/
+/research/backtest/.claude/
+/research/backtest/archive-invalidated/
+/research/backtest/strict-*.json
+/research/backtest/account-sim-*.json
+/research/backtest/purged-walkforward-*.json
+/research/backtest/threshold-ablation-*.json
+/research/backtest/fixed-window-*.json
+/research/backtest/replay-gate-result-*.json
+/research/backtest/gate-d-*.json
+/research/backtest/random-selection-*.json
+/research/backtest/random-direction-*.json
+/research/backtest/v3.1-*.json
+/research/backtest/sample-structure-*.json
+/research/backtest/verification-results.json
+/research/backtest/data-quality-report*.json
 
 # ── 已失效/过期产物 ──
 *.INVALID

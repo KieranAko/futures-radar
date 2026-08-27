@@ -70,7 +70,8 @@ if (tryLink()) {
       if (rel === '') return true;
       const parts = rel.split(path.sep);
       if (parts[0] === '.git' || parts.includes('node_modules') || parts.includes('__pycache__')) return false;
-      if (parts.length === 1 && parts[0] === 'data') return false;
+      // data/ 只复制 README.md；运行数据目录不复制（安装后由 store:init/seed 生成）
+      if (parts[0] === 'data' && rel !== path.join('data', 'README.md')) return false;
       if (rel.endsWith('.log')) return false;
       return true;
     }
