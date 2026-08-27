@@ -209,6 +209,7 @@ for (const opp of reportFacts.opportunities) {
     name: opp.name,
     rank: opp.rank,
     sector: opp.sector || null,
+    contract: opp.contract || null,
     marketFacts: opp.marketFacts,
     priceRanges: opp.priceRanges,
     screening: opp.screening,

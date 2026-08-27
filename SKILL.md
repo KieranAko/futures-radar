@@ -1,7 +1,7 @@
 ---
 name: futures-radar
 description: 期货短期机会分析 + 离线模型回测——每日扫描~60个国内期货主力合约，波动率排名→Top 3深挖→4章短报告；research/backtest/ 支持 deterministic 与 LLM replay 回测
-version: 0.1.5
+version: 0.1.6
 ---
 
 # futures-radar
@@ -101,6 +101,7 @@ node pipeline/run.cjs --runId 20260730-1637-auto --from scan
 ### 阶段3b: Filter-LLM (manual)
 LLM 读 `filter/blueprint.md` → 从 filtered-hard.json 中降权/保留/标记观望 → 产出 `filtered.json`（≤3 个）
 - **绝对禁止复活**已被 3a 剔除的品种
+- **可操作性优先（v0.1.6）**：`directionBias=neutral` 的品种直接降级，不得挤占方向明确、驱动可验证的品种；Top3 先按可操作性筛选，再按 score 排序
 - 无明确驱动 → 降为"观望/不做"
 
 ### 阶段4: Analyze (manual)

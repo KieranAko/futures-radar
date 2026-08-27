@@ -155,6 +155,15 @@ function main() {
   const filtered = readJSON(filteredPath);
   const probability = readJSON(probabilityPath);
 
+  // 锚定合约（Analyze 阶段冻结的主导合约；缺失时旧 run 显示 —）
+  const mainSeriesPath = path.join(RUN_DIR, 'analyze', 'main-series.json');
+  let mainSeries = {};
+  try {
+    mainSeries = fs.existsSync(mainSeriesPath) ? readJSON(mainSeriesPath) : {};
+  } catch {
+    mainSeries = {};
+  }
+
   console.log(`  candidates: ${candidates.candidates.length} symbols`);
   console.log(`  filtered: ${filtered.candidates.length} KEEP, ${filtered.downgraded.length} DOWNGRADE`);
   console.log(`  probability: ${probability.probabilities.length} entries`);
@@ -332,6 +341,7 @@ function main() {
       name: candidateEntry.name,
       rank: candidateEntry.rank || candidates.candidates.indexOf(candidateEntry) + 1,
       sector: candidateEntry.sector,
+      contract: (mainSeries[symbol] && mainSeries[symbol].contract) || null,
       marketFacts: {
         close: probEntry.close,
         hv: probEntry.hv ? {
@@ -447,7 +457,7 @@ function main() {
       totalSymbols: candidates.meta.preFilter?.total || candidates.candidates.length,
       top10Count: top10.length,
       keepCount: filtered.candidates.length,
-      pipelineVersion: '0.1.5',
+      pipelineVersion: '0.1.6',
       artifacts: {
         candidates: {
           runId: candidates.meta.runId,

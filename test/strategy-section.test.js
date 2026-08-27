@@ -29,19 +29,18 @@ describe('strategy-section: 板块存在与策略适配（acceptance 1/2）', ()
   it('策略总览表包含每个 TOP3 品种（每个 TOP3 ≥1 策略）', () => {
     for (const p of plan.plans) {
       assert.ok(section.includes(`| ${p.symbol} ${p.name} |`), p.symbol);
-      assert.ok(section.includes(`| ${p.matchedStrategies[0].strategyId} ${p.matchedStrategies[0].name} |`), p.symbol);
+      assert.ok(section.includes(`${p.matchedStrategies[0].strategyId} + ${p.playbook.playbookId}`), p.symbol);
     }
   });
 
-  it('每个品种含 策略匹配/执行计划/风险评估/执行状态/失效退出 五小节', () => {
+  it('每个品种小节包含锚定合约与关键执行字段', () => {
     for (const p of plan.plans) {
-      for (const h of ['### ' + p.symbol + ' ' + p.name, '#### 策略匹配', '#### 执行计划', '#### 风险评估', '#### 执行状态与原因', '#### 失效与退出']) {
-        assert.ok(section.includes(h), `${p.symbol}: ${h}`);
-      }
+      const heading = `### ${p.symbol} ${p.name}（锚定合约 ${p.contract || '—'}）`;
+      assert.ok(section.includes(heading), `${p.symbol}: ${heading}`);
     }
   });
 
-  it('策略文本含入场/止损/目标/仓位/失效/风险/免责', () => {
+  it('策略文本含入场机会点/止损/目标/仓位/证伪失效/风险/免责', () => {
     const heads = [];
     const re = /\n### [^#]/g;
     let m;
@@ -50,7 +49,7 @@ describe('strategy-section: 板块存在与策略适配（acceptance 1/2）', ()
       const blockStart = section.indexOf(`### ${p.symbol} ${p.name}`);
       const next = heads.map(i => i).filter(i => i > blockStart);
       const block = section.slice(blockStart, next.length ? next[0] : undefined);
-      for (const kw of ['- 入场:', '- 执行口径:', '- 止损:', '- 目标:', '- 仓位:', '每手风险', '最长持有']) {
+      for (const kw of ['- **入场机会点**:', '- **执行口径**:', '- **止损**:', '- **目标**:', '- **仓位**:', '- **证伪/失效**:', '每手风险']) {
         assert.ok(block.includes(kw), `${p.symbol}: ${kw}`);
       }
     }
@@ -61,7 +60,7 @@ describe('strategy-section: 板块存在与策略适配（acceptance 1/2）', ()
 
   it('watch 计划附「转执行触发」', () => {
     for (const p of plan.plans.filter(x => x.executionStatus === 'watch')) {
-      assert.ok(section.includes(`- 转执行触发: ${p.entry.trigger}`), p.symbol);
+      assert.ok(section.includes(`- **转执行触发**: ${p.entry.trigger}`), p.symbol);
     }
   });
 

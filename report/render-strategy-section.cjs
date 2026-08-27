@@ -55,100 +55,44 @@ function renderStrategySection(plan, library) {
   const lines = [];
   lines.push('## 五、交易策略板块（执行参考）');
   lines.push('');
-  lines.push(`> 运行 ID: ${plan.meta.runId} | 信号日: ${plan.meta.signalDate} | 示例权益: ${plan.meta.equityCny} CNY | 匹配引擎: strategy-matcher v${plan.meta.matcherVersion}`);
-  lines.push('> 本板块由策略匹配引擎按已冻结 artifacts 确定性生成，仅为方向增强与执行参考，**不改变上方报告的方向判断与置信度**。');
+  lines.push(`> 运行 ID: ${plan.meta.runId} | 信号日: ${plan.meta.signalDate} | 示例权益: ${plan.meta.equityCny} CNY`);
+  lines.push('> 确定性生成，仅作执行参考；**不改变报告方向与置信度**。');
   lines.push('');
 
   // 策略总览
   lines.push('### 策略总览');
   lines.push('');
-  lines.push('| 品种 | 报告方向 | 置信度 | 主策略 | 执行模板 | 状态 |');
-  lines.push('|------|---------|--------|--------|---------|------|');
+  lines.push('| 品种 | 锚定合约 | 方向 | 置信度 | 主策略/模板 | 状态 |');
+  lines.push('|------|---------|------|--------|-------------|------|');
   for (const p of plan.plans) {
     const primary = p.matchedStrategies[0];
-    lines.push(`| ${p.symbol} ${p.name} | ${directionLabel(p.reportBaseline.direction)} | ${confidenceLabel(p.reportBaseline.confidence)} | ${primary.strategyId} ${primary.name} | ${p.playbook.playbookId} | ${statusBadge(p.executionStatus)} |`);
+    lines.push(`| ${p.symbol} ${p.name} | ${p.contract || '—'} | ${directionLabel(p.reportBaseline.direction)} | ${confidenceLabel(p.reportBaseline.confidence)} | ${primary.strategyId} + ${p.playbook.playbookId} | ${statusBadge(p.executionStatus)} |`);
   }
   lines.push('');
 
-  // 每品种小节
+  // 每品种小节：只保留可执行关键信息
   for (const p of plan.plans) {
-    lines.push(`### ${p.symbol} ${p.name}`);
-    lines.push('');
-
-    // 策略匹配
-    lines.push('#### 策略匹配');
-    lines.push('');
-    lines.push('| 策略 | 得分 | 命中证据 |');
-    lines.push('|------|------|----------|');
-    for (const m of p.matchedStrategies) {
-      lines.push(`| ${m.strategyId} ${m.name} | ${fmt(m.score, 2)} | ${m.matchEvidence} |`);
-    }
-    lines.push('');
-    if (p.supportingEvidence && p.supportingEvidence.length > 0) {
-      const sup = p.supportingEvidence.map(s => `${s.strategyId} ${s.name}（${fmt(s.score, 2)}）`).join('、');
-      lines.push(`辅证（定性证据，低权重）：${sup}`);
-      lines.push('');
-    }
-    // 证据链接（每个 matched 策略 ≤3 条；内部路径为纯文本并标注「内部」）
-    for (const m of p.matchedStrategies) {
-      const urls = evidenceUrls(m.strategyId, library);
-      if (urls.length > 0) {
-        const shown = urls.map(u => u.internal
-          ? `内部《${u.title.slice(0, 48)}》（${u.url}）`
-          : `[${u.title.slice(0, 48)}](${u.url})`).join('；');
-        lines.push(`- ${m.strategyId} 证据：${shown}`);
-      }
-    }
-    if (p.matchedStrategies.some(m => evidenceUrls(m.strategyId, library).length > 0)) lines.push('');
-
-    // 执行计划
-    lines.push('#### 执行计划');
-    lines.push('');
     const triggerLevel = p.entry.triggerLevel == null ? '—' : fmt(p.entry.triggerLevel, 0);
-    lines.push(`- 入场: ${p.entry.trigger}（触发价 ${triggerLevel}）`);
-    lines.push(`- 执行口径: ${p.playbook.executionConvention}`);
-    lines.push(`- 状态门: ${p.playbook.gateStatus === 'pass' ? '通过' : p.playbook.gateStatus === 'pending' ? '通过（触发 pending）' : '未满足（fail-open）'} — ${p.playbook.gateNote}`);
-    lines.push(`- 止损: ${fmt(p.stop.stopPrice)}（距离 ${fmt(p.stop.stopDistancePts)} 点；依据: ${p.stop.basis}）`);
-    lines.push(`- 目标: T1 ${p.targets.t1}；T2 ${p.targets.t2}`);
-    lines.push(`- 仓位: ${p.position.lots} 手（${p.position.lotsBasis}）`);
-    lines.push('');
-
-    // 风险评估
-    lines.push('#### 风险评估');
-    lines.push('');
+    const primary = p.matchedStrategies[0];
+    const supporting = (p.supportingEvidence || []).map(s => `${s.strategyId} ${s.name}`).join('、');
     const ra = p.riskAssessment;
-    lines.push('| 项目 | 值 |');
-    lines.push('|------|----|');
-    lines.push(`| 每手风险 | ${Math.round(ra.unitRiskCny)} CNY（止损距离 ${fmt(ra.stopDistancePts)} 点 × 乘数） |`);
-    lines.push(`| 止损价 | ${fmt(ra.stopPrice)} |`);
-    lines.push(`| 结构止损（Q5） | ${ra.structuralStop == null ? '—' : fmt(ra.structuralStop, 0)} |`);
-    lines.push(`| 保证金/手 | ${Math.round(ra.marginPerLotCny)} CNY |`);
-    lines.push(`| 保证金占用 | ${fmt(ra.marginUtilizationPct)}% |`);
-    lines.push(`| 波动率贡献（年化） | ${fmt(ra.volContributionPctAnnual)}% |`);
-    lines.push(`| 尾部 3d p95 反向边距 | ${fmt(ra.tailGapPct3d)}% |`);
-    lines.push(`| 连续停板压力风险 | ${Math.round(ra.stressRiskCny)} CNY |`);
-    lines.push(`| 事件风险 | ${ra.eventRiskNote || '—'} |`);
-    lines.push(`| 最长持有 | ${ra.maxHoldingDays} 个交易日 |`);
-    lines.push('');
 
-    // 执行状态与原因
-    lines.push('#### 执行状态与原因');
+    lines.push(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract || '—'}）`);
     lines.push('');
-    lines.push(`**${statusBadge(p.executionStatus)}**`);
-    for (const r of p.statusReasons) lines.push(`- ${r}`);
+    lines.push(`- **报告基准**: ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信；主策略 ${primary.strategyId} ${primary.name}；执行模板 ${p.playbook.playbookId}`);
+    lines.push(`- **入场机会点**: ${p.entry.trigger}（触发价 ${triggerLevel}）`);
+    lines.push(`- **执行口径**: ${p.playbook.executionConvention}`);
+    lines.push(`- **止损**: ${fmt(p.stop.stopPrice)}（距离 ${fmt(p.stop.stopDistancePts)} 点）`);
+    lines.push(`- **目标**: T1 ${p.targets.t1}；T2 ${p.targets.t2}`);
+    lines.push(`- **仓位**: ${p.position.lots} 手（${p.position.lotsBasis}）`);
+    lines.push(`- **证伪/失效**: ${p.invalidation.hard.join('；')}；${p.invalidation.timeStop}；T+1 未触发入场则本计划作废`);
+    lines.push(`- **风险要点**: 每手风险 ${Math.round(ra.unitRiskCny)} CNY；保证金/手 ${Math.round(ra.marginPerLotCny)} CNY；尾部 3d p95 反向边距 ${fmt(ra.tailGapPct3d)}%；事件：${ra.eventRiskNote || '—'}`);
+    lines.push(`- **策略依据**: ${primary.strategyId} ${primary.name}${supporting ? `；辅证：${supporting}` : ''}`);
+    lines.push(`- **状态**: ${statusBadge(p.executionStatus)}${p.statusReasons.length ? ` — ${p.statusReasons.join('；')}` : ''}`);
     if (p.executionStatus === 'watch' || p.executionStatus === 'skip') {
-      lines.push(`- 转执行触发: ${p.entry.trigger}`);
+      lines.push(`- **转执行触发**: ${p.entry.trigger}`);
     }
-    lines.push('');
-
-    // 失效与退出
-    lines.push('#### 失效与退出');
-    lines.push('');
-    for (const h of p.invalidation.hard) lines.push(`- ${h}`);
-    lines.push(`- ${p.invalidation.timeStop}；新一次运行产出的计划将取代本计划。`);
-    if (p.notes && p.notes.length > 0) {
-      for (const n of p.notes) lines.push(`- 注：${n}`);
-    }
+    if (p.notes && p.notes.length > 0) lines.push(`- **备注**: ${p.notes.join('；')}`);
     lines.push('');
   }
 

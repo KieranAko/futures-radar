@@ -55,11 +55,18 @@ Evaluate each candidate against these 5 criteria. Each criterion can be: **PASS*
 
 | Result | Action |
 |--------|--------|
-| ≥ 4 PASS, 0 FAIL | **KEEP** — strong candidate |
-| ≥ 3 PASS, ≤ 1 FAIL | **KEEP** — with noted weakness |
+| ≥ 4 PASS, 0 FAIL 且 directionBias ≠ neutral | **KEEP** — strong candidate |
+| ≥ 3 PASS, ≤ 1 FAIL 且 directionBias ≠ neutral | **KEEP** — with noted weakness |
+| directionBias = neutral（方向未解/结构冲突） | **DOWNGRADE** — 无明确操作机会，即使分数高 |
 | ≥ 2 PASS, ≥ 2 WEAK | **观望** — downgrade to watch |
 | Any FAIL on criteria 4 or 5 | **DOWNGRADE** — even if other criteria pass |
 | 孤立波动 (only mover in sector) | **DOWNGRADE** — sector confirmation lacking |
+
+**Top3 选取顺序（重要）**：
+1. 先按“可操作性”筛选：只有 `directionBias ∈ {bullish, bearish}` 且 driver 非 FAIL 且 risk 非 FAIL 的候选进入 KEEP 池。
+2. 再按原始 score 排序，取前 3。
+3. 若 KEEP 池不足 3 个，才允许在“WEAK 驱动 + 方向明确”中补足，并注明原因。
+4. 高分但 `neutral` 的候选不得挤掉低分但方向明确、驱动可验证的候选。
 
 ## Output Format (`filtered.json`)
 
@@ -105,7 +112,7 @@ Evaluate each candidate against these 5 criteria. Each criterion can be: **PASS*
 
 ## Constraints
 
-- **Maximum 3 KEEP candidates.** If more than 3 pass, keep the highest 3 by score and downgrade the rest.
+- **Maximum 3 KEEP candidates.** 先按可操作性筛选（directionBias 非 neutral、driver 非 FAIL、risk 非 FAIL），再按 score 取前 3；高分 neutral 候选优先降级。
 - **Never fabricate drivers.** If you can't find a real driver through WebSearch or the data, say so.
 - **Each decision must cite evidence** — a specific indicator value, a specific news event, or a specific correlation.
 - **EC0 (集运指数) special handling**: This contract has extreme volatility (HV5 can be 200%+). A volPercentile of 95%+ is its NORMAL state, not an anomaly. Check if the -40% move has a verifiable shipping event behind it (Red Sea / port strike / tariff change).

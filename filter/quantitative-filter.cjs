@@ -288,7 +288,7 @@ function main() {
   const downgraded = [];
 
   for (const e of evaluated) {
-    if (e.scoreQuant >= 5.0 && e.confidence !== 'very_low') {
+    if (e.scoreQuant >= 5.0 && e.confidence !== 'very_low' && e.direction !== 'neutral') {
       kept.push({
         symbol: e.symbol,
         name: e.name,
@@ -299,6 +299,14 @@ function main() {
         scoreQuant: e.scoreQuant,
         scoreBreakdown: e.scoreBreakdown,
         summary: `量化得分${e.scoreQuant.toFixed(1)}，方向${e.direction}，置信度${e.confidence}`
+      });
+    } else if (e.scoreQuant >= 5.0 && e.direction === 'neutral') {
+      downgraded.push({
+        symbol: e.symbol,
+        name: e.name,
+        reason: '方向中性，无明确操作机会',
+        scoreQuant: e.scoreQuant,
+        note: `量化得分${e.scoreQuant.toFixed(1)}但方向中性，不得挤占方向明确的候选`
       });
     } else {
       downgraded.push({

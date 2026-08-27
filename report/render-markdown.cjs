@@ -204,6 +204,11 @@ for (const opp of model.opportunities) {
   ch3.push(`### ${opp.symbol} ${opp.name}\n`);
   ch3.push(`**方向**: ${directionLabel(thesis.finalDirection)} | **置信度**: ${confidenceLabel(thesis.finalConfidence)}置信\n`);
 
+  // 锚定合约（Analyze 阶段冻结的主导合约）
+  if (opp.contract) {
+    ch3.push(`**锚定合约**: ${opp.contract}\n`);
+  }
+
   // Judgment change annotation
   if (thesis.assessmentChanged) {
     ch3.push(`> ⚠️ **判断变化**: 筛选阶段评估为「${directionLabel(opp.screening.initialDirection)}/${confidenceLabel(opp.screening.initialConfidence)}置信」，深度分析后调整为「${directionLabel(thesis.finalDirection)}/${confidenceLabel(thesis.finalConfidence)}置信」\n`);

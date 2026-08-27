@@ -226,6 +226,7 @@ function validatePlan(plan, schema, root) {
 // ── artifacts 加载与 symbol 上下文 ────────────────────────────
 function loadArtifacts(runDirPath) {
   const read = (name) => readJSON(path.isAbsolute(name) ? name : path.join(runDirPath, name));
+  const mainSeriesPath = path.join(runDirPath, 'analyze', 'main-series.json');
   return {
     reportModel: read('report-model.json'),
     probability: read('probability.json'),
@@ -234,7 +235,8 @@ function loadArtifacts(runDirPath) {
     macroSnapshot: read('macro-snapshot.json'),
     analysis: read('analysis.json'),
     raw: read('raw.json'),
-    symbols: read(SYMBOLS_PATH())
+    symbols: read(SYMBOLS_PATH()),
+    mainSeries: fs.existsSync(mainSeriesPath) ? readJSON(mainSeriesPath) : {}
   };
 }
 
@@ -453,7 +455,11 @@ function parseStructuralStop(texts) {
   return null;
 }
 function parseFirstNumber(text) {
-  const m = text && String(text).match(/(\d+(?:\.\d+)?)/);
+  if (!text) return null;
+  // 优先取括号内的具体价位（如 MA20(7721.5)），避免误取指标名中的 20/60
+  const paren = String(text).match(/[（(]\s*(\d+(?:\.\d+)?)\s*[)）]/);
+  if (paren) return parseFloat(paren[1]);
+  const m = String(text).match(/(\d+(?:\.\d+)?)/);
   return m ? parseFloat(m[1]) : null;
 }
 
@@ -932,6 +938,7 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   return {
     symbol: rm.symbol,
     name: rm.name,
+    contract: ctx.contract || null,
     rank,
     sector: rm.sector,
     reportBaseline: {
@@ -1095,7 +1102,8 @@ function buildStrategyPlan({ runId, equityCny = 100000 }) {
       macroIndicators,
       analysisEntry,
       symbolCfg,
-      rawContract: contract
+      rawContract: contract,
+      contract: (artifacts.mainSeries && artifacts.mainSeries[op.symbol] && artifacts.mainSeries[op.symbol].contract) || null
     };
     const plan = buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, rank: op.planRank, rc: effRc });
     // 记录 RR 供集中度仲裁使用
