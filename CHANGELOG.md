@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.7（2026-08-27）
+
+- **证伪反馈机制**：`strategies/lib/feedback.cjs`——每期 `executionStatus=executable` 的计划冻结到 `data/strategy-feedback/ledger/<runId>.json`；下一次运行用锚定合约 bars（contract-bars，fallback 主力连续代理）验证 T+1 是否触发、止损/目标1/时间离场，并输出归因 codes（trigger_miss/gap_skip/stop_hit/target1_hit/direction_wrong 等）
+- **报告回显**：策略板块显示“本期冻结 N 个可执行计划；本次验证往期计划 M 个”，有已验证结果时输出“上一期策略证伪反馈”表（计划/信号日/结果/归因）
+- **触发时点语义消歧**：strategy-plan 新增 `entry.triggerTiming`（T+1 收盘确认后下一交易日开盘 / T+1 开盘执行 / 观察无执行时点），PB-07 已按收盘确认语义修复
+- 新增 strategy-feedback 测试 3 条；全量测试 585 → 588（99 套件）
+
 ## 0.1.6（2026-08-27）
 
 - **交易策略板块（策略库）**：新增 `strategies/` 工作区——四路研究笔记（宏观/细分品类/执行 playbook/风控框架）+ 统一策略库 `strategy-library.json`（23 条策略 MS/CS/PB + riskConfig + positionSizing §9 + planSchema，64 条证据 URL，全部可溯源）+ 可读说明 `strategy-library.md`

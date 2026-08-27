@@ -51,12 +51,17 @@ function evidenceUrls(strategyId, library) {
 }
 
 // ── 章节渲染 ──────────────────────────────────────────────────
-function renderStrategySection(plan, library) {
+function renderStrategySection(plan, library, feedback = null) {
   const lines = [];
   lines.push('## 五、交易策略板块（执行参考）');
   lines.push('');
   lines.push(`> 运行 ID: ${plan.meta.runId} | 信号日: ${plan.meta.signalDate} | 示例权益: ${plan.meta.equityCny} CNY`);
   lines.push('> 确定性生成，仅作执行参考；**不改变报告方向与置信度**。');
+  if (feedback && feedback.meta) {
+    const recorded = feedback.meta.recorded == null ? '—' : feedback.meta.recorded;
+    const verified = feedback.meta.verified == null ? 0 : feedback.meta.verified;
+    lines.push(`> 证伪反馈机制：本期冻结 ${recorded} 个可执行计划；本次验证往期计划 ${verified} 个。`);
+  }
   lines.push('');
 
   // 策略总览
@@ -95,6 +100,25 @@ function renderStrategySection(plan, library) {
     }
     if (p.notes && p.notes.length > 0) lines.push(`- **备注**: ${p.notes.join('；')}`);
     lines.push('');
+  }
+
+  // 证伪反馈（往期 executable plans）
+  if (feedback && Array.isArray(feedback.results) && feedback.results.length > 0) {
+    const done = feedback.results.filter(r => r.status !== 'pending_data');
+    if (done.length > 0) {
+      lines.push('### 上一期策略证伪反馈');
+      lines.push('');
+      lines.push('| 计划 | 信号日 | 验证结果 | 归因 |');
+      lines.push('|------|--------|---------|------|');
+      for (const r of done) {
+        const resultLabel = r.status === 'verified'
+          ? `${r.exitType === 'stopped_out' ? '止损离场' : r.exitType === 'target1_hit' ? '目标1兑现' : '时间离场'}${r.directionCorrect ? '（方向正确）' : '（方向错误）'}`
+          : r.status === 'invalidated_not_triggered' ? '未触发，计划作废' : r.status;
+        const attr = (r.attribution || []).map(a => `${a.code}: ${a.detail}`).join('；');
+        lines.push(`| ${r.recordId} | ${r.signalDate} | ${resultLabel} | ${attr} |`);
+      }
+      lines.push('');
+    }
   }
 
   // 集中度说明

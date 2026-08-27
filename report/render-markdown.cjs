@@ -359,7 +359,9 @@ if (fs.existsSync(strategyPlanPath)) {
     const strategyPlan = JSON.parse(fs.readFileSync(strategyPlanPath, 'utf8'));
     if (strategyPlan && Array.isArray(strategyPlan.plans) && strategyPlan.plans.length > 0) {
       const library = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'strategies', 'strategy-library.json'), 'utf8'));
-      strategySection = renderStrategySection(strategyPlan, library);
+      const feedbackPath = path.join(RUN_DIR, 'strategy-feedback.json');
+      const feedback = fs.existsSync(feedbackPath) ? JSON.parse(fs.readFileSync(feedbackPath, 'utf8')) : null;
+      strategySection = renderStrategySection(strategyPlan, library, feedback);
       console.log(`  ✓ 交易策略板块: rendered (${strategyPlan.plans.length} plans, ${strategySection.length} chars)`);
     } else {
       console.log('  - 交易策略板块: strategy-plan.json 为空，跳过');

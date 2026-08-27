@@ -16,6 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { skillRoot, runDir } = require('../lib/workspace.cjs');
 const { buildStrategyPlan, validatePlan } = require('./lib/strategy-matcher.cjs');
+const { recordExecutablePlans, verifyPlans } = require('./lib/feedback.cjs');
 
 const args = process.argv.slice(2);
 function flagVal(flag) {
@@ -47,9 +48,18 @@ if (!check.ok) {
 const outPath = path.join(runDir(runId), 'strategy-plan.json');
 fs.writeFileSync(outPath, JSON.stringify(plan, null, 2) + '\n', 'utf8');
 
+// 证伪反馈闭环：冻结本期 executable plans；用当期数据验证往期 pending plans
+const recorded = recordExecutablePlans(plan);
+const rawPath = path.join(runDir(runId), 'raw.json');
+const raw = fs.existsSync(rawPath) ? JSON.parse(fs.readFileSync(rawPath, 'utf8')) : { contracts: {} };
+const feedback = verifyPlans(runId, raw);
+feedback.meta.recorded = recorded;
+fs.writeFileSync(path.join(runDir(runId), 'strategy-feedback.json'), JSON.stringify(feedback, null, 2) + '\n', 'utf8');
+
 const lines = plan.plans.map(p =>
   `  ${p.rank}. ${p.symbol} ${p.name} | ${p.reportBaseline.direction}/${p.reportBaseline.confidence} | 主策略 ${p.matchedStrategies[0].strategyId} | ${p.playbook.playbookId}(${p.playbook.gateStatus}) | ${p.executionStatus} ${p.position.lots}手`
 );
 console.log(`Output: ${outPath}`);
 console.log(`Plans: ${plan.plans.length} | concentrationDecisions: ${plan.concentrationDecisions.length} | inputsSha: ${plan.meta.inputsSha.slice(0, 12)}…`);
+console.log(`Feedback: recorded ${recorded} executable plan(s); verified ${feedback.meta.verified} prior plan(s)`);
 console.log(lines.join('\n'));
