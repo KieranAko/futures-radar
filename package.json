@@ -1,7 +1,7 @@
 {
   "name": "futures-radar-skill",
   "version": "0.1.1",
-  "description": "期货短期机会分析 + 离线模型回测（AI Agent Skill）——每日扫描约 60 个国内期货主力合约，波动率排名 → Top 3 深挖 → 4 章短报告；离线确定性回测 + LLM replay 评估模型表现",
+  "description": "该SKILL专注期货投机市场机会发现，提供全期货市场品种扫描→TOP10机会发现→TOP3品种LLM推理分析报告。",
   "private": true,
   "type": "module",
   "engines": {
