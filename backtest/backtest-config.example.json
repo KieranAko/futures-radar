@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "期货雷达回测配置文件模板",
+
+  "startDate": "2019-01-01",
+  "endDate": "2026-07-31",
+  "sampleCount": 30,
+  "samplingMode": "random",
+  "randomSeed": 42,
+  "windowDays": 60,
+  "verifyDays": 3,
+
+  "_comments": {
+    "startDate": "回测起始日期（YYYY-MM-DD），需在缓存数据范围内",
+    "endDate": "回测结束日期（YYYY-MM-DD），需在缓存数据范围内",
+    "sampleCount": "采样时间点数量，建议30-100之间",
+    "samplingMode": "采样模式：uniform（均匀）| random（随机）| monthly（月度）",
+    "randomSeed": "随机种子（仅random模式），设置后可复现结果",
+    "windowDays": "分析窗口天数，默认60天",
+    "verifyDays": "验证窗口天数，默认3天（T+3验证）"
+  },
+
+  "_presets": {
+    "quickTest": {
+      "description": "快速测试（10个时间点，均匀采样）",
+      "startDate": "2024-01-01",
+      "endDate": "2026-07-31",
+      "sampleCount": 10,
+      "samplingMode": "uniform",
+      "windowDays": 60,
+      "verifyDays": 3
+    },
+
+    "standardBacktest": {
+      "description": "标准回测（50个时间点，随机采样）",
+      "startDate": "2019-01-01",
+      "endDate": "2026-07-31",
+      "sampleCount": 50,
+      "samplingMode": "random",
+      "randomSeed": 12345,
+      "windowDays": 60,
+      "verifyDays": 3
+    },
+
+    "longTermValidation": {
+      "description": "长期验证（月度采样，全历史）",
+      "startDate": "2019-01-01",
+      "endDate": "2026-07-31",
+      "samplingMode": "monthly",
+      "windowDays": 60,
+      "verifyDays": 5
+    },
+
+    "recentPerformance": {
+      "description": "近期表现（2024-2026，密集采样）",
+      "startDate": "2024-01-01",
+      "endDate": "2026-07-31",
+      "sampleCount": 60,
+      "samplingMode": "uniform",
+      "windowDays": 60,
+      "verifyDays": 3
+    }
+  }
+}

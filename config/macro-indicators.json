@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0",
+  "description": "Phase 3 阶段一宏观锚点（5 个冻结，缅因猫精简版）。每个锚点快照只保留 value/change5d/asOf/fetchedAt/source/status；不计算 change1d/change20d/z20/regime，不生成宏观评分，不参与筛选。",
+  "marketCutoffRule": "signalDate 由 raw.json 各合约最新日期的最大值确定；各锚点 asOf 必须 <= signalDate（含当日），取 <= signalDate 的最后一根已完成日线，禁止使用盘中未完成 bar",
+  "change5dRule": "相对百分比变化 change5d = (v_t / v_{t-5} - 1) * 100，v_{t-5} 为 asOf 前第 5 个交易日的收盘值；序列不足 6 根时 change5d = null",
+  "freshnessRule": "asOf == signalDate → fresh；asOf < signalDate 且取到数据 → stale；无数据 → missing（禁止伪造，禁止用近似源顶替）",
+  "dataSourceDiscipline": "仅使用现有允许数据源（akshare/sina 同源族 + 本 run raw.json）；不使用 ttfund/Wind/iFinD；WebSearch 不补写日频数值；SC0 复用 raw.json 具体合约序列，不重复抓取",
+  "indicators": {
+    "DXY": {
+      "id": "DXY",
+      "label": "美元指数",
+      "unit": "点",
+      "decimals": 2,
+      "source": "sina",
+      "sourceNote": "sina 外汇日线 DINIW（美元指数），字段序 [date, open, low, high, close]，取 close",
+      "fetch": { "kind": "sina_fx", "symbol": "DINIW" }
+    },
+    "USDCNH": {
+      "id": "USDCNH",
+      "label": "美元/离岸人民币",
+      "unit": "汇率",
+      "decimals": 4,
+      "source": "sina",
+      "sourceNote": "sina 外汇日线 USDCNH（美元兑离岸人民币），字段序 [date, open, low, high, close]，取 close",
+      "fetch": { "kind": "sina_fx", "symbol": "USDCNH" }
+    },
+    "US10Y": {
+      "id": "US10Y",
+      "label": "美债10年收益率",
+      "unit": "%",
+      "decimals": 2,
+      "source": "akshare",
+      "sourceNote": "akshare bond_zh_us_rate 中美国债收益率，取「美国国债收益率10年」列",
+      "fetch": { "kind": "akshare_bond_zh_us_rate", "field": "美国国债收益率10年" }
+    },
+    "DR007": {
+      "id": "DR007",
+      "label": "DR007（FDR007 定盘口径）",
+      "unit": "%",
+      "decimals": 2,
+      "source": "akshare",
+      "sourceNote": "akshare repo_rate_hist（chinamoney 中国外汇交易中心）取 FDR007 存款类金融机构7天回购定盘利率，为 DR007 的官方定盘代理口径",
+      "fetch": { "kind": "akshare_repo_rate", "field": "FDR007" }
+    },
+    "SC0": {
+      "id": "SC0",
+      "label": "原油主力",
+      "unit": "元/桶",
+      "decimals": 2,
+      "source": "raw.json",
+      "sourceNote": "复用本 run raw.json 中 SC0 合约自身 OHLCV 序列（close 列），不重复抓取外部数据",
+      "fetch": { "kind": "raw_contract", "symbol": "SC0" }
+    }
+  }
+}

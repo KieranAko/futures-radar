@@ -1,0 +1,65 @@
+{
+  "_comment": "futures-radar v0.1.0 — hard filter rules. Applied deterministically by filter/hard-filter.cjs. Rules with active=false are deferred until data becomes available.",
+
+  "rules": [
+    {
+      "id": "min_avg_turnover",
+      "label": "流动性硬门槛 — 成交额",
+      "description": "近5日日均成交额必须 ≥ 阈值，防止流动性不足无法进出",
+      "active": true,
+      "field": "avgTurnover5d",
+      "operator": "gte",
+      "value": 100000000,
+      "displayValue": "1亿 (100,000,000 元)",
+      "reason_template": "日均成交额 {actual} 低于 1 亿门槛"
+    },
+    {
+      "id": "min_avg_oi",
+      "label": "持仓硬门槛",
+      "description": "近5日日均持仓量必须 ≥ 阈值，防止市场过浅",
+      "active": true,
+      "field": "avgOI5d",
+      "operator": "gte",
+      "value": 10000,
+      "displayValue": "1万手 (10,000 手)",
+      "reason_template": "日均持仓 {actual} 低于 1 万手门槛"
+    },
+    {
+      "id": "min_days_to_delivery",
+      "label": "交割月距离",
+      "description": "距最后交易日必须 ≥ 阈值，防止移仓风险",
+      "active": false,
+      "deferred_reason": "待 symbols.json 补充各品种交割月/最后交易日信息",
+      "field": "daysToDelivery",
+      "operator": "gte",
+      "value": 15,
+      "displayValue": "15 天",
+      "reason_template": "距交割月 {actual} 天，不足 15 天"
+    },
+    {
+      "id": "not_at_limit_lock",
+      "label": "非涨跌停封板",
+      "description": "当日不能处于涨跌停封板状态（封板 = |涨跌幅| ≥ limit% 且振幅 ≈ 0）",
+      "active": true,
+      "limit_ratio_threshold": 0.03,
+      "amplitude_max": 0.005,
+      "reason_template": "疑似涨跌停封板：涨跌幅={chg}%，振幅={amp}%",
+      "_note": "limit_ratio_threshold: 检测封板的涨跌幅下限（默认3%适用大部分品种，实际涨跌停4-10%）"
+    },
+    {
+      "id": "no_consecutive_limit_lock",
+      "label": "非连续涨跌停",
+      "description": "近3日不能有连续封板",
+      "active": true,
+      "consecutive_days": 3,
+      "reason_template": "近3日存在连续涨跌停封板"
+    }
+  ],
+
+  "behavior": {
+    "reject_on_any_active": true,
+    "skip_inactive": true,
+    "irreversible": true,
+    "_irreversible_note": "被硬过滤剔除的品种，LLM 后续阶段绝对不能复活。硬过滤是单向门。"
+  }
+}

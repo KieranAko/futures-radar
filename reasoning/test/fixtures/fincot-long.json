@@ -1,0 +1,17 @@
+{
+  "symbol": "RB0",
+  "signalDate": "2026-08-24",
+  "strategy": "fincot",
+  "direction": "long",
+  "confidence": "medium",
+  "pass_reason": null,
+  "evidence_ids": ["price_data.close_60d", "volume_oi.avgVolume5d"],
+  "opposing_ids": [],
+  "reasoning_summary": "Regime趋势向上，量能配合。",
+  "invalidate_if": [],
+  "branch_status": {
+    "regime": "available",
+    "macro_fundamental": "available",
+    "position_flow": "abstain"
+  }
+}

@@ -1,0 +1,7 @@
+# futures-radar Python 依赖（数据采集与宏观快照）
+akshare>=1.18
+pandas>=2.0
+requests>=2.31
+
+# 安装：pip install -r requirements.txt
+# Python 3.10+ 均可（已在 3.14 验证）

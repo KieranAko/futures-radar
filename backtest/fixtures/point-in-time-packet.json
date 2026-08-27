@@ -1,0 +1,43 @@
+{
+  "fixtureOnly": true,
+  "symbol": "RB0",
+  "signalDate": "2026-07-01",
+  "marketCutoffAt": "2026-07-01T15:00:00+08:00",
+  "packetFrozenAt": "2026-07-01T16:30:00+08:00",
+  "generatedAt": "2026-07-01T16:20:00+08:00",
+  "frozenCommit": "fixture-commit-0001",
+  "quality_check": {
+    "executable": true,
+    "required_available": ["price_data", "volume_oi"],
+    "optional_available": [],
+    "missing": ["inventory"],
+    "max_staleness": "3d"
+  },
+  "fields": {
+    "price_data": {
+      "source": "akshare",
+      "asOf": "2026-07-01T15:00:00+08:00",
+      "fetchedAt": "2026-07-01T15:03:00+08:00",
+      "_timestamp_origin": "observed",
+      "freshness": "same_day",
+      "gap": null,
+      "close_60d": [3100, 3115, 3120, 3105, 3130, 3150, 3140, 3160, 3180, 3170],
+      "ma20": 3140,
+      "ma60": 3000
+    },
+    "volume_oi": {
+      "source": "akshare",
+      "asOf": "2026-07-01T15:00:00+08:00",
+      "fetchedAt": "2026-07-01T15:03:00+08:00",
+      "_timestamp_origin": "observed",
+      "freshness": "same_day",
+      "gap": null,
+      "volume_60d": [150000, 160000, 170000, 165000, 180000, 190000, 185000, 195000, 200000, 210000],
+      "avgVolume5d": 176000
+    }
+  },
+  "point_in_time": {
+    "eligible": true,
+    "reasons": []
+  }
+}

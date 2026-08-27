@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "description": "宏观传导路由表（缅因猫 Phase 3 精简版冻结）。按品种前缀（代码去掉尾 0，如 AU0 → AU）自上而下匹配，首个命中生效；未命中 → 空集（not_applicable）。空集是合法结果：禁止对生猪/苹果/碳酸锂等品种强行编造美元/利率驱动。",
+  "default": [],
+  "rules": [
+    {
+      "prefixes": ["AU", "AG"],
+      "anchors": ["DXY", "US10Y"],
+      "note": "贵金属：美元计价 + 美债实际利率机会成本"
+    },
+    {
+      "prefixes": ["CU", "AL", "ZN", "PB", "NI", "SN", "BC"],
+      "anchors": ["DXY", "USDCNH"],
+      "note": "有色金属：美元计价 + 人民币计价与进口成本"
+    },
+    {
+      "prefixes": ["RB", "HC", "I", "J", "JM", "SF", "SM"],
+      "anchors": ["DR007"],
+      "note": "黑色 + 铁合金：国内短期流动性"
+    },
+    {
+      "prefixes": ["SC", "FU", "LU", "BU", "PG", "TA", "MA", "EG", "PP", "L", "V", "EB", "PX", "PF", "RU", "NR", "BR", "SP"],
+      "anchors": ["SC0", "DXY", "USDCNH"],
+      "note": "油链能化：能源成本锚 + 美元计价 + 人民币进口成本"
+    },
+    {
+      "prefixes": ["SA", "FG", "UR", "SH"],
+      "anchors": ["DR007"],
+      "note": "国内需求型能化：国内短期流动性"
+    },
+    {
+      "prefixes": ["M", "Y", "B", "P", "RM", "OI"],
+      "anchors": ["DXY", "USDCNH"],
+      "note": "进口油粕：美元计价 + 人民币进口成本"
+    }
+  ]
+}

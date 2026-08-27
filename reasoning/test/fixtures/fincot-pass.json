@@ -1,0 +1,17 @@
+{
+  "symbol": "RB0",
+  "signalDate": "2026-08-24",
+  "strategy": "fincot",
+  "direction": "pass",
+  "confidence": "low",
+  "pass_reason": "data_insufficient",
+  "evidence_ids": ["price_data.close_60d"],
+  "opposing_ids": [],
+  "reasoning_summary": "仅市场状态分支可用，增强证据不足。",
+  "invalidate_if": [],
+  "branch_status": {
+    "regime": "available",
+    "macro_fundamental": "abstain",
+    "position_flow": "abstain"
+  }
+}

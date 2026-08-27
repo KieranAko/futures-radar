@@ -1,0 +1,7 @@
+[
+  {
+    "packetHash": "sha256:aa874a65e245fe995ef9fa059eb2a547c4c830f1afef25b45b26f2bf7e96e69c",
+    "arm": "fincot",
+    "text": "{\n  \"symbol\": \"RB0\",\n  \"signalDate\": \"2026-07-01\",\n  \"strategy\": \"fincot\",\n  \"direction\": \"long\",\n  \"confidence\": \"medium\",\n  \"pass_reason\": null,\n  \"evidence_ids\": [\"price_data.close_60d\", \"volume_oi.avgVolume5d\"],\n  \"opposing_ids\": [],\n  \"reasoning_summary\": \"Regime趋势向上，量能温和放大。\",\n  \"invalidate_if\": [],\n  \"branch_status\": {\n    \"regime\": \"available\",\n    \"macro_fundamental\": \"available\",\n    \"position_flow\": \"abstain\"\n  }\n}"
+  }
+]

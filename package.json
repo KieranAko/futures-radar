@@ -1,0 +1,29 @@
+{
+  "name": "futures-radar-skill",
+  "version": "0.1.1",
+  "description": "期货短期机会分析 + 离线模型回测（AI Agent Skill）——每日扫描约 60 个国内期货主力合约，波动率排名 → Top 3 深挖 → 4 章短报告；离线确定性回测 + LLM replay 评估模型表现",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=21"
+  },
+  "scripts": {
+    "probe": "node collector/probe-sources.cjs",
+    "run": "node pipeline/run.cjs",
+    "freeze": "node analyze/freeze-packets.mjs",
+    "assemble": "node analyze/assemble-results.mjs",
+    "test": "node --test \"test/*.test.js\" \"reasoning/test/*.test.js\" \"experiments/test/*.test.js\" \"backtest/test/*.test.cjs\"",
+    "test:core": "node --test \"test/*.test.js\"",
+    "test:reasoning": "node --test \"reasoning/test/*.test.js\"",
+    "install:skill": "node scripts/install.mjs"
+  },
+  "keywords": [
+    "futures",
+    "skill",
+    "agent",
+    "akshare",
+    "backtest",
+    "china-futures"
+  ],
+  "license": "MIT"
+}

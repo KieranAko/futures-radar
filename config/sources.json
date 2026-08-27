@@ -1,0 +1,33 @@
+{
+  "version": "0.1.0",
+  "description": "Data source adapter configs for futures-radar. Tool paths in config/tools.json (shared with ttfund-monitor).",
+
+  "akshare": {
+    "entry": "python",
+    "description": "Primary OHLCV source — full market daily scan via akshare futures_main_sina()",
+    "collectorScript": "collector/akshare-futures.cjs",
+    "pythonScript": "collector/futures_collector.py",
+    "role": "primary_scanner",
+    "rateLimit": "none",
+    "timeoutMs": 120000,
+    "cacheStrategy": {
+      "fullPull": "first run, 90 days history per symbol",
+      "incrementalPull": "subsequent runs, latest 1 bar per symbol"
+    }
+  },
+
+  "mxdata": {
+    "entry": "python",
+    "script": "skills/mx-data/mx_data.py",
+    "description": "Top 3 enhancement source — spot prices, basis, industry data",
+    "role": "top3_enhancer",
+    "rateLimit": "10 calls/day",
+    "timeoutMs": 30000
+  },
+
+  "websearch": {
+    "description": "Top 3 enhancement source — industry news, policy events, weather disruptions",
+    "role": "top3_enhancer",
+    "rateLimit": "none (CLI env)"
+  }
+}

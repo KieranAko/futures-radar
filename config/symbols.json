@@ -1,0 +1,850 @@
+{
+  "_comment": "futures-radar v0.1.0 — manually curated from akshare futures_display_main_sina() on 2026-07-30. 82 contracts total. active=false contracts are excluded from default daily scan but can be enabled in custom runs.",
+  "_discipline": "Whitelist changes must go through review. Runtime cannot auto-discover or expand this list.",
+  "sectors": {
+    "black": {
+      "label": "黑色系",
+      "description": "Ferrous metals — rebar, iron ore, coke, etc."
+    },
+    "nonferrous": {
+      "label": "有色金属",
+      "description": "Non-ferrous metals — copper, aluminum, zinc, etc."
+    },
+    "precious": {
+      "label": "贵金属",
+      "description": "Precious metals — gold, silver, platinum, palladium"
+    },
+    "energy_chemical": {
+      "label": "能化",
+      "description": "Energy & chemicals — crude oil, methanol, PTA, etc."
+    },
+    "agriculture": {
+      "label": "农产品",
+      "description": "Agriculture — soybean meal, palm oil, corn, etc."
+    },
+    "financial": {
+      "label": "金融期货",
+      "description": "Financial futures — stock index, treasury bonds (excluded from commodity radar by default)"
+    },
+    "new_materials": {
+      "label": "新材料",
+      "description": "New materials — lithium carbonate, industrial silicon, polysilicon"
+    },
+    "shipping": {
+      "label": "航运",
+      "description": "Shipping — container freight index futures"
+    }
+  },
+  "exchanges": {
+    "shfe": "上海期货交易所",
+    "ine": "上海国际能源交易中心",
+    "dce": "大连商品交易所",
+    "czce": "郑州商品交易所",
+    "cffex": "中国金融期货交易所",
+    "gfex": "广州期货交易所"
+  },
+  "symbols": [
+    {
+      "symbol": "RB0",
+      "name": "螺纹钢",
+      "exchange": "shfe",
+      "sector": "black",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "HC0",
+      "name": "热轧卷板",
+      "exchange": "shfe",
+      "sector": "black",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "I0",
+      "name": "铁矿石",
+      "exchange": "dce",
+      "sector": "black",
+      "active": true,
+      "multiplier": 100,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "J0",
+      "name": "焦炭",
+      "exchange": "dce",
+      "sector": "black",
+      "active": true,
+      "multiplier": 100,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "JM0",
+      "name": "焦煤",
+      "exchange": "dce",
+      "sector": "black",
+      "active": true,
+      "multiplier": 60,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "SF0",
+      "name": "硅铁",
+      "exchange": "czce",
+      "sector": "black",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "SM0",
+      "name": "锰硅",
+      "exchange": "czce",
+      "sector": "black",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "SS0",
+      "name": "不锈钢",
+      "exchange": "shfe",
+      "sector": "black",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "AO0",
+      "name": "氧化铝",
+      "exchange": "shfe",
+      "sector": "black",
+      "active": true,
+      "multiplier": 20,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "AD0",
+      "name": "铸造铝合金",
+      "exchange": "shfe",
+      "sector": "black",
+      "active": false,
+      "reason": "low liquidity, new contract",
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "CU0",
+      "name": "铜",
+      "exchange": "shfe",
+      "sector": "nonferrous",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "AL0",
+      "name": "铝",
+      "exchange": "shfe",
+      "sector": "nonferrous",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "ZN0",
+      "name": "锌",
+      "exchange": "shfe",
+      "sector": "nonferrous",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "PB0",
+      "name": "铅",
+      "exchange": "shfe",
+      "sector": "nonferrous",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "NI0",
+      "name": "镍",
+      "exchange": "shfe",
+      "sector": "nonferrous",
+      "active": true,
+      "multiplier": 1,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "SN0",
+      "name": "锡",
+      "exchange": "shfe",
+      "sector": "nonferrous",
+      "active": true,
+      "multiplier": 1,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "BC0",
+      "name": "国际铜",
+      "exchange": "ine",
+      "sector": "nonferrous",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "AU0",
+      "name": "黄金",
+      "exchange": "shfe",
+      "sector": "precious",
+      "active": true,
+      "multiplier": 1000,
+      "unit": "克/手"
+    },
+    {
+      "symbol": "AG0",
+      "name": "白银",
+      "exchange": "shfe",
+      "sector": "precious",
+      "active": true,
+      "multiplier": 15,
+      "unit": "千克/手"
+    },
+    {
+      "symbol": "PT0",
+      "name": "铂",
+      "exchange": "gfex",
+      "sector": "precious",
+      "active": false,
+      "reason": "new GFEX contract, low liquidity",
+      "multiplier": 1000,
+      "unit": "克/手"
+    },
+    {
+      "symbol": "PD0",
+      "name": "钯",
+      "exchange": "gfex",
+      "sector": "precious",
+      "active": false,
+      "reason": "new GFEX contract, low liquidity",
+      "multiplier": 1000,
+      "unit": "克/手"
+    },
+    {
+      "symbol": "SC0",
+      "name": "原油",
+      "exchange": "ine",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 1000,
+      "unit": "桶/手"
+    },
+    {
+      "symbol": "FU0",
+      "name": "燃料油",
+      "exchange": "shfe",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "LU0",
+      "name": "低硫燃料油",
+      "exchange": "ine",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "BU0",
+      "name": "沥青",
+      "exchange": "shfe",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "PG0",
+      "name": "液化石油气",
+      "exchange": "dce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 20,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "TA0",
+      "name": "PTA",
+      "exchange": "czce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "MA0",
+      "name": "甲醇",
+      "exchange": "czce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "EG0",
+      "name": "乙二醇",
+      "exchange": "dce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "PP0",
+      "name": "聚丙烯",
+      "exchange": "dce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "L0",
+      "name": "塑料(LLDPE)",
+      "exchange": "dce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "V0",
+      "name": "PVC",
+      "exchange": "dce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "EB0",
+      "name": "苯乙烯",
+      "exchange": "dce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "SA0",
+      "name": "纯碱",
+      "exchange": "czce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 20,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "FG0",
+      "name": "玻璃",
+      "exchange": "czce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 20,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "UR0",
+      "name": "尿素",
+      "exchange": "czce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 20,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "PF0",
+      "name": "短纤",
+      "exchange": "czce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "SH0",
+      "name": "烧碱",
+      "exchange": "czce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 30,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "PX0",
+      "name": "对二甲苯",
+      "exchange": "czce",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "PR0",
+      "name": "瓶片",
+      "exchange": "czce",
+      "sector": "energy_chemical",
+      "active": false,
+      "reason": "very new contract, low liquidity",
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "PL0",
+      "name": "丙烯",
+      "exchange": "czce",
+      "sector": "energy_chemical",
+      "active": false,
+      "reason": "very new contract, low liquidity",
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "RU0",
+      "name": "天然橡胶",
+      "exchange": "shfe",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "NR0",
+      "name": "20号胶",
+      "exchange": "ine",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "BR0",
+      "name": "丁二烯橡胶",
+      "exchange": "shfe",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "SP0",
+      "name": "纸浆",
+      "exchange": "shfe",
+      "sector": "energy_chemical",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "BZ0",
+      "name": "纯苯",
+      "exchange": "dce",
+      "sector": "energy_chemical",
+      "active": false,
+      "reason": "very new contract, low liquidity",
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "OP0",
+      "name": "胶版印刷纸",
+      "exchange": "shfe",
+      "sector": "energy_chemical",
+      "active": false,
+      "reason": "extremely low liquidity, niche product",
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "M0",
+      "name": "豆粕",
+      "exchange": "dce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "Y0",
+      "name": "豆油",
+      "exchange": "dce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "P0",
+      "name": "棕榈油",
+      "exchange": "dce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "RM0",
+      "name": "菜粕",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "OI0",
+      "name": "菜油",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "A0",
+      "name": "豆一",
+      "exchange": "dce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "B0",
+      "name": "豆二",
+      "exchange": "dce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "C0",
+      "name": "玉米",
+      "exchange": "dce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "CS0",
+      "name": "淀粉",
+      "exchange": "dce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "CF0",
+      "name": "棉花",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "SR0",
+      "name": "白糖",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "JD0",
+      "name": "鸡蛋",
+      "exchange": "dce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "AP0",
+      "name": "苹果",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "CJ0",
+      "name": "红枣",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "PK0",
+      "name": "花生",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "LH0",
+      "name": "生猪",
+      "exchange": "dce",
+      "sector": "agriculture",
+      "active": true,
+      "multiplier": 16,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "LG0",
+      "name": "原木",
+      "exchange": "dce",
+      "sector": "agriculture",
+      "active": false,
+      "reason": "very new contract, unproven liquidity",
+      "multiplier": 90,
+      "unit": "立方米/手"
+    },
+    {
+      "symbol": "CY0",
+      "name": "棉纱",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": false,
+      "reason": "low daily volume",
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "JR0",
+      "name": "粳稻",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": false,
+      "reason": "extremely low liquidity",
+      "multiplier": 20,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "RI0",
+      "name": "早籼稻",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": false,
+      "reason": "extremely low liquidity",
+      "multiplier": 20,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "LR0",
+      "name": "晚籼稻",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": false,
+      "reason": "extremely low liquidity",
+      "multiplier": 20,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "WH0",
+      "name": "强麦",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": false,
+      "reason": "extremely low liquidity",
+      "multiplier": 20,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "RS0",
+      "name": "菜籽",
+      "exchange": "czce",
+      "sector": "agriculture",
+      "active": false,
+      "reason": "extremely low liquidity",
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "FB0",
+      "name": "纤维板",
+      "exchange": "dce",
+      "sector": "agriculture",
+      "active": false,
+      "reason": "extremely low liquidity",
+      "multiplier": 500,
+      "unit": "张/手"
+    },
+    {
+      "symbol": "RR0",
+      "name": "粳米",
+      "exchange": "dce",
+      "sector": "agriculture",
+      "active": false,
+      "reason": "low daily volume",
+      "multiplier": 10,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "IF0",
+      "name": "沪深300指数",
+      "exchange": "cffex",
+      "sector": "financial",
+      "active": false,
+      "reason": "financial future, not commodity speculation target",
+      "multiplier": 300,
+      "unit": "元/点"
+    },
+    {
+      "symbol": "IC0",
+      "name": "中证500指数",
+      "exchange": "cffex",
+      "sector": "financial",
+      "active": false,
+      "reason": "financial future, not commodity speculation target",
+      "multiplier": 200,
+      "unit": "元/点"
+    },
+    {
+      "symbol": "IH0",
+      "name": "上证50指数",
+      "exchange": "cffex",
+      "sector": "financial",
+      "active": false,
+      "reason": "financial future, not commodity speculation target",
+      "multiplier": 300,
+      "unit": "元/点"
+    },
+    {
+      "symbol": "IM0",
+      "name": "中证1000指数",
+      "exchange": "cffex",
+      "sector": "financial",
+      "active": false,
+      "reason": "financial future, not commodity speculation target",
+      "multiplier": 200,
+      "unit": "元/点"
+    },
+    {
+      "symbol": "TF0",
+      "name": "5年期国债",
+      "exchange": "cffex",
+      "sector": "financial",
+      "active": false,
+      "reason": "financial future, not commodity speculation target",
+      "multiplier": 10000,
+      "unit": "元/点"
+    },
+    {
+      "symbol": "TS0",
+      "name": "2年期国债",
+      "exchange": "cffex",
+      "sector": "financial",
+      "active": false,
+      "reason": "financial future, not commodity speculation target",
+      "multiplier": 20000,
+      "unit": "元/点"
+    },
+    {
+      "symbol": "EC0",
+      "name": "集运指数(欧线)",
+      "exchange": "ine",
+      "sector": "shipping",
+      "active": true,
+      "note": "high volatility, unique macro exposure",
+      "multiplier": 50,
+      "unit": "元/点"
+    },
+    {
+      "symbol": "LC0",
+      "name": "碳酸锂",
+      "exchange": "gfex",
+      "sector": "new_materials",
+      "active": true,
+      "note": "high volatility, new energy sector",
+      "multiplier": 1,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "SI0",
+      "name": "工业硅",
+      "exchange": "gfex",
+      "sector": "new_materials",
+      "active": true,
+      "multiplier": 5,
+      "unit": "吨/手"
+    },
+    {
+      "symbol": "PS0",
+      "name": "多晶硅",
+      "exchange": "gfex",
+      "sector": "new_materials",
+      "active": false,
+      "reason": "very new contract, low liquidity",
+      "multiplier": 3,
+      "unit": "吨/手"
+    }
+  ],
+  "activeSummary": {
+    "totalDefined": 82,
+    "activeDefault": 59,
+    "inactive": 23,
+    "bySector": {
+      "black": {
+        "total": 10,
+        "active": 9
+      },
+      "nonferrous": {
+        "total": 7,
+        "active": 7
+      },
+      "precious": {
+        "total": 4,
+        "active": 2
+      },
+      "energy_chemical": {
+        "total": 26,
+        "active": 22
+      },
+      "agriculture": {
+        "total": 25,
+        "active": 16
+      },
+      "financial": {
+        "total": 6,
+        "active": 0
+      },
+      "shipping": {
+        "total": 1,
+        "active": 1
+      },
+      "new_materials": {
+        "total": 3,
+        "active": 2
+      }
+    }
+  }
+}

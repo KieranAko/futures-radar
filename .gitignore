@@ -1,0 +1,40 @@
+# ── 运行产物（管道输出，git 不追踪）──
+/data/
+
+# ── Python ──
+__pycache__/
+*.pyc
+
+# ── 日志 ──
+*.log
+logs/
+
+# ── backtest 可重建产物（结论见 backtest/*.md 报告）──
+/backtest/data/
+/backtest/logs/
+/backtest/runs/
+/backtest/.claude/
+/backtest/archive-invalidated/
+/backtest/strict-*.json
+/backtest/account-sim-*.json
+/backtest/purged-walkforward-*.json
+/backtest/threshold-ablation-*.json
+/backtest/fixed-window-*.json
+/backtest/replay-gate-result-*.json
+/backtest/gate-d-*.json
+/backtest/random-selection-*.json
+/backtest/random-direction-*.json
+/backtest/v3.1-*.json
+/backtest/sample-structure-*.json
+/backtest/verification-results.json
+/backtest/data-quality-report*.json
+
+# ── 已失效/过期产物 ──
+*.INVALID
+*.INVALID-V2
+*.OUTDATED
+
+# ── Node / OS ──
+node_modules/
+.DS_Store
+Thumbs.db
