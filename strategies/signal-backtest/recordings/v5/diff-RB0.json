@@ -1,0 +1,169 @@
+{
+  "schema": "futures-radar-context-diff/1",
+  "symbol": "RB0",
+  "rows": [
+    {
+      "date": "2026-03-27",
+      "changed": true,
+      "reasons": [
+        "first_anchor"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-04-03",
+      "changed": true,
+      "reasons": [
+        "macro_flips:US10Y,DR007",
+        "sector_flip:r5",
+        "price_ma20_cross"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-04-13",
+      "changed": true,
+      "reasons": [
+        "macro_flips:DXY,DR007"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-04-20",
+      "changed": true,
+      "reasons": [
+        "sector_flip:r5",
+        "price_ma20_cross",
+        "momentum_flip:chg5"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-04-27",
+      "changed": true,
+      "reasons": [
+        "macro_flips:US10Y,DR007,SC0"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-05-07",
+      "changed": true,
+      "reasons": [
+        "new_event:fomc"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-05-14",
+      "changed": true,
+      "reasons": [
+        "sector_flip:r5"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-05-21",
+      "changed": true,
+      "reasons": [
+        "macro_flips:DR007,SC0",
+        "price_ma20_cross"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-05-28",
+      "changed": true,
+      "reasons": [
+        "macro_flips:US10Y,SC0",
+        "sector_flip:r5"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-06-04",
+      "changed": false,
+      "reasons": [],
+      "reusedFrom": "2026-05-28"
+    },
+    {
+      "date": "2026-06-11",
+      "changed": true,
+      "reasons": [
+        "macro_flips:DR007,SC0"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-06-18",
+      "changed": true,
+      "reasons": [
+        "new_event:fomc"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-06-26",
+      "changed": false,
+      "reasons": [],
+      "reusedFrom": "2026-06-18"
+    },
+    {
+      "date": "2026-07-03",
+      "changed": true,
+      "reasons": [
+        "macro_flips:US10Y,DR007"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-07-10",
+      "changed": false,
+      "reasons": [],
+      "reusedFrom": "2026-07-03"
+    },
+    {
+      "date": "2026-07-17",
+      "changed": true,
+      "reasons": [
+        "price_ma20_cross"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-07-24",
+      "changed": true,
+      "reasons": [
+        "macro_flips:DXY,US10Y,DR007",
+        "price_ma20_cross"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-07-31",
+      "changed": true,
+      "reasons": [
+        "macro_flips:DXY,DR007,SC0",
+        "new_event:fomc"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-08-07",
+      "changed": true,
+      "reasons": [
+        "macro_flips:US10Y,DR007",
+        "sector_flip:r5"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-08-14",
+      "changed": true,
+      "reasons": [
+        "macro_flips:US10Y,SC0"
+      ],
+      "reusedFrom": null
+    }
+  ]
+}

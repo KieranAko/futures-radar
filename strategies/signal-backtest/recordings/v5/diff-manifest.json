@@ -1,0 +1,24 @@
+{
+  "schema": "futures-radar-context-diff/1",
+  "generatedAt": "2026-08-27T18:16:24.425Z",
+  "symbols": [
+    {
+      "symbol": "RB0",
+      "path": "diff-RB0.json",
+      "changed": 17,
+      "reused": 3
+    },
+    {
+      "symbol": "M0",
+      "path": "diff-M0.json",
+      "changed": 18,
+      "reused": 2
+    },
+    {
+      "symbol": "SC0",
+      "path": "diff-SC0.json",
+      "changed": 16,
+      "reused": 4
+    }
+  ]
+}

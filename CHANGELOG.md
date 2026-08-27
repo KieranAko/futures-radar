@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.13（2026-08-28）
+
+- **信号质量回测 v5（紧凑上下文 + 变化驱动 FinCoT，效率版）**：新增 `context-bundle-builder.cjs`（每品种一个 20 行紧凑 bundle，字段短键 + legend，可逐行确定性重建）+ `context-diff.cjs`（宏观多指标翻转/板块/价格均线位势/高影响事件判定，决定 FinCoT fresh 还是 reused）+ `contract-v5.md` + `runner-v5.cjs` + `recordings/v5/`；试点扩到最近 20 锚点×3 品种（2026-03-27..2026-08-14，60 锚点）
+- **效率改善**：LLM 输入从 60 个 2.9KB 上下文包 + 30 个 FinCoT 文件，变成 3 个约 21KB 的 bundle + 3 个 diff + 每符号读 1 写 2；FinCoT 60 次 → 51 次 fresh + 9 次 reused（变化驱动复用）
+- **C 臂真正消费 FinCoT**：计划必须带 `finCotRefs`（Q 编号 + evidenceRef）；方向与 FinCoT 不一致必须 `diverged`+理由；FinCoT neutral 不得 executable；runner/测试机械校验
+- **v5 三臂结果（样本仍小）**：A 纯价格 76 信号→11 执行→10 成交→方向正确率 60.00%、平均 +0.40%；B +上下文 44→7→6→50.00%、-0.13%；C +FinCoT 48→5→4→25.00%、-0.99%。消融：B-A -10pp/-0.53%、C-B -25pp/-0.86%、C-A -35pp/-1.39%。C 臂 4 笔成交全部 aligned；fresh 3 笔 33.33% vs reused 1 笔 0%。样本不足以定论，但 v5 显示 FinCoT 在试点窗口内没有提升方向质量，只降低触发率
+- **版本对齐**：VERSION.md / package.json / SKILL.md / README.md / pipeline banner 统一为 0.1.13；新增 `npm run signal:backtest:v5`
+- 新增 signal-backtest-v5 测试 8 条（bundle 重建/无泄漏/变化检测/A-B-C 计划与 FinCoT 硬约束/v5 artifact）；全量测试 614 → 622（110 → 114 套件）
+
 ## 0.1.12（2026-08-28）
 
 - **信号质量回测 v4（宏观/板块/事件 + FinCoT 微型试点）**：新增 `context-assembler.cjs`（确定性、asOf 截断）+ `contract-v4.md` + `runner-v4.cjs` + `recordings/v4/`——每品种最近 10 个锚点（2026-06-11..2026-08-14，5 日间隔）共 30 个；每个锚点冻结上下文包（DXY/USDCNH/US10Y/DR007/SC0 宏观序列 + 板块指数/广度/coherence + 事件日历），C 臂逐锚点跑完整六问 FinCoT 并适配报告式操作策略

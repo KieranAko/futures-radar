@@ -1,0 +1,489 @@
+{
+  "symbol": "M0",
+  "generatedAt": "2026-08-27T18:40:09Z",
+  "entries": [
+    {
+      "anchorDate": "2026-03-27",
+      "mode": "fresh",
+      "direction": "neutral",
+      "confidence": "low",
+      "macroSupport": "bearish",
+      "sectorSupport": "bearish",
+      "eventRisk": "low",
+      "q1": "价格 2937 低于 MA20 2975.2 但仍高于 MA60 2835.4；macro.DXY +0.67%、macro.US10Y +1.14% 偏强压制商品，macro.SC0 -4.24% 显示商品需求弱；sect.r5 -1.35%、sect.br 0.20 板块普跌；evt.fomc 为已核实过去事件，nxt.china_pmi 为 7 日内未核实日程。多空信号冲突（MA60 中期向上 vs 宏观/板块短期向下），abstain 原因：conflict_unresolved。",
+      "q2": "脉冲为主：chg5 -3.04% 是短期下冲，量比 0.98，未破坏 MA60 上行的中期结构。",
+      "q3": "多头赔率被 macro.DXY 走强与 sect.r5 为负压制；空头赔率被 c>MA60 与 sect.r20 +2.28% 支撑；多空赔率均不占优。",
+      "q4": "若价格重新站上 MA20 2975.2 且 sect.br 回升至 0.5 以上，则确认多头；若跌破 MA60 2835.4，则确认空头。",
+      "q5": "若收盘跌破 MA60 2835.4 且 macro.DXY 继续高于 100.5，则本中性判断失效并转空。",
+      "q6": "中性观望无持仓风险；若强行追空需承担 DXY 回落与 MA60 支撑带来的反弹风险。",
+      "evidenceRefs": [
+        "macro.DXY",
+        "macro.SC0",
+        "sect.r5",
+        "sect.br"
+      ],
+      "opposingRefs": [
+        "sect.r20"
+      ],
+      "invalidateIf": "收盘价跌破 MA60 2835.4 且 macro.DXY 继续高于 100.5"
+    },
+    {
+      "anchorDate": "2026-04-03",
+      "mode": "fresh",
+      "direction": "neutral",
+      "confidence": "low",
+      "macroSupport": "neutral",
+      "sectorSupport": "bearish",
+      "eventRisk": "medium",
+      "q1": "价格 2949 仍在 MA20 2994.8 之下、MA60 2848.9 之上；macro.US10Y -2.03%、macro.DR007 -6.25% 转为宽松，macro.USDCNH -0.47% 人民币偏强，但 macro.SC0 -2.54% 继续走弱；sect.r5 -1.66%、sect.r20 -1.50% 板块偏弱；nxt.wasde 与 nxt.mpob 为 7 日内未核实日程。宽松宏观与弱势板块互斥，abstain 原因：conflict_unresolved。",
+      "q2": "脉冲：chg5 +0.41% 属弱反弹，量比 0.72 不支持趋势。",
+      "q3": "多头赔率靠 macro.US10Y/macro.DR007 回落与 macro.USDCNH 偏强；空头赔率靠 macro.SC0 -2.54% 与 sect.r5/sect.r20 为负；两侧均缺合力。",
+      "q4": "若放量站上 MA20 2994.8 且 sect.r5 转正，则确认反弹；若跌破 MA60 2848.9 且 macro.SC0 续弱，则确认下行。",
+      "q5": "若收盘跌破 MA60 2848.9，或站上 MA20 但量比仍低于 0.8，则中性结论失效并重判。",
+      "q6": "观望风险低；主要风险是 nxt.wasde/nxt.mpob 日程预期未核实，可能引发跳空。",
+      "evidenceRefs": [
+        "macro.SC0",
+        "sect.r5",
+        "nxt.wasde",
+        "nxt.mpob"
+      ],
+      "opposingRefs": [
+        "macro.US10Y",
+        "macro.USDCNH"
+      ],
+      "invalidateIf": "收盘价跌破 MA60 2848.9 或站上 MA20 2994.8 但量比低于 0.8"
+    },
+    {
+      "anchorDate": "2026-04-13",
+      "mode": "fresh",
+      "direction": "bullish",
+      "confidence": "medium",
+      "macroSupport": "conflict",
+      "sectorSupport": "bearish",
+      "eventRisk": "medium",
+      "q1": "价格 2980 重新站上 MA20 2976.5（price_ma20_cross），量比 1.20 放量；macro.DXY -1.58%、macro.USDCNH -0.81% 弱美元利好商品，但 macro.SC0 -8.86% 商品需求极弱；sect.r20 -4.80%、sect.br 0.20 板块弱势；nxt.china_lpr 为 7 日内未核实日程。价格/汇率偏多，商品/板块偏空。",
+      "q2": "趋势修复：MA20 收复且 MA60 2865.3 向上，chg5 +1.05%、量比 1.20，属于趋势重启而非脉冲。",
+      "q3": "多头赔率占优靠 MA20 收复与弱美元；但空头赔率有 macro.SC0 -8.86% 与 sect.r20 -4.80% 作为反面证据，置信度受限。",
+      "q4": "若次日不回补 2980 突破且收盘站稳 MA20 上方，同时 macro.USDCNH 不反弹超 0.5%，确认做多。",
+      "q5": "若收盘跌回 MA20 2976.5 下方，或 macro.SC0 单日再跌超 3%，则多头逻辑失效。",
+      "q6": "突破追多面临板块弱、SC0 崩塌的双重回抽风险，需轻仓。",
+      "evidenceRefs": [
+        "macro.DXY",
+        "macro.USDCNH"
+      ],
+      "opposingRefs": [
+        "macro.SC0",
+        "sect.r20"
+      ],
+      "invalidateIf": "收盘价跌破 MA20 2976.5"
+    },
+    {
+      "anchorDate": "2026-04-20",
+      "mode": "fresh",
+      "direction": "bullish",
+      "confidence": "medium",
+      "macroSupport": "bullish",
+      "sectorSupport": "bullish",
+      "eventRisk": "low",
+      "q1": "价格 2967 站上 MA20 2957.6 与 MA60 2882.6；macro.DXY -0.36%、macro.US10Y -0.93%、macro.DR007 -2.94% 金融条件转松；sect.r5 +1.75% 由负转正（sector_flip:r5），sect.br 0.60 改善；nxt 为空，无日程风险。",
+      "q2": "趋势延续：MA20>MA60 多头排列，chg5 -0.44% 属浅回踩。",
+      "q3": "多头赔率占优靠宏观转松与板块转正；反面证据是 macro.SC0 -6.02% 仍弱与 sect.r20 -1.89% 长期动量为负。",
+      "q4": "若回踩 MA20 2957.6 附近缩量企稳且 macro.DXY 不升破 98.5，则确认做多。",
+      "q5": "若收盘跌破 MA60 2882.6 或 macro.DXY 升破 98.5，则多头逻辑失效。",
+      "q6": "回调买点需承担 SC0 与板块长期动能未修复的拖累风险。",
+      "evidenceRefs": [
+        "macro.DXY",
+        "macro.US10Y",
+        "sect.r5",
+        "sect.br"
+      ],
+      "opposingRefs": [
+        "macro.SC0",
+        "sect.r20"
+      ],
+      "invalidateIf": "收盘价跌破 MA60 2882.6"
+    },
+    {
+      "anchorDate": "2026-04-27",
+      "mode": "fresh",
+      "direction": "bullish",
+      "confidence": "medium",
+      "macroSupport": "conflict",
+      "sectorSupport": "bullish",
+      "eventRisk": "high",
+      "q1": "价格 2993 高于 MA20 2966.9 与 MA60 2904.2；sect.r5 +1.03%、sect.co 0.88 板块确认；但 macro.US10Y +2.11%、macro.DR007 +2.29%、macro.DXY +0.43% 同步收紧，仅 macro.SC0 +5.68% 商品反弹；nxt.fomc 与 nxt.china_pmi 为 7 日内高影响日程（未核实）。方向偏多但事件风险高。",
+      "q2": "趋势延续：价格创阶段收盘新高，sect.co 0.88，属于趋势。",
+      "q3": "多头赔率靠板块确认与 macro.SC0 反弹；反面证据是 macro.US10Y/macro.DR007 快速上行与 macro.DXY 走强。",
+      "q4": "若回踩 MA20 2966.9 不破且 nxt.fomc 无鹰派意外，则确认做多。",
+      "q5": "若收盘跌破 MA60 2904.2，或 FOMC 后 macro.US10Y 站上 4.5%，则多头逻辑失效。",
+      "q6": "FOMC 与 PMI 双日程带来高事件风险，宜观望或极轻仓。",
+      "evidenceRefs": [
+        "sect.r5",
+        "sect.co",
+        "macro.SC0"
+      ],
+      "opposingRefs": [
+        "macro.US10Y",
+        "macro.DXY"
+      ],
+      "invalidateIf": "收盘价跌破 MA60 2904.2 或 macro.US10Y 站上 4.5%"
+    },
+    {
+      "anchorDate": "2026-05-07",
+      "mode": "fresh",
+      "direction": "neutral",
+      "confidence": "low",
+      "macroSupport": "neutral",
+      "sectorSupport": "neutral",
+      "eventRisk": "medium",
+      "q1": "价格 2988 与 MA20 2987 粘合，方向不明；macro.USDCNH -0.34% 偏多但 macro.SC0 -4.24% 偏空，macro.US10Y +0.23% 中性；sect.r5 +1.55% 与 sect.r20 +3.75% 偏多，但 sect.co 0.44 缺乏协同；evt.fomc（04-29）为未核实事件，nxt.china_cpi_ppi/nxt.mpob 为 7 日内未核实日程。信号冲突，abstain 原因：conflict_unresolved。",
+      "q2": "脉冲：chg5 -0.17%，量比 1.00，无趋势动能。",
+      "q3": "多头赔率靠 sect.r5/sect.r20 为正；空头赔率靠 macro.SC0 -4.24% 与 sect.co 0.44 的散乱结构。",
+      "q4": "若放量突破 3028 且 sect.co 升至 0.7 以上则确认多头；若跌破 MA60 2923.7 则确认空头。",
+      "q5": "若收盘站上 3028 或跌破 2923.7，则中性结论失效。",
+      "q6": "区间中部观望无持仓风险，主要风险是 nxt.china_cpi_ppi/nxt.mpob 日程未核实带来的跳空。",
+      "evidenceRefs": [
+        "macro.SC0",
+        "sect.r5",
+        "sect.co"
+      ],
+      "opposingRefs": [
+        "sect.r20",
+        "macro.USDCNH"
+      ],
+      "invalidateIf": "收盘价跌破 2923.7 或站上 3028"
+    },
+    {
+      "anchorDate": "2026-05-14",
+      "mode": "reused",
+      "reusedFrom": "2026-05-07",
+      "direction": "neutral",
+      "confidence": "low",
+      "macroSupport": "neutral",
+      "sectorSupport": "neutral",
+      "eventRisk": "medium",
+      "q1": "沿用 2026-05-07 的 FinCoT 结论；上下文未发生实质变化。",
+      "q2": "（继承）",
+      "q3": "（继承）",
+      "q4": "（继承）",
+      "q5": "（继承）",
+      "q6": "（继承）",
+      "evidenceRefs": [],
+      "opposingRefs": [],
+      "invalidateIf": "（继承）"
+    },
+    {
+      "anchorDate": "2026-05-21",
+      "mode": "fresh",
+      "direction": "bearish",
+      "confidence": "medium",
+      "macroSupport": "bearish",
+      "sectorSupport": "bearish",
+      "eventRisk": "low",
+      "q1": "价格 2993 跌破 MA20 3009.4（price_ma20_cross），MA60 2968.9 仍向上；macro.DXY +0.33%、macro.US10Y +2.24%、macro.DR007 +1.01% 收紧，macro.SC0 +5.69% 是唯一多头证据；sect.r5 -0.68%、sect.r1 -0.68%、sect.br 0.40 板块转弱；nxt 为空。偏空证据占优。",
+      "q2": "脉冲下破：chg5 -1.16% 跌破 MA20，但 MA60 趋势未破，定性为脉冲。",
+      "q3": "空头赔率占优靠 macro.DXY/macro.US10Y 上行与板块转弱；反面证据是 macro.SC0 +5.69% 与 MA60 2968.9 仍上行。",
+      "q4": "若反抽 MA20 3009.4 附近滞涨且量比 <1.0，则确认做空。",
+      "q5": "若收盘站回 MA20 3009.4 上方，或 macro.SC0 继续 +3% 以上，则空头逻辑失效。",
+      "q6": "逆 MA60 做空风险较高，需快进快出。",
+      "evidenceRefs": [
+        "macro.DXY",
+        "macro.US10Y",
+        "sect.r5"
+      ],
+      "opposingRefs": [
+        "macro.SC0"
+      ],
+      "invalidateIf": "收盘价站回 MA20 3009.4 上方"
+    },
+    {
+      "anchorDate": "2026-05-28",
+      "mode": "fresh",
+      "direction": "neutral",
+      "confidence": "low",
+      "macroSupport": "conflict",
+      "sectorSupport": "bullish",
+      "eventRisk": "medium",
+      "q1": "价格 2994 低于 MA20 3005.6 但高于 MA60 2982.6，ATR5 25.8 压缩；macro.US10Y -2.63% 转松但 macro.SC0 -8.73% 需求崩塌，macro.DXY -0.19% 中性；sect.r5 +0.59%、sect.br 0.80 板块偏多；nxt.china_pmi 为 7 日内未核实日程。多空证据对立，abstain 原因：conflict_unresolved。",
+      "q2": "脉冲：chg5 0.03%，波动压缩，无方向。",
+      "q3": "多头赔率靠 macro.US10Y 下行与 sect.br 0.8；空头赔率靠 macro.SC0 -8.73% 与 MA20 压力。",
+      "q4": "若放量站上 MA20 3005.6 且 macro.SC0 止跌，则确认多头；若跌破 MA60 2982.6 则确认空头。",
+      "q5": "若收盘跌破 MA60 2982.6 或站上 MA20 3005.6，则中性结论失效。",
+      "q6": "压缩区间突破前观望，风险是 nxt.china_pmi 日程未核实引发跳空。",
+      "evidenceRefs": [
+        "macro.SC0",
+        "macro.US10Y",
+        "sect.br"
+      ],
+      "opposingRefs": [
+        "sect.r5"
+      ],
+      "invalidateIf": "收盘价跌破 MA60 2982.6 或站上 MA20 3005.6"
+    },
+    {
+      "anchorDate": "2026-06-04",
+      "mode": "reused",
+      "reusedFrom": "2026-05-28",
+      "direction": "neutral",
+      "confidence": "low",
+      "macroSupport": "conflict",
+      "sectorSupport": "bullish",
+      "eventRisk": "medium",
+      "q1": "沿用 2026-05-28 的 FinCoT 结论；上下文未发生实质变化。",
+      "q2": "（继承）",
+      "q3": "（继承）",
+      "q4": "（继承）",
+      "q5": "（继承）",
+      "q6": "（继承）",
+      "evidenceRefs": [],
+      "opposingRefs": [],
+      "invalidateIf": "（继承）"
+    },
+    {
+      "anchorDate": "2026-06-11",
+      "mode": "fresh",
+      "direction": "bearish",
+      "confidence": "medium",
+      "macroSupport": "bearish",
+      "sectorSupport": "neutral",
+      "eventRisk": "high",
+      "q1": "价格 2939 位于 MA20 2968.5 与 MA60 2982.3 之下；macro.DXY +0.27%、macro.DR007 +6.89% 收紧，macro.SC0 -3.56% 商品续弱，仅 macro.USDCNH -0.20% 偏多；sect.r1 +0.44% 与 sect.r5 -0.65% 冲突；nxt.fomc（06-17）为 7 日内高影响已排期事件。空头证据为主，但 FOMC 压制执行力。",
+      "q2": "趋势转弱：价格连续低于双均线，chg5 -0.14%，属阴跌而非脉冲。",
+      "q3": "空头赔率占优靠 macro.DXY/macro.DR007 上行与 macro.SC0 续弱；反面证据是 macro.USDCNH 走强与 sect.r1 正收益。",
+      "q4": "若反抽 MA20 2968.5 失败且 FOMC 前不出现鸽派定价，则确认做空；否则跳过。",
+      "q5": "若收盘站回 MA20 2968.5 上方，则空头逻辑失效。",
+      "q6": "FOMC 高影响事件前执行风险极高，选择 skip。",
+      "evidenceRefs": [
+        "macro.DXY",
+        "macro.DR007",
+        "macro.SC0"
+      ],
+      "opposingRefs": [
+        "macro.USDCNH",
+        "sect.r1"
+      ],
+      "invalidateIf": "收盘价站回 MA20 2968.5 上方"
+    },
+    {
+      "anchorDate": "2026-06-18",
+      "mode": "fresh",
+      "direction": "bearish",
+      "confidence": "medium",
+      "macroSupport": "bearish",
+      "sectorSupport": "neutral",
+      "eventRisk": "medium",
+      "q1": "价格 2942 低于 MA20 2953.8 与 MA60 2973.6；macro.DXY +1.10% 强美元、macro.SC0 -12.64% 商品崩跌、macro.USDCNH +0.21% 人民币转弱；sect.br 0.60 但 sect.r5 -0.50% 偏弱，sect.r20 +0.16% 中性；evt.fomc（06-17）已核实为过去事件，nxt.china_lpr 为 7 日内未核实日程。空头证据占优。",
+      "q2": "趋势：FOMC 后价格维持双均线下方，macro.SC0 崩跌，方向性下移。",
+      "q3": "空头赔率占优靠 macro.DXY 与 macro.SC0；反面证据是 sect.br 0.60 与 sect.r20 +0.16% 板块并未全面转空。",
+      "q4": "若反抽 MA20 2953.8 滞涨且 macro.SC0 不反弹超 2%，则确认做空。",
+      "q5": "若收盘站回 MA20 2953.8 上方或 macro.SC0 单日反弹超 3%，则空头逻辑失效。",
+      "q6": "强美元下顺趋势做空，但需防板块韧性导致的反抽。",
+      "evidenceRefs": [
+        "macro.DXY",
+        "macro.SC0"
+      ],
+      "opposingRefs": [
+        "sect.br",
+        "sect.r20"
+      ],
+      "invalidateIf": "收盘价站回 MA20 2953.8 上方"
+    },
+    {
+      "anchorDate": "2026-06-26",
+      "mode": "fresh",
+      "direction": "neutral",
+      "confidence": "medium",
+      "macroSupport": "conflict",
+      "sectorSupport": "neutral",
+      "eventRisk": "medium",
+      "q1": "价格 2974 重新站上 MA20 2947.1 与 MA60 2973.2（price_ma20_cross），但 macro.DXY +0.60% 强美元、macro.SC0 -8.12% 商品弱，macro.US10Y -1.79% 偏松；sect.r1 +0.79% 但 sect.r5 +0.08% 几乎为零，sect.br 0.40；nxt.china_pmi 为 7 日内未核实日程。信号冲突，abstain 原因：conflict_unresolved。",
+      "q2": "脉冲：chg5 +1.09% 为修复性反弹，量比 1.24，但宏观未共振。",
+      "q3": "多头赔率靠 MA 收复与 macro.US10Y 下行；空头赔率靠 macro.DXY 101.36 与 macro.SC0 -8.12%；赔率对等。",
+      "q4": "若回踩 MA20 2947.1 站稳且 macro.DXY 跌破 101，则确认多头；若再度跌破 2947.1 则确认空头。",
+      "q5": "若收盘跌破 2947.1 或站上 3005，则中性结论失效。",
+      "q6": "PMI 前无方向，观望；风险为 macro.DXY 维持 101 以上压制反弹。",
+      "evidenceRefs": [
+        "macro.DXY",
+        "macro.SC0"
+      ],
+      "opposingRefs": [
+        "macro.US10Y"
+      ],
+      "invalidateIf": "收盘价跌破 2947.1 或站上 3005"
+    },
+    {
+      "anchorDate": "2026-07-03",
+      "mode": "fresh",
+      "direction": "neutral",
+      "confidence": "low",
+      "macroSupport": "conflict",
+      "sectorSupport": "neutral",
+      "eventRisk": "medium",
+      "q1": "价格 2962 位于 MA20 2944 之上、MA60 2976.1 之下；macro.DXY -0.48% 偏多，但 macro.US10Y +2.05%、macro.SC0 -5.54% 偏空，macro.DR007 -5.63% 流动性转松；sect.br 0.20 极弱，sect.r5 +0.45% 中性；nxt.china_cpi_ppi 与 nxt.wasde 为 7 日内未核实日程。多空互斥，abstain 原因：conflict_unresolved。",
+      "q2": "脉冲：chg5 -0.40%，量比 0.82，夹在双均线之间。",
+      "q3": "多头赔率靠 macro.DXY 回落与 macro.DR007 宽松；空头赔率靠 macro.US10Y 上行与 macro.SC0 续弱；均无合力。",
+      "q4": "若站上 MA60 2976.1 且量比 >1.0，则确认多头；若跌破 MA20 2944 则确认空头。",
+      "q5": "若收盘站上 2976.1 或跌破 2944，则中性结论失效。",
+      "q6": "事件周前观望，主要风险为 nxt.china_cpi_ppi/nxt.wasde 未核实数据引发跳空。",
+      "evidenceRefs": [
+        "macro.US10Y",
+        "macro.SC0",
+        "sect.br"
+      ],
+      "opposingRefs": [
+        "macro.DXY",
+        "macro.DR007"
+      ],
+      "invalidateIf": "收盘价跌破 2944 或站上 2976.1"
+    },
+    {
+      "anchorDate": "2026-07-10",
+      "mode": "fresh",
+      "direction": "bullish",
+      "confidence": "high",
+      "macroSupport": "neutral",
+      "sectorSupport": "bullish",
+      "eventRisk": "low",
+      "q1": "价格 3049 放量突破 MA20 2976.4 与 MA60 2982.3，chg5 +2.94%；macro.SC0 +6.78% 商品反弹，但 macro.US10Y +1.56% 偏空，macro.DXY +0.09% 中性；sect.r5 +0.68%、sect.co 0.69，sect.lead 显示 M0 领涨；evt.china_cpi_ppi/evt.wasde/evt.mpob 均为已核实过去事件，nxt 为空。多头证据占优。",
+      "q2": "趋势：突破 3000 平台，板块确认，属于趋势启动而非脉冲。",
+      "q3": "多头赔率占优靠价格突破、板块确认与 macro.SC0 反弹；反面证据是 macro.US10Y +1.56% 上行。",
+      "q4": "若回踩 3000 平台不破且 macro.DXY 不升破 101.5，则确认做多。",
+      "q5": "若收盘跌破 MA60 2982.3，则多头逻辑失效。",
+      "q6": "高置信趋势多，但 macro.US10Y 上行限制空间，需防利率压制。",
+      "evidenceRefs": [
+        "sect.r5",
+        "sect.co",
+        "macro.SC0",
+        "evt.mpob"
+      ],
+      "opposingRefs": [
+        "macro.US10Y"
+      ],
+      "invalidateIf": "收盘价跌破 MA60 2982.3"
+    },
+    {
+      "anchorDate": "2026-07-17",
+      "mode": "fresh",
+      "direction": "bullish",
+      "confidence": "medium",
+      "macroSupport": "bullish",
+      "sectorSupport": "bearish",
+      "eventRisk": "medium",
+      "q1": "价格 3061 沿 MA20 3004.8 上行；macro.DXY -0.20%、macro.SC0 +8.34% 商品强、macro.US10Y -0.22% 偏松；但 sect.r5 -1.91%、sect.br 0.20 板块急剧转弱（sector_flip:r5）；nxt.china_lpr 为 7 日内未核实日程。宏观/价格偏多，板块偏空。",
+      "q2": "趋势延续：MA20/MA60 多头排列，chg5 +0.39%。",
+      "q3": "多头赔率靠宏观与价格趋势；反面证据是 sect.r5 -1.91% 与 sect.br 0.20 的板块背离。",
+      "q4": "若回踩 MA20 3004.8 企稳且 sect.br 回升至 0.5 以上，则确认做多。",
+      "q5": "若收盘跌破 MA60 2989.3 或 sect.r5 继续下行，则多头逻辑失效。",
+      "q6": "板块背离下追多风险高，宜等回踩确认。",
+      "evidenceRefs": [
+        "macro.DXY",
+        "macro.SC0"
+      ],
+      "opposingRefs": [
+        "sect.r5",
+        "sect.br"
+      ],
+      "invalidateIf": "收盘价跌破 MA60 2989.3"
+    },
+    {
+      "anchorDate": "2026-07-24",
+      "mode": "fresh",
+      "direction": "bullish",
+      "confidence": "medium",
+      "macroSupport": "conflict",
+      "sectorSupport": "bullish",
+      "eventRisk": "high",
+      "q1": "价格 3225 大幅突破（chg5 +5.36%），MA20/MA60 多头发散；sect.r5 +1.12%、sect.br 0.80 板块确认，sect.lead 显示 M0 领涨；但 macro.DXY +0.70%、macro.US10Y +3.08% 同步收紧，仅 macro.SC0 +15.46% 商品暴涨支撑；nxt.fomc 与 nxt.china_pmi 为 7 日内高影响已排期事件。方向偏多但风险高。",
+      "q2": "趋势：加速突破，量价与板块共振，趋势性强。",
+      "q3": "多头赔率靠趋势与板块；反面证据是 macro.DXY/macro.US10Y 快速上行与高影响日程。",
+      "q4": "若回踩 3150 不破且 nxt.fomc 无鹰派意外，则确认做多；否则观望。",
+      "q5": "若收盘跌破 3060（突破平台），则多头逻辑失效。",
+      "q6": "FOMC/PMI 前追高风险极高，选择 watch。",
+      "evidenceRefs": [
+        "sect.r5",
+        "sect.br",
+        "macro.SC0"
+      ],
+      "opposingRefs": [
+        "macro.DXY",
+        "macro.US10Y",
+        "nxt.fomc"
+      ],
+      "invalidateIf": "收盘价跌破 3060"
+    },
+    {
+      "anchorDate": "2026-07-31",
+      "mode": "fresh",
+      "direction": "bearish",
+      "confidence": "medium",
+      "macroSupport": "conflict",
+      "sectorSupport": "bearish",
+      "eventRisk": "low",
+      "q1": "价格 3071 跌破 MA20 3092.9（price_ma20_cross），chg5 -4.78% 急跌；sect.r5 -2.15%、sect.r20 -2.28%、sect.br 0 全面转空；macro.DXY -1.65% 弱美元偏多，但 macro.US10Y +1.28%、macro.DR007 +3.57%、macro.SC0 -7.35% 偏空；evt.fomc/evt.china_pmi 已核实过去，nxt 为空。空头证据占优但宏观存冲突。",
+      "q2": "脉冲反转：chg5 -4.78% 急跌，量比 0.53，属获利了结式脉冲。",
+      "q3": "空头赔率占优靠板块广度归零与价格破位；反面证据是 macro.DXY -1.65% 弱美元。",
+      "q4": "若反抽 MA20 3092.9 滞涨且 sect.br 维持 0.2 以下，则确认做空。",
+      "q5": "若收盘站回 MA20 3092.9 上方，则空头逻辑失效。",
+      "q6": "逆弱美元做空需防美元反弹失败引发的商品反抽。",
+      "evidenceRefs": [
+        "sect.r5",
+        "sect.br",
+        "macro.US10Y"
+      ],
+      "opposingRefs": [
+        "macro.DXY"
+      ],
+      "invalidateIf": "收盘价站回 MA20 3092.9 上方"
+    },
+    {
+      "anchorDate": "2026-08-07",
+      "mode": "fresh",
+      "direction": "bullish",
+      "confidence": "medium",
+      "macroSupport": "bullish",
+      "sectorSupport": "bullish",
+      "eventRisk": "medium",
+      "q1": "价格 3154 重新站上 MA20 3112.4（price_ma20_cross），chg5 +2.70%；macro.DXY -0.19%、macro.US10Y -2.11%、macro.DR007 -4.83% 同步转松，macro.SC0 -2.69% 为唯一空头证据；sect.r5 +1.77%、sect.br 0.80 板块转强（sector_flip:r5）；nxt.china_cpi_ppi/nxt.mpob 为 7 日内未核实日程。多头证据占优。",
+      "q2": "趋势修复：放量收复 MA20，sect.br 0.8，趋势性强。",
+      "q3": "多头赔率占优靠宏观转松与板块转强；反面证据是 macro.SC0 -2.69% 与 nxt 日程未核实。",
+      "q4": "若回踩 MA20 3112.4 不破且 macro.SC0 不续跌超 2%，则确认做多。",
+      "q5": "若收盘跌破 3095（MA20 下方缓冲），则多头逻辑失效。",
+      "q6": "CPI/MPOB 日程前追多风险中等，建议轻仓。",
+      "evidenceRefs": [
+        "macro.DXY",
+        "macro.US10Y",
+        "sect.r5",
+        "sect.br"
+      ],
+      "opposingRefs": [
+        "macro.SC0"
+      ],
+      "invalidateIf": "收盘价跌破 3095"
+    },
+    {
+      "anchorDate": "2026-08-14",
+      "mode": "fresh",
+      "direction": "bullish",
+      "confidence": "high",
+      "macroSupport": "neutral",
+      "sectorSupport": "bullish",
+      "eventRisk": "low",
+      "q1": "价格 3165 沿 MA20 3135.1 上行，MA60 3031.2 向上；sect.r5 +1.06%、sect.r20 +1.77%、sect.br 1.00 全板块普涨；macro.SC0 +4.67% 商品反弹，但 macro.US10Y +0.65% 偏空，macro.DXY +0.04% 中性；evt.china_cpi_ppi/evt.mpob/evt.wasde 均为过去未核实事件，nxt 为空。多头证据占优。",
+      "q2": "趋势延续：sect.br 1.0，均线多头发散，chg5 +0.35% 健康。",
+      "q3": "多头赔率占优靠板块广度与均线；反面证据是 macro.US10Y 上行。",
+      "q4": "若回踩 MA20 3135.1 附近企稳且 macro.DXY 不升破 100，则确认做多。",
+      "q5": "若收盘跌破 3090（MA20 下方缓冲），则多头逻辑失效。",
+      "q6": "高置信趋势多，风险是利率上行与前期急涨后的回撤。",
+      "evidenceRefs": [
+        "sect.r5",
+        "sect.r20",
+        "sect.br",
+        "macro.SC0"
+      ],
+      "opposingRefs": [
+        "macro.US10Y"
+      ],
+      "invalidateIf": "收盘价跌破 3090"
+    }
+  ]
+}

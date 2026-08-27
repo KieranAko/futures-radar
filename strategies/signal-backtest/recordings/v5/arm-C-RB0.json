@@ -1,0 +1,762 @@
+{
+  "arm": "C",
+  "symbol": "RB0",
+  "generatedAt": "2026-08-28T02:37:07+08:00",
+  "anchors": [
+    {
+      "date": "2026-03-27",
+      "direction": "neutral",
+      "confidence": "low",
+      "regime": "range",
+      "edge": null,
+      "triggerType": null,
+      "triggerAtrMult": null,
+      "stopAtrMult": null,
+      "targetR": null,
+      "maxHoldDays": null,
+      "pullbackLevel": null,
+      "invalidationLevel": null,
+      "qualityFlags": [],
+      "macroBias": "bearish",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "executionStatus": "watch",
+      "thesis": "宏观偏空与板块偏多冲突，价格窄幅震荡，无方向性交易机会。",
+      "driver": "macro.DXY 走强、macro.SC0 走弱与 sect.r20 强势相互矛盾。",
+      "rationale": "FinCoT 方向 neutral（conflict_unresolved），Q6 指出强行入场易被震荡止损，故仅观察。",
+      "invalidationReason": "c 站上 m20 且 sect.r5>0（转多）或 c 跌破 m60 且 DXY 创5日新高（转空）。",
+      "contextRefs": [
+        "macro.DXY",
+        "macro.SC0",
+        "sect.r20"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q6",
+        "macro.DXY"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-04-03",
+      "direction": "bearish",
+      "confidence": "low",
+      "regime": "range",
+      "edge": "range_fade",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3128.9,
+      "qualityFlags": [],
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "low",
+      "executionStatus": "watch",
+      "thesis": "板块转弱、价格失守 m20，但宏观流动性转松限制下行，低信心偏空观察。",
+      "driver": "sect.r5 转负与 c<m20 的价格回踩。",
+      "rationale": "FinCoT Q4 要求跌破 m60 或无量反抽再确认；Q6 提示 m20/m60 间追空易被拉回，故 watch。",
+      "invalidationReason": "c 收盘重新站上 m20 3128.9 且 sect.r5 转正。",
+      "contextRefs": [
+        "sect.r5",
+        "sect.lag",
+        "macro.US10Y"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "sect.r5"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-04-13",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3112,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "low",
+      "executionStatus": "watch",
+      "thesis": "价格与板块同步走弱，SC0 暴跌拖累商品，但美元走弱构成反抽风险。",
+      "driver": "c<m60<m20 空头排列初期与 sect.r20 转弱。",
+      "rationale": "FinCoT Q4 等待反弹至 m60 滞涨或跌破 3080 确认；Q6 提示美元走弱与 LPR 预期带来反弹风险，暂 watch。",
+      "invalidationReason": "c 收盘站上 m60 3112 且 macro.SC0 5日涨幅转正。",
+      "contextRefs": [
+        "sect.r20",
+        "macro.SC0",
+        "macro.DXY"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "macro.SC0"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-04-20",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "breakout",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3120,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "executionStatus": "executable",
+      "thesis": "放量站上双均线且板块一致上行，突破信号成立，回踩不破 m20 做多。",
+      "driver": "c 3172 放量突破 m20/m60，sect.r5 +5.27%、sect.co 1.0。",
+      "rationale": "FinCoT Q4 确认条件为 T+1 不跌回 m20 且量能维持；Q6 风险为 SC0 拖累，以 m20 为防线。",
+      "invalidationReason": "c 收盘跌破 m20 3122.6 或 sect.r5 转负。",
+      "contextRefs": [
+        "sect.r5",
+        "sect.co",
+        "macro.US10Y",
+        "macro.DR007"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "sect.r5"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-04-27",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3135,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "bearish",
+      "sectorBias": "bullish",
+      "eventRisk": "high",
+      "executionStatus": "watch",
+      "thesis": "趋势延续但流动性边际收紧且 FOMC/PMI 临近，多头等事件落地。",
+      "driver": "c>m20>m60 多头排列与 sect.br 0.8 板块广度。",
+      "rationale": "FinCoT Q6 指出事件前波动风险，Q4 要求 FOMC 后不破 m20；故 watch。",
+      "invalidationReason": "c 收盘跌破 m20 3134.7 或 macro.DR007 5日涨幅>+5%。",
+      "contextRefs": [
+        "sect.r5",
+        "sect.br",
+        "macro.US10Y",
+        "macro.DR007",
+        "nxt.fomc"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "macro.DR007"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-05-07",
+      "direction": "bullish",
+      "confidence": "high",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3200,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "bearish",
+      "sectorBias": "bullish",
+      "eventRisk": "medium",
+      "executionStatus": "executable",
+      "thesis": "多头排列且 RB0 领涨板块，趋势延续，回踩确认后做多。",
+      "driver": "sect.lead 中 RB0 +2.6、sect.r20 +6.11% 与 c 3273 创新高。",
+      "rationale": "FinCoT Q4 回踩 3230-3240 不破或突破 3300 确认；Q6 提示 SC0 拖累与 CPI 预期，避免追高。",
+      "invalidationReason": "c 收盘跌破 m20 3160.3 或 sect.r5 转负。",
+      "contextRefs": [
+        "sect.r20",
+        "sect.lead",
+        "macro.SC0"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "sect.r20"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-05-14",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "pullback",
+      "triggerType": "pullback",
+      "triggerAtrMult": null,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": 3220,
+      "invalidationLevel": 3189,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "low",
+      "executionStatus": "watch",
+      "thesis": "中期上行未破坏，但板块短期转弱，等回踩企稳。",
+      "driver": "c>m20>m60 且 macro.DR007 转松支撑下方。",
+      "rationale": "FinCoT Q4 等回踩 m20 3199.8-3215 企稳且 sect.r5 回升；Q6 提示板块走弱未确认，暂 watch。",
+      "invalidationReason": "c 收盘跌破 m20 3199.8 或 sect.r5 连续2锚点为负。",
+      "contextRefs": [
+        "sect.r5",
+        "macro.DR007",
+        "macro.US10Y"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "sect.r5"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-05-21",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "transition",
+      "edge": "breakout",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3218,
+      "qualityFlags": [],
+      "macroBias": "bearish",
+      "sectorBias": "bearish",
+      "eventRisk": "low",
+      "executionStatus": "executable",
+      "thesis": "价格下破 m20、板块转弱、利率上行，空头信号成立。",
+      "driver": "c<m20 的 price_ma20_cross 与 sect.r5/r20 转弱。",
+      "rationale": "FinCoT Q4 反抽 m20 滞涨或跌破 m60 确认；Q6 风险为 SC0 反弹，止损置于 m20 上方。",
+      "invalidationReason": "c 收盘站上 m20 3218.4 或 macro.SC0 5日涨幅>+5%。",
+      "contextRefs": [
+        "sect.r5",
+        "macro.DXY",
+        "macro.US10Y",
+        "macro.SC0"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "macro.US10Y"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-05-28",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3155,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "conflict",
+      "sectorBias": "bullish",
+      "eventRisk": "medium",
+      "executionStatus": "watch",
+      "thesis": "空头排列与 SC0 暴跌主导，但板块反弹构成挤压风险，等反抽确认。",
+      "driver": "c<m60<m20 空头排列与 macro.SC0 -8.73%。",
+      "rationale": "FinCoT Q4 等反抽 m60 滞涨或跌破 3120；Q6 提示板块反弹与 PMI 预期，追空宜慎，暂 watch。",
+      "invalidationReason": "c 收盘站上 m60 3155 且 sect.r5 为正。",
+      "contextRefs": [
+        "macro.SC0",
+        "sect.r5",
+        "macro.US10Y",
+        "nxt.china_pmi"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "macro.SC0"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-06-04",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3163,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "conflict",
+      "sectorBias": "bullish",
+      "eventRisk": "medium",
+      "executionStatus": "watch",
+      "thesis": "沿用 05-28 空头结论：价格仍受 m20/m60 压制，等反抽确认。",
+      "driver": "c 3157 仍在 m20 3199.2/m60 3162.8 下方。",
+      "rationale": "FinCoT 复用 05-28：Q4 反抽 m60 滞涨或破位确认；宏观/板块无实质变化，继续 watch。",
+      "invalidationReason": "c 收盘站上 m60 3162.8 且 sect.r5 为正。",
+      "contextRefs": [
+        "macro.SC0",
+        "sect.r5"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "macro.SC0"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-06-11",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3174,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "bearish",
+      "sectorBias": "bearish",
+      "eventRisk": "high",
+      "executionStatus": "watch",
+      "thesis": "流动性收紧与板块广度极弱，空头格局延续，但 FOMC 前观望。",
+      "driver": "macro.DR007 +6.89%、sect.br 0.2 与 c<m20/m60。",
+      "rationale": "FinCoT Q6 要求 FOMC 落地后按 Q4 执行；事件前 watch。",
+      "invalidationReason": "c 收盘站上 m20 3174.1 或 macro.DR007 5日涨幅转负。",
+      "contextRefs": [
+        "macro.DR007",
+        "macro.SC0",
+        "sect.br",
+        "nxt.fomc"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "macro.DR007"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-06-18",
+      "direction": "bearish",
+      "confidence": "high",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3165,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "bearish",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "executionStatus": "executable",
+      "thesis": "美元强、商品弱、板块弱三重共振，空头趋势延续。",
+      "driver": "macro.DXY 升破 100.79、macro.SC0 -12.64%、sect.r5 -1.02%。",
+      "rationale": "FinCoT Q4 反抽 m20 滞涨或跌破 3100 确认；Q6 止损置于 m20 上方。",
+      "invalidationReason": "c 收盘站上 m20 3164.8 且 macro.DXY 回落至 100 下方。",
+      "contextRefs": [
+        "macro.DXY",
+        "macro.SC0",
+        "sect.r5",
+        "evt.fomc"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "macro.DXY"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-06-26",
+      "direction": "bearish",
+      "confidence": "high",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3151,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "bearish",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "executionStatus": "executable",
+      "thesis": "沿用 06-18 空头结论：c 3093 继续受 m20/m60 压制，趋势下行。",
+      "driver": "c<m20(3150.8)<m60(3166.2) 空头排列。",
+      "rationale": "FinCoT 复用 06-18：Q4 反抽 m20 滞涨或破位确认；方向与风险结论不变。",
+      "invalidationReason": "c 收盘站上 m20 3150.8 且 macro.DXY 回落至 100 下方。",
+      "contextRefs": [
+        "macro.DXY",
+        "sect.r5"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "macro.DXY"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-07-03",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3128,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "executionStatus": "watch",
+      "thesis": "中期空头趋势未变，但美元转弱与资金面宽松增加反抽风险。",
+      "driver": "c<m20<m60、sect.r20 -3.83% 与 macro.SC0 续弱。",
+      "rationale": "FinCoT Q4 等反抽 m20 滞涨或破 3040；Q6 提示美元转弱与 CPI 事件，暂 watch。",
+      "invalidationReason": "c 收盘站上 m20 3127.7 且 macro.SC0 5日涨幅转正。",
+      "contextRefs": [
+        "sect.r20",
+        "macro.SC0",
+        "macro.DXY",
+        "macro.DR007"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "macro.SC0"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-07-10",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3108,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "executionStatus": "watch",
+      "thesis": "沿用 07-03 空头结论：c 3087 仍位于 m20/m60 下方。",
+      "driver": "c<m20(3107.7)<m60(3160.6)。",
+      "rationale": "FinCoT 复用 07-03：Q4 反抽 m20 滞涨或破位确认；宏观/板块无实质变化。",
+      "invalidationReason": "c 收盘站上 m20 3107.7 且 macro.SC0 5日涨幅转正。",
+      "contextRefs": [
+        "macro.SC0",
+        "sect.r20"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "macro.SC0"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-07-17",
+      "direction": "neutral",
+      "confidence": "low",
+      "regime": "transition",
+      "edge": null,
+      "triggerType": null,
+      "triggerAtrMult": null,
+      "stopAtrMult": null,
+      "targetR": null,
+      "maxHoldDays": null,
+      "pullbackLevel": null,
+      "invalidationLevel": null,
+      "qualityFlags": [],
+      "macroBias": "bullish",
+      "sectorBias": "neutral",
+      "eventRisk": "medium",
+      "executionStatus": "watch",
+      "thesis": "价格上穿 m20 但受 m60 压制且板块 coherence 缺失，方向冲突，观望。",
+      "driver": "c 上穿 m20 与 macro.SC0 反弹，但 sect.co null、DR007 收紧。",
+      "rationale": "FinCoT neutral（conflict_unresolved），Q6 指出方向不明，等待 Q4 突破/跌破信号。",
+      "invalidationReason": "c 收盘站上 m60 3158.1（转多）或跌破 m20 3091 且 SC0 转弱（转空）。",
+      "contextRefs": [
+        "macro.SC0",
+        "macro.DR007",
+        "sect.co"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q6",
+        "macro.SC0"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-07-24",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "range",
+      "edge": "range_fade",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3086,
+      "qualityFlags": [],
+      "macroBias": "conflict",
+      "sectorBias": "neutral",
+      "eventRisk": "high",
+      "executionStatus": "watch",
+      "thesis": "利率与美元走强、价格再失 m20，但 SC0 暴涨与双事件压制做空性价比。",
+      "driver": "macro.US10Y +3.08%、macro.DXY +0.70% 与 c<m20。",
+      "rationale": "FinCoT Q6 指出 FOMC+PMI 与 SC0 暴涨风险，Q4 等事件落地后确认，watch。",
+      "invalidationReason": "c 收盘站上 m20 3085.7 且 macro.SC0 5日涨幅>+10%。",
+      "contextRefs": [
+        "macro.US10Y",
+        "macro.DXY",
+        "macro.SC0",
+        "nxt.fomc"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "macro.US10Y"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-07-31",
+      "direction": "bearish",
+      "confidence": "high",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.8,
+      "stopAtrMult": 2.0,
+      "targetR": 2,
+      "maxHoldDays": 5,
+      "pullbackLevel": null,
+      "invalidationLevel": 3062,
+      "qualityFlags": [
+        "trend_aligned"
+      ],
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "executionStatus": "executable",
+      "thesis": "价格破位创阶段新低，板块全面转弱，空头趋势加速。",
+      "driver": "c 3004 破前低、sect.r5 -2.95%、sect.br 0.2。",
+      "rationale": "FinCoT Q4 反抽 3030-3040 滞涨或跌破 2980 确认；Q6 止损置于 m20 上方。",
+      "invalidationReason": "c 收盘站上 m20 3077.7 或 macro.DXY 5日跌幅> -1.5%。",
+      "contextRefs": [
+        "sect.r5",
+        "sect.br",
+        "evt.fomc",
+        "evt.china_pmi"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "sect.r5"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-08-07",
+      "direction": "neutral",
+      "confidence": "low",
+      "regime": "transition",
+      "edge": null,
+      "triggerType": null,
+      "triggerAtrMult": null,
+      "stopAtrMult": null,
+      "targetR": null,
+      "maxHoldDays": null,
+      "pullbackLevel": null,
+      "invalidationLevel": null,
+      "qualityFlags": [],
+      "macroBias": "bullish",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "executionStatus": "watch",
+      "thesis": "宏观与板块转多但价格仍受均线压制，冲突未解，观望。",
+      "driver": "macro.US10Y/DR007 转松、sect.r5 转正，但 c 仍位于 m20/m60 下方。",
+      "rationale": "FinCoT neutral（conflict_unresolved），Q6 提示抢跑易被均线压制扫损，等 Q4 确认。",
+      "invalidationReason": "c 收盘站上 m20 3055.5（转多）或跌破 2980 且 SC0 5日涨幅为负（转空）。",
+      "contextRefs": [
+        "macro.US10Y",
+        "macro.DR007",
+        "sect.r5",
+        "sect.lag"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q6",
+        "sect.r5"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    },
+    {
+      "date": "2026-08-14",
+      "direction": "neutral",
+      "confidence": "low",
+      "regime": "transition",
+      "edge": null,
+      "triggerType": null,
+      "triggerAtrMult": null,
+      "stopAtrMult": null,
+      "targetR": null,
+      "maxHoldDays": null,
+      "pullbackLevel": null,
+      "invalidationLevel": null,
+      "qualityFlags": [],
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "executionStatus": "watch",
+      "thesis": "板块与商品端回暖但价格未突破 m20，筑底震荡，观望。",
+      "driver": "sect.r5/r20 为正、macro.SC0 反弹，但 c 仍低于 m20/m60。",
+      "rationale": "FinCoT neutral（conflict_unresolved），Q6 提示等待突破或跌破信号。",
+      "invalidationReason": "c 收盘站上 m20 3033.2（转多）或跌破 2980 且 sect.r5 转负（转空）。",
+      "contextRefs": [
+        "sect.r5",
+        "sect.r20",
+        "macro.SC0",
+        "macro.US10Y"
+      ],
+      "finCotAlignment": "aligned",
+      "finCotRefs": [
+        "q4",
+        "q6",
+        "sect.r5"
+      ],
+      "divergenceReason": "",
+      "counterEvidence": ""
+    }
+  ]
+}

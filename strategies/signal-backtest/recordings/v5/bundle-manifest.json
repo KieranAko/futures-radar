@@ -1,0 +1,22 @@
+{
+  "schema": "futures-radar-signal-bundle-manifest/1",
+  "generatedAt": "2026-08-27T18:15:24.327Z",
+  "anchorCount": 20,
+  "symbols": [
+    {
+      "symbol": "RB0",
+      "path": "bundle-RB0.json",
+      "rows": 20
+    },
+    {
+      "symbol": "M0",
+      "path": "bundle-M0.json",
+      "rows": 20
+    },
+    {
+      "symbol": "SC0",
+      "path": "bundle-SC0.json",
+      "rows": 20
+    }
+  ]
+}

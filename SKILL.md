@@ -1,7 +1,7 @@
 ---
 name: futures-radar
 description: 期货短期机会分析 + 离线模型回测——每日扫描~60个国内期货主力合约，波动率排名→Top 3深挖→4章短报告；research/backtest/ 支持 deterministic 与 LLM replay 回测
-version: 0.1.12
+version: 0.1.13
 ---
 
 # futures-radar
@@ -17,7 +17,7 @@ version: 0.1.12
 - **数据文件库**：`data/` + `data-store/`（每日行情/ledger/合约bars/宏观快照/板块序列，维护命令见 `data/README.md`）
 - **交易策略板块**：`node strategies/build-strategy-plan.cjs --runId <runId>` 生成 `strategy-plan.json`；报告渲染自动附「五、交易策略板块（执行参考）」章节（缺失时跳过，四章不变）。策略为方向增强/执行参考：不构成投资建议、无收益承诺、不使用新增持仓数据（见 `strategies/README.md`）
 - **证伪反馈机制**：`build-strategy-plan.cjs` 自动把 executable 计划冻结到 `data/strategy-feedback/ledger/`，并在下次运行用锚定合约序列验证 T+1 触发、止损/目标/时间离场并输出归因 codes；报告策略板块回显往期证伪结果
-- **信号质量回测**：固定 RB0/M0/SC0、2 年历史（500 交易日）+ 每 5 交易日 LLM 锚点，确定性规则延续生成信号，T+1 收盘确认/T+2 开盘执行/止损/目标/时间退出验证。v1/v2 基线（`runner.cjs` → `signal-quality-baseline.md/json`、`signal-quality-baseline-2y.md/json`）冻结保留；v3（`runner-v3.cjs` → `signal-quality-baseline-v3.md/json`）不做参数选优，改为证伪 LLM 定性判断（regime/edge/triggerType/qualityFlags/thesis），并与纯量化 MA20 对照臂比较；v4（`node strategies/signal-backtest/runner-v4.cjs` → `signal-quality-baseline-v4.md/json`）为最近 10 锚点×3 品种试点：宏观/板块/事件日历上下文 + 完整六问 FinCoT → 报告式操作策略 → 严格执行，三臂消融（纯价格 / +上下文 / +FinCoT）
+- **信号质量回测**：固定 RB0/M0/SC0、2 年历史（500 交易日）+ 每 5 交易日 LLM 锚点，确定性规则延续生成信号，T+1 收盘确认/T+2 开盘执行/止损/目标/时间退出验证。v1/v2 基线（`runner.cjs` → `signal-quality-baseline.md/json`、`signal-quality-baseline-2y.md/json`）冻结保留；v3（`runner-v3.cjs` → `signal-quality-baseline-v3.md/json`）不做参数选优，改为证伪 LLM 定性判断（regime/edge/triggerType/qualityFlags/thesis），并与纯量化 MA20 对照臂比较；v4（`runner-v4.cjs` → `signal-quality-baseline-v4.md/json`）为最近 10 锚点×3 品种试点：宏观/板块/事件日历上下文 + 完整六问 FinCoT → 报告式操作策略 → 严格执行；v5（`node strategies/signal-backtest/runner-v5.cjs` → `signal-quality-baseline-v5.md/json`）为 20 锚点×3 品种高效版：紧凑 bundle（每品种一个文件）+ 变化检测按需重跑 FinCoT + C 臂强制消费 FinCoT（finCotRefs/diverged 校验），三臂消融
 
 ## 触发条件
 

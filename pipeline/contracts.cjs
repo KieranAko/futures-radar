@@ -1,4 +1,4 @@
-// pipeline/contracts.cjs — futures-radar v0.1.12
+// pipeline/contracts.cjs — futures-radar v0.1.13
 // Single source of truth for artifact and stage declarations.
 // Shared by pipeline/run.cjs (orchestrator).
 //
