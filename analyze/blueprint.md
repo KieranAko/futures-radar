@@ -1,17 +1,18 @@
 # Analyze Blueprint — 6 问深度分析框架
 
-> Stage: 4 (after filter-llm) | Type: LLM manual | Output: `evidence-packets.json` + `reasoning-results.json` + `analysis.json`
+> Stage: 4 (after filter-llm) | Type: LLM manual | Output: `evidence-packets.json` + `sector-driver.json` + `reasoning-results.json` + `analysis.json`
 
 ## Input
 
 - `filtered.json` — ≤3 KEEP candidates with filter decisions
 - `raw.json` — full OHLCV data for detailed price analysis
+- `sector-snapshot.json` + `sector-driver-packets.json` — 板块观察值，用于板块驱动 LLM
 - akshare 具体月份合约报价 — 冻结时实时拉取，构造 `term_structure` 字段（`collector/futures-term-structure.py`）
 - WebSearch — industry news, policy events, external market moves (ONLY for Top 3)
 
-## 双层 Analyze 流程（FinCoT 增强）
+## 分层 Analyze 流程（板块驱动 LLM + FinCoT 增强）
 
-分析分两层：先冻结 evidence packet 并运行 FinCoT 产出结构化方向判断，再写六问把方向判断转成可读结论。
+分析分三层：先冻结 evidence packet；再做**板块级驱动归因**（只解释板块整体）；然后跑个股 FinCoT 并写六问。板块驱动结论与个股证据链严格隔离。
 
 ### 步骤 1（自动）：冻结 packet — `analyze/freeze-packets.mjs`
 
@@ -23,7 +24,27 @@ node analyze/freeze-packets.mjs --runId <runId>
 - 品种**串行**处理，品种间间隔 2s（配合 Python 内 0.5s/合约 pacing）；sina 456 限流由双层退避重试处理（Python 单合约 [20s, 60s] 阶梯 / Node 批量指数退避）
 - term_structure 拉取失败时字段标记 `gap: missing`，不影响 packet 可执行性（optional 字段）
 - 从冻结 `macro-snapshot.json`（Stage 1 产物）读取宏观锚点，注入 packet 顶层 `macro_context`（available/not_applicable/unavailable 三态；evidence 仅观察值，relation 不写入 packet）
-- 同时渲染 FinCoT prompts 到 `{runDir}/analyze/prompts/{symbol}-fincot.md`（仅 FinCoT 渲染宏观区块，SP/UST-CoT/ST-CoT 无泄漏）
+- 同时生成 `sector-driver-packets.json` 与 `analyze/prompts/sector-driver/{sector}.md`
+- 渲染 FinCoT prompts 到 `{runDir}/analyze/prompts/{symbol}-fincot.md`（仅 FinCoT 渲染宏观区块，SP/UST-CoT/ST-CoT 无泄漏；sector_driver_context 初始为 pending）
+
+### 步骤 1.5（LLM）：板块驱动归因
+
+读 `analyze/prompts/sector-driver/*.md`，按板块四分支蓝图输出 `analyze/outputs/sector-driver/{sector}.md`。
+
+纪律：
+- 板块驱动只解释板块整体，不得引用任何个股 Q1 结论。
+- 成员不足 3 个 → `abstain_insufficient`。
+- 找不到板块级 WebSearch 证据 → `unknown`，禁止编造。
+- `relation_to_individual` 固定为 `context_only`。
+
+### 步骤 1.6（自动）：板块驱动组装 — `analyze/assemble-sector-driver.cjs`
+
+```bash
+node analyze/assemble-sector-driver.cjs --runId <runId>
+```
+
+- 校验方向与观察值一致、analyzed 必须有板块级 evidence + invalidation、门禁状态合法。
+- 写 `sector-driver.json`，并用其重渲染个股 FinCoT prompts（`sector_driver_context` 为 LLM 结论，禁止进入 evidence_ids）。
 
 ### 步骤 2（LLM）：FinCoT 推理
 

@@ -284,8 +284,8 @@ const stages = [
     outputs: ['evidence-packets-json', 'reasoning-results-json', 'analysis-json'],
     validators: [],
     failurePolicy: 'hard_fail',
-    manualInstruction: 'LLM: read analyze/blueprint.md. Freeze evidence packets → run FinCoT via reasoning runner → parser+grounding → then write 6-question framework referencing evidence_ids/opposing_ids/invalidate_if. Use WebSearch for industry news/policy events. Do NOT fabricate drivers. Output: evidence-packets.json, reasoning-results.json, analysis.json.',
-    note: 'LLM: read analyze/blueprint.md. Freeze packets → FinCoT → 6Q framework. No driver fabrication.'
+    manualInstruction: 'LLM: read analyze/blueprint.md. Freeze evidence packets → complete sector-driver LLM (板块级归因，不混用个股Q1) → assemble-sector-driver → run FinCoT via reasoning runner → parser+grounding → then write 6-question framework referencing evidence_ids/opposing_ids/invalidate_if. Use WebSearch for industry news/policy events. Do NOT fabricate drivers. Output: evidence-packets.json, sector-driver.json, reasoning-results.json, analysis.json.',
+    note: 'LLM: read analyze/blueprint.md. Freeze packets → sector-driver → FinCoT → 6Q framework. No driver fabrication, no sector/individual evidence mixing.'
   },
 
   // ── Stage 4.5: Probability (Auto) ──

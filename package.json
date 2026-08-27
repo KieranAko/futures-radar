@@ -12,6 +12,7 @@
     "run": "node pipeline/run.cjs",
     "freeze": "node analyze/freeze-packets.mjs",
     "assemble": "node analyze/assemble-results.mjs",
+    "assemble:sector-driver": "node analyze/assemble-sector-driver.cjs",
     "prefill": "node analyze/prefill-analysis.cjs",
     "filter:quant": "node filter/quantitative-filter.cjs --shadow",
     "test": "node --test \"test/*.test.js\" \"reasoning/test/*.test.js\" \"research/experiments/test/*.test.js\" \"research/backtest/test/*.test.cjs\"",

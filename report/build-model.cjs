@@ -111,6 +111,7 @@ const reportModel = {
   rejected: reportFacts.rejected,
   macro: reportFacts.macro,
   sector: reportFacts.sector || null,
+  sectorDriver: reportFacts.sectorDriver || null,
   freshness: reportFacts.freshness || null,
   opportunities: []
 };
@@ -207,6 +208,7 @@ for (const opp of reportFacts.opportunities) {
     symbol: opp.symbol,
     name: opp.name,
     rank: opp.rank,
+    sector: opp.sector || null,
     marketFacts: opp.marketFacts,
     priceRanges: opp.priceRanges,
     screening: opp.screening,

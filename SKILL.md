@@ -103,12 +103,14 @@ LLM 读 `filter/blueprint.md` → 从 filtered-hard.json 中降权/保留/标记
 - 无明确驱动 → 降为"观望/不做"
 
 ### 阶段4: Analyze (manual)
-LLM 读 `analyze/blueprint.md` → 冻结 evidence packets → FinCoT 结构化结果 → 6 问框架 → 产出 `analysis.json`
-- 步骤 1（自动）：`analyze/freeze-packets.mjs` 冻结 `evidence-packets.json`——注入 term_structure（akshare 近/主/远月报价，品种串行 + 退避重试规避 sina 456），并从冻结 `macro-snapshot.json` 注入 packet 顶层 `macro_context`（三态 available/not_applicable/unavailable；evidence 仅观察值，relation 不写入 packet），从 `sector-snapshot.json` 注入 `fields.sector_movement`（板块方向/广度/领涨领跌，仅作确认证据），渲染 FinCoT prompts（仅 FinCoT 含宏观区块，SP/UST-CoT/ST-CoT 无泄漏）
+LLM 读 `analyze/blueprint.md` → 冻结 evidence packets → 板块驱动 LLM → FinCoT 结构化结果 → 6 问框架 → 产出 `analysis.json` + `sector-driver.json`
+- 步骤 1（自动）：`analyze/freeze-packets.mjs` 冻结 `evidence-packets.json`——注入 term_structure（akshare 近/主/远月报价，品种串行 + 退避重试规避 sina 456），并从冻结 `macro-snapshot.json` 注入 packet 顶层 `macro_context`（三态 available/not_applicable/unavailable；evidence 仅观察值，relation 不写入 packet），从 `sector-snapshot.json` 注入 `fields.sector_movement`（板块方向/广度/领涨领跌，仅作确认证据）；同时生成 `sector-driver-packets.json` 与 `analyze/prompts/sector-driver/*.md`
   - **单进程抓取（v0.1.3）**：主导合约 120 bar 历史随 term-structure 同一次 Python 调用附带返回（`futures-term-structure.py --contracts` 模式输出每合约 bars），免二次 spawn 重复下载同一合约全量历史；payload 缺失/异常回退原 `fetchContractHistory`。实测 packet 数值与旧路径完全一致（ma20/ma60/close_60d/series_contract 逐项相同）
-- 步骤 2（LLM）：读 prompts 输出推理文档到 `analyze/outputs/{symbol}-fincot.md`（macro_context 存在时按契约输出宏观三字段 `macro_support`/`macro_conflict`/`macro_evidence_ids`）
-- 步骤 3（自动）：`analyze/assemble-results.mjs` 执行 parser + grounding（evidence_ids/opposing_ids → fields；macro_evidence_ids → macro_context.evidence 独立域 fail-closed；不通过降级 pass/model_abstain）→ `reasoning-results.json`
-- 步骤 4（LLM）：六问 → `analysis.json`
+- 步骤 2（LLM，板块级）：读 `analyze/prompts/sector-driver/*.md` → 输出 `analyze/outputs/sector-driver/{sector}.md`。**板块驱动只解释板块整体，不得引用个股 Q1，不得输出个股方向**；成员不足 3 个必须 abstain
+- 步骤 3（自动）：`analyze/assemble-sector-driver.cjs` 校验方向/证据/门禁 → 写 `sector-driver.json`，并以 `sector_driver_context` 重渲染个股 FinCoT prompts（该区块是 LLM 结论，禁止写入 evidence_ids）
+- 步骤 4（LLM）：读 prompts 输出推理文档到 `analyze/outputs/{symbol}-fincot.md`（macro_context 存在时按契约输出宏观三字段 `macro_support`/`macro_conflict`/`macro_evidence_ids`）
+- 步骤 5（自动）：`analyze/assemble-results.mjs` 执行 parser + grounding（evidence_ids/opposing_ids → fields；macro_evidence_ids → macro_context.evidence 独立域 fail-closed；不通过降级 pass/model_abstain）→ `reasoning-results.json`
+- 步骤 6（LLM）：六问 → `analysis.json`
 - **FinCoT 是 Analyze 增强组件**（推理先行，不替代六问）
 - 四臂（sp/ust-cot/st-cot/fincot）仅用于离线回测研究对照；日常 Analyze 只走 fincot 臂
 - 基差/库存/会员持仓仅此阶段通过 mx-data/WebSearch 获取
@@ -125,6 +127,7 @@ LLM 读 `analyze/blueprint.md` → 冻结 evidence packets → FinCoT 结构化�
 - Symbol join 验证 + runId 一致性门禁
 - 数值字段溯源追踪（provenance）
 - 宏观段：`macro-snapshot.json` 原样透传（不重算）+ 传导路由 relevance + 展示层 display map
+- 板块段：`sector-snapshot.json` 观察值 + `sector-driver.json` LLM 结论分别透传；驱动线索只来自 sector-driver，不混用个股 Q1
 - 快照缺失/runId 不一致 → `macro.available=false`，不阻断报告
 
 **5B**: 运行 `report/build-model.cjs` → 分析集成 + 论点层 → 产出 `report-model.json`

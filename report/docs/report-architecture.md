@@ -503,17 +503,16 @@ interface ReportModel {
 
 **当前约束**:
 - 5B 直接使用已有 `analysis.json`（人工填写）
-- 板块异动暂时不实现（Chapter 1 显示占位 "—"）
+- 板块异动已实现：观察值来自 `sector-snapshot.json`，驱动线索来自板块驱动 LLM 的 `sector-driver.json`；两者分开展示，禁止用个股 Q1 填充板块驱动
 - 成交/持仓异常已取消：分析报告不支持持仓分析（2026-08-27 裁定）
 - 宏观锚点采集未自动化（Phase 3+）
 
 ### Phase 8-B（后续迭代）
 
 **规则化目标**:
-1. 板块异动规则化：
-   - 按 sector 聚合 KEEP 品种
-   - 代表品种选择规则（rank 最高 + volMultiplier 最大）
-   - 方向规则（sector 内多数 KEEP 的 finalDirection）
+1. ✅ 板块异动已实现（v0.1.5）：
+   - 观察值：sector-aggregator 从 raw.json 构建指数/广度/coherence/量比/代表品种
+   - 驱动线索：Sector-Driver LLM 输出 `sector-driver.json`（板块级证据，成员<3 abstain）
 2. ~~成交持仓异常规则化~~：已取消，分析报告不支持持仓分析
 3. 驱动因素提取规则：
    - WebSearch 结果结构化解析
@@ -555,7 +554,7 @@ interface ReportModel {
 
 ### 可以延后（P2）
 
-1. 板块异动规则化
+1. ~~板块异动规则化~~（已实现 v0.1.5）
 2. ~~成交持仓异常规则化~~（已取消）
 3. 多 run 数据对比
 4. 自适应篇幅预算

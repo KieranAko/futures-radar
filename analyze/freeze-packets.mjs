@@ -25,6 +25,7 @@ const { validateMacroSnapshot } = require('../collector/macro-probe.cjs');
 const { relevantAnchorsFor } = require('../report/build-facts.cjs');
 const dataStore = require('../data-store/index.cjs');
 const { buildSectorField, buildSectorSnapshot } = require('../collector/sector-aggregator.cjs');
+const sectorDriverLib = require('./sector-driver-lib.cjs');
 
 const SYMBOL_GAP_MS = 2000; // 品种间 pacing（配合 Python 内 0.5s/合约，压低 sina 请求速率）
 const OBSERVED_FIELDS = ['price_data', 'volume_oi'];
@@ -112,6 +113,36 @@ if (macroSnapshot) {
     macroValidation = validateMacroSnapshot(macroSnapshot);
   } catch (err) {
     macroValidation = { ok: false, errors: [`validateMacroSnapshot threw: ${err.message}`] };
+  }
+}
+
+// v0.1.5：生成板块级证据包与板块驱动 prompts（与个股 packet 完全隔离）
+let sectorDriverBundle = null;
+if (sectorSnapshot && sectorSnapshot.sectors) {
+  try {
+    const symbolsConfigPath = path.join(require('../lib/workspace.cjs').skillRoot, 'config', 'symbols.json');
+    const symbolsConfig = JSON.parse(fs.readFileSync(symbolsConfigPath, 'utf-8'));
+    sectorDriverBundle = sectorDriverLib.buildSectorDriverPackets({
+      sectorSnapshot,
+      macroSnapshot: macroValidation && macroValidation.ok ? macroSnapshot : null,
+      symbolsConfig,
+      runId
+    });
+    const bundlePath = path.join(dir, 'sector-driver-packets.json');
+    fs.writeFileSync(bundlePath, JSON.stringify(sectorDriverBundle, null, 2));
+    console.log(`Wrote sector-driver-packets.json (${Object.keys(sectorDriverBundle.packets).length} sectors)`);
+
+    const sectorPromptsDir = path.join(dir, 'analyze', 'prompts', 'sector-driver');
+    fs.mkdirSync(sectorPromptsDir, { recursive: true });
+    for (const [sectorId, packet] of Object.entries(sectorDriverBundle.packets)) {
+      fs.writeFileSync(
+        path.join(sectorPromptsDir, `${sectorId}.md`),
+        sectorDriverLib.renderSectorDriverPrompt(packet)
+      );
+    }
+    console.log(`Wrote sector-driver prompts to ${sectorPromptsDir}`);
+  } catch (err) {
+    console.warn(`sector-driver bundle unavailable: ${err.message}`);
   }
 }
 
@@ -251,8 +282,27 @@ console.log(`Wrote evidence-packets.json (${bundle.packets.length} packets)`);
 
 const promptsDir = path.join(dir, 'analyze', 'prompts');
 fs.mkdirSync(promptsDir, { recursive: true });
+
+// sector_driver_context：若 sector-driver.json 已存在则注入；否则标 pending，
+// 待 assemble-sector-driver.cjs 完成后由该脚本重渲染最终 FinCoT prompt。
+let sectorDriver = null;
+try {
+  const sectorDriverPath = path.join(dir, 'sector-driver.json');
+  if (fs.existsSync(sectorDriverPath)) {
+    sectorDriver = JSON.parse(fs.readFileSync(sectorDriverPath, 'utf-8'));
+  }
+} catch {
+  sectorDriver = null;
+}
+
 for (const packet of bundle.packets) {
-  const prompts = renderFourArmPrompts(packet);
+  const sectorId = packet.fields.sector_movement && packet.fields.sector_movement.gap === null
+    ? packet.fields.sector_movement.sector
+    : null;
+  const sectorDriverContext = sectorDriver
+    ? sectorDriverLib.renderSectorDriverContextBlock(sectorDriver, sectorId)
+    : '状态：pending —— 请先完成板块驱动推理并运行 assemble-sector-driver，再重新渲染本 prompt。';
+  const prompts = renderFourArmPrompts(packet, { sectorDriverContext });
   fs.writeFileSync(path.join(promptsDir, `${packet.symbol}-fincot.md`), prompts.finCot);
 }
 console.log(`Wrote FinCoT prompts to ${promptsDir}`);

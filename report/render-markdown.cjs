@@ -127,20 +127,32 @@ if (macro && macro.available) {
   ch1.push(`> ⚠️ 宏观数据不可用（${reason}）。以下分析基于品种自身量价数据。\n`);
 }
 
+function sectorDriverClue(sectorId) {
+  const entry = model.sectorDriver && model.sectorDriver.sectors ? model.sectorDriver.sectors[sectorId] : null;
+  if (!entry) return '—';
+  if (entry.status === 'analyzed' && entry.driver) {
+    return `${entry.driver.primary}（${confidenceLabel(entry.driver.confidence)}置信）`;
+  }
+  if (entry.status === 'unknown') return '无明确板块驱动';
+  if (entry.status === 'abstain_insufficient') return '成员不足，不判定';
+  if (entry.status === 'not_moved') return '未形成板块异动';
+  return '—';
+}
+
 ch1.push('### 板块异动');
 ch1.push('| 板块 | 方向 | 1日 | 5日 | 上涨广度 | 代表品种 | 驱动线索 |');
 ch1.push('|------|------|-----|-----|---------|----------|----------|');
 if (model.sector && model.sector.sectors && Object.keys(model.sector.sectors).length > 0) {
-  for (const sec of Object.values(model.sector.sectors)) {
+  for (const [sectorId, sec] of Object.entries(model.sector.sectors)) {
     const leader = sec.leaderSymbol
       ? `${sec.leaderName || sec.leaderSymbol} (${sec.leaderSymbol})`
       : '—';
     ch1.push(
       `| ${sec.label} | ${directionSymbol(sec.direction)} | ${fmtPct(sec.ret1d)} | ${fmtPct(sec.ret5d)} | ` +
-      `${sec.advanceRatio1d != null ? `${sec.advanceRatio1d.toFixed(0)}%` : '—'} | ${leader} | — |`
+      `${sec.advanceRatio1d != null ? `${sec.advanceRatio1d.toFixed(0)}%` : '—'} | ${leader} | ${sectorDriverClue(sectorId)} |`
     );
   }
-  ch1.push(`\n> 板块指数由 raw.json 成员等权日收益链式构建（基点 1000）；驱动线索不在此处臆测，深挖品种见第三章。`);
+  ch1.push(`\n> 板块指数由 raw.json 成员等权日收益链式构建（基点 1000）。驱动线索来自板块驱动 LLM（sector-driver.json），只解释板块整体，不构成任何个股方向判断。\n`);
 } else {
   ch1.push('| — | — | — | — | — | — | 板块快照不可用 |\n');
 }
@@ -206,6 +218,15 @@ for (const opp of model.opportunities) {
     } else {
       ch3.push('**相关宏观锚点**: 无适用日频宏观锚点\n');
     }
+  }
+
+  // 板块背景：观察值与驱动结论分离展示；只作背景，不构成本品种驱动证据
+  if (opp.sector && model.sector && model.sector.sectors && model.sector.sectors[opp.sector]) {
+    const sec = model.sector.sectors[opp.sector];
+    const secObserved = `${sec.label} 1日 ${fmtPct(sec.ret1d)} / 5日 ${fmtPct(sec.ret5d)}，广度 ${
+      sec.advanceRatio1d != null ? `${sec.advanceRatio1d.toFixed(0)}%` : '—'
+    }`;
+    ch3.push(`**板块背景（仅上下文，不作为本品种驱动证据）**: ${secObserved}；板块驱动：${sectorDriverClue(opp.sector)}\n`);
   }
 
   // Price ranges table

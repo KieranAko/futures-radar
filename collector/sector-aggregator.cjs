@@ -164,14 +164,34 @@ function buildSectorSnapshot(rawJson, symbolsConfig, { runId, signalDate } = {})
     const volumeRatios = stats.map((s) => s.volumeRatio20d).filter((v) => v != null && Number.isFinite(v));
     const volumeRatio = volumeRatios.length > 0 ? parseFloat(mean(volumeRatios).toFixed(2)) : null;
 
+    const direction = ret1d == null ? 'flat' : ret1d >= DIRECTION_THRESHOLD_PCT ? 'up' : ret1d <= -DIRECTION_THRESHOLD_PCT ? 'down' : 'flat';
+
+    // 代表品种必须与板块方向一致：上涨板块选最强上涨成员，下跌板块选最弱成员，flat 选绝对动最强者。
+    const signedValue = (s) => s.ret5d != null ? s.ret5d : (s.ret1d != null ? s.ret1d : 0);
     let leader = stats[0] || null;
     for (const s of stats) {
-      const a = Math.abs(s.ret5d != null ? s.ret5d : (s.ret1d != null ? s.ret1d : 0));
-      const b = Math.abs(leader.ret5d != null ? leader.ret5d : (leader.ret1d != null ? leader.ret1d : 0));
-      if (a > b) leader = s;
+      if (direction === 'up') {
+        if (signedValue(s) > signedValue(leader)) leader = s;
+      } else if (direction === 'down') {
+        if (signedValue(s) < signedValue(leader)) leader = s;
+      } else {
+        if (Math.abs(signedValue(s)) > Math.abs(signedValue(leader))) leader = s;
+      }
     }
 
-    const direction = ret1d == null ? 'flat' : ret1d >= DIRECTION_THRESHOLD_PCT ? 'up' : ret1d <= -DIRECTION_THRESHOLD_PCT ? 'down' : 'flat';
+    const memberRow = (s) => ({
+      symbol: s.symbol,
+      name: s.name,
+      ret1d: s.ret1d != null ? parseFloat(s.ret1d.toFixed(2)) : null,
+      ret5d: s.ret5d != null ? parseFloat(s.ret5d.toFixed(2)) : null
+    });
+    const byRet5d = [...stats].sort((a, b) => {
+      const av = a.ret5d != null ? a.ret5d : -Infinity;
+      const bv = b.ret5d != null ? b.ret5d : -Infinity;
+      return bv - av;
+    });
+    const leaders = byRet5d.slice(0, 3).map(memberRow);
+    const laggards = byRet5d.slice(-3).reverse().map(memberRow);
 
     sectors[sectorId] = {
       sector: sectorId,
@@ -188,6 +208,8 @@ function buildSectorSnapshot(rawJson, symbolsConfig, { runId, signalDate } = {})
       leaderSymbol: leader ? leader.symbol : null,
       leaderName: leader ? leader.name : null,
       leaderRet5d: leader && leader.ret5d != null ? parseFloat(leader.ret5d.toFixed(2)) : null,
+      leaders,
+      laggards,
       members: members.length,
       dataStart: lastRow ? indexRows[0].date : null,
       dataEnd: lastRow ? lastRow.date : null

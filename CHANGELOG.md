@@ -4,9 +4,10 @@
 
 - **板块异动分析**：新增 `collector/sector-aggregator.cjs`——从本 run raw.json 确定性构建板块指数（成员等权日收益链式，基点 1000）、1d/5d/20d 收益、上涨广度、方向 coherence、量比、领涨/领跌代表；不使用持仓数据
 - **板块数据入库**：data-store 新增 `data/sector/<SECTOR>.json`（跨 run 板块序列）+ `data/sector/snapshots/<RUN_ID>.json`（冻结快照），`ingestSectorSnapshot` / `getSectorSnapshot` / `getSectorSeries` 维护接口
-- **报告板块异动表**：report 5A/5B/5C 渲染板块方向/涨跌/广度/代表品种；驱动线索不臆测
-- **LLM 证据链**：`freeze-packets` 注入 `fields.sector_movement`；packet-builder 将 sector_movement 纳入 optional 域；FinCoT 提示词新增板块联动证据规则与独立证据域
-- 新增板块聚合与文件库测试；全量测试 542 → 546（88 套件）
+- **板块驱动 LLM（Sector-Driver）**：板块级证据包 `sector-driver-packets.json` + 板块四分支归因蓝图（聚合状态/宏观背景/板块级基本面事件/成员结构）；门禁强制成员≥3、板块级 WebSearch 证据、方向与观察一致；输出 `sector-driver.json`
+- **报告板块异动表**：report 5A/5B/5C 渲染板块方向/涨跌/广度/代表品种 + 驱动线索（来自 sector-driver，不混用个股 Q1）
+- **LLM 证据链隔离**：`freeze-packets` 注入 `fields.sector_movement`（观察值）；packet-builder 将 sector_movement 纳入 optional 域；FinCoT 提示词新增板块联动证据域与 `sector_driver_context` 独立上下文（LLM 结论禁止进入 evidence_ids）
+- 新增板块聚合/板块驱动/文件库测试；全量测试 542 → 552（89 套件）
 
 ## 0.1.4（2026-08-27）
 

@@ -13,10 +13,10 @@
 - **快照优先增量（v0.1.3）**：日线已发布今日 + 缓存落后一根时跳过 ~59 次日线重拉，快照一次性补当日 bar（实测全序列与官方日线逐字段一致，采集 ~13s → ~1s）
 - **FinCoT 推理层**：evidence packet 冻结 → 三分支蓝图 → 门禁 + grounding 校验（fail-closed 降级）
 - **轻量数据文件库（v0.1.4）**：`data/daily` + `data/ledger` 纯 JSON/JSONL，采集后自动镜像，增量采集与回测统一从这里读取；`data-store/` 提供 seed/verify/export/compact 维护命令
-- **板块异动分析（v0.1.5）**：采集层从 raw.json 确定性构建板块指数/广度/领涨领跌，入库 `data/sector/`，报告渲染板块异动表，并作为 `sector_movement` 证据注入 FinCoT 推理链（不使用持仓数据）
+- **板块异动分析（v0.1.5）**：采集层从 raw.json 确定性构建板块指数/广度/领涨领跌，入库 `data/sector/`；板块驱动 LLM（Sector-Driver）单独归因板块整体，`sector_movement` 观察值注入 FinCoT，驱动结论只作 context、禁止混入个股证据链（不使用持仓数据）
 - **保守自动化（v0.1.4）**：软过滤 `--shadow` 输出 `filtered.quant.json`；六问预填充只生成 `analysis.draft.json`，LLM 边界不撤销
 - **离线回测**：strict no-look-ahead 实现 + LLM replay 评分卡；方向层已被大样本证伪并收口（诚实披露）
-- **546 个测试全绿**（88 套件），测试夹具内置、无机器路径依赖
+- **552 个测试全绿**（89 套件），测试夹具内置、无机器路径依赖
 
 ## 目录结构
 

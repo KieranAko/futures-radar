@@ -331,6 +331,7 @@ function main() {
       symbol,
       name: candidateEntry.name,
       rank: candidateEntry.rank || candidates.candidates.indexOf(candidateEntry) + 1,
+      sector: candidateEntry.sector,
       marketFacts: {
         close: probEntry.close,
         hv: probEntry.hv ? {
@@ -422,6 +423,20 @@ function main() {
     ? `  ✓ sector-snapshot available (${Object.keys(sector.sectors).length} sectors)`
     : '  sector unavailable: report renders sector table as empty');
 
+  // 板块驱动 LLM 结论（独立于 sector 观察值）
+  let sectorDriver = null;
+  const sectorDriverPath = path.join(RUN_DIR, 'sector-driver.json');
+  if (fs.existsSync(sectorDriverPath)) {
+    try {
+      sectorDriver = readJSON(sectorDriverPath);
+      console.log(`  ✓ sector-driver available (${Object.keys(sectorDriver.sectors || {}).length} sectors)`);
+    } catch (e) {
+      console.warn(`  ⚠️ sector-driver unreadable: ${e.message}`);
+    }
+  } else {
+    console.log('  sector-driver unavailable: 驱动线索列显示 —');
+  }
+
   // ── Output: report-facts.json ────────────────────────────────
   console.log('\n[Output] Writing report-facts.json...');
 
@@ -456,6 +471,7 @@ function main() {
     rejected,
     macro,
     sector,
+    sectorDriver,
     freshness
   };
 

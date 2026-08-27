@@ -80,9 +80,11 @@ function renderMacroContextBlock(mc) {
 /**
  * 渲染 FinCoT prompt：macro packet 渲染宏观区块，legacy packet 自分隔符截断（四臂隔离）
  * @param {object} packet - evidence-packet
+ * @param {object} [options]
+ * @param {string} [options.sectorDriverContext] - 板块驱动 LLM 结论（独立上下文，非 packet 证据）
  * @returns {string}
  */
-function renderFincotPrompt(packet) {
+function renderFincotPrompt(packet, options = {}) {
   let template = fs.readFileSync(path.join(__dirname, '../prompts/fincot-prompt.md'), 'utf-8');
   const hasMacro = packet.macro_context !== undefined;
 
@@ -94,12 +96,15 @@ function renderFincotPrompt(packet) {
   }
 
   const evidence = renderEvidence(packet);
+  const sectorContext = options.sectorDriverContext
+    || '状态：unavailable —— 本 run 未生成板块驱动结论。禁止将个股 Q1 或板块量价关系当作板块驱动。';
 
   return template
     .replace(/\{\{symbol\}\}/g, packet.symbol)
     .replace(/\{\{signalDate\}\}/g, packet.signalDate)
     .replace(/\{\{evidence\}\}/g, evidence)
-    .replace(/\{\{macro_context\}\}/g, hasMacro ? renderMacroContextBlock(packet.macro_context) : '');
+    .replace(/\{\{macro_context\}\}/g, hasMacro ? renderMacroContextBlock(packet.macro_context) : '')
+    .replace(/\{\{sector_driver_context\}\}/g, sectorContext);
 }
 
 /**
@@ -121,15 +126,16 @@ function renderPromptTemplate(templatePath, packet) {
 /**
  * 渲染四臂prompt
  * @param {object} packet - evidence-packet
+ * @param {object} [options] - 传给 fincot 渲染器（如 sectorDriverContext）
  * @returns {{sp: string, ustCot: string, stCot: string, finCot: string}}
  */
-export function renderFourArmPrompts(packet) {
+export function renderFourArmPrompts(packet, options = {}) {
   const promptsDir = path.join(__dirname, '../prompts');
 
   return {
     sp: renderPromptTemplate(path.join(promptsDir, 'sp-prompt.md'), packet),
     ustCot: renderPromptTemplate(path.join(promptsDir, 'ust-cot-prompt.md'), packet),
     stCot: renderPromptTemplate(path.join(promptsDir, 'st-cot-prompt.md'), packet),
-    finCot: renderFincotPrompt(packet)
+    finCot: renderFincotPrompt(packet, options)
   };
 }

@@ -154,3 +154,16 @@
 - 三字段是审计字段，不得机械地覆盖 direction/confidence 的既有判断
 - 宏观与方向存在未解决冲突时，按既有门禁输出 pass/conflict_unresolved
 - 禁止补写或猜测区块中不存在的宏观数据；缺口（gaps）视为证据缺失
+
+---
+
+## 板块驱动上下文（sector_driver_context）
+
+{{sector_driver_context}}
+
+### 板块驱动使用纪律
+
+- 本区块是**板块级 LLM 结论**，不是 packet 证据。
+- 禁止将其中任何字段写入 `evidence_ids` / `opposing_ids`。
+- 禁止用板块方向机械决定本品种方向；只能用于理解背景、识别一致或背离。
+- 若板块驱动与本品种判断冲突，应在本品种自己的证据链内解决，不得用板块结论覆盖。
