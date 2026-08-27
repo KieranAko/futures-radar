@@ -183,7 +183,12 @@ function verifyRecord(record, raw, currentRunId) {
   let exitType = 'time_exit';
   let exitDate = null;
   const stop = record.stopPrice;
-  const target1 = record.target1Level;
+  let target1 = record.target1Level;
+  // R 口径目标（如 "2R 平 50%"）需按风险距离换算成实际价位
+  if (target1 != null && stop != null && /R/.test(record.target1Text || '')) {
+    const sign = record.direction === 'bullish' ? 1 : -1;
+    target1 = entryPrice + sign * target1 * (entryPrice - stop);
+  }
   for (let i = tIdx + 2; i <= maxEnd; i++) {
     const b = bars[i];
     if (record.direction === 'bullish') {

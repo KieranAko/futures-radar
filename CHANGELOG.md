@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.8（2026-08-27）
+
+- **完整策略链回测试点**：新增 `strategies/backtest/pilot-runner.cjs` + `recordings/manifest.json`——3 品种（RB0/M0/SC0）× 5 信号日，包含 recorded LLM 软过滤/六问/板块驱动决策 → 截断 raw → sector/概率/报告基线 → strategy-matcher → 冻结 executable 计划 → feedback 验证 → `baseline-report.json/md`
+- **feedback R 口径修复**：目标文本含“R”时，验证引擎按风险距离换算实际目标价（此前误把 2R 解析为价格 2）
+- **matcher 健壮性**：MS-01 证据串在 MA60/change5d 为 null 时不再抛错，渲染为 “—”
+- 试点基线诚实结论：5 期共 3 个 executable 计划，1 个止损离场、2 个 T+1 未触发；方向正确 0/1（样本内、llm-no-web、不具统计意义）
+
 ## 0.1.7（2026-08-27）
 
 - **证伪反馈机制**：`strategies/lib/feedback.cjs`——每期 `executionStatus=executable` 的计划冻结到 `data/strategy-feedback/ledger/<runId>.json`；下一次运行用锚定合约 bars（contract-bars，fallback 主力连续代理）验证 T+1 是否触发、止损/目标1/时间离场，并输出归因 codes（trigger_miss/gap_skip/stop_hit/target1_hit/direction_wrong 等）

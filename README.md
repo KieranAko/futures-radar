@@ -16,6 +16,7 @@
 - **板块异动分析（v0.1.5）**：采集层从 raw.json 确定性构建板块指数/广度/领涨领跌，入库 `data/sector/`；板块驱动 LLM（Sector-Driver）单独归因板块整体，`sector_movement` 观察值注入 FinCoT，驱动结论只作 context、禁止混入个股证据链（不使用持仓数据）
 - **交易策略板块（策略库/匹配引擎）**：`strategies/` 四路研究（宏观/品类/playbook/风控）→ 统一策略库 `strategy-library.json`（23 条策略 + riskConfig + planSchema）→ 确定性匹配规则 `strategy-matching-rules.json` → 匹配引擎 `strategies/lib/strategy-matcher.cjs` + CLI `build-strategy-plan.cjs`（产出 `strategy-plan.json`）→ 报告新增「五、交易策略板块（执行参考）」章节（`report/render-strategy-section.cjs` 渲染；`strategy-plan.json` 缺失时自动跳过，四章+附录不变）。所有策略为方向增强/执行参考：**不构成投资建议、无收益承诺、不使用新增持仓数据**
 - **证伪反馈机制（v0.1.7）**：每期 executable 计划冻结至 `data/strategy-feedback/ledger/`；下次运行按锚定合约验证触发/止损/目标/时间离场并输出归因 codes；报告回显“上一期策略证伪反馈”
+- **完整策略链回测试点（v0.1.8）**：`strategies/backtest/pilot-runner.cjs` 用 3 品种 × 5 信号日跑通“截断数据 + recorded LLM 决策 + strategy-matcher + feedback 验证”闭环，产出 `strategies/backtest/baseline-report.md`
 - **保守自动化（v0.1.4）**：软过滤 `--shadow` 输出 `filtered.quant.json`；六问预填充只生成 `analysis.draft.json`，LLM 边界不撤销
 - **离线回测**：strict no-look-ahead 实现 + LLM replay 评分卡；方向层已被大样本证伪并收口（诚实披露）
 - **590 个测试全绿**（100 套件），测试夹具内置、无机器路径依赖

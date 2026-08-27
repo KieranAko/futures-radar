@@ -479,7 +479,9 @@ function evalStrategy(strategy, ctx, ind, formulas) {
     const score = round2(strategy.match.weight * 1.0 * confMult(strategy.confidenceHint) * degradation);
     // t13：证据串符号按方向——bullish 用 '>'、bearish 用 '<'
     const sign = dir === 'bullish' ? '>' : '<';
-    const evidence = `趋势对齐（close ${ind.close}${sign}MA20(${ind.ma20.toFixed(1)})/MA60(${ind.ma60.toFixed(1)}) 且 change5d ${ind.change5d > 0 ? '+' : ''}${ind.change5d.toFixed(2)}% 同向）${degradation === 0.5 ? '；divergencePct>20 → 降级 ×0.5' : ''}`;
+    const ma60Text = ind.ma60 != null ? ind.ma60.toFixed(1) : '—';
+    const chgText = ind.change5d != null ? `${ind.change5d > 0 ? '+' : ''}${ind.change5d.toFixed(2)}%` : '—';
+    const evidence = `趋势对齐（close ${ind.close}${sign}MA20(${ind.ma20 != null ? ind.ma20.toFixed(1) : '—'})/MA60(${ma60Text}) 且 change5d ${chgText} 同向）${degradation === 0.5 ? '；divergencePct>20 → 降级 ×0.5' : ''}`;
     return { matched: true, score, degradation: degradation === 0.5 ? 'divergencePct>20 → ×0.5' : null, evidence };
   }
   if (strategy.id === 'MS-02') {
