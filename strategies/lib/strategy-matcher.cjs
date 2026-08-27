@@ -929,7 +929,7 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
       ? 'T+1 开盘；跳空 >0.75×ATR5 放弃；多头回踩要求持仓不塌（报告既有表述）'
       : 'T+1 开盘；跳空 >0.75×ATR5 放弃；空头反抽要求持仓不增（报告既有表述）';
   } else if (playbookOut.playbookId === 'PB-07') {
-    executionConvention = `T+1 开盘；跳空 >0.75×ATR5 放弃；${dirClause}`;
+    executionConvention = `T+1 收盘确认（触发条件含收盘）；确认后下一交易日开盘执行；跳空 >0.75×ATR5 放弃；${dirClause}`;
   } else {
     executionConvention = `T+1 开盘；跳空 >0.5×ATR5 放弃；${dirClause}`;
   }
@@ -960,7 +960,9 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
       trigger: `${dirLabel}：${confirmText}`,
       triggerLevel,
       triggerSource: confirmText,
-      execution: pb.playbookId === 'PB-03' || pb.playbookId === 'PB-07' ? 'T+1 开盘；跳空 >0.75×ATR5 放弃' : 'T+1 开盘；跳空 >0.5×ATR5 放弃'
+      execution: pb.playbookId === 'PB-07'
+        ? 'T+1 收盘确认；确认后下一交易日开盘执行；跳空 >0.75×ATR5 放弃'
+        : (pb.playbookId === 'PB-03' ? 'T+1 开盘；跳空 >0.75×ATR5 放弃' : 'T+1 开盘；跳空 >0.5×ATR5 放弃')
     },
     stop: {
       stopPrice: risk.riskAssessment.stopPrice,
