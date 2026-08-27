@@ -8,6 +8,9 @@
 - **边界**：每个 TOP3 ≥1 matchedStrategy（BASE-01 报告结论跟随保底）；watch/skip 为合法执行状态且不省略策略适配内容；集中度冲突保留一个 executable 其余 watch；无收益承诺、无新增持仓数据、不构成投资建议
 - **审查修复（review round 1 → repair → round 2 pass）**：MS-01 证据串按方向取符号（bullish `>`/bearish `<`）；top-3 截断后的 ≥阈值落选者并入 supportingEvidence（标注「超出展示上限」）；`effectiveRiskConfig()` 使 library.riskConfig 成为风控参数单一事实来源（stopK 分层 high=2.0/medium=1.5，分数→百分数归一，DEFAULTS 仅回退）；执行口径方向化（多头「多头距跌停」/空头「空头距涨停」）
 - **观察项处理**：内部证据路径渲染为纯文本并标注「内部」（OBS-1）；strategy-library.md 登记组合级覆盖组件（volTargetBook/drawdownLadder 等）未实现原因（OBS-3，单 run 静态 plan 无组合历史）；既有 artifact 口径差异登记为上游既有问题（OBS-2）
+- **可操作性优先 TOP3（v0.1.6 修正）**：`directionBias=neutral` 候选直接降级，不得挤占方向明确、驱动可验证的候选；Top3 先按可操作性筛选再按 score 排序（filter/blueprint.md + quantitative-filter.cjs + SKILL.md）
+- **策略板块精简与语义消歧**：每个品种只渲染 9 个关键执行字段；新增 `entry.triggerTiming` 显式区分“T+1 收盘确认后下一交易日开盘”与“T+1 开盘执行”；新增锚定合约展示（Chapter 3 与策略板块均标注主导合约）；修复 PB-07 原“T+1 开盘”歧义
+- **版本对齐**：VERSION.md / package.json / SKILL.md / pipeline banner 统一为 0.1.6
 - 新增 matcher（21 条）与渲染（12 条）测试；全量测试 552 → 585（98 套件）
 
 ## 0.1.5（2026-08-27）

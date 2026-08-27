@@ -81,6 +81,7 @@ function renderStrategySection(plan, library) {
     lines.push('');
     lines.push(`- **报告基准**: ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信；主策略 ${primary.strategyId} ${primary.name}；执行模板 ${p.playbook.playbookId}`);
     lines.push(`- **入场机会点**: ${p.entry.trigger}（触发价 ${triggerLevel}）`);
+    lines.push(`- **触发/执行时点**: ${p.entry.triggerTiming}`);
     lines.push(`- **执行口径**: ${p.playbook.executionConvention}`);
     lines.push(`- **止损**: ${fmt(p.stop.stopPrice)}（距离 ${fmt(p.stop.stopDistancePts)} 点）`);
     lines.push(`- **目标**: T1 ${p.targets.t1}；T2 ${p.targets.t2}`);

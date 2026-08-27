@@ -450,7 +450,8 @@
         "trigger",
         "triggerLevel",
         "triggerSource",
-        "execution"
+        "execution",
+        "triggerTiming"
       ],
       "properties": {
         "trigger": {
@@ -471,6 +472,10 @@
         "execution": {
           "type": "string",
           "description": "T+1 开盘口径 + 跳空阈值"
+        },
+        "triggerTiming": {
+          "type": "string",
+          "description": "触发/执行时点语义：收盘确认后下一交易日开盘执行，或开盘直接执行；neutral/watch 为无执行时点"
         }
       }
     },

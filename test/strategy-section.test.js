@@ -49,7 +49,7 @@ describe('strategy-section: 板块存在与策略适配（acceptance 1/2）', ()
       const blockStart = section.indexOf(`### ${p.symbol} ${p.name}`);
       const next = heads.map(i => i).filter(i => i > blockStart);
       const block = section.slice(blockStart, next.length ? next[0] : undefined);
-      for (const kw of ['- **入场机会点**:', '- **执行口径**:', '- **止损**:', '- **目标**:', '- **仓位**:', '- **证伪/失效**:', '每手风险']) {
+      for (const kw of ['- **入场机会点**:', '- **触发/执行时点**:', '- **执行口径**:', '- **止损**:', '- **目标**:', '- **仓位**:', '- **证伪/失效**:', '每手风险']) {
         assert.ok(block.includes(kw), `${p.symbol}: ${kw}`);
       }
     }

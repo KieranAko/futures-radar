@@ -77,6 +77,7 @@ describe('strategy-matcher: 真实 run 复现（workedExample 关键值）', () 
     assert.equal(scores['MS-01'], 2);
     assert.equal(p.playbook.playbookId, 'PB-07');
     assert.equal(p.playbook.gateStatus, 'pending');
+    assert.equal(p.entry.triggerTiming, 'T+1 收盘确认；确认后下一交易日开盘执行');
     assert.equal(p.executionStatus, 'executable');
     assert.equal(p.position.lots, 1);
     assert.equal(p.riskAssessment.stopPrice, 2275.1);

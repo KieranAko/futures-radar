@@ -960,6 +960,11 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
       trigger: `${dirLabel}：${confirmText}`,
       triggerLevel,
       triggerSource: confirmText,
+      triggerTiming: dir === 'neutral'
+        ? '无执行时点（观察）'
+        : (pb.playbookId === 'PB-07'
+          ? 'T+1 收盘确认；确认后下一交易日开盘执行'
+          : 'T+1 开盘执行'),
       execution: pb.playbookId === 'PB-07'
         ? 'T+1 收盘确认；确认后下一交易日开盘执行；跳空 >0.75×ATR5 放弃'
         : (pb.playbookId === 'PB-03' ? 'T+1 开盘；跳空 >0.75×ATR5 放弃' : 'T+1 开盘；跳空 >0.5×ATR5 放弃')
