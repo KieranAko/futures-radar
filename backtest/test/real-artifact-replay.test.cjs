@@ -62,7 +62,11 @@ function assertAllNonPointInTime(rows, scorecard, expectedCount = 1) {
   assert.strictEqual(s.excluded.non_point_in_time, expectedCount);
 }
 
-describe('真实 artifact 回放 smoke', () => {
+// 冒烟测试依赖本地真实 runs 数据（runtimeRoot/runs）；独立安装/CI 无此数据时自动跳过
+const REQUIRED_RUNS = ['20260824-1503-auto', '20260805-1027-auto'];
+const hasRealRuns = REQUIRED_RUNS.every((r) => fs.existsSync(path.join(RUNS_ROOT, r, 'raw.json')));
+
+describe('真实 artifact 回放 smoke', { skip: hasRealRuns ? false : '真实 runs 目录缺失（本地运行时数据，见 README）' }, () => {
   test('20260824-1503-auto 副本：fetchedAt 晚于信号日冻结点 → non_point_in_time', async () => {
     const { buildPacketFromRawJson } = await loadEsm('raw-adapter.js');
     const { buildPacket } = await loadEsm('packet-builder.js');

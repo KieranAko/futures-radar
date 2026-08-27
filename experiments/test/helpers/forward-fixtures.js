@@ -25,8 +25,16 @@ export const DATE_MAIN = '2026-08-14';      // historical cache shifted: 4 candi
 export const DATE_ZERO = '2026-09-03';      // historical 2024-12-25 shifted: 0 candidates
 
 export function loadHistoricalCache() {
-  const raw = JSON.parse(fs.readFileSync(
-    path.join(__dirname, '../../../backtest/data/historical-cache.json'), 'utf8'));
+  // 优先完整缓存（clowder 开发环境）；缺失时回退内置冻结切片（独立安装/CI）
+  const candidates = [
+    path.join(__dirname, '../../../backtest/data/historical-cache.json'),
+    path.join(__dirname, '../fixtures/historical-cache-forward-slice.json')
+  ];
+  const file = candidates.find((f) => fs.existsSync(f));
+  if (!file) {
+    throw new Error('historical cache missing — run backtest/full-history-collector.cjs or provide fixtures');
+  }
+  const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
   raw.meta = { ...raw.meta, runId: 'historical-cache-forward-fixture' };
   for (const contract of Object.values(raw.contracts)) {
     contract.ohlcv.openInterest ??= contract.ohlcv.open_interest;

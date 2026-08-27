@@ -24,6 +24,13 @@ const __dirname = path.dirname(__filename);
  */
 export function loadWalkForwardArtifact() {
   const backtestDir = path.join(__dirname, '../../backtest');
+
+  // 冻结夹具优先（内置基线，独立安装/CI 可用）；否则取最新本地产物
+  const fixture = path.join(backtestDir, 'fixtures', 'purged-walkforward-frozen.json');
+  if (fs.existsSync(fixture)) {
+    return JSON.parse(fs.readFileSync(fixture, 'utf8'));
+  }
+
   const files = fs.readdirSync(backtestDir)
     .filter(f => f.startsWith('purged-walkforward-') && f.endsWith('.json'))
     .sort()

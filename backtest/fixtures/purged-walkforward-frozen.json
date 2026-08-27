@@ -1,0 +1,1694 @@
+{
+  "description": "P1 Item 4: Post-selection walk-forward / conditional OOS evaluation",
+  "statisticalIdentity": "POST-SELECTION / CONDITIONAL OOS. The 13-config candidate grid was derived from Item 3 full-sample inspection of the same 44-run history. Although each fold selects parameters on train-only data, the candidate set itself was informed by the full sample. This is NOT untouched-OOS / pre-registered model validation.",
+  "folds": [
+    {
+      "fold": 1,
+      "trainEnd": 14,
+      "testStart": 15,
+      "testEnd": 24
+    },
+    {
+      "fold": 2,
+      "trainEnd": 24,
+      "testStart": 25,
+      "testEnd": 34
+    },
+    {
+      "fold": 3,
+      "trainEnd": 34,
+      "testStart": 35,
+      "testEnd": 43
+    }
+  ],
+  "frozenGrid": [
+    {
+      "id": "observed",
+      "hv": 1.1,
+      "atr": 2,
+      "ema": 0.3
+    },
+    {
+      "id": "HV=1",
+      "hv": 1,
+      "atr": 2,
+      "ema": 0.3
+    },
+    {
+      "id": "HV=1.2",
+      "hv": 1.2,
+      "atr": 2,
+      "ema": 0.3
+    },
+    {
+      "id": "HV=1.3",
+      "hv": 1.3,
+      "atr": 2,
+      "ema": 0.3
+    },
+    {
+      "id": "HV=1.5",
+      "hv": 1.5,
+      "atr": 2,
+      "ema": 0.3
+    },
+    {
+      "id": "ATR=1",
+      "hv": 1.1,
+      "atr": 1,
+      "ema": 0.3
+    },
+    {
+      "id": "ATR=1.5",
+      "hv": 1.1,
+      "atr": 1.5,
+      "ema": 0.3
+    },
+    {
+      "id": "ATR=2.5",
+      "hv": 1.1,
+      "atr": 2.5,
+      "ema": 0.3
+    },
+    {
+      "id": "ATR=3",
+      "hv": 1.1,
+      "atr": 3,
+      "ema": 0.3
+    },
+    {
+      "id": "EMA=0.1",
+      "hv": 1.1,
+      "atr": 2,
+      "ema": 0.1
+    },
+    {
+      "id": "EMA=0.2",
+      "hv": 1.1,
+      "atr": 2,
+      "ema": 0.2
+    },
+    {
+      "id": "EMA=0.4",
+      "hv": 1.1,
+      "atr": 2,
+      "ema": 0.4
+    },
+    {
+      "id": "EMA=0.5",
+      "hv": 1.1,
+      "atr": 2,
+      "ema": 0.5
+    }
+  ],
+  "observedDefaults": {
+    "hv": 1.1,
+    "atr": 2,
+    "ema": 0.3
+  },
+  "totalRuns": 44,
+  "gates": {
+    "allPass": true,
+    "failures": []
+  },
+  "foldsDetail": [
+    {
+      "fold": 1,
+      "trainRunIds": [
+        "bt-20240102",
+        "bt-20240103",
+        "bt-20240104",
+        "bt-20240105",
+        "bt-20240125",
+        "bt-20240603",
+        "bt-20240627",
+        "bt-20240710",
+        "bt-20240722",
+        "bt-20240814",
+        "bt-20240906",
+        "bt-20241010",
+        "bt-20241104",
+        "bt-20241121",
+        "bt-20241127"
+      ],
+      "purgeRemoved": [],
+      "testRunIds": [
+        "bt-20241220",
+        "bt-20250110",
+        "bt-20250115",
+        "bt-20250117",
+        "bt-20250217",
+        "bt-20250312",
+        "bt-20250407",
+        "bt-20250421",
+        "bt-20250430",
+        "bt-20250528"
+      ],
+      "selectedConfig": {
+        "id": "HV=1",
+        "hvThreshold": 1,
+        "atrThreshold": 2,
+        "emaSlopeThreshold": 0.3
+      },
+      "frozenConfigHash": "19aa8acdcc457e57",
+      "configFrozenIntact": true,
+      "trainGrid": [
+        {
+          "configId": "HV=1",
+          "hvThreshold": 1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.05437514293980897,
+          "coverage": 0.8666666666666667,
+          "activeDates": 13,
+          "totalDates": 15
+        },
+        {
+          "configId": "EMA=0.5",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.5,
+          "dateCohortMeanReturn": 0.047944893319309206,
+          "coverage": 0.6666666666666666,
+          "activeDates": 10,
+          "totalDates": 15
+        },
+        {
+          "configId": "observed",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.04268158249507601,
+          "coverage": 0.8,
+          "activeDates": 12,
+          "totalDates": 15
+        },
+        {
+          "configId": "ATR=1.5",
+          "hvThreshold": 1.1,
+          "atrThreshold": 1.5,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.04268158249507601,
+          "coverage": 0.8,
+          "activeDates": 12,
+          "totalDates": 15
+        },
+        {
+          "configId": "ATR=2.5",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2.5,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.04268158249507601,
+          "coverage": 0.8,
+          "activeDates": 12,
+          "totalDates": 15
+        },
+        {
+          "configId": "ATR=1",
+          "hvThreshold": 1.1,
+          "atrThreshold": 1,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.04268158249507601,
+          "coverage": 0.8,
+          "activeDates": 12,
+          "totalDates": 15
+        },
+        {
+          "configId": "EMA=0.4",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.4,
+          "dateCohortMeanReturn": 0.041124775911547826,
+          "coverage": 0.8,
+          "activeDates": 12,
+          "totalDates": 15
+        },
+        {
+          "configId": "HV=1.2",
+          "hvThreshold": 1.2,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.03839017753161695,
+          "coverage": 0.6666666666666666,
+          "activeDates": 10,
+          "totalDates": 15
+        },
+        {
+          "configId": "ATR=3",
+          "hvThreshold": 1.1,
+          "atrThreshold": 3,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.0377208763043151,
+          "coverage": 0.8,
+          "activeDates": 12,
+          "totalDates": 15
+        },
+        {
+          "configId": "EMA=0.1",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.1,
+          "dateCohortMeanReturn": 0.03688552520807006,
+          "coverage": 1,
+          "activeDates": 15,
+          "totalDates": 15
+        },
+        {
+          "configId": "EMA=0.2",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.2,
+          "dateCohortMeanReturn": 0.03635220079633815,
+          "coverage": 0.9333333333333333,
+          "activeDates": 14,
+          "totalDates": 15
+        },
+        {
+          "configId": "HV=1.5",
+          "hvThreshold": 1.5,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": -0.004046991201214175,
+          "coverage": 0.2,
+          "activeDates": 3,
+          "totalDates": 15
+        },
+        {
+          "configId": "HV=1.3",
+          "hvThreshold": 1.3,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": -0.01002218690422569,
+          "coverage": 0.4666666666666667,
+          "activeDates": 7,
+          "totalDates": 15
+        }
+      ],
+      "testScore": {
+        "dateCohortMeanReturn": 0.015827611289398934,
+        "coverage": 0.5,
+        "activeDates": 5,
+        "totalDates": 10,
+        "tradeCount": 13,
+        "accuracy": 0.7692307692307693
+      },
+      "testTradeCount": 13,
+      "gate4aScannerTruncationOk": true,
+      "gate4bModelTruncationOk": true
+    },
+    {
+      "fold": 2,
+      "trainRunIds": [
+        "bt-20240102",
+        "bt-20240103",
+        "bt-20240104",
+        "bt-20240105",
+        "bt-20240125",
+        "bt-20240603",
+        "bt-20240627",
+        "bt-20240710",
+        "bt-20240722",
+        "bt-20240814",
+        "bt-20240906",
+        "bt-20241010",
+        "bt-20241104",
+        "bt-20241121",
+        "bt-20241127",
+        "bt-20241220",
+        "bt-20250110",
+        "bt-20250115",
+        "bt-20250117",
+        "bt-20250217",
+        "bt-20250312",
+        "bt-20250407",
+        "bt-20250421",
+        "bt-20250430",
+        "bt-20250528"
+      ],
+      "purgeRemoved": [],
+      "testRunIds": [
+        "bt-20250623",
+        "bt-20250716",
+        "bt-20250718",
+        "bt-20250808",
+        "bt-20250902",
+        "bt-20250925",
+        "bt-20251028",
+        "bt-20251031",
+        "bt-20251120",
+        "bt-20251215"
+      ],
+      "selectedConfig": {
+        "id": "HV=1",
+        "hvThreshold": 1,
+        "atrThreshold": 2,
+        "emaSlopeThreshold": 0.3
+      },
+      "frozenConfigHash": "19aa8acdcc457e57",
+      "configFrozenIntact": true,
+      "trainGrid": [
+        {
+          "configId": "HV=1",
+          "hvThreshold": 1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.03895613027964496,
+          "coverage": 0.72,
+          "activeDates": 18,
+          "totalDates": 25
+        },
+        {
+          "configId": "EMA=0.5",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.5,
+          "dateCohortMeanReturn": 0.03245874359630876,
+          "coverage": 0.52,
+          "activeDates": 13,
+          "totalDates": 25
+        },
+        {
+          "configId": "ATR=2.5",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2.5,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.02946703784637639,
+          "coverage": 0.56,
+          "activeDates": 14,
+          "totalDates": 25
+        },
+        {
+          "configId": "observed",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.029450047314819216,
+          "coverage": 0.6,
+          "activeDates": 15,
+          "totalDates": 25
+        },
+        {
+          "configId": "ATR=1.5",
+          "hvThreshold": 1.1,
+          "atrThreshold": 1.5,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.029450047314819216,
+          "coverage": 0.6,
+          "activeDates": 15,
+          "totalDates": 25
+        },
+        {
+          "configId": "ATR=1",
+          "hvThreshold": 1.1,
+          "atrThreshold": 1,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.029450047314819216,
+          "coverage": 0.6,
+          "activeDates": 15,
+          "totalDates": 25
+        },
+        {
+          "configId": "EMA=0.4",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.4,
+          "dateCohortMeanReturn": 0.028515963364702305,
+          "coverage": 0.6,
+          "activeDates": 15,
+          "totalDates": 25
+        },
+        {
+          "configId": "ATR=3",
+          "hvThreshold": 1.1,
+          "atrThreshold": 3,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.026490614131919846,
+          "coverage": 0.56,
+          "activeDates": 14,
+          "totalDates": 25
+        },
+        {
+          "configId": "EMA=0.2",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.2,
+          "dateCohortMeanReturn": 0.0256524182955765,
+          "coverage": 0.68,
+          "activeDates": 17,
+          "totalDates": 25
+        },
+        {
+          "configId": "HV=1.2",
+          "hvThreshold": 1.2,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.025545794046864488,
+          "coverage": 0.52,
+          "activeDates": 13,
+          "totalDates": 25
+        },
+        {
+          "configId": "EMA=0.1",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.1,
+          "dateCohortMeanReturn": 0.023010443592063435,
+          "coverage": 0.84,
+          "activeDates": 21,
+          "totalDates": 25
+        },
+        {
+          "configId": "HV=1.5",
+          "hvThreshold": 1.5,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": -0.00028107175324883075,
+          "coverage": 0.16,
+          "activeDates": 4,
+          "totalDates": 25
+        },
+        {
+          "configId": "HV=1.3",
+          "hvThreshold": 1.3,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": -0.004549785663844382,
+          "coverage": 0.32,
+          "activeDates": 8,
+          "totalDates": 25
+        }
+      ],
+      "testScore": {
+        "dateCohortMeanReturn": -0.007934543163689379,
+        "coverage": 0.8,
+        "activeDates": 8,
+        "totalDates": 10,
+        "tradeCount": 24,
+        "accuracy": 0.25
+      },
+      "testTradeCount": 24,
+      "gate4aScannerTruncationOk": true,
+      "gate4bModelTruncationOk": true
+    },
+    {
+      "fold": 3,
+      "trainRunIds": [
+        "bt-20240102",
+        "bt-20240103",
+        "bt-20240104",
+        "bt-20240105",
+        "bt-20240125",
+        "bt-20240603",
+        "bt-20240627",
+        "bt-20240710",
+        "bt-20240722",
+        "bt-20240814",
+        "bt-20240906",
+        "bt-20241010",
+        "bt-20241104",
+        "bt-20241121",
+        "bt-20241127",
+        "bt-20241220",
+        "bt-20250110",
+        "bt-20250115",
+        "bt-20250117",
+        "bt-20250217",
+        "bt-20250312",
+        "bt-20250407",
+        "bt-20250421",
+        "bt-20250430",
+        "bt-20250528",
+        "bt-20250623",
+        "bt-20250716",
+        "bt-20250718",
+        "bt-20250808",
+        "bt-20250902",
+        "bt-20250925",
+        "bt-20251028",
+        "bt-20251031",
+        "bt-20251120",
+        "bt-20251215"
+      ],
+      "purgeRemoved": [],
+      "testRunIds": [
+        "bt-20260109",
+        "bt-20260120",
+        "bt-20260129",
+        "bt-20260203",
+        "bt-20260306",
+        "bt-20260331",
+        "bt-20260424",
+        "bt-20260522",
+        "bt-20260616"
+      ],
+      "selectedConfig": {
+        "id": "HV=1",
+        "hvThreshold": 1,
+        "atrThreshold": 2,
+        "emaSlopeThreshold": 0.3
+      },
+      "frozenConfigHash": "19aa8acdcc457e57",
+      "configFrozenIntact": true,
+      "trainGrid": [
+        {
+          "configId": "HV=1",
+          "hvThreshold": 1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.025558795010120865,
+          "coverage": 0.7428571428571429,
+          "activeDates": 26,
+          "totalDates": 35
+        },
+        {
+          "configId": "EMA=0.2",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.2,
+          "dateCohortMeanReturn": 0.021989006413760722,
+          "coverage": 0.7428571428571429,
+          "activeDates": 26,
+          "totalDates": 35
+        },
+        {
+          "configId": "EMA=0.4",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.4,
+          "dateCohortMeanReturn": 0.019826824979161516,
+          "coverage": 0.6285714285714286,
+          "activeDates": 22,
+          "totalDates": 35
+        },
+        {
+          "configId": "observed",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.019756798148043153,
+          "coverage": 0.6571428571428571,
+          "activeDates": 23,
+          "totalDates": 35
+        },
+        {
+          "configId": "ATR=1.5",
+          "hvThreshold": 1.1,
+          "atrThreshold": 1.5,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.019756798148043153,
+          "coverage": 0.6571428571428571,
+          "activeDates": 23,
+          "totalDates": 35
+        },
+        {
+          "configId": "ATR=1",
+          "hvThreshold": 1.1,
+          "atrThreshold": 1,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.019756798148043153,
+          "coverage": 0.6571428571428571,
+          "activeDates": 23,
+          "totalDates": 35
+        },
+        {
+          "configId": "EMA=0.1",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.1,
+          "dateCohortMeanReturn": 0.01923453903642697,
+          "coverage": 0.8571428571428571,
+          "activeDates": 30,
+          "totalDates": 35
+        },
+        {
+          "configId": "ATR=2.5",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2.5,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.018937558103023156,
+          "coverage": 0.6285714285714286,
+          "activeDates": 22,
+          "totalDates": 35
+        },
+        {
+          "configId": "HV=1.2",
+          "hvThreshold": 1.2,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.017287538966276945,
+          "coverage": 0.5428571428571428,
+          "activeDates": 19,
+          "totalDates": 35
+        },
+        {
+          "configId": "EMA=0.5",
+          "hvThreshold": 1.1,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.5,
+          "dateCohortMeanReturn": 0.01691155311940782,
+          "coverage": 0.5428571428571428,
+          "activeDates": 19,
+          "totalDates": 35
+        },
+        {
+          "configId": "ATR=3",
+          "hvThreshold": 1.1,
+          "atrThreshold": 3,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": 0.013773145404299806,
+          "coverage": 0.5142857142857142,
+          "activeDates": 18,
+          "totalDates": 35
+        },
+        {
+          "configId": "HV=1.3",
+          "hvThreshold": 1.3,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": -0.0017348177740619216,
+          "coverage": 0.37142857142857144,
+          "activeDates": 13,
+          "totalDates": 35
+        },
+        {
+          "configId": "HV=1.5",
+          "hvThreshold": 1.5,
+          "atrThreshold": 2,
+          "emaSlopeThreshold": 0.3,
+          "dateCohortMeanReturn": -0.0032698748141303407,
+          "coverage": 0.2,
+          "activeDates": 7,
+          "totalDates": 35
+        }
+      ],
+      "testScore": {
+        "dateCohortMeanReturn": 0.041402443709008245,
+        "coverage": 0.7777777777777778,
+        "activeDates": 7,
+        "totalDates": 9,
+        "tradeCount": 24,
+        "accuracy": 0.625
+      },
+      "testTradeCount": 24,
+      "gate4aScannerTruncationOk": true,
+      "gate4bModelTruncationOk": true
+    }
+  ],
+  "oosAggregate": {
+    "totalSignalDates": 29,
+    "activeDates": 20,
+    "totalTrades": 61,
+    "dateCohortMeanReturn": 0.015570781884074817,
+    "tradeAccuracy": 0.5081967213114754,
+    "bootstrapDateCluster": {
+      "mean": 0.01510566450330518,
+      "ci05": -0.0016493348808843985,
+      "ci95": 0.032511430870971685,
+      "ci50": 0.015055334024906775
+    },
+    "bootstrapConsecutiveOOSBlock": {
+      "mean": 0.01599220835051892,
+      "ci05": -0.0003488264461732299,
+      "ci95": 0.03294756303726454,
+      "ci50": 0.015984171296014312,
+      "blockLength": 10,
+      "blockUnit": "consecutive OOS signal dates (NOT trading days)",
+      "note": "Heuristic. n=29 sparse dates → ~3 blocks per sample → CI is unstable."
+    }
+  },
+  "testRunDateMetadata": [
+    {
+      "runId": "bt-20241220",
+      "signalDate": "2024-12-05",
+      "entryDate": "2024-12-06",
+      "labelEndDate": "2024-12-20"
+    },
+    {
+      "runId": "bt-20250110",
+      "signalDate": "2024-12-25",
+      "entryDate": "2024-12-26",
+      "labelEndDate": "2025-01-10"
+    },
+    {
+      "runId": "bt-20250115",
+      "signalDate": "2024-12-30",
+      "entryDate": "2024-12-31",
+      "labelEndDate": "2025-01-15"
+    },
+    {
+      "runId": "bt-20250117",
+      "signalDate": "2025-01-02",
+      "entryDate": "2025-01-03",
+      "labelEndDate": "2025-01-17"
+    },
+    {
+      "runId": "bt-20250217",
+      "signalDate": "2025-01-23",
+      "entryDate": "2025-01-24",
+      "labelEndDate": "2025-02-17"
+    },
+    {
+      "runId": "bt-20250312",
+      "signalDate": "2025-02-25",
+      "entryDate": "2025-02-26",
+      "labelEndDate": "2025-03-12"
+    },
+    {
+      "runId": "bt-20250407",
+      "signalDate": "2025-03-20",
+      "entryDate": "2025-03-21",
+      "labelEndDate": "2025-04-07"
+    },
+    {
+      "runId": "bt-20250421",
+      "signalDate": "2025-04-03",
+      "entryDate": "2025-04-07",
+      "labelEndDate": "2025-04-21"
+    },
+    {
+      "runId": "bt-20250430",
+      "signalDate": "2025-04-15",
+      "entryDate": "2025-04-16",
+      "labelEndDate": "2025-04-30"
+    },
+    {
+      "runId": "bt-20250528",
+      "signalDate": "2025-05-13",
+      "entryDate": "2025-05-14",
+      "labelEndDate": "2025-05-28"
+    },
+    {
+      "runId": "bt-20250623",
+      "signalDate": "2025-06-06",
+      "entryDate": "2025-06-09",
+      "labelEndDate": "2025-06-23"
+    },
+    {
+      "runId": "bt-20250716",
+      "signalDate": "2025-07-01",
+      "entryDate": "2025-07-02",
+      "labelEndDate": "2025-07-16"
+    },
+    {
+      "runId": "bt-20250718",
+      "signalDate": "2025-07-03",
+      "entryDate": "2025-07-04",
+      "labelEndDate": "2025-07-18"
+    },
+    {
+      "runId": "bt-20250808",
+      "signalDate": "2025-07-24",
+      "entryDate": "2025-07-25",
+      "labelEndDate": "2025-08-08"
+    },
+    {
+      "runId": "bt-20250902",
+      "signalDate": "2025-08-18",
+      "entryDate": "2025-08-19",
+      "labelEndDate": "2025-09-02"
+    },
+    {
+      "runId": "bt-20250925",
+      "signalDate": "2025-09-10",
+      "entryDate": "2025-09-11",
+      "labelEndDate": "2025-09-25"
+    },
+    {
+      "runId": "bt-20251028",
+      "signalDate": "2025-10-13",
+      "entryDate": "2025-10-14",
+      "labelEndDate": "2025-10-28"
+    },
+    {
+      "runId": "bt-20251031",
+      "signalDate": "2025-10-16",
+      "entryDate": "2025-10-17",
+      "labelEndDate": "2025-10-31"
+    },
+    {
+      "runId": "bt-20251120",
+      "signalDate": "2025-11-05",
+      "entryDate": "2025-11-06",
+      "labelEndDate": "2025-11-20"
+    },
+    {
+      "runId": "bt-20251215",
+      "signalDate": "2025-11-28",
+      "entryDate": "2025-12-01",
+      "labelEndDate": "2025-12-15"
+    },
+    {
+      "runId": "bt-20260109",
+      "signalDate": "2025-12-23",
+      "entryDate": "2025-12-24",
+      "labelEndDate": "2026-01-09"
+    },
+    {
+      "runId": "bt-20260120",
+      "signalDate": "2026-01-05",
+      "entryDate": "2026-01-06",
+      "labelEndDate": "2026-01-20"
+    },
+    {
+      "runId": "bt-20260129",
+      "signalDate": "2026-01-14",
+      "entryDate": "2026-01-15",
+      "labelEndDate": "2026-01-29"
+    },
+    {
+      "runId": "bt-20260203",
+      "signalDate": "2026-01-19",
+      "entryDate": "2026-01-20",
+      "labelEndDate": "2026-02-03"
+    },
+    {
+      "runId": "bt-20260306",
+      "signalDate": "2026-02-11",
+      "entryDate": "2026-02-12",
+      "labelEndDate": "2026-03-06"
+    },
+    {
+      "runId": "bt-20260331",
+      "signalDate": "2026-03-16",
+      "entryDate": "2026-03-17",
+      "labelEndDate": "2026-03-31"
+    },
+    {
+      "runId": "bt-20260424",
+      "signalDate": "2026-04-09",
+      "entryDate": "2026-04-10",
+      "labelEndDate": "2026-04-24"
+    },
+    {
+      "runId": "bt-20260522",
+      "signalDate": "2026-05-07",
+      "entryDate": "2026-05-08",
+      "labelEndDate": "2026-05-22"
+    },
+    {
+      "runId": "bt-20260616",
+      "signalDate": "2026-06-01",
+      "entryDate": "2026-06-02",
+      "labelEndDate": "2026-06-16"
+    }
+  ],
+  "allOOSTrades": [
+    {
+      "runId": "bt-20241220",
+      "signalDate": "2024-12-05",
+      "symbol": "EC0",
+      "direction": "bearish",
+      "entryDate": "2024-12-06",
+      "exitDate": "2024-12-20",
+      "entryPrice": 2610,
+      "exitPrice": 2538,
+      "grossReturn": 0.027586206896551724,
+      "costs": 0.0006958620689655172,
+      "netReturn": 0.026890344827586208
+    },
+    {
+      "runId": "bt-20250217",
+      "signalDate": "2025-01-23",
+      "symbol": "AO0",
+      "direction": "bearish",
+      "entryDate": "2025-01-24",
+      "exitDate": "2025-02-17",
+      "entryPrice": 3557,
+      "exitPrice": 3412,
+      "grossReturn": 0.040764689344953614,
+      "costs": 0.000693885296598257,
+      "netReturn": 0.040070804048355356
+    },
+    {
+      "runId": "bt-20250312",
+      "signalDate": "2025-02-25",
+      "symbol": "FG0",
+      "direction": "bearish",
+      "entryDate": "2025-02-26",
+      "exitDate": "2025-03-12",
+      "entryPrice": 1237,
+      "exitPrice": 1147,
+      "grossReturn": 0.07275666936135812,
+      "costs": 0.0006890864995957964,
+      "netReturn": 0.07206758286176232
+    },
+    {
+      "runId": "bt-20250421",
+      "signalDate": "2025-04-03",
+      "symbol": "AO0",
+      "direction": "bearish",
+      "entryDate": "2025-04-07",
+      "exitDate": "2025-04-21",
+      "entryPrice": 2710,
+      "exitPrice": 2844,
+      "grossReturn": -0.04944649446494465,
+      "costs": 0.0007074169741697417,
+      "netReturn": -0.05015391143911439
+    },
+    {
+      "runId": "bt-20250421",
+      "signalDate": "2025-04-03",
+      "symbol": "JM0",
+      "direction": "bearish",
+      "entryDate": "2025-04-07",
+      "exitDate": "2025-04-21",
+      "entryPrice": 961,
+      "exitPrice": 956.5,
+      "grossReturn": 0.004682622268470343,
+      "costs": 0.0006992976066597294,
+      "netReturn": 0.003983324661810614
+    },
+    {
+      "runId": "bt-20250421",
+      "signalDate": "2025-04-03",
+      "symbol": "SH0",
+      "direction": "bearish",
+      "entryDate": "2025-04-07",
+      "exitDate": "2025-04-21",
+      "entryPrice": 2420,
+      "exitPrice": 2430,
+      "grossReturn": -0.004132231404958678,
+      "costs": 0.0007006198347107438,
+      "netReturn": -0.0048328512396694214
+    },
+    {
+      "runId": "bt-20250430",
+      "signalDate": "2025-04-15",
+      "symbol": "EC0",
+      "direction": "bearish",
+      "entryDate": "2025-04-16",
+      "exitDate": "2025-04-30",
+      "entryPrice": 1600.1,
+      "exitPrice": 1324.3,
+      "grossReturn": 0.17236422723579775,
+      "costs": 0.0006741453659146302,
+      "netReturn": 0.17169008186988313
+    },
+    {
+      "runId": "bt-20250430",
+      "signalDate": "2025-04-15",
+      "symbol": "NR0",
+      "direction": "bearish",
+      "entryDate": "2025-04-16",
+      "exitDate": "2025-04-30",
+      "entryPrice": 12570,
+      "exitPrice": 12285,
+      "grossReturn": 0.022673031026252982,
+      "costs": 0.000696599045346062,
+      "netReturn": 0.02197643198090692
+    },
+    {
+      "runId": "bt-20250430",
+      "signalDate": "2025-04-15",
+      "symbol": "JM0",
+      "direction": "bearish",
+      "entryDate": "2025-04-16",
+      "exitDate": "2025-04-30",
+      "entryPrice": 984,
+      "exitPrice": 930.5,
+      "grossReturn": 0.05436991869918699,
+      "costs": 0.0006918445121951219,
+      "netReturn": 0.053678074186991866
+    },
+    {
+      "runId": "bt-20250430",
+      "signalDate": "2025-04-15",
+      "symbol": "BR0",
+      "direction": "bearish",
+      "entryDate": "2025-04-16",
+      "exitDate": "2025-04-30",
+      "entryPrice": 11420,
+      "exitPrice": 11240,
+      "grossReturn": 0.01576182136602452,
+      "costs": 0.0006976357267950964,
+      "netReturn": 0.015064185639229422
+    },
+    {
+      "runId": "bt-20250430",
+      "signalDate": "2025-04-15",
+      "symbol": "RU0",
+      "direction": "bearish",
+      "entryDate": "2025-04-16",
+      "exitDate": "2025-04-30",
+      "entryPrice": 14855,
+      "exitPrice": 14555,
+      "grossReturn": 0.02019522046449007,
+      "costs": 0.0006969707169303265,
+      "netReturn": 0.019498249747559745
+    },
+    {
+      "runId": "bt-20250430",
+      "signalDate": "2025-04-15",
+      "symbol": "PX0",
+      "direction": "bearish",
+      "entryDate": "2025-04-16",
+      "exitDate": "2025-04-30",
+      "entryPrice": 6040,
+      "exitPrice": 6212,
+      "grossReturn": -0.02847682119205298,
+      "costs": 0.0007042715231788079,
+      "netReturn": -0.02918109271523179
+    },
+    {
+      "runId": "bt-20250430",
+      "signalDate": "2025-04-15",
+      "symbol": "FU0",
+      "direction": "bearish",
+      "entryDate": "2025-04-16",
+      "exitDate": "2025-04-30",
+      "entryPrice": 2918,
+      "exitPrice": 2913,
+      "grossReturn": 0.0017135023989033585,
+      "costs": 0.0006997429746401645,
+      "netReturn": 0.001013759424263194
+    },
+    {
+      "runId": "bt-20250623",
+      "signalDate": "2025-06-06",
+      "symbol": "JM0",
+      "direction": "bearish",
+      "entryDate": "2025-06-09",
+      "exitDate": "2025-06-23",
+      "entryPrice": 779,
+      "exitPrice": 807,
+      "grossReturn": -0.03594351732991014,
+      "costs": 0.0007053915275994865,
+      "netReturn": -0.03664890885750963
+    },
+    {
+      "runId": "bt-20250623",
+      "signalDate": "2025-06-06",
+      "symbol": "FG0",
+      "direction": "bearish",
+      "entryDate": "2025-06-09",
+      "exitDate": "2025-06-23",
+      "entryPrice": 1000,
+      "exitPrice": 1007,
+      "grossReturn": -0.007,
+      "costs": 0.0007010499999999999,
+      "netReturn": -0.00770105
+    },
+    {
+      "runId": "bt-20250623",
+      "signalDate": "2025-06-06",
+      "symbol": "BR0",
+      "direction": "bearish",
+      "entryDate": "2025-06-09",
+      "exitDate": "2025-06-23",
+      "entryPrice": 11110,
+      "exitPrice": 11455,
+      "grossReturn": -0.031053105310531053,
+      "costs": 0.0007046579657965796,
+      "netReturn": -0.031757763276327636
+    },
+    {
+      "runId": "bt-20250623",
+      "signalDate": "2025-06-06",
+      "symbol": "NR0",
+      "direction": "bearish",
+      "entryDate": "2025-06-09",
+      "exitDate": "2025-06-23",
+      "entryPrice": 11935,
+      "exitPrice": 12010,
+      "grossReturn": -0.006284038542103058,
+      "costs": 0.0007009426057813155,
+      "netReturn": -0.0069849811478843735
+    },
+    {
+      "runId": "bt-20250623",
+      "signalDate": "2025-06-06",
+      "symbol": "SI0",
+      "direction": "bearish",
+      "entryDate": "2025-06-09",
+      "exitDate": "2025-06-23",
+      "entryPrice": 7250,
+      "exitPrice": 7420,
+      "grossReturn": -0.023448275862068966,
+      "costs": 0.0007035172413793104,
+      "netReturn": -0.024151793103448276
+    },
+    {
+      "runId": "bt-20250623",
+      "signalDate": "2025-06-06",
+      "symbol": "FU0",
+      "direction": "bearish",
+      "entryDate": "2025-06-09",
+      "exitDate": "2025-06-23",
+      "entryPrice": 2875,
+      "exitPrice": 3385,
+      "grossReturn": -0.17739130434782607,
+      "costs": 0.0007266086956521739,
+      "netReturn": -0.17811791304347824
+    },
+    {
+      "runId": "bt-20250716",
+      "signalDate": "2025-07-01",
+      "symbol": "JM0",
+      "direction": "bullish",
+      "entryDate": "2025-07-02",
+      "exitDate": "2025-07-16",
+      "entryPrice": 813.5,
+      "exitPrice": 897,
+      "grossReturn": 0.10264290104486785,
+      "costs": 0.0007153964351567302,
+      "netReturn": 0.10192750460971112
+    },
+    {
+      "runId": "bt-20250716",
+      "signalDate": "2025-07-01",
+      "symbol": "SI0",
+      "direction": "bullish",
+      "entryDate": "2025-07-02",
+      "exitDate": "2025-07-16",
+      "entryPrice": 7805,
+      "exitPrice": 8685,
+      "grossReturn": 0.11274823830877642,
+      "costs": 0.0007169122357463163,
+      "netReturn": 0.11203132607303011
+    },
+    {
+      "runId": "bt-20250718",
+      "signalDate": "2025-07-03",
+      "symbol": "JM0",
+      "direction": "bullish",
+      "entryDate": "2025-07-04",
+      "exitDate": "2025-07-18",
+      "entryPrice": 852.5,
+      "exitPrice": 926,
+      "grossReturn": 0.08621700879765395,
+      "costs": 0.000712932551319648,
+      "netReturn": 0.08550407624633431
+    },
+    {
+      "runId": "bt-20250718",
+      "signalDate": "2025-07-03",
+      "symbol": "CJ0",
+      "direction": "bullish",
+      "entryDate": "2025-07-04",
+      "exitDate": "2025-07-18",
+      "entryPrice": 10955,
+      "exitPrice": 10350,
+      "grossReturn": -0.0552259242355089,
+      "costs": 0.0006917161113646737,
+      "netReturn": -0.055917640346873576
+    },
+    {
+      "runId": "bt-20250718",
+      "signalDate": "2025-07-03",
+      "symbol": "SI0",
+      "direction": "bullish",
+      "entryDate": "2025-07-04",
+      "exitDate": "2025-07-18",
+      "entryPrice": 8060,
+      "exitPrice": 8695,
+      "grossReturn": 0.07878411910669975,
+      "costs": 0.0007118176178660049,
+      "netReturn": 0.07807230148883373
+    },
+    {
+      "runId": "bt-20250808",
+      "signalDate": "2025-07-24",
+      "symbol": "SI0",
+      "direction": "bullish",
+      "entryDate": "2025-07-25",
+      "exitDate": "2025-08-08",
+      "entryPrice": 9750,
+      "exitPrice": 8710,
+      "grossReturn": -0.10666666666666667,
+      "costs": 0.000684,
+      "netReturn": -0.10735066666666668
+    },
+    {
+      "runId": "bt-20250808",
+      "signalDate": "2025-07-24",
+      "symbol": "FG0",
+      "direction": "bullish",
+      "entryDate": "2025-07-25",
+      "exitDate": "2025-08-08",
+      "entryPrice": 1310,
+      "exitPrice": 1063,
+      "grossReturn": -0.18854961832061068,
+      "costs": 0.0006717175572519084,
+      "netReturn": -0.18922133587786258
+    },
+    {
+      "runId": "bt-20250808",
+      "signalDate": "2025-07-24",
+      "symbol": "AO0",
+      "direction": "bullish",
+      "entryDate": "2025-07-25",
+      "exitDate": "2025-08-08",
+      "entryPrice": 3450,
+      "exitPrice": 3170,
+      "grossReturn": -0.08115942028985507,
+      "costs": 0.0006878260869565218,
+      "netReturn": -0.0818472463768116
+    },
+    {
+      "runId": "bt-20250808",
+      "signalDate": "2025-07-24",
+      "symbol": "SA0",
+      "direction": "bullish",
+      "entryDate": "2025-07-25",
+      "exitDate": "2025-08-08",
+      "entryPrice": 1411,
+      "exitPrice": 1332,
+      "grossReturn": -0.05598866052445074,
+      "costs": 0.0006916017009213324,
+      "netReturn": -0.05668026222537208
+    },
+    {
+      "runId": "bt-20250808",
+      "signalDate": "2025-07-24",
+      "symbol": "SH0",
+      "direction": "bullish",
+      "entryDate": "2025-07-25",
+      "exitDate": "2025-08-08",
+      "entryPrice": 2683,
+      "exitPrice": 2446,
+      "grossReturn": -0.08833395452851286,
+      "costs": 0.0006867499068207232,
+      "netReturn": -0.0890207044353336
+    },
+    {
+      "runId": "bt-20250808",
+      "signalDate": "2025-07-24",
+      "symbol": "SF0",
+      "direction": "bullish",
+      "entryDate": "2025-07-25",
+      "exitDate": "2025-08-08",
+      "entryPrice": 5786,
+      "exitPrice": 5970,
+      "grossReturn": 0.03180089872105081,
+      "costs": 0.0007047701348081575,
+      "netReturn": 0.031096128586242652
+    },
+    {
+      "runId": "bt-20250808",
+      "signalDate": "2025-07-24",
+      "symbol": "BR0",
+      "direction": "bullish",
+      "entryDate": "2025-07-25",
+      "exitDate": "2025-08-08",
+      "entryPrice": 12305,
+      "exitPrice": 11515,
+      "grossReturn": -0.0642015440877692,
+      "costs": 0.0006903697683868347,
+      "netReturn": -0.06489191385615603
+    },
+    {
+      "runId": "bt-20250902",
+      "signalDate": "2025-08-18",
+      "symbol": "FG0",
+      "direction": "bullish",
+      "entryDate": "2025-08-19",
+      "exitDate": "2025-09-02",
+      "entryPrice": 1218,
+      "exitPrice": 1134,
+      "grossReturn": -0.06896551724137931,
+      "costs": 0.000689655172413793,
+      "netReturn": -0.0696551724137931
+    },
+    {
+      "runId": "bt-20250902",
+      "signalDate": "2025-08-18",
+      "symbol": "SH0",
+      "direction": "bullish",
+      "entryDate": "2025-08-19",
+      "exitDate": "2025-09-02",
+      "entryPrice": 2691,
+      "exitPrice": 2665,
+      "grossReturn": -0.00966183574879227,
+      "costs": 0.0006985507246376812,
+      "netReturn": -0.01036038647342995
+    },
+    {
+      "runId": "bt-20251028",
+      "signalDate": "2025-10-13",
+      "symbol": "AG0",
+      "direction": "bullish",
+      "entryDate": "2025-10-14",
+      "exitDate": "2025-10-28",
+      "entryPrice": 11582,
+      "exitPrice": 11049,
+      "grossReturn": -0.04601968571921948,
+      "costs": 0.0006930970471421171,
+      "netReturn": -0.0467127827663616
+    },
+    {
+      "runId": "bt-20251031",
+      "signalDate": "2025-10-16",
+      "symbol": "AG0",
+      "direction": "bullish",
+      "entryDate": "2025-10-17",
+      "exitDate": "2025-10-31",
+      "entryPrice": 12023,
+      "exitPrice": 11441,
+      "grossReturn": -0.04840721949596607,
+      "costs": 0.0006927389170756052,
+      "netReturn": -0.049099958413041676
+    },
+    {
+      "runId": "bt-20251031",
+      "signalDate": "2025-10-16",
+      "symbol": "JD0",
+      "direction": "bearish",
+      "entryDate": "2025-10-17",
+      "exitDate": "2025-10-31",
+      "entryPrice": 2972,
+      "exitPrice": 3146,
+      "grossReturn": -0.058546433378196504,
+      "costs": 0.0007087819650067295,
+      "netReturn": -0.05925521534320324
+    },
+    {
+      "runId": "bt-20251120",
+      "signalDate": "2025-11-05",
+      "symbol": "CJ0",
+      "direction": "bearish",
+      "entryDate": "2025-11-06",
+      "exitDate": "2025-11-20",
+      "entryPrice": 9755,
+      "exitPrice": 9300,
+      "grossReturn": 0.04664274730907227,
+      "costs": 0.0006930035879036392,
+      "netReturn": 0.04594974372116863
+    },
+    {
+      "runId": "bt-20260109",
+      "signalDate": "2025-12-23",
+      "symbol": "LC0",
+      "direction": "bullish",
+      "entryDate": "2025-12-24",
+      "exitDate": "2026-01-09",
+      "entryPrice": 122000,
+      "exitPrice": 143420,
+      "grossReturn": 0.17557377049180328,
+      "costs": 0.0007263360655737705,
+      "netReturn": 0.17484743442622952
+    },
+    {
+      "runId": "bt-20260109",
+      "signalDate": "2025-12-23",
+      "symbol": "AG0",
+      "direction": "bullish",
+      "entryDate": "2025-12-24",
+      "exitDate": "2026-01-09",
+      "entryPrice": 16510,
+      "exitPrice": 18731,
+      "grossReturn": 0.1345245305875227,
+      "costs": 0.0007201786795881283,
+      "netReturn": 0.13380435190793458
+    },
+    {
+      "runId": "bt-20260120",
+      "signalDate": "2026-01-05",
+      "symbol": "AG0",
+      "direction": "bullish",
+      "entryDate": "2026-01-06",
+      "exitDate": "2026-01-20",
+      "entryPrice": 18126,
+      "exitPrice": 23062,
+      "grossReturn": 0.2723160101511641,
+      "costs": 0.0007408474015226746,
+      "netReturn": 0.2715751627496414
+    },
+    {
+      "runId": "bt-20260120",
+      "signalDate": "2026-01-05",
+      "symbol": "LC0",
+      "direction": "bullish",
+      "entryDate": "2026-01-06",
+      "exitDate": "2026-01-20",
+      "entryPrice": 132600,
+      "exitPrice": 160500,
+      "grossReturn": 0.21040723981900453,
+      "costs": 0.0007315610859728506,
+      "netReturn": 0.20967567873303167
+    },
+    {
+      "runId": "bt-20260120",
+      "signalDate": "2026-01-05",
+      "symbol": "NI0",
+      "direction": "bullish",
+      "entryDate": "2026-01-06",
+      "exitDate": "2026-01-20",
+      "entryPrice": 134100,
+      "exitPrice": 141560,
+      "grossReturn": 0.055630126771066365,
+      "costs": 0.00070834451901566,
+      "netReturn": 0.0549217822520507
+    },
+    {
+      "runId": "bt-20260120",
+      "signalDate": "2026-01-05",
+      "symbol": "AO0",
+      "direction": "bullish",
+      "entryDate": "2026-01-06",
+      "exitDate": "2026-01-20",
+      "entryPrice": 2762,
+      "exitPrice": 2671,
+      "grossReturn": -0.03294713975380159,
+      "costs": 0.0006950579290369298,
+      "netReturn": -0.03364219768283852
+    },
+    {
+      "runId": "bt-20260129",
+      "signalDate": "2026-01-14",
+      "symbol": "LC0",
+      "direction": "bullish",
+      "entryDate": "2026-01-15",
+      "exitDate": "2026-01-29",
+      "entryPrice": 163840,
+      "exitPrice": 164820,
+      "grossReturn": 0.0059814453125,
+      "costs": 0.000700897216796875,
+      "netReturn": 0.0052805480957031255
+    },
+    {
+      "runId": "bt-20260129",
+      "signalDate": "2026-01-14",
+      "symbol": "AG0",
+      "direction": "bullish",
+      "entryDate": "2026-01-15",
+      "exitDate": "2026-01-29",
+      "entryPrice": 23488,
+      "exitPrice": 30891,
+      "grossReturn": 0.31518222070844687,
+      "costs": 0.000747277333106267,
+      "netReturn": 0.3144349433753406
+    },
+    {
+      "runId": "bt-20260129",
+      "signalDate": "2026-01-14",
+      "symbol": "NI0",
+      "direction": "bullish",
+      "entryDate": "2026-01-15",
+      "exitDate": "2026-01-29",
+      "entryPrice": 143000,
+      "exitPrice": 147470,
+      "grossReturn": 0.03125874125874126,
+      "costs": 0.0007046888111888112,
+      "netReturn": 0.030554052447552445
+    },
+    {
+      "runId": "bt-20260129",
+      "signalDate": "2026-01-14",
+      "symbol": "SN0",
+      "direction": "bullish",
+      "entryDate": "2026-01-15",
+      "exitDate": "2026-01-29",
+      "entryPrice": 424520,
+      "exitPrice": 446130,
+      "grossReturn": 0.0509045510223311,
+      "costs": 0.0007076356826533497,
+      "netReturn": 0.05019691533967775
+    },
+    {
+      "runId": "bt-20260129",
+      "signalDate": "2026-01-14",
+      "symbol": "CU0",
+      "direction": "bullish",
+      "entryDate": "2026-01-15",
+      "exitDate": "2026-01-29",
+      "entryPrice": 104350,
+      "exitPrice": 109110,
+      "grossReturn": 0.04561571633924293,
+      "costs": 0.0007068423574508864,
+      "netReturn": 0.044908873981792045
+    },
+    {
+      "runId": "bt-20260203",
+      "signalDate": "2026-01-19",
+      "symbol": "LC0",
+      "direction": "bullish",
+      "entryDate": "2026-01-20",
+      "exitDate": "2026-02-03",
+      "entryPrice": 149500,
+      "exitPrice": 148100,
+      "grossReturn": -0.009364548494983277,
+      "costs": 0.0006985953177257525,
+      "netReturn": -0.010063143812709029
+    },
+    {
+      "runId": "bt-20260203",
+      "signalDate": "2026-01-19",
+      "symbol": "SN0",
+      "direction": "bullish",
+      "entryDate": "2026-01-20",
+      "exitDate": "2026-02-03",
+      "entryPrice": 383200,
+      "exitPrice": 383340,
+      "grossReturn": 0.0003653444676409186,
+      "costs": 0.000700054801670146,
+      "netReturn": -0.00033471033402922745
+    },
+    {
+      "runId": "bt-20260306",
+      "signalDate": "2026-02-11",
+      "symbol": "AG0",
+      "direction": "bearish",
+      "entryDate": "2026-02-12",
+      "exitDate": "2026-03-06",
+      "entryPrice": 21718,
+      "exitPrice": 21533,
+      "grossReturn": 0.008518279767934431,
+      "costs": 0.0006987222580348098,
+      "netReturn": 0.007819557509899622
+    },
+    {
+      "runId": "bt-20260331",
+      "signalDate": "2026-03-16",
+      "symbol": "EC0",
+      "direction": "bullish",
+      "entryDate": "2026-03-17",
+      "exitDate": "2026-03-31",
+      "entryPrice": 1940,
+      "exitPrice": 2394.1,
+      "grossReturn": 0.23407216494845356,
+      "costs": 0.000735110824742268,
+      "netReturn": 0.2333370541237113
+    },
+    {
+      "runId": "bt-20260331",
+      "signalDate": "2026-03-16",
+      "symbol": "SC0",
+      "direction": "bullish",
+      "entryDate": "2026-03-17",
+      "exitDate": "2026-03-31",
+      "entryPrice": 735,
+      "exitPrice": 740.6,
+      "grossReturn": 0.00761904761904765,
+      "costs": 0.0007011428571428572,
+      "netReturn": 0.0069179047619047935
+    },
+    {
+      "runId": "bt-20260331",
+      "signalDate": "2026-03-16",
+      "symbol": "LU0",
+      "direction": "bullish",
+      "entryDate": "2026-03-17",
+      "exitDate": "2026-03-31",
+      "entryPrice": 5530,
+      "exitPrice": 5159,
+      "grossReturn": -0.0670886075949367,
+      "costs": 0.0006899367088607595,
+      "netReturn": -0.06777854430379747
+    },
+    {
+      "runId": "bt-20260331",
+      "signalDate": "2026-03-16",
+      "symbol": "MA0",
+      "direction": "bullish",
+      "entryDate": "2026-03-17",
+      "exitDate": "2026-03-31",
+      "entryPrice": 2790,
+      "exitPrice": 3229,
+      "grossReturn": 0.15734767025089605,
+      "costs": 0.0007236021505376344,
+      "netReturn": 0.15662406810035842
+    },
+    {
+      "runId": "bt-20260331",
+      "signalDate": "2026-03-16",
+      "symbol": "PG0",
+      "direction": "bullish",
+      "entryDate": "2026-03-17",
+      "exitDate": "2026-03-31",
+      "entryPrice": 5736,
+      "exitPrice": 6339,
+      "grossReturn": 0.1051255230125523,
+      "costs": 0.0007157688284518828,
+      "netReturn": 0.10440975418410042
+    },
+    {
+      "runId": "bt-20260331",
+      "signalDate": "2026-03-16",
+      "symbol": "PX0",
+      "direction": "bullish",
+      "entryDate": "2026-03-17",
+      "exitDate": "2026-03-31",
+      "entryPrice": 9880,
+      "exitPrice": 9700,
+      "grossReturn": -0.018218623481781375,
+      "costs": 0.0006972672064777328,
+      "netReturn": -0.018915890688259107
+    },
+    {
+      "runId": "bt-20260424",
+      "signalDate": "2026-04-09",
+      "symbol": "LU0",
+      "direction": "bearish",
+      "entryDate": "2026-04-10",
+      "exitDate": "2026-04-24",
+      "entryPrice": 4622,
+      "exitPrice": 4821,
+      "grossReturn": -0.04305495456512332,
+      "costs": 0.0007064582431847685,
+      "netReturn": -0.043761412808308094
+    },
+    {
+      "runId": "bt-20260424",
+      "signalDate": "2026-04-09",
+      "symbol": "EG0",
+      "direction": "bullish",
+      "entryDate": "2026-04-10",
+      "exitDate": "2026-04-24",
+      "entryPrice": 5202,
+      "exitPrice": 4800,
+      "grossReturn": -0.07727797001153403,
+      "costs": 0.00068840830449827,
+      "netReturn": -0.0779663783160323
+    },
+    {
+      "runId": "bt-20260424",
+      "signalDate": "2026-04-09",
+      "symbol": "MA0",
+      "direction": "bullish",
+      "entryDate": "2026-04-10",
+      "exitDate": "2026-04-24",
+      "entryPrice": 3240,
+      "exitPrice": 2895,
+      "grossReturn": -0.10648148148148148,
+      "costs": 0.0006840277777777778,
+      "netReturn": -0.10716550925925926
+    },
+    {
+      "runId": "bt-20260424",
+      "signalDate": "2026-04-09",
+      "symbol": "EB0",
+      "direction": "bullish",
+      "entryDate": "2026-04-10",
+      "exitDate": "2026-04-24",
+      "entryPrice": 10224,
+      "exitPrice": 9785,
+      "grossReturn": -0.04293818466353678,
+      "costs": 0.0006935592723004694,
+      "netReturn": -0.04363174393583725
+    }
+  ],
+  "scoringMethod": "equal-weight date-cohort mean; zero-signal dates counted as 0; tiebreak: coverage → closer to observed defaults",
+  "bootstrapMethod": "date-cluster bootstrap + 10-consecutive-OOS-date block bootstrap (heuristic, NOT trading-day block), 1000 reps, 90% CI",
+  "disclaimer": "POST-SELECTION / CONDITIONAL OOS. 13-config grid was informed by full-sample Item 3 sweep. 29 OOS signal dates is a small sample. 90% CIs are indicative only. Scoring proxy is equal-weight date-cohort mean, NOT account-level return. The consecutive-OOS-date block bootstrap uses heuristic block length on sparse dates and is NOT a proper trading-day block bootstrap. This evaluates a pre-registered training rule — it does NOT validate any specific threshold.",
+  "timestamp": "2026-08-07T17:41:39.893Z"
+}
