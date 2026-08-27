@@ -3,136 +3,191 @@
   "websearch": "llm-no-web",
   "universe": [
     "RB0",
+    "HC0",
+    "I0",
     "M0",
-    "SC0"
+    "Y0",
+    "SC0",
+    "TA0",
+    "MA0",
+    "CU0",
+    "AU0",
+    "EG0",
+    "RM0"
   ],
   "dates": [
+    "2026-07-02",
+    "2026-07-08",
     "2026-07-14",
-    "2026-07-23",
-    "2026-08-03",
-    "2026-08-12",
-    "2026-08-20"
+    "2026-07-20",
+    "2026-07-24",
+    "2026-07-30",
+    "2026-08-05",
+    "2026-08-11",
+    "2026-08-17"
   ],
   "llmDecisions": {
+    "2026-07-02": {
+      "filter": {
+        "KEEP": [
+          "SC0"
+        ],
+        "reason": "LLM recorded：原油供给宽松预期与5日-6.34%趋势下行"
+      },
+      "analysis": {
+        "SC0": {
+          "direction": "bearish",
+          "confidence": "medium",
+          "driver": "原油供给宽松预期与5日-6.34%趋势下行",
+          "confirm": "收盘跌破 430 且量比≥1.0",
+          "invalidation": "收盘收复 MA20(约520)"
+        }
+      },
+      "sectorDriver": {}
+    },
+    "2026-07-08": {
+      "filter": {
+        "KEEP": [
+          "M0"
+        ],
+        "reason": "LLM recorded：豆粕站上双均线且5日+2.9%"
+      },
+      "analysis": {
+        "M0": {
+          "direction": "bullish",
+          "confidence": "medium",
+          "driver": "豆粕站上双均线且5日+2.9%",
+          "confirm": "收盘站稳 3051 且量比≥1.0",
+          "invalidation": "收盘跌破 MA20(约2964)"
+        }
+      },
+      "sectorDriver": {}
+    },
     "2026-07-14": {
       "filter": {
         "KEEP": [
-          "SC0"
+          "MA0"
         ],
-        "reason": "原油5日+17.25%放量反弹，动能强"
+        "reason": "LLM recorded：甲醇5日+9.48%站上MA20且量比1.33"
       },
       "analysis": {
-        "SC0": {
+        "MA0": {
           "direction": "bullish",
           "confidence": "medium",
-          "driver": "供给扰动推动原油脉冲反弹",
-          "confirm": "收盘站稳 519 且量比≥1.1",
-          "invalidation": "收盘跌破 500 或量比<0.8"
+          "driver": "甲醇5日+9.48%站上MA20且量比1.33",
+          "confirm": "收盘站稳 2632 且量比≥1.2",
+          "invalidation": "收盘跌破 MA20(约2477)"
         }
       },
-      "sectorDriver": {
-        "energy_chemical": {
-          "status": "analyzed",
-          "primary": "原油反弹带动能化情绪修复",
-          "confidence": "medium"
-        }
-      }
+      "sectorDriver": {}
     },
-    "2026-07-23": {
+    "2026-07-20": {
       "filter": {
         "KEEP": [
           "M0"
         ],
-        "reason": "豆粕5日+3.52%站上双均线，量比1.31确认"
+        "reason": "LLM recorded：豆粕延续趋势5日+2.59%量比1.45"
       },
       "analysis": {
         "M0": {
           "direction": "bullish",
           "confidence": "medium",
-          "driver": "蛋白粕需求与成本端支撑",
-          "confirm": "收盘站稳 3175 且量比≥1.2",
-          "invalidation": "收盘跌破 MA20(约3045) 或量比<0.8"
+          "driver": "豆粕延续趋势5日+2.59%量比1.45",
+          "confirm": "收盘站稳 3129 且量比≥1.2",
+          "invalidation": "收盘跌破 MA20(约3015)"
         }
       },
-      "sectorDriver": {
-        "agriculture": {
-          "status": "analyzed",
-          "primary": "蛋白粕偏强带动农产品板块",
-          "confidence": "medium"
-        }
-      }
+      "sectorDriver": {}
     },
-    "2026-08-03": {
+    "2026-07-24": {
       "filter": {
         "KEEP": [
-          "RB0"
+          "RM0"
         ],
-        "reason": "螺纹5日-3.31%跌破双均线，黑色系走弱"
+        "reason": "LLM recorded：菜粕5日+7.92%放量站上双均线"
       },
       "analysis": {
-        "RB0": {
+        "RM0": {
+          "direction": "bullish",
+          "confidence": "medium",
+          "driver": "菜粕5日+7.92%放量站上双均线",
+          "confirm": "收盘站稳 2467 且量比≥1.2",
+          "invalidation": "收盘跌破 MA20(约2315)"
+        }
+      },
+      "sectorDriver": {}
+    },
+    "2026-07-30": {
+      "filter": {
+        "KEEP": [
+          "I0"
+        ],
+        "reason": "LLM recorded：铁矿5日-4.35%跌破双均线且量比1.72"
+      },
+      "analysis": {
+        "I0": {
           "direction": "bearish",
           "confidence": "medium",
-          "driver": "需求走弱压制钢价",
-          "confirm": "收盘跌破 2976 且量比≥1.0",
-          "invalidation": "收盘收复 MA20(约3073) 且量比<0.8"
+          "driver": "铁矿5日-4.35%跌破双均线且量比1.72",
+          "confirm": "收盘跌破 710 且量比≥1.2",
+          "invalidation": "收盘收复 MA20(约746)"
         }
       },
-      "sectorDriver": {
-        "black": {
-          "status": "analyzed",
-          "primary": "钢材需求走弱拖累黑色系",
-          "confidence": "medium"
-        }
-      }
+      "sectorDriver": {}
     },
-    "2026-08-12": {
+    "2026-08-05": {
       "filter": {
         "KEEP": [
-          "M0"
+          "CU0"
         ],
-        "reason": "豆粕站上双均线且量比1.09，趋势延续"
+        "reason": "LLM recorded：铜价5日+2.34%站上双均线且量比1.14"
       },
       "analysis": {
-        "M0": {
+        "CU0": {
           "direction": "bullish",
           "confidence": "medium",
-          "driver": "蛋白粕需求与成本支撑延续",
-          "confirm": "收盘站稳 3142 且量比≥1.0",
-          "invalidation": "收盘跌破 MA20(约3126) 或量比<0.8"
+          "driver": "铜价5日+2.34%站上双均线且量比1.14",
+          "confirm": "收盘站稳 107340 且量比≥1.0",
+          "invalidation": "收盘跌破 MA20(约104843)"
         }
       },
-      "sectorDriver": {
-        "agriculture": {
-          "status": "analyzed",
-          "primary": "蛋白粕偏强带动农产品板块",
-          "confidence": "medium"
-        }
-      }
+      "sectorDriver": {}
     },
-    "2026-08-20": {
+    "2026-08-11": {
       "filter": {
         "KEEP": [
           "SC0"
         ],
-        "reason": "原油5日+5.4%站上双均线且量比1.42，动能强"
+        "reason": "LLM recorded：原油5日+4.8%站上双均线"
       },
       "analysis": {
         "SC0": {
           "direction": "bullish",
           "confidence": "medium",
-          "driver": "供给扰动与需求预期推动原油上行",
-          "confirm": "收盘站稳 583 且量比≥1.2",
-          "invalidation": "收盘跌破 MA20(约551) 或量比<0.8"
+          "driver": "原油5日+4.8%站上双均线",
+          "confirm": "收盘站稳 564 且量比≥0.9",
+          "invalidation": "收盘跌破 MA20(约540)"
         }
       },
-      "sectorDriver": {
-        "energy_chemical": {
-          "status": "analyzed",
-          "primary": "原油上行带动能化成本端",
-          "confidence": "medium"
+      "sectorDriver": {}
+    },
+    "2026-08-17": {
+      "filter": {
+        "KEEP": [
+          "MA0"
+        ],
+        "reason": "LLM recorded：甲醇5日+8.06%放量站上双均线"
+      },
+      "analysis": {
+        "MA0": {
+          "direction": "bullish",
+          "confidence": "medium",
+          "driver": "甲醇5日+8.06%放量站上双均线",
+          "confirm": "收盘站稳 2735 且量比≥1.2",
+          "invalidation": "收盘跌破 MA20(约2630)"
         }
-      }
+      },
+      "sectorDriver": {}
     }
   }
 }

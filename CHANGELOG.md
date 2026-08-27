@@ -2,10 +2,10 @@
 
 ## 0.1.8（2026-08-27）
 
-- **完整策略链回测试点**：新增 `strategies/backtest/pilot-runner.cjs` + `recordings/manifest.json`——3 品种（RB0/M0/SC0）× 5 信号日，包含 recorded LLM 软过滤/六问/板块驱动决策 → 截断 raw → sector/概率/报告基线 → strategy-matcher → 冻结 executable 计划 → feedback 验证 → `baseline-report.json/md`
-- **feedback R 口径修复**：目标文本含“R”时，验证引擎按风险距离换算实际目标价（此前误把 2R 解析为价格 2）
+- **完整策略链回测试点**：新增 `strategies/backtest/pilot-runner.cjs` + `recordings/manifest.json`——12 品种 × 9 信号日，包含 recorded LLM 软过滤/六问/板块驱动决策 → 截断 raw → sector/概率/报告基线 → strategy-matcher → 冻结 executable 计划 → feedback 验证 → `baseline-report.json/md`
+- **feedback 目标解析修复**：目标价推导优先级改为“明确价格 > R 倍数 > 默认 2R”，避免“3d p68 沿”被误解析成价格 3
 - **matcher 健壮性**：MS-01 证据串在 MA60/change5d 为 null 时不再抛错，渲染为 “—”
-- 试点基线诚实结论：5 期共 3 个 executable 计划，1 个止损离场、2 个 T+1 未触发；方向正确 0/1（样本内、llm-no-web、不具统计意义）
+- 试点基线诚实结论：9 期共 2 个 executable 计划，2 个时间离场，方向正确 1/2（样本内、llm-no-web、不具统计意义）
 
 ## 0.1.7（2026-08-27）
 

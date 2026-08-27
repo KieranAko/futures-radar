@@ -68,6 +68,34 @@ describe('strategy-feedback 证伪反馈机制', () => {
     }
   });
 
+  it('非价格目标文本（如 3d p68）不会被误解析成价格 3', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-feedback-'));
+    try {
+      const plan = makePlan('run-target', 'RM0', {
+        entry: { trigger: '收盘站稳 100 上方', triggerLevel: 100, triggerTiming: 'T+1 收盘确认；确认后下一交易日开盘执行' },
+        targets: { t1: '前高/前低 或 3d p68 沿（先到者，平 50%）', t2: '2R–3R' }
+      });
+      recordExecutablePlans(plan, '2026-08-26T00:00:00Z', root);
+      const raw = {
+        contracts: {
+          RM0: {
+            ohlcv: {
+              dates: ['2026-08-26', '2026-08-27', '2026-08-28', '2026-08-29'],
+              open: [98, 102, 101, 101], high: [101, 103, 102, 102], low: [97, 99, 96, 96], close: [100, 101, 100, 101]
+            }
+          }
+        }
+      };
+      const out = verifyPlans('run-next', raw, root);
+      const r = out.results[0];
+      assert.equal(r.status, 'verified');
+      assert.notEqual(r.exitPrice, 3);
+      assert.ok(r.exitPrice > 90, 'exit price should be a real price, not parsed indicator number');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('T+1 未触发 → invalidated_not_triggered', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-feedback-'));
     try {
