@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.9（2026-08-28）
+
+- **信号质量回测路径**：新增 `strategies/signal-backtest/`（`contract.md` 契约 + `runner.cjs` + `recordings/`）——固定 RB0/M0/SC0、1 年 250 个交易日、跳过扫描/筛选；LLM 锚点每 10 个交易日做方向/参数决策（69 个锚点，只读锚点日及以前的截断特征），锚点有效期内确定性规则延续生成信号；T+1 收盘确认 → T+2 开盘执行（跳空放弃）→ 止损/目标1/时间退出证伪
+- **基线结论**：185 个信号 → 39 个触发执行（27 笔成交 + 12 笔跳空放弃）→ 方向正确率 44.44%、目标1兑现率 14.81%、止损率 37.04%、平均单笔 -0.82%；输出 `strategies/signal-backtest/output/signal-quality-baseline.md/json`（含置信度交叉与参数组合证伪排序）
+- **数据扩增**：data-store 为 RB0/M0/SC0 摄入 250 个交易日历史（2025-08-18..2026-08-27，run `signal-history-1y`），daily 文件库合并保留跨 run 历史
+- **版本对齐**：VERSION.md / package.json / SKILL.md / README.md / pipeline banner 统一为 0.1.9
+- 新增 signal-backtest 测试 8 条；全量测试 591 → 599（100 → 103 套件）
+
 ## 0.1.8（2026-08-27）
 
 - **完整策略链回测试点**：新增 `strategies/backtest/pilot-runner.cjs` + `recordings/manifest.json`——12 品种 × 9 信号日，包含 recorded LLM 软过滤/六问/板块驱动决策 → 截断 raw → sector/概率/报告基线 → strategy-matcher → 冻结 executable 计划 → feedback 验证 → `baseline-report.json/md`

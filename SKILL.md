@@ -1,7 +1,7 @@
 ---
 name: futures-radar
 description: 期货短期机会分析 + 离线模型回测——每日扫描~60个国内期货主力合约，波动率排名→Top 3深挖→4章短报告；research/backtest/ 支持 deterministic 与 LLM replay 回测
-version: 0.1.8
+version: 0.1.9
 ---
 
 # futures-radar
@@ -17,6 +17,7 @@ version: 0.1.8
 - **数据文件库**：`data/` + `data-store/`（每日行情/ledger/合约bars/宏观快照/板块序列，维护命令见 `data/README.md`）
 - **交易策略板块**：`node strategies/build-strategy-plan.cjs --runId <runId>` 生成 `strategy-plan.json`；报告渲染自动附「五、交易策略板块（执行参考）」章节（缺失时跳过，四章不变）。策略为方向增强/执行参考：不构成投资建议、无收益承诺、不使用新增持仓数据（见 `strategies/README.md`）
 - **证伪反馈机制**：`build-strategy-plan.cjs` 自动把 executable 计划冻结到 `data/strategy-feedback/ledger/`，并在下次运行用锚定合约序列验证 T+1 触发、止损/目标/时间离场并输出归因 codes；报告策略板块回显往期证伪结果
+- **信号质量回测**：`node strategies/signal-backtest/runner.cjs`——固定 RB0/M0/SC0 的 1 年历史，LLM 锚点每 10 个交易日做方向/参数决策，确定性规则在锚点期内延续生成信号，T+1 收盘确认/T+2 开盘执行/止损/目标/时间退出验证，产出 `strategies/signal-backtest/output/signal-quality-baseline.md/json`
 
 ## 触发条件
 
