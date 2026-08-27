@@ -1,0 +1,30 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "M0",
+  "anchorDate": "2026-07-24",
+  "direction": "bullish",
+  "confidence": "medium",
+  "macroSupport": "conflict",
+  "sectorSupport": "bullish",
+  "eventRisk": "high",
+  "q1": "为什么动：板块与价格强多头——close 3225 远离 ma20 3057.7 与 ma60 3003.4，chg5=+5.36；sector.ret5d=+1.12、sector.breadth5d=0.8、M0 领涨；但宏观冲突：macro.DXY change5d=+0.70、macro.US10Y change5d=+3.08 偏空，macro.SC0 change5d=+15.46 偏多；events.fomc（7/29）与 events.china_pmi（7/31）为日程预期，eventRisk 高。",
+  "q2": "趋势还是脉冲：close 大幅高于双均线，chg5=+5.36、ATR5=53.8 高波动，趋势加速；volRatio=1.03 量能未超常，属趋势中的加速段，追高需防脉冲结束。",
+  "q3": "多空哪边更有赔率：多头有强趋势与板块共振；反面证据有 macro.DXY 与 macro.US10Y 同步上行压制商品、价格偏离 MA20 约 5.5%、双事件临近。赔率偏多但风险收益已变差。",
+  "q4": "关键确认信号：事件落地后回踩不破 3144 并重新站上 3225，或 T+1 收盘站上 3268（close+0.8×ATR5）且宏观冲突不扩大，确认多头延续。",
+  "q5": "失效条件：收盘跌破 3144，或 FOMC 后 macro.DXY 与 macro.US10Y 继续同步上行（Q1 宏观转空），多头失效。",
+  "q6": "交易风险：事件风险——events.fomc 与 events.china_pmi 双事件 high；执行风险——ATR5=53.8 高波动，滑点与止损距离大；品种风险——夜盘跳空。",
+  "evidenceRefs": [
+    "sector.ret5d",
+    "sector.breadth5d",
+    "macro.DXY",
+    "macro.US10Y",
+    "macro.SC0",
+    "events.fomc",
+    "events.china_pmi"
+  ],
+  "opposingRefs": [
+    "macro.DXY",
+    "macro.US10Y"
+  ],
+  "invalidateIf": "收盘跌破 3144，或 FOMC 后 DXY 与 US10Y 同步上行，则多头失效。"
+}

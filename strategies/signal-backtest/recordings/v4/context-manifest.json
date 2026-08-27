@@ -1,0 +1,163 @@
+{
+  "schema": "futures-radar-signal-context-manifest/1",
+  "generatedAt": "2026-08-27T17:41:47.027Z",
+  "anchorCount": 10,
+  "symbols": {
+    "RB0": [
+      {
+        "date": "2026-06-11",
+        "idx": 445,
+        "path": "context\\RB0-2026-06-11.json"
+      },
+      {
+        "date": "2026-06-18",
+        "idx": 450,
+        "path": "context\\RB0-2026-06-18.json"
+      },
+      {
+        "date": "2026-06-26",
+        "idx": 455,
+        "path": "context\\RB0-2026-06-26.json"
+      },
+      {
+        "date": "2026-07-03",
+        "idx": 460,
+        "path": "context\\RB0-2026-07-03.json"
+      },
+      {
+        "date": "2026-07-10",
+        "idx": 465,
+        "path": "context\\RB0-2026-07-10.json"
+      },
+      {
+        "date": "2026-07-17",
+        "idx": 470,
+        "path": "context\\RB0-2026-07-17.json"
+      },
+      {
+        "date": "2026-07-24",
+        "idx": 475,
+        "path": "context\\RB0-2026-07-24.json"
+      },
+      {
+        "date": "2026-07-31",
+        "idx": 480,
+        "path": "context\\RB0-2026-07-31.json"
+      },
+      {
+        "date": "2026-08-07",
+        "idx": 485,
+        "path": "context\\RB0-2026-08-07.json"
+      },
+      {
+        "date": "2026-08-14",
+        "idx": 490,
+        "path": "context\\RB0-2026-08-14.json"
+      }
+    ],
+    "M0": [
+      {
+        "date": "2026-06-11",
+        "idx": 445,
+        "path": "context\\M0-2026-06-11.json"
+      },
+      {
+        "date": "2026-06-18",
+        "idx": 450,
+        "path": "context\\M0-2026-06-18.json"
+      },
+      {
+        "date": "2026-06-26",
+        "idx": 455,
+        "path": "context\\M0-2026-06-26.json"
+      },
+      {
+        "date": "2026-07-03",
+        "idx": 460,
+        "path": "context\\M0-2026-07-03.json"
+      },
+      {
+        "date": "2026-07-10",
+        "idx": 465,
+        "path": "context\\M0-2026-07-10.json"
+      },
+      {
+        "date": "2026-07-17",
+        "idx": 470,
+        "path": "context\\M0-2026-07-17.json"
+      },
+      {
+        "date": "2026-07-24",
+        "idx": 475,
+        "path": "context\\M0-2026-07-24.json"
+      },
+      {
+        "date": "2026-07-31",
+        "idx": 480,
+        "path": "context\\M0-2026-07-31.json"
+      },
+      {
+        "date": "2026-08-07",
+        "idx": 485,
+        "path": "context\\M0-2026-08-07.json"
+      },
+      {
+        "date": "2026-08-14",
+        "idx": 490,
+        "path": "context\\M0-2026-08-14.json"
+      }
+    ],
+    "SC0": [
+      {
+        "date": "2026-06-11",
+        "idx": 445,
+        "path": "context\\SC0-2026-06-11.json"
+      },
+      {
+        "date": "2026-06-18",
+        "idx": 450,
+        "path": "context\\SC0-2026-06-18.json"
+      },
+      {
+        "date": "2026-06-26",
+        "idx": 455,
+        "path": "context\\SC0-2026-06-26.json"
+      },
+      {
+        "date": "2026-07-03",
+        "idx": 460,
+        "path": "context\\SC0-2026-07-03.json"
+      },
+      {
+        "date": "2026-07-10",
+        "idx": 465,
+        "path": "context\\SC0-2026-07-10.json"
+      },
+      {
+        "date": "2026-07-17",
+        "idx": 470,
+        "path": "context\\SC0-2026-07-17.json"
+      },
+      {
+        "date": "2026-07-24",
+        "idx": 475,
+        "path": "context\\SC0-2026-07-24.json"
+      },
+      {
+        "date": "2026-07-31",
+        "idx": 480,
+        "path": "context\\SC0-2026-07-31.json"
+      },
+      {
+        "date": "2026-08-07",
+        "idx": 485,
+        "path": "context\\SC0-2026-08-07.json"
+      },
+      {
+        "date": "2026-08-14",
+        "idx": 490,
+        "path": "context\\SC0-2026-08-14.json"
+      }
+    ]
+  }
+}

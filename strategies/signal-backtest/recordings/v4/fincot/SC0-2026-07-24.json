@@ -1,0 +1,34 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "SC0",
+  "anchorDate": "2026-07-24",
+  "direction": "bullish",
+  "confidence": "medium",
+  "macroSupport": "conflict",
+  "sectorSupport": "bullish",
+  "eventRisk": "high",
+  "q1": "驱动是趋势动能 + 板块主升：price.close 589.4 已站上 ma20 494.7 与 ma60 562.4，chg5 +15.46；sector.ret5d +4.28、ret20d +11.57、coherence5d 0.86，SC0 为板块领涨成员。宏观冲突：DXY +0.7、US10Y +3.08 偏空商品，USDCNH -0.1、DR007 -2.43 偏多。events.fomc 2026-07-29 为高影响已排程事件，仅作日历预期。",
+  "q2": "趋势加速但具脉冲特征：close 高于 ma20/ma60，volRatio 1.39 放量，atr5 29.9 显著扩张；chg5 +15.46 的 5 日涨幅已严重透支，趋势方向向上但短期追价赔率差。",
+  "q3": "多头赔率更高但追价不划算。多头：price 站上 ma20/ma60、volRatio 1.39、sector.ret20d +11.57、SC0 领涨。空头：DXY +0.7、US10Y +3.08、chg5 +15.46 短线超买、FOMC 事件风险。趋势支持多头，但宏观与短线超买给足反面证据，confidence 只能 medium。",
+  "q4": "确认信号：回踩 565.0（约 0.8*atr5 回调位、前高附近）后 T+1 收盘站回 575.0 且 volRatio ≥ 1.0；或 FOMC 落地后未跌破 540.0 且收盘重新站上 580.0。",
+  "q5": "失效条件：T+1 收盘跌破 540.0（突破平台上沿），或 FOMC 后 DXY 站上 102.0（Q1 宏观空头分支被确认），则回踩做多逻辑失效。",
+  "q6": "品种风险：INE 夜盘跳空；atr5 29.9 使止损距离宽、单笔波动大。事件风险：07-29 FOMC、07-30 EIA 为高影响日程。执行风险：FOMC 前追高易被利率/美元冲击扫损，因此 executionStatus 必须与高风险匹配。",
+  "evidenceRefs": [
+    "price.close",
+    "price.ma20",
+    "price.ma60",
+    "price.volRatio",
+    "sector.ret5d",
+    "sector.ret20d",
+    "sector.coherence5d",
+    "macro.DXY",
+    "macro.US10Y",
+    "macro.DR007"
+  ],
+  "opposingRefs": [
+    "macro.DXY",
+    "macro.US10Y",
+    "price.chg5"
+  ],
+  "invalidateIf": "T+1 收盘跌破 540.0，或 FOMC 后 DXY 站上 102.0，则回踩做多逻辑失效。"
+}

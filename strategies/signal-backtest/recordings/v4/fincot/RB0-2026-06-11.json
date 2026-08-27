@@ -1,0 +1,19 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "RB0",
+  "anchorDate": "2026-06-11",
+  "direction": "neutral",
+  "confidence": "low",
+  "macroSupport": "conflict",
+  "sectorSupport": "neutral",
+  "eventRisk": "high",
+  "q1": "驱动不明确：宏观多空互斥——macro.DXY +0.27% 与 macro.DR007 +6.89% 偏紧、macro.SC0 -3.56% 显示商品风险偏好弱；但 macro.USDCNH -0.20% 与 macro.US10Y -0.45% 偏松。板块 sector.ret5d -0.84% 偏弱而 sector.ret20d +1.02% 仍为正，价格 flat（chg5 -0.03）且 FOMC 临近压制方向表达。中性原因：conflict_unresolved。",
+  "q2": "volRatio 1.00 无量，chg5 -0.03% 几乎走平；价格收于 MA20/MA60 下方但未脱离，ATR5 29.2 处于中性波动率。量、价、波动率三者都不支持趋势或脉冲，判为无方向的过渡结构。",
+  "q3": "多头证据：macro.USDCNH -0.20%、macro.US10Y -0.45%、sector.ret20d +1.02%。空头证据：macro.DXY +0.27%、macro.DR007 +6.89%、macro.SC0 -3.56%、sector.ret5d -0.84%、价格低于 MA20/MA60。多空证据交织，赔率不清晰，不强行站边。",
+  "q4": "RB0 收盘站上 3175（MA20）且 volRatio≥1.2 → 多头确认；RB0 收盘跌破 3125（约 1×ATR5 下方）且 volRatio≥1.2 → 空头确认。",
+  "q5": "FOMC 后若 macro.DXY 跌破 99.0 且 macro.USDCNH 续贬 → 宏观冲突解除转多，当前中性转空判断证伪；若 macro.DXY 站上 100.5 且 macro.DR007 继续上行 → 空头驱动强化。",
+  "q6": "品种风险：RB0 为黑色夜盘品种，外盘/政策波动可造成跳空；事件风险：events.fomc 于 06-17 召开，会议前波动率易放大；执行风险：ATR5 29.2 相对价格较小，信号易被噪声触发。",
+  "evidenceRefs": ["macro.DXY", "macro.DR007", "macro.SC0", "sector.ret5d", "events.fomc"],
+  "opposingRefs": ["macro.USDCNH", "macro.US10Y", "sector.ret20d"],
+  "invalidateIf": "FOMC 后 macro.DXY 站上 100.5 且 RB0 收盘跌破 3125 → 转空；或 macro.DXY 跌破 99.0 且 RB0 收盘站上 3175 → 转多，中性判断解除。"
+}

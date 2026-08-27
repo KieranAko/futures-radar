@@ -1,0 +1,19 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "RB0",
+  "anchorDate": "2026-07-31",
+  "direction": "bearish",
+  "confidence": "high",
+  "macroSupport": "conflict",
+  "sectorSupport": "bearish",
+  "eventRisk": "low",
+  "q1": "主驱动为黑色板块一致下跌：sector.ret5d -2.95%、sector.ret20d -3.16%、sector.coherence5d 0.89（一致性强）、sector.breadth5d 0.2，RB0 chg5 -2.34% 跌破 3000 平台。macro.DXY -1.65% 与 macro.USDCNH -0.28% 为反向偏多，macro.US10Y +1.28% 与 macro.SC0 -7.35% 偏空，宏观冲突但不敌板块驱动。events.fomc 与 events.china_pmi 已落地，事件不确定性清除。",
+  "q2": "volRatio 1.07 温和放量，价格远离 MA20/MA60，ATR5 29 中性；下跌由板块一致性驱动而非单品种脉冲，趋势结构偏空。",
+  "q3": "空头证据：sector.ret5d -2.95%、sector.ret20d -3.16%、sector.coherence5d 0.89、sector.breadth5d 0.2、价格低于 MA20/MA60。反面证据（多头）：macro.DXY -1.65%、macro.USDCNH -0.28% 美元走弱利多商品、3000 整数关口或有支撑。空头证据在板块与价格维度一致，赔率偏空。",
+  "q4": "RB0 收盘跌破 2985（前低下方）且 volRatio≥1.0 → 空头延续确认；或 sector.ret20d 继续下行且 sector.breadth5d≤0.2 → 板块空头确认。",
+  "q5": "若 RB0 收盘站回 3047（1.5×ATR5 上方）→ 破位失败，空头逻辑失效；或 sector.ret5d 回升至 0 以上且 macro.DXY 跌破 99.0 → 板块+宏观同时反转。",
+  "q6": "品种风险：夜盘跳空；执行风险：破位后若 3000 关口反抽，滑点可能放大；事件风险：nextScheduled 为空，短期事件风险低。",
+  "evidenceRefs": ["sector.ret5d", "sector.ret20d", "sector.coherence5d", "sector.breadth5d", "events.fomc", "events.china_pmi"],
+  "opposingRefs": ["macro.DXY", "macro.USDCNH"],
+  "invalidateIf": "RB0 收盘站回 3047 或 sector.ret5d 回升至 0 以上且 macro.DXY 跌破 99.0 → 空头驱动证伪。"
+}

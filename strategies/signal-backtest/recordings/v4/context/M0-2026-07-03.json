@@ -1,0 +1,152 @@
+{
+  "schema": "futures-radar-signal-context/1",
+  "symbol": "M0",
+  "anchorDate": "2026-07-03",
+  "anchorIdx": 460,
+  "price": {
+    "close": 2962,
+    "ma20": 2944,
+    "ma60": 2976.1,
+    "atr5": 35,
+    "chg5": -0.4,
+    "volRatio": 0.82
+  },
+  "macro": {
+    "items": [
+      {
+        "id": "DXY",
+        "label": "DXY",
+        "asOf": "2026-07-03",
+        "value": 100.8657,
+        "change5d": -0.48,
+        "status": "fresh",
+        "source": "sina_fx"
+      },
+      {
+        "id": "USDCNH",
+        "label": "USDCNH",
+        "asOf": "2026-07-03",
+        "value": 6.7841,
+        "change5d": -0.3,
+        "status": "fresh",
+        "source": "sina_fx"
+      },
+      {
+        "id": "US10Y",
+        "label": "US10Y",
+        "asOf": "2026-07-02",
+        "value": 4.49,
+        "change5d": 2.05,
+        "status": "stale",
+        "source": "akshare_bond_zh_us_rate"
+      },
+      {
+        "id": "DR007",
+        "label": "DR007",
+        "asOf": "2026-07-03",
+        "value": 1.3873,
+        "change5d": -5.63,
+        "status": "fresh",
+        "source": "akshare_repo_rate"
+      },
+      {
+        "id": "SC0",
+        "label": "SC0",
+        "asOf": "2026-07-03",
+        "value": 441.3,
+        "change5d": -5.54,
+        "status": "fresh",
+        "source": "raw_contract"
+      }
+    ]
+  },
+  "sector": {
+    "status": "ok",
+    "sector": "agriculture",
+    "members": 16,
+    "index": 1013.53,
+    "ret1d": -0.11,
+    "ret5d": 0.45,
+    "ret20d": -0.63,
+    "breadth5d": 0.2,
+    "coherence5d": 0.44,
+    "leading": [
+      {
+        "symbol": "JD0",
+        "ret5d": 5.34
+      },
+      {
+        "symbol": "CF0",
+        "ret5d": 3.72
+      },
+      {
+        "symbol": "LH0",
+        "ret5d": 3.18
+      }
+    ],
+    "lagging": [
+      {
+        "symbol": "P0",
+        "ret5d": -2.27
+      },
+      {
+        "symbol": "RM0",
+        "ret5d": -2.08
+      },
+      {
+        "symbol": "A0",
+        "ret5d": -1.7
+      }
+    ],
+    "daysAvailable": 81
+  },
+  "events": {
+    "past": [
+      {
+        "date": "2026-06-10",
+        "type": "china_cpi_ppi",
+        "title": "中国 5 月 CPI/PPI",
+        "verified": true,
+        "schedule": null
+      },
+      {
+        "date": "2026-06-17",
+        "type": "fomc",
+        "title": "FOMC 6 月议息会议",
+        "verified": true,
+        "schedule": null
+      },
+      {
+        "date": "2026-06-22",
+        "type": "china_lpr",
+        "title": "中国 6 月 LPR 报价",
+        "verified": true,
+        "schedule": null
+      },
+      {
+        "date": "2026-06-30",
+        "type": "china_pmi",
+        "title": "中国 6 月官方 PMI",
+        "verified": true,
+        "schedule": "month_last_day"
+      }
+    ],
+    "nextScheduled": [
+      {
+        "date": "2026-07-09",
+        "type": "china_cpi_ppi",
+        "title": "中国 6 月 CPI/PPI",
+        "verified": true,
+        "schedule": null
+      },
+      {
+        "date": "2026-07-10",
+        "type": "wasde",
+        "title": "USDA WASDE 7 月供需报告",
+        "verified": true,
+        "schedule": "monthly_around_10th"
+      }
+    ],
+    "totalInCalendar": 24
+  }
+}

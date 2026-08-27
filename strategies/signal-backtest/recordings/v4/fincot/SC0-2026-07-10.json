@@ -1,0 +1,32 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "SC0",
+  "anchorDate": "2026-07-10",
+  "direction": "bullish",
+  "confidence": "medium",
+  "macroSupport": "neutral",
+  "sectorSupport": "bullish",
+  "eventRisk": "low",
+  "q1": "驱动是板块宽度的超跌反弹确认：sector.ret5d +3.06、breadth5d 1.0、coherence5d 0.86，SC0 以 ret5d +6.78 进入板块 leading 名单；price.close 471.2 逼近 ma20 479.5。宏观中性（DXY +0.09 基本持平、US10Y +1.56 偏空、DR007 -0.53 偏多）。事件仅 07-16 EIA 周度库存为已排程日程。",
+  "q2": "脉冲式反弹，尚未确认趋势：close 471.2 仍低于 ma20 479.5/ma60 579.1，volRatio 0.69 显示反弹量能不足；但板块 breadth5d 1.0 说明是全板块修复。波动率位置：atr5 17.78 较前值回升，处于从收缩到扩张的过渡。",
+  "q3": "多头赔率更高。多头：sector.ret5d +3.06、breadth5d 1.0、coherence5d 0.86、SC0 为领涨成员、DR007 -0.53 流动性宽松。空头：price.close 仍在 ma20/ma60 下方、US10Y +1.56、volRatio 0.69 量能不足。板块宽度是本次多头的核心证据，但价格未突破 ma20 且量能不足，给 medium。",
+  "q4": "确认信号：T+1 收盘站上 479.5（ma20）且 volRatio ≥ 0.8；同时板块 breadth5d 维持 ≥ 0.8，确认板块反弹仍在扩散。",
+  "q5": "失效条件：T+1 收盘跌破 455.0（本轮反弹平台上沿/前低支撑），或板块 breadth5d 降至 0.5 以下（Q1 板块宽度驱动证伪），则反弹逻辑失效。",
+  "q6": "品种风险：INE 夜盘跳空；SC0 合约价值约 47 万/手、保证金约 4.7 万/手。事件风险：仅 EIA 周度库存为日程，事件风险低。执行风险：ma20 下方抢跑可能失败，故以站上 ma20 为触发条件。",
+  "evidenceRefs": [
+    "price.close",
+    "price.ma20",
+    "sector.ret5d",
+    "sector.breadth5d",
+    "sector.coherence5d",
+    "macro.DXY",
+    "macro.DR007",
+    "macro.US10Y"
+  ],
+  "opposingRefs": [
+    "macro.US10Y",
+    "price.volRatio",
+    "price.ma60"
+  ],
+  "invalidateIf": "T+1 收盘跌破 455.0，或板块 breadth5d 降至 0.5 以下，则超跌反弹逻辑失效。"
+}

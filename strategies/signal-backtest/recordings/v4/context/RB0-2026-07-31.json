@@ -1,0 +1,137 @@
+{
+  "schema": "futures-radar-signal-context/1",
+  "symbol": "RB0",
+  "anchorDate": "2026-07-31",
+  "anchorIdx": 480,
+  "price": {
+    "close": 3004,
+    "ma20": 3077.7,
+    "ma60": 3134.8,
+    "atr5": 29,
+    "chg5": -2.34,
+    "volRatio": 1.07
+  },
+  "macro": {
+    "items": [
+      {
+        "id": "DXY",
+        "label": "DXY",
+        "asOf": "2026-07-31",
+        "value": 99.7904,
+        "change5d": -1.65,
+        "status": "fresh",
+        "source": "sina_fx"
+      },
+      {
+        "id": "USDCNH",
+        "label": "USDCNH",
+        "asOf": "2026-07-31",
+        "value": 6.7525,
+        "change5d": -0.28,
+        "status": "fresh",
+        "source": "sina_fx"
+      },
+      {
+        "id": "US10Y",
+        "label": "US10Y",
+        "asOf": "2026-07-31",
+        "value": 4.75,
+        "change5d": 1.28,
+        "status": "fresh",
+        "source": "akshare_bond_zh_us_rate"
+      },
+      {
+        "id": "DR007",
+        "label": "DR007",
+        "asOf": "2026-07-31",
+        "value": 1.45,
+        "change5d": 3.57,
+        "status": "fresh",
+        "source": "akshare_repo_rate"
+      },
+      {
+        "id": "SC0",
+        "label": "SC0",
+        "asOf": "2026-07-31",
+        "value": 546.1,
+        "change5d": -7.35,
+        "status": "fresh",
+        "source": "raw_contract"
+      }
+    ]
+  },
+  "sector": {
+    "status": "ok",
+    "sector": "black",
+    "members": 9,
+    "index": 989.5,
+    "ret1d": -0.91,
+    "ret5d": -2.95,
+    "ret20d": -3.16,
+    "breadth5d": 0.2,
+    "coherence5d": 0.89,
+    "leading": [
+      {
+        "symbol": "SM0",
+        "ret5d": 0.11
+      },
+      {
+        "symbol": "SS0",
+        "ret5d": -0.91
+      },
+      {
+        "symbol": "SF0",
+        "ret5d": -1.87
+      }
+    ],
+    "lagging": [
+      {
+        "symbol": "JM0",
+        "ret5d": -8.09
+      },
+      {
+        "symbol": "I0",
+        "ret5d": -4.02
+      },
+      {
+        "symbol": "J0",
+        "ret5d": -3.99
+      }
+    ],
+    "daysAvailable": 101
+  },
+  "events": {
+    "past": [
+      {
+        "date": "2026-07-09",
+        "type": "china_cpi_ppi",
+        "title": "中国 6 月 CPI/PPI",
+        "verified": true,
+        "schedule": null
+      },
+      {
+        "date": "2026-07-20",
+        "type": "china_lpr",
+        "title": "中国 7 月 LPR 报价",
+        "verified": true,
+        "schedule": null
+      },
+      {
+        "date": "2026-07-29",
+        "type": "fomc",
+        "title": "FOMC 7 月议息会议",
+        "verified": true,
+        "schedule": null
+      },
+      {
+        "date": "2026-07-31",
+        "type": "china_pmi",
+        "title": "中国 7 月官方 PMI",
+        "verified": true,
+        "schedule": "month_last_day"
+      }
+    ],
+    "nextScheduled": [],
+    "totalInCalendar": 24
+  }
+}

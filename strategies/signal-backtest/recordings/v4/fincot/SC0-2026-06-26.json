@@ -1,0 +1,31 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "SC0",
+  "anchorDate": "2026-06-26",
+  "direction": "neutral",
+  "confidence": "low",
+  "macroSupport": "conflict",
+  "sectorSupport": "bearish",
+  "eventRisk": "high",
+  "q1": "abstain 原因：conflict_unresolved。宏观内部冲突（macro.DXY +0.6 偏空商品，macro.US10Y -1.79 偏多风险资产）；板块方向偏空（sector.ret20d -12.32、breadth5d 0、SC0 位于 lagging 成员）但广度归零显示下跌可能进入末端；price.close 467.2 仍远低于 ma20 548.8。多空驱动互相矛盾，无法形成唯一主导驱动，故 Q1 即声明观望。events.china_pmi 2026-06-30 为已排程高影响事件，仅作日历预期。",
+  "q2": "趋势仍在但接近脉冲末端：close 467.2 低于 ma20/ma60，但 atr5 由前值 28.36 收缩到 18.92，volRatio 1.42 显示放量但波动率未继续扩张；sector.breadth5d 0 表明下跌为全面普跌。结构上是趋势下行，但量价出现末端特征。",
+  "q3": "多空赔率接近。多头：US10Y -1.79 明显回落、sector.breadth5d 0 的枯竭信号、atr5 收缩。空头：DXY +0.6、USDCNH +0.33、sector.ret20d -12.32、SC0 位于板块 lagging（ret5d -8.12）、price 仍在 ma20/ma60 下方。双方证据均成立且无法一方胜出，维持 neutral。",
+  "q4": "观察两个互斥确认：SC0 收盘站回 500.0（约 0.5*atr5 反弹位）且板块 breadth5d ≥ 0.5 则转多评估；SC0 收盘跌破 450.0 且 volRatio ≥ 1.2 则恢复空头评估。",
+  "q5": "失效条件：若 china_pmi 落地后 DXY 继续走高且板块 breadth5d 维持 0，中性转空；若 SC0 收盘站回 500.0 上方且板块 breadth5d ≥ 0.5，中性转多。",
+  "q6": "品种风险：INE 夜盘跳空；连续深跌后空头获利了结可能引发 V 型反弹。事件风险：06-30 中国官方 PMI 与 07-02 EIA 为高影响日程。执行风险：中性阶段强行开仓易被双向扫损。",
+  "evidenceRefs": [
+    "price.close",
+    "price.ma20",
+    "price.volRatio",
+    "price.atr5",
+    "macro.DXY",
+    "macro.US10Y",
+    "sector.ret20d",
+    "sector.breadth5d"
+  ],
+  "opposingRefs": [
+    "macro.US10Y",
+    "sector.breadth5d"
+  ],
+  "invalidateIf": "china_pmi 落地后若 DXY 继续走高且 SC0 放量跌破 450.0，中性转空；若 SC0 收盘站回 500.0 且板块 breadth5d ≥ 0.5，中性转多。"
+}

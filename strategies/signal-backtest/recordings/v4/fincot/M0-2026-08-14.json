@@ -1,0 +1,28 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "M0",
+  "anchorDate": "2026-08-14",
+  "direction": "neutral",
+  "confidence": "low",
+  "macroSupport": "neutral",
+  "sectorSupport": "bullish",
+  "eventRisk": "low",
+  "q1": "为什么动：板块强但价格动能不足——sector.ret5d=+1.06、sector.ret20d=+1.77、sector.breadth5d=1.0 板块健康，但 price chg5=+0.35、ATR5=30.8 收缩，价格高位整理；宏观中性：macro.DXY change5d=+0.04、macro.US10Y change5d=+0.65、macro.SC0 change5d=+4.67 多空平衡；events.wasde 等 8/10-8/12 事件 verified=false 仅作日历记录。缺乏可交易的增量驱动 → neutral，abstain reason: data_insufficient。",
+  "q2": "趋势还是脉冲：close 3165 高于 ma20 3135.1 与 ma60 3031.2 多头结构未破，但 chg5=+0.35、volRatio=1.01、ATR5 收缩至 30.8，属高位整理，既非趋势延续也非脉冲。",
+  "q3": "多空哪边更有赔率：多头有均线多头排列、sector.breadth5d=1.0；反面证据有 chg5 仅 +0.35、macro.US10Y +0.65 偏空、M0 未跟随板块上行。赔率中性偏多但无确认。",
+  "q4": "关键确认信号：若 T+1 收盘放量突破 3225 前高且 volRatio≥1.2，确认多头；若收盘跌破 3135.1（ma20）且 sector.breadth5d<0.6，确认空头。",
+  "q5": "失效条件：中性失效条件——价格放量站上 3225 且 sector.breadth5d 保持 1.0 则转多；收盘跌破 MA20 且板块 breadth 跌破 0.6 则转空。",
+  "q6": "交易风险：执行风险——波动率收缩后方向选择，假突破概率高；品种风险——夜盘跳空；事件风险——nextScheduled 为空，low。",
+  "evidenceRefs": [
+    "sector.ret5d",
+    "sector.ret20d",
+    "sector.breadth5d",
+    "macro.US10Y",
+    "macro.SC0",
+    "events.wasde"
+  ],
+  "opposingRefs": [
+    "macro.US10Y"
+  ],
+  "invalidateIf": "放量站上 3225 且板块 breadth=1.0 则转多，或收盘跌破 MA20 且板块 breadth<0.6 则转空。"
+}

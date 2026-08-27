@@ -1,0 +1,35 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "SC0",
+  "anchorDate": "2026-07-31",
+  "direction": "neutral",
+  "confidence": "low",
+  "macroSupport": "conflict",
+  "sectorSupport": "neutral",
+  "eventRisk": "medium",
+  "q1": "abstain 原因：conflict_unresolved。FOMC 后宏观重新定价互相矛盾：macro.DXY -1.65、macro.USDCNH -0.28 明显偏多商品，macro.US10Y +1.28、macro.DR007 +3.57 偏空；板块 ret5d -3.75 走弱但 ret20d +7.21 仍为正，breadth5d 0.4、coherence5d 0.95 显示普跌；price.close 546.1 位于 ma20 518.8 与 ma60 552.7 之间。多空各执一端，无法解决冲突，故观望。",
+  "q2": "趋势与回调两可：close 546.1 跌破 ma60 552.7 但仍高于 ma20 518.8，chg5 -7.35，volRatio 0.87 缩量回调；atr5 32.2 高波动。价格在 ma20/ma60 夹缝中，趋势未破但动能转弱。",
+  "q3": "多空赔率接近。多头：DXY -1.65、USDCNH -0.28、price 仍在 ma20 上方、sector.ret20d +7.21。空头：US10Y +1.28、DR007 +3.57、sector.ret5d -3.75、price 跌破 ma60。宏观与板块各给一半信号，无法形成赔率优势，维持 neutral。",
+  "q4": "观察两个互斥确认：SC0 收盘站回 552.7（ma60）且板块 ret5d 转正则转多；SC0 收盘跌破 518.8（ma20）且板块 breadth5d ≤ 0.2 则转空。",
+  "q5": "失效条件：若 DXY 继续下行但 SC0 无法站回 ma60，中性维持；若 SC0 放量跌破 518.8（ma20）且 US10Y 继续上行（Q1 空头分支确认），则转空。",
+  "q6": "品种风险：INE 夜盘跳空；atr5 32.2 为高位，方向不明时开仓易被宽幅扫损。事件风险：08-06 EIA 为下一已排程日程，FOMC/PMI 已落地。执行风险：宏观冲突未解，双向假突破概率高。",
+  "evidenceRefs": [
+    "price.close",
+    "price.ma20",
+    "price.ma60",
+    "price.volRatio",
+    "macro.DXY",
+    "macro.USDCNH",
+    "macro.US10Y",
+    "macro.DR007",
+    "sector.ret5d",
+    "sector.ret20d",
+    "sector.breadth5d"
+  ],
+  "opposingRefs": [
+    "macro.US10Y",
+    "macro.DR007",
+    "sector.ret5d"
+  ],
+  "invalidateIf": "SC0 放量跌破 518.8（ma20）且 US10Y 继续上行则转空；SC0 收盘站回 552.7（ma60）且板块 ret5d 转正则转多。"
+}

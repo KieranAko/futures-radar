@@ -1,0 +1,30 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "M0",
+  "anchorDate": "2026-07-03",
+  "direction": "bearish",
+  "confidence": "low",
+  "macroSupport": "conflict",
+  "sectorSupport": "bearish",
+  "eventRisk": "high",
+  "q1": "为什么动：板块转弱驱动空头——sector.breadth5d=0.2、sector.coherence5d=0.44、sector.ret20d=-0.63，内部散且弱；价格 close 2962 在 ma60 2976.1 下方；宏观冲突（macro.DXY change5d=-0.48 偏多商品，macro.US10Y change5d=+2.05、macro.SC0 change5d=-5.54 偏空，US10Y 为 stale 仅作参考）；events.wasde（7/10）与 events.china_cpi_ppi（7/9）为日程预期，eventRisk 高，方向偏空但低信心。",
+  "q2": "趋势还是脉冲：close 2962 高于 ma20 2944 但低于 ma60 2976.1，chg5=-0.40、volRatio=0.82 缩量回落，ATR5=35 中等，属均线之间的震荡，不是趋势也不是强脉冲。",
+  "q3": "多空哪边更有赔率：空头有 ma60 压制、板块 breadth 仅 0.2、coherence 弱；反面证据有 macro.DXY change5d=-0.48 与 macro.USDCNH change5d=-0.30 偏多商品、sector.ret5d=+0.45 板块指数 5 日仍小涨。赔率偏空但幅度有限。",
+  "q4": "关键确认信号：T+1 收盘跌破 2944（ma20）且 volRatio≥1.0，确认空头。",
+  "q5": "失效条件：若 WASDE 落地后 macro.DXY 继续回落且 macro.SC0 change5d 转正，或价格收盘站上 3025，则空头驱动失效。",
+  "q6": "交易风险：事件风险——events.wasde（7/10）与 events.china_cpi_ppi（7/9）双事件，报告前后波动剧烈；品种风险——豆粕对 USDA 报告敏感；执行风险——缩量突破易假。",
+  "evidenceRefs": [
+    "sector.breadth5d",
+    "sector.coherence5d",
+    "macro.DXY",
+    "macro.SC0",
+    "events.wasde",
+    "events.china_cpi_ppi"
+  ],
+  "opposingRefs": [
+    "macro.DXY",
+    "macro.USDCNH",
+    "sector.ret5d"
+  ],
+  "invalidateIf": "收盘站上 3025，或 WASDE 后 DXY 续跌且 SC0 转强，则空头失效。"
+}

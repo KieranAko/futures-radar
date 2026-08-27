@@ -1,0 +1,19 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "RB0",
+  "anchorDate": "2026-08-07",
+  "direction": "bullish",
+  "confidence": "medium",
+  "macroSupport": "bullish",
+  "sectorSupport": "bullish",
+  "eventRisk": "medium",
+  "q1": "主驱动为黑色板块反弹与宏观转松共振：sector.ret5d +2.10%、sector.breadth5d 0.8、sector.coherence5d 0.89（JM0 +7.32%、J0 +5.74% 领涨），macro.DXY -0.19%、macro.US10Y -2.11%、macro.DR007 -4.83% 全部偏多；RB0 自身仅 +0.13% 仍在 3000 平台蓄势。events.china_cpi_ppi（08-10）仅为 verified=false 的日程预期，不作已发生事实。",
+  "q2": "volRatio 0.97 中性，价格低于 MA20/MA60 但 chg5 +0.13% 走平；ATR5 30.6 波动率偏高，板块放量反弹而 RB0 未动，属板块领先的蓄势结构，不是脉冲。",
+  "q3": "多头证据：sector.ret5d +2.10%、sector.breadth5d 0.8、macro.DXY -0.19%、macro.US10Y -2.11%、macro.DR007 -4.83%。反面证据（空头）：价格低于 MA20/MA60、macro.SC0 -2.69%、RB0 自身 chg5 仅 +0.13% 尚未跟上。多头宏观与板块赔率更高，但需价格确认。",
+  "q4": "RB0 收盘站上 3055（MA20）且 volRatio≥1.1 → 多头确认；或 sector.breadth5d 维持 ≥0.8 且 RB0 收盘站上 3030 → 板块带动确认。",
+  "q5": "若 RB0 收盘跌破 2962（平台下方 1.5×ATR5）→ 蓄势结构破坏；或 sector.ret5d 转负且 macro.DXY 站回 100.0 → 板块+宏观驱动反转，多头失效。",
+  "q6": "事件风险：events.china_cpi_ppi 于 08-10 为日程预期（verified=false），数据可能引发波动；品种风险：夜盘跳空；执行风险：RB0 滞后于板块，突破可能一步到位、追价滑点大。",
+  "evidenceRefs": ["sector.ret5d", "sector.breadth5d", "sector.coherence5d", "macro.DXY", "macro.US10Y", "macro.DR007", "events.china_cpi_ppi"],
+  "opposingRefs": ["macro.SC0"],
+  "invalidateIf": "RB0 收盘跌破 2962 或 sector.ret5d 转负且 macro.DXY 站回 100.0 → 多头驱动证伪。"
+}

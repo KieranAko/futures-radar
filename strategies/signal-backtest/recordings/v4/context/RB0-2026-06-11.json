@@ -1,0 +1,124 @@
+{
+  "schema": "futures-radar-signal-context/1",
+  "symbol": "RB0",
+  "anchorDate": "2026-06-11",
+  "anchorIdx": 445,
+  "price": {
+    "close": 3156,
+    "ma20": 3174.1,
+    "ma60": 3166.4,
+    "atr5": 29.2,
+    "chg5": -0.03,
+    "volRatio": 1
+  },
+  "macro": {
+    "items": [
+      {
+        "id": "DXY",
+        "label": "DXY",
+        "asOf": "2026-06-11",
+        "value": 99.6948,
+        "change5d": 0.27,
+        "status": "fresh",
+        "source": "sina_fx"
+      },
+      {
+        "id": "USDCNH",
+        "label": "USDCNH",
+        "asOf": "2026-06-11",
+        "value": 6.7631,
+        "change5d": -0.2,
+        "status": "fresh",
+        "source": "sina_fx"
+      },
+      {
+        "id": "US10Y",
+        "label": "US10Y",
+        "asOf": "2026-06-11",
+        "value": 4.45,
+        "change5d": -0.45,
+        "status": "fresh",
+        "source": "akshare_bond_zh_us_rate"
+      },
+      {
+        "id": "DR007",
+        "label": "DR007",
+        "asOf": "2026-06-11",
+        "value": 1.443,
+        "change5d": 6.89,
+        "status": "fresh",
+        "source": "akshare_repo_rate"
+      },
+      {
+        "id": "SC0",
+        "label": "SC0",
+        "asOf": "2026-06-11",
+        "value": 582.1,
+        "change5d": -3.56,
+        "status": "fresh",
+        "source": "raw_contract"
+      }
+    ]
+  },
+  "sector": {
+    "status": "ok",
+    "sector": "black",
+    "members": 9,
+    "index": 1053.66,
+    "ret1d": -0.21,
+    "ret5d": -0.84,
+    "ret20d": 1.02,
+    "breadth5d": 0.2,
+    "coherence5d": 0.89,
+    "leading": [
+      {
+        "symbol": "AO0",
+        "ret5d": 5.04
+      },
+      {
+        "symbol": "RB0",
+        "ret5d": -0.03
+      },
+      {
+        "symbol": "I0",
+        "ret5d": -0.46
+      }
+    ],
+    "lagging": [
+      {
+        "symbol": "JM0",
+        "ret5d": -4.86
+      },
+      {
+        "symbol": "SF0",
+        "ret5d": -1.98
+      },
+      {
+        "symbol": "SS0",
+        "ret5d": -1.94
+      }
+    ],
+    "daysAvailable": 66
+  },
+  "events": {
+    "past": [
+      {
+        "date": "2026-06-10",
+        "type": "china_cpi_ppi",
+        "title": "中国 5 月 CPI/PPI",
+        "verified": true,
+        "schedule": null
+      }
+    ],
+    "nextScheduled": [
+      {
+        "date": "2026-06-17",
+        "type": "fomc",
+        "title": "FOMC 6 月议息会议",
+        "verified": true,
+        "schedule": null
+      }
+    ],
+    "totalInCalendar": 24
+  }
+}

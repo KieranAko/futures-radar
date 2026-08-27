@@ -1,0 +1,19 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "RB0",
+  "anchorDate": "2026-07-10",
+  "direction": "bearish",
+  "confidence": "medium",
+  "macroSupport": "conflict",
+  "sectorSupport": "bearish",
+  "eventRisk": "low",
+  "q1": "主驱动为黑色板块弱势未改：sector.ret20d -3.10%、sector.ret1d -0.66%、sector.coherence5d 0.44（离散），叠加 macro.US10Y +1.56% 的利率压制；RB0 的 +0.82% 反弹量能不足（volRatio 0.77）。macro.SC0 +6.78% 与 macro.DR007 -0.53% 为反向力量，宏观整体冲突。",
+  "q2": "volRatio 0.77 缩量反弹，价格低于 MA20/MA60，ATR5 23.6 中性；量价不支持趋势反转，反弹更像下跌中继修复，趋势背景仍偏空，脉冲证据不足。",
+  "q3": "空头证据：sector.ret20d -3.10%、sector.ret1d -0.66%、macro.US10Y +1.56%、价格低于 MA20/MA60、volRatio 0.77 反弹无量。反面证据（多头）：macro.SC0 +6.78%、macro.DR007 -0.53%、chg5 +0.82%。空头赔率更高，但需确认反弹结束。",
+  "q4": "RB0 收盘跌破 3060 且 volRatio≥1.0 → 空头延续确认；或 RB0 收盘站上 3120（MA20 上方）且 sector.ret20d 转正 → 放弃空头。",
+  "q5": "若 RB0 收盘站上 3140 且 macro.SC0 5日涨幅维持 +5% 以上 → 空头驱动被反转；或 sector.ret20d 收窄至 -1% 以内 → 板块驱动减弱，空头逻辑失效。",
+  "q6": "品种风险：夜盘跳空；执行风险：低波动反弹后若突发放量，突破/回调单滑点增大；事件风险：nextScheduled 为空，短期事件风险低。",
+  "evidenceRefs": ["sector.ret20d", "sector.ret1d", "sector.coherence5d", "macro.US10Y"],
+  "opposingRefs": ["macro.SC0", "macro.DR007"],
+  "invalidateIf": "RB0 收盘站上 3140 或 sector.ret20d 收窄至 -1% 以内 → 空头驱动证伪。"
+}

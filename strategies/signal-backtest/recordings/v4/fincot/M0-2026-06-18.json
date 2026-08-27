@@ -1,0 +1,28 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "M0",
+  "anchorDate": "2026-06-18",
+  "direction": "bearish",
+  "confidence": "medium",
+  "macroSupport": "bearish",
+  "sectorSupport": "neutral",
+  "eventRisk": "low",
+  "q1": "为什么动：宏观转弱驱动——macro.DXY change5d=+1.10、macro.US10Y change5d=+0.22 同步上行，macro.SC0 change5d=-12.64 原油大跌，三者同向压制商品；events.fomc 已于 2026-06-17 落地（verified=true）进入 past，不确定性解除；价格仍低于双均线。",
+  "q2": "趋势还是脉冲：close 2942 低于 ma20 2953.8 与 ma60 2973.6，chg5=+0.10、volRatio=1.01，ATR5=25.6 收缩，属空头趋势中的低波动整理，非脉冲，趋势延续。",
+  "q3": "多空哪边更有赔率：空头有宏观三因子同向偏空、价格在双均线下方；反面证据有 sector.ret20d=+0.16、sector.breadth5d=0.6，板块并未确认走弱，做空赔率占优但趋势斜率有限。",
+  "q4": "关键确认信号：T+1 收盘跌破 2926.6（close 2942 - 0.6×ATR5 25.6）且 volRatio≥1.0，确认空头延续。",
+  "q5": "失效条件：若收盘站回 2980.0（ma60 2973.6 上方）或 macro.DXY change5d 转负且 macro.SC0 止跌回升，宏观空头驱动失效，空头离场。",
+  "q6": "交易风险：品种风险——豆粕夜盘跳空风险；执行风险——低 ATR 收缩后突破可能假；事件风险——下一日程 events.china_lpr（6/22）对商品直接冲击有限，整体 low。",
+  "evidenceRefs": [
+    "macro.DXY",
+    "macro.US10Y",
+    "macro.SC0",
+    "sector.ret20d",
+    "events.fomc"
+  ],
+  "opposingRefs": [
+    "sector.ret20d",
+    "sector.breadth5d"
+  ],
+  "invalidateIf": "收盘站上 2980 或 macro.DXY/SC0 宏观空头组合反转，则空头失效。"
+}

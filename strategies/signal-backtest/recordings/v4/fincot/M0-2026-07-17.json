@@ -1,0 +1,29 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "M0",
+  "anchorDate": "2026-07-17",
+  "direction": "neutral",
+  "confidence": "low",
+  "macroSupport": "bullish",
+  "sectorSupport": "bearish",
+  "eventRisk": "medium",
+  "q1": "为什么动：宏观与板块方向冲突——macro.SC0 change5d=+8.34、macro.US10Y change5d=-0.22 偏多商品，但 sector.ret5d=-1.91、sector.ret20d=-0.73、sector.breadth5d=0.2 板块明显转弱；价格仍高于双均线但 chg5=+0.39 动能放缓；events.china_lpr（7/20）为日程预期。方向冲突 → neutral，abstain reason: conflict_unresolved。",
+  "q2": "趋势还是脉冲：close 3061 高于 ma20 3004.8 与 ma60 2989.3，均线多头；但 chg5=+0.39、volRatio=0.97、ATR5=38.4 放大，属趋势中的高位整理，不是脉冲。",
+  "q3": "多空哪边更有赔率：多头有均线多头排列、宏观偏多；空头/反面证据有 sector.ret5d=-1.91、sector.breadth5d=0.2、sector.ret20d=-0.73，板块转弱拖累 M0。赔率中性。",
+  "q4": "关键确认信号：若 T+1 收盘站稳 3080 且 sector.breadth5d 回到≥0.6，确认多头；若收盘跌破 3004.8（ma20）且 sector.breadth5d≤0.2，确认空头。",
+  "q5": "失效条件：若 LPR 落地后 SC0 继续走强且 sector.ret5d 转正（Q1 宏观占上风），中性转多；若 sector.ret5d 继续下探且 close 跌破 MA20，中性转空。",
+  "q6": "交易风险：事件风险——events.china_lpr（7/20）medium；品种风险——夜盘跳空；执行风险——板块分化导致 M0 单独波动难控。",
+  "evidenceRefs": [
+    "macro.SC0",
+    "macro.US10Y",
+    "sector.ret5d",
+    "sector.ret20d",
+    "sector.breadth5d",
+    "events.china_lpr"
+  ],
+  "opposingRefs": [
+    "sector.ret20d",
+    "sector.breadth5d"
+  ],
+  "invalidateIf": "板块 ret5d 转正且价格站稳 3080（转多），或收盘跌破 MA20 且板块 breadth 仍≤0.2（转空），则 neutral 失效。"
+}

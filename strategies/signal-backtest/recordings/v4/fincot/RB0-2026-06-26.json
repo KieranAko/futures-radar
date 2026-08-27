@@ -1,0 +1,19 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "RB0",
+  "anchorDate": "2026-06-26",
+  "direction": "bearish",
+  "confidence": "high",
+  "macroSupport": "bearish",
+  "sectorSupport": "bearish",
+  "eventRisk": "medium",
+  "q1": "主驱动为黑色板块转弱叠加美元延续强势：sector.ret20d 由正转负至 -2.20%、sector.ret5d -1.96%，macro.DXY +0.60%、macro.USDCNH +0.33%、macro.SC0 -8.12% 继续压制商品；价格 chg5 -1.21% 跌破均线带。macro.US10Y -1.79% 为唯一偏多宏观项。",
+  "q2": "volRatio 1.17 放量下跌，价格低于 MA20/MA60 且 chg5 -1.21%，趋势结构完整；ATR5 24 较前两周收缩，说明不是脉冲而是持续阴跌，波动率尚未释放完。",
+  "q3": "空头证据：macro.DXY +0.60%、macro.USDCNH +0.33%、macro.SC0 -8.12%、sector.ret5d -1.96%、sector.ret20d -2.20%、价格低于 MA20/MA60。反面证据（多头）：macro.US10Y -1.79%、sector.ret1d +0.19%（当日小反弹）、events.china_pmi 临近或带来政策预期。空头证据在宏观、板块、价格三个维度一致，赔率显著偏空。",
+  "q4": "RB0 收盘跌破 3080 且 volRatio≥1.0 → 空头延续确认；或 sector.ret20d 继续下穿 -2.5% 且 sector.breadth5d≤0.3 → 板块空头强化。",
+  "q5": "若 RB0 收盘站上 3136（下移中的 MA20 附近）→ 空头趋势证伪；或 macro.DXY 跌破 100.5 且 macro.SC0 5日跌幅收窄至 -2% 以内 → 宏观/商品驱动反转。",
+  "q6": "事件风险：events.china_pmi 于 06-30 公布（schedule=month_last_day），数据冲击可能放大波动；品种风险：夜盘跳空；执行风险：ATR5 收缩后突破可能带量加速，滑点增大。",
+  "evidenceRefs": ["macro.DXY", "macro.USDCNH", "macro.SC0", "sector.ret5d", "sector.ret20d", "events.china_pmi"],
+  "opposingRefs": ["macro.US10Y", "sector.ret1d"],
+  "invalidateIf": "RB0 收盘站上 3136 或 macro.DXY 跌破 100.5 且 macro.SC0 5日跌幅收窄至 -2% 以内 → 空头驱动证伪。"
+}

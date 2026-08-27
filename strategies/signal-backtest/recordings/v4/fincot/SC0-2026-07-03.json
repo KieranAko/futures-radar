@@ -1,0 +1,33 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "SC0",
+  "anchorDate": "2026-07-03",
+  "direction": "neutral",
+  "confidence": "low",
+  "macroSupport": "conflict",
+  "sectorSupport": "neutral",
+  "eventRisk": "medium",
+  "q1": "abstain 原因：model_abstain。下跌动能衰减但未见反转确认：price.close 441.3 仍低于 ma20 512.0/ma60 595.3，但 atr5 收至 14.32、volRatio 0.92；宏观冲突（macro.DXY -0.48、macro.DR007 -5.63 偏多，macro.US10Y +2.05 但 status=stale 仅作偏空参考）；sector.ret1d +1.48、ret5d +0.16 转稳但 ret20d -12.19。证据不足以支持方向，模型放弃方向判断。",
+  "q2": "脉冲后的收敛而非新趋势：close 仍在 ma20/ma60 下方，但 atr5 连续收缩（28.36→18.92→14.32），volRatio 0.92，下跌动能衰减；价格处于下跌趋势末端的过渡区，方向不明。",
+  "q3": "多空赔率接近。多头：DXY -0.48、DR007 -5.63、sector.ret1d +1.48/ret5d +0.16 初现企稳。空头：price 低于 ma20/ma60、US10Y +2.05（stale）、sector.ret20d -12.19。多头证据来自宏观与短线板块，空头证据来自中期趋势，双方无法形成合力。",
+  "q4": "观察两个互斥确认：SC0 收盘站回 460.0（约 0.5*atr5 反弹位）且 volRatio ≥ 1.1 则转多；SC0 收盘跌破 430.0 且板块 ret5d 转负则转空。",
+  "q5": "失效条件：若 SC0 放量站回 512.0（ma20）上方则中性转多；若跌破 430.0 且 DR007 止跌回升（Q1 流动性宽松驱动逆转），则中性转空。",
+  "q6": "品种风险：INE 夜盘跳空；低波动率后的方向选择可能放大跳空。事件风险：07-09 中国 CPI/PPI 与 EIA 为已排程日程。执行风险：过渡期假突破概率高，中性观望优于抢先开仓。",
+  "evidenceRefs": [
+    "price.close",
+    "price.ma20",
+    "price.atr5",
+    "price.volRatio",
+    "macro.DXY",
+    "macro.DR007",
+    "macro.US10Y",
+    "sector.ret1d",
+    "sector.ret5d",
+    "sector.ret20d"
+  ],
+  "opposingRefs": [
+    "macro.US10Y",
+    "sector.ret20d"
+  ],
+  "invalidateIf": "SC0 放量站回 512.0（ma20）上方则中性转多；SC0 跌破 430.0 且 DR007 止跌回升则中性转空。"
+}

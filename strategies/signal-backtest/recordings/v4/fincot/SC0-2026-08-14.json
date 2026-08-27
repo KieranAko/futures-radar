@@ -1,0 +1,31 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "SC0",
+  "anchorDate": "2026-08-14",
+  "direction": "bullish",
+  "confidence": "medium",
+  "macroSupport": "neutral",
+  "sectorSupport": "bullish",
+  "eventRisk": "low",
+  "q1": "驱动是趋势恢复 + 板块动量：price.close 556.2 已站上 ma20 545.8 与 ma60 533.9，chg5 +4.67；sector.ret5d +2.4、ret20d +2.35、breadth5d 0.6，能化板块整体转强。宏观中性：DXY +0.04、USDCNH +0.02、DR007 0 基本持平，仅 US10Y +0.65 略偏空。events.nextScheduled 为空；events.china_cpi_ppi 2026-08-10 verified=false 仅为日程预期，不当作事实。",
+  "q2": "趋势恢复但量能温和：close 556.2 > ma20 545.8 > ma60 533.9，短期均线回到长期均线上方；volRatio 0.86 显示上涨未放量，属于温和趋势推进而非脉冲；atr5 20.68 较前值回落。",
+  "q3": "多头赔率更高。多头：price 站上 ma20/ma60、sector.ret5d +2.4/ret20d +2.35 双正、breadth5d 0.6、无新增事件日程。空头：US10Y +0.65、volRatio 0.86 量能不足。多头证据占优，但量能未确认且美债收益率上行构成反面信号，给 medium。",
+  "q4": "确认信号：T+1 收盘站上 568.6（close + 0.6*atr5）且 volRatio ≥ 0.8；或回踩 545.8（ma20）后收盘站回 550.0 企稳。",
+  "q5": "失效条件：T+1 收盘跌破 533.9（ma60），或板块 ret5d 转负（Q1 板块动量证伪），则趋势恢复逻辑失效。",
+  "q6": "品种风险：INE 夜盘跳空；合约价值约 55.6 万/手、保证金约 5.6 万/手。事件风险：nextScheduled 为空，事件风险低。执行风险：突破后若量能无法放大，可能回踩较深。",
+  "evidenceRefs": [
+    "price.close",
+    "price.ma20",
+    "price.ma60",
+    "sector.ret5d",
+    "sector.ret20d",
+    "sector.breadth5d",
+    "macro.DXY",
+    "macro.US10Y"
+  ],
+  "opposingRefs": [
+    "macro.US10Y",
+    "price.volRatio"
+  ],
+  "invalidateIf": "T+1 收盘跌破 533.9（ma60），或板块 ret5d 转负，则趋势恢复逻辑失效。"
+}

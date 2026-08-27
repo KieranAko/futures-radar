@@ -1,0 +1,32 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "SC0",
+  "anchorDate": "2026-06-18",
+  "direction": "bearish",
+  "confidence": "high",
+  "macroSupport": "bearish",
+  "sectorSupport": "bearish",
+  "eventRisk": "medium",
+  "q1": "驱动是宏观与板块共振的下跌：macro.DXY 100.792（change5d +1.1）美元走强，macro.USDCNH 6.7776（change5d +0.21）人民币走弱，macro.DR007 1.46（change5d +1.18）资金面收紧；sector.ret5d -7.02、ret20d -10.04、breadth5d 0、coherence5d 0.82，能化板块系统性下跌；price.close 508.5 远低于 ma20 580.5。events.fomc 2026-06-17 已落地为 verified past，但其结果未进入本包，不当作额外驱动，只作日历确认。",
+  "q2": "趋势且量价确认：close 508.5 跌破 ma20 580.5/ma60 640.4，chg5 -12.64，volRatio 1.17 显示放量下跌；atr5 28.36 为近期高位，波动率扩张。量、价、波动率三者都支持这是趋势加速而非单日脉冲。",
+  "q3": "空头赔率明显更高。多头：price.chg5 -12.64 短线超卖、sector.breadth5d 0 显示普跌可能接近末端、US10Y +0.22 未继续上行。空头：DXY +1.1、USDCNH +0.21、DR007 +1.18、sector.ret20d -10.04、coherence5d 0.82、volRatio 1.17。空头证据链完整且多域独立（价格/宏观/板块），给 high。",
+  "q4": "确认信号：SC0 反抽至 522.0（close + 0.5*atr5）附近后 T+1 收盘重新跌破 508.5，或直接收盘跌破 495.0（close - 0.5*atr5）且 volRatio ≥ 1.1。",
+  "q5": "失效条件：T+1 收盘站回 580.5（ma20）上方，或 DXY 跌破 100.0（回吐 5 日涨幅、Q1 美元驱动反转），则空头逻辑失效。",
+  "q6": "品种风险：INE 夜盘跳空风险；atr5 28.36 波动率极高，止损距离宽。事件风险：06-22 中国 LPR 报价、06-25 EIA 周度库存为已排程日程。执行风险：连续大跌后短线反抽可能触发空单止损。",
+  "evidenceRefs": [
+    "price.close",
+    "price.ma20",
+    "price.volRatio",
+    "macro.DXY",
+    "macro.USDCNH",
+    "macro.DR007",
+    "sector.ret5d",
+    "sector.ret20d",
+    "sector.breadth5d"
+  ],
+  "opposingRefs": [
+    "sector.breadth5d",
+    "price.chg5"
+  ],
+  "invalidateIf": "T+1 收盘站回 580.5（ma20）上方，或 DXY 跌破 100.0，则空头逻辑失效。"
+}

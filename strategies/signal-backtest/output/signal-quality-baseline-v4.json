@@ -1,0 +1,3422 @@
+{
+  "schema": "futures-radar-signal-backtest/4",
+  "meta": {
+    "generatedAt": "2026-08-27T18:03:29.444Z",
+    "arms": [
+      "A",
+      "B",
+      "C"
+    ],
+    "universe": [
+      "RB0",
+      "M0",
+      "SC0"
+    ],
+    "anchorsPerSymbol": 10,
+    "barsRange": "2026-06-11..2026-08-27（计划窗口）",
+    "barsSource": "data-store daily merged（500 bars）"
+  },
+  "arms": {
+    "A": {
+      "aggregate": {
+        "signalCount": 42,
+        "triggerRate": 16.67,
+        "executedCount": 7,
+        "verifiedCount": 6,
+        "gapSkipCount": 1,
+        "triggerMissCount": 35,
+        "stopRate": 16.67,
+        "target1Rate": 0,
+        "timeExitRate": 83.33,
+        "directionCorrectRate": 66.67,
+        "avgPnlPct": 1.93,
+        "byConfidence": {
+          "high": {
+            "n": 3,
+            "directionCorrectRate": 100,
+            "avgPnlPct": 6
+          },
+          "medium": {
+            "n": 3,
+            "directionCorrectRate": 33.33,
+            "avgPnlPct": -2.15
+          },
+          "low": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          }
+        }
+      },
+      "meta": {
+        "totalPlans": 30,
+        "executablePlans": 25
+      }
+    },
+    "B": {
+      "aggregate": {
+        "signalCount": 25,
+        "triggerRate": 16,
+        "executedCount": 4,
+        "verifiedCount": 3,
+        "gapSkipCount": 1,
+        "triggerMissCount": 21,
+        "stopRate": 0,
+        "target1Rate": 0,
+        "timeExitRate": 100,
+        "directionCorrectRate": 66.67,
+        "avgPnlPct": -0.53,
+        "byConfidence": {
+          "high": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          },
+          "medium": {
+            "n": 3,
+            "directionCorrectRate": 66.67,
+            "avgPnlPct": -0.53
+          },
+          "low": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          }
+        }
+      },
+      "meta": {
+        "totalPlans": 30,
+        "executablePlans": 15
+      }
+    },
+    "C": {
+      "aggregate": {
+        "signalCount": 25,
+        "triggerRate": 16,
+        "executedCount": 4,
+        "verifiedCount": 3,
+        "gapSkipCount": 1,
+        "triggerMissCount": 21,
+        "stopRate": 0,
+        "target1Rate": 0,
+        "timeExitRate": 100,
+        "directionCorrectRate": 66.67,
+        "avgPnlPct": -0.53,
+        "byConfidence": {
+          "high": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          },
+          "medium": {
+            "n": 3,
+            "directionCorrectRate": 66.67,
+            "avgPnlPct": -0.53
+          },
+          "low": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          }
+        }
+      },
+      "meta": {
+        "totalPlans": 30,
+        "executablePlans": 15
+      }
+    }
+  },
+  "perSymbol": {
+    "A": {
+      "RB0": {
+        "signalCount": 13,
+        "triggerRate": 7.69,
+        "executedCount": 1,
+        "verifiedCount": 1,
+        "gapSkipCount": 0,
+        "triggerMissCount": 12,
+        "stopRate": 0,
+        "target1Rate": 0,
+        "timeExitRate": 100,
+        "directionCorrectRate": 100,
+        "avgPnlPct": 2.29,
+        "byConfidence": {
+          "high": {
+            "n": 1,
+            "directionCorrectRate": 100,
+            "avgPnlPct": 2.29
+          },
+          "medium": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          },
+          "low": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          }
+        }
+      },
+      "M0": {
+        "signalCount": 23,
+        "triggerRate": 8.7,
+        "executedCount": 2,
+        "verifiedCount": 1,
+        "gapSkipCount": 1,
+        "triggerMissCount": 21,
+        "stopRate": 100,
+        "target1Rate": 0,
+        "timeExitRate": 0,
+        "directionCorrectRate": 0,
+        "avgPnlPct": -2.29,
+        "byConfidence": {
+          "high": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          },
+          "medium": {
+            "n": 1,
+            "directionCorrectRate": 0,
+            "avgPnlPct": -2.29
+          },
+          "low": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          }
+        }
+      },
+      "SC0": {
+        "signalCount": 6,
+        "triggerRate": 66.67,
+        "executedCount": 4,
+        "verifiedCount": 4,
+        "gapSkipCount": 0,
+        "triggerMissCount": 2,
+        "stopRate": 0,
+        "target1Rate": 0,
+        "timeExitRate": 100,
+        "directionCorrectRate": 75,
+        "avgPnlPct": 2.89,
+        "byConfidence": {
+          "high": {
+            "n": 2,
+            "directionCorrectRate": 100,
+            "avgPnlPct": 7.86
+          },
+          "medium": {
+            "n": 2,
+            "directionCorrectRate": 50,
+            "avgPnlPct": -2.08
+          },
+          "low": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          }
+        }
+      }
+    },
+    "B": {
+      "RB0": {
+        "signalCount": 9,
+        "triggerRate": 22.22,
+        "executedCount": 2,
+        "verifiedCount": 2,
+        "gapSkipCount": 0,
+        "triggerMissCount": 7,
+        "stopRate": 0,
+        "target1Rate": 0,
+        "timeExitRate": 100,
+        "directionCorrectRate": 100,
+        "avgPnlPct": 1.57,
+        "byConfidence": {
+          "high": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          },
+          "medium": {
+            "n": 2,
+            "directionCorrectRate": 100,
+            "avgPnlPct": 1.57
+          },
+          "low": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          }
+        }
+      },
+      "M0": {
+        "signalCount": 11,
+        "triggerRate": 0,
+        "executedCount": 0,
+        "verifiedCount": 0,
+        "gapSkipCount": 0,
+        "triggerMissCount": 11,
+        "stopRate": 0,
+        "target1Rate": 0,
+        "timeExitRate": 0,
+        "directionCorrectRate": 0,
+        "avgPnlPct": 0,
+        "byConfidence": {
+          "high": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          },
+          "medium": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          },
+          "low": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          }
+        }
+      },
+      "SC0": {
+        "signalCount": 5,
+        "triggerRate": 40,
+        "executedCount": 2,
+        "verifiedCount": 1,
+        "gapSkipCount": 1,
+        "triggerMissCount": 3,
+        "stopRate": 0,
+        "target1Rate": 0,
+        "timeExitRate": 100,
+        "directionCorrectRate": 0,
+        "avgPnlPct": -4.73,
+        "byConfidence": {
+          "high": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          },
+          "medium": {
+            "n": 1,
+            "directionCorrectRate": 0,
+            "avgPnlPct": -4.73
+          },
+          "low": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          }
+        }
+      }
+    },
+    "C": {
+      "RB0": {
+        "signalCount": 9,
+        "triggerRate": 22.22,
+        "executedCount": 2,
+        "verifiedCount": 2,
+        "gapSkipCount": 0,
+        "triggerMissCount": 7,
+        "stopRate": 0,
+        "target1Rate": 0,
+        "timeExitRate": 100,
+        "directionCorrectRate": 100,
+        "avgPnlPct": 1.57,
+        "byConfidence": {
+          "high": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          },
+          "medium": {
+            "n": 2,
+            "directionCorrectRate": 100,
+            "avgPnlPct": 1.57
+          },
+          "low": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          }
+        }
+      },
+      "M0": {
+        "signalCount": 11,
+        "triggerRate": 0,
+        "executedCount": 0,
+        "verifiedCount": 0,
+        "gapSkipCount": 0,
+        "triggerMissCount": 11,
+        "stopRate": 0,
+        "target1Rate": 0,
+        "timeExitRate": 0,
+        "directionCorrectRate": 0,
+        "avgPnlPct": 0,
+        "byConfidence": {
+          "high": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          },
+          "medium": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          },
+          "low": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          }
+        }
+      },
+      "SC0": {
+        "signalCount": 5,
+        "triggerRate": 40,
+        "executedCount": 2,
+        "verifiedCount": 1,
+        "gapSkipCount": 1,
+        "triggerMissCount": 3,
+        "stopRate": 0,
+        "target1Rate": 0,
+        "timeExitRate": 100,
+        "directionCorrectRate": 0,
+        "avgPnlPct": -4.73,
+        "byConfidence": {
+          "high": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          },
+          "medium": {
+            "n": 1,
+            "directionCorrectRate": 0,
+            "avgPnlPct": -4.73
+          },
+          "low": {
+            "n": 0,
+            "directionCorrectRate": 0,
+            "avgPnlPct": 0
+          }
+        }
+      }
+    }
+  },
+  "crossTabs": {
+    "C": {
+      "byMacroBias": [
+        {
+          "value": "neutral",
+          "n": 2,
+          "directionCorrectRate": 50,
+          "avgPnlPct": -1.49
+        },
+        {
+          "value": "bearish",
+          "n": 1,
+          "directionCorrectRate": 100,
+          "avgPnlPct": 1.38
+        }
+      ],
+      "bySectorBias": [
+        {
+          "value": "bullish",
+          "n": 2,
+          "directionCorrectRate": 50,
+          "avgPnlPct": -1.49
+        },
+        {
+          "value": "bearish",
+          "n": 1,
+          "directionCorrectRate": 100,
+          "avgPnlPct": 1.38
+        }
+      ],
+      "byEventRisk": [
+        {
+          "value": "low",
+          "n": 2,
+          "directionCorrectRate": 50,
+          "avgPnlPct": -1.49
+        },
+        {
+          "value": "medium",
+          "n": 1,
+          "directionCorrectRate": 100,
+          "avgPnlPct": 1.38
+        }
+      ],
+      "byFinCotAlignment": [
+        {
+          "value": "aligned",
+          "n": 3,
+          "directionCorrectRate": 66.67,
+          "avgPnlPct": -0.53
+        }
+      ],
+      "byExecutionStatus": [
+        {
+          "value": "executable",
+          "n": 3,
+          "directionCorrectRate": 66.67,
+          "avgPnlPct": -0.53
+        }
+      ]
+    }
+  },
+  "ablation": [
+    {
+      "comparison": "B - A（宏观/板块/事件上下文的增量）",
+      "directionDelta": 0,
+      "pnlDelta": -2.46
+    },
+    {
+      "comparison": "C - B（完整 FinCoT 的增量）",
+      "directionDelta": 0,
+      "pnlDelta": 0
+    },
+    {
+      "comparison": "C - A（总增量）",
+      "directionDelta": 0,
+      "pnlDelta": -2.46
+    }
+  ],
+  "planDistribution": {
+    "A": {
+      "RB0": {
+        "direction": {
+          "bullish": 2,
+          "bearish": 8
+        },
+        "regime": {
+          "range": 1,
+          "trend": 8,
+          "transition": 1
+        },
+        "edge": {
+          "range_fade": 1,
+          "trend_continuation": 3,
+          "pullback": 4,
+          "breakout": 2
+        },
+        "triggerType": {
+          "pullback": 5,
+          "breakout": 5
+        },
+        "executionStatus": {
+          "executable": 10
+        }
+      },
+      "M0": {
+        "direction": {
+          "bearish": 1,
+          "neutral": 3,
+          "bullish": 6
+        },
+        "regime": {
+          "trend": 5,
+          "range": 2,
+          "transition": 3
+        },
+        "edge": {
+          "trend_continuation": 4,
+          "null": 3,
+          "breakout": 3
+        },
+        "triggerType": {
+          "breakout": 7,
+          "null": 3
+        },
+        "executionStatus": {
+          "executable": 7,
+          "watch": 3
+        }
+      },
+      "SC0": {
+        "direction": {
+          "bearish": 5,
+          "neutral": 2,
+          "bullish": 3
+        },
+        "regime": {
+          "trend": 5,
+          "shock": 2,
+          "transition": 3
+        },
+        "edge": {
+          "trend_continuation": 2,
+          "breakout": 3,
+          "pullback": 3,
+          "null": 2
+        },
+        "triggerType": {
+          "breakout": 5,
+          "pullback": 3,
+          "null": 2
+        },
+        "executionStatus": {
+          "executable": 8,
+          "watch": 2
+        }
+      }
+    },
+    "B": {
+      "RB0": {
+        "direction": {
+          "neutral": 3,
+          "bearish": 5,
+          "bullish": 2
+        },
+        "regime": {
+          "transition": 5,
+          "trend": 3,
+          "shock": 1,
+          "range": 1
+        },
+        "edge": {
+          "null": 3,
+          "trend_continuation": 2,
+          "pullback": 1,
+          "breakout": 3,
+          "mean_reversion": 1
+        },
+        "triggerType": {
+          "null": 3,
+          "breakout": 5,
+          "pullback": 2
+        },
+        "executionStatus": {
+          "watch": 4,
+          "executable": 6
+        }
+      },
+      "M0": {
+        "direction": {
+          "neutral": 4,
+          "bearish": 3,
+          "bullish": 3
+        },
+        "regime": {
+          "range": 3,
+          "trend": 4,
+          "transition": 3
+        },
+        "edge": {
+          "null": 4,
+          "trend_continuation": 3,
+          "breakout": 3
+        },
+        "triggerType": {
+          "null": 4,
+          "breakout": 6
+        },
+        "executionStatus": {
+          "watch": 6,
+          "executable": 4
+        }
+      },
+      "SC0": {
+        "direction": {
+          "bearish": 2,
+          "neutral": 3,
+          "bullish": 5
+        },
+        "regime": {
+          "trend": 6,
+          "transition": 3,
+          "range": 1
+        },
+        "edge": {
+          "trend_continuation": 1,
+          "pullback": 3,
+          "null": 3,
+          "breakout": 2,
+          "range_fade": 1
+        },
+        "triggerType": {
+          "breakout": 3,
+          "pullback": 4,
+          "null": 3
+        },
+        "executionStatus": {
+          "watch": 4,
+          "executable": 5,
+          "skip": 1
+        }
+      }
+    },
+    "C": {
+      "RB0": {
+        "direction": {
+          "neutral": 3,
+          "bearish": 5,
+          "bullish": 2
+        },
+        "regime": {
+          "transition": 5,
+          "trend": 3,
+          "shock": 1,
+          "range": 1
+        },
+        "edge": {
+          "null": 3,
+          "trend_continuation": 2,
+          "pullback": 1,
+          "breakout": 3,
+          "mean_reversion": 1
+        },
+        "triggerType": {
+          "null": 3,
+          "breakout": 5,
+          "pullback": 2
+        },
+        "executionStatus": {
+          "watch": 4,
+          "executable": 6
+        }
+      },
+      "M0": {
+        "direction": {
+          "neutral": 4,
+          "bearish": 3,
+          "bullish": 3
+        },
+        "regime": {
+          "range": 3,
+          "trend": 4,
+          "transition": 3
+        },
+        "edge": {
+          "null": 4,
+          "trend_continuation": 3,
+          "breakout": 3
+        },
+        "triggerType": {
+          "null": 4,
+          "breakout": 6
+        },
+        "executionStatus": {
+          "watch": 6,
+          "executable": 4
+        }
+      },
+      "SC0": {
+        "direction": {
+          "bearish": 2,
+          "neutral": 3,
+          "bullish": 5
+        },
+        "regime": {
+          "trend": 6,
+          "transition": 3,
+          "range": 1
+        },
+        "edge": {
+          "trend_continuation": 1,
+          "pullback": 3,
+          "null": 3,
+          "breakout": 2,
+          "range_fade": 1
+        },
+        "triggerType": {
+          "breakout": 3,
+          "pullback": 4,
+          "null": 3
+        },
+        "executionStatus": {
+          "watch": 4,
+          "executable": 5,
+          "skip": 1
+        }
+      }
+    }
+  },
+  "falsification": [
+    "B - A（宏观/板块/事件上下文的增量）：方向正确率 0 pp，平均盈亏 -2.46%。",
+    "C - B（完整 FinCoT 的增量）：方向正确率 0 pp，平均盈亏 0%。",
+    "C - A（总增量）：方向正确率 0 pp，平均盈亏 -2.46%。",
+    "C 臂成交 3 笔，样本过小，结论只能作试点观察。",
+    "C 臂成交中带 contextRefs 的 3/3 笔（100%），上下文可溯源覆盖。",
+    "执行引擎对三臂完全一致；三臂差异只来自 LLM 决策上下文。30 个锚点、固定 1 手，仅作试点证据。"
+  ],
+  "signals": {
+    "A": [
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-06-11",
+        "signalDate": "2026-06-17",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "low",
+        "regime": "range",
+        "edge": "range_fade",
+        "triggerType": "pullback",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3151.6,
+        "stopPrice": 3110.2,
+        "target1Level": 3222
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-06-18",
+        "signalDate": "2026-06-22",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "volume_confirmed",
+          "structure_clean"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3102.4,
+        "stopPrice": 3136.8,
+        "target1Level": 2999.1
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-06-18",
+        "signalDate": "2026-06-23",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "volume_confirmed",
+          "structure_clean"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3087,
+        "stopPrice": 3122,
+        "target1Level": 2982
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-06-18",
+        "signalDate": "2026-06-24",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "volume_confirmed",
+          "structure_clean"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3087,
+        "stopPrice": 3120.6,
+        "target1Level": 2986.2
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-06-18",
+        "signalDate": "2026-06-25",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "volume_confirmed",
+          "structure_clean"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3072.6,
+        "stopPrice": 3108.2,
+        "target1Level": 2965.9
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-13",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3026.7,
+        "stopPrice": 3066.4,
+        "target1Level": 2899.7
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-14",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3055,
+        "stopPrice": 3105.9,
+        "target1Level": 2892.2
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-17",
+        "signalDate": "2026-07-20",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3107.8,
+        "stopPrice": 3063.4,
+        "target1Level": 3196.6
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-17",
+        "signalDate": "2026-07-21",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3106,
+        "stopPrice": 3064.9,
+        "target1Level": 3188.2
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-24",
+        "signalDate": "2026-07-27",
+        "status": "verified",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3065.3,
+        "stopPrice": 3111,
+        "target1Level": 2951,
+        "entryDate": "2026-07-29",
+        "entryPrice": 3060,
+        "exitDate": "2026-08-05",
+        "exitPrice": 2990,
+        "exitType": "time_exit",
+        "directionCorrect": true,
+        "pnlPct": 2.29
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-08-14",
+        "signalDate": "2026-08-17",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 2987.8,
+        "stopPrice": 3028.8,
+        "target1Level": 2856.8
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-08-14",
+        "signalDate": "2026-08-18",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 2995.5,
+        "stopPrice": 3035.5,
+        "target1Level": 2867.5
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-08-14",
+        "signalDate": "2026-08-19",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 2986.6,
+        "stopPrice": 3030.8,
+        "target1Level": 2845.3
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-06-11",
+        "signalDate": "2026-06-12",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "low",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 2919.9,
+        "stopPrice": 2959.5,
+        "target1Level": 2840.7
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-06-11",
+        "signalDate": "2026-06-15",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "low",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 2919.4,
+        "stopPrice": 2959.9,
+        "target1Level": 2838.4
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-06-11",
+        "signalDate": "2026-06-16",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "low",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 2924.8,
+        "stopPrice": 2962.6,
+        "target1Level": 2849.2
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-06-26",
+        "signalDate": "2026-06-29",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "low",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "volume_confirmed",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 2984.9,
+        "stopPrice": 2940.2,
+        "target1Level": 3074.3
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-06-26",
+        "signalDate": "2026-07-01",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "low",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "volume_confirmed",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 2988.4,
+        "stopPrice": 2929.9,
+        "target1Level": 3105.4
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-06-26",
+        "signalDate": "2026-07-02",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "low",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "volume_confirmed",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 2997.8,
+        "stopPrice": 2945.9,
+        "target1Level": 3101.6
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-13",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3068.4,
+        "stopPrice": 3022.5,
+        "target1Level": 3160.2
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-14",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3068.3,
+        "stopPrice": 3020,
+        "target1Level": 3164.9
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-15",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3085.9,
+        "stopPrice": 3036.1,
+        "target1Level": 3185.5
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-16",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3088.2,
+        "stopPrice": 3035.1,
+        "target1Level": 3194.4
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-17",
+        "signalDate": "2026-07-20",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3154.4,
+        "stopPrice": 3090.8,
+        "target1Level": 3281.6
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-17",
+        "signalDate": "2026-07-21",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3173.6,
+        "stopPrice": 3109.7,
+        "target1Level": 3301.4
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-17",
+        "signalDate": "2026-07-22",
+        "status": "verified",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3171.8,
+        "stopPrice": 3107.3,
+        "target1Level": 3300.8,
+        "entryDate": "2026-07-24",
+        "entryPrice": 3180,
+        "exitDate": "2026-07-28",
+        "exitPrice": 3107.3,
+        "exitType": "stopped_out",
+        "directionCorrect": false,
+        "pnlPct": -2.29
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-24",
+        "signalDate": "2026-07-28",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "event_risk",
+          "trend_aligned",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3131.2,
+        "stopPrice": 3040.6,
+        "target1Level": 3312.4
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-24",
+        "signalDate": "2026-07-29",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "event_risk",
+          "trend_aligned",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3138.4,
+        "stopPrice": 3050.2,
+        "target1Level": 3314.8
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-10",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "volume_confirmed",
+          "structure_clean"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3170.6,
+        "stopPrice": 3114.2,
+        "target1Level": 3283.4
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-11",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "volume_confirmed",
+          "structure_clean"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3156.6,
+        "stopPrice": 3115.2,
+        "target1Level": 3239.4
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-12",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "volume_confirmed",
+          "structure_clean"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3159.2,
+        "stopPrice": 3116.3,
+        "target1Level": 3245
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-13",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "volume_confirmed",
+          "structure_clean"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3171.4,
+        "stopPrice": 3122.8,
+        "target1Level": 3268.6
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-14",
+        "signalDate": "2026-08-17",
+        "status": "gap_skip",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3194.5,
+        "stopPrice": 3151.4,
+        "target1Level": 3280.7,
+        "entryDate": "2026-08-19",
+        "entryPrice": 3242
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-14",
+        "signalDate": "2026-08-18",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3264.8,
+        "stopPrice": 3209.3,
+        "target1Level": 3375.6
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-14",
+        "signalDate": "2026-08-19",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3269.4,
+        "stopPrice": 3214.8,
+        "target1Level": 3378.6
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-14",
+        "signalDate": "2026-08-20",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "structure_clean",
+          "volatility_normal"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 3289.9,
+        "stopPrice": 3236.4,
+        "target1Level": 3396.9
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-06-11",
+        "signalDate": "2026-06-12",
+        "status": "verified",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 534.6,
+        "stopPrice": 591.2,
+        "target1Level": 421.5,
+        "entryDate": "2026-06-16",
+        "entryPrice": 532.1,
+        "exitDate": "2026-06-24",
+        "exitPrice": 486.1,
+        "exitType": "time_exit",
+        "directionCorrect": true,
+        "pnlPct": 8.64
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-06-18",
+        "signalDate": "2026-06-24",
+        "status": "verified",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "shock",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "volume_confirmed",
+          "event_risk"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 465.8,
+        "stopPrice": 506.4,
+        "target1Level": 364.2,
+        "entryDate": "2026-06-26",
+        "entryPrice": 467.4,
+        "exitDate": "2026-07-02",
+        "exitPrice": 434.3,
+        "exitType": "time_exit",
+        "directionCorrect": true,
+        "pnlPct": 7.08
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-07-17",
+        "signalDate": "2026-07-20",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "volume_confirmed"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 570.5,
+        "stopPrice": 520.7,
+        "target1Level": 695.1
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-07-17",
+        "signalDate": "2026-07-21",
+        "status": "verified",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "volume_confirmed"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 550.1,
+        "stopPrice": 507.2,
+        "target1Level": 657.4,
+        "entryDate": "2026-07-23",
+        "entryPrice": 564.9,
+        "exitDate": "2026-07-30",
+        "exitPrice": 568.2,
+        "exitType": "time_exit",
+        "directionCorrect": true,
+        "pnlPct": 0.58
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-10",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 517.7,
+        "stopPrice": 557.8,
+        "target1Level": 437.5
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-08-14",
+        "signalDate": "2026-08-17",
+        "status": "verified",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": null,
+        "sectorBias": null,
+        "eventRisk": null,
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [],
+        "triggerLevel": 574.5,
+        "stopPrice": 535.8,
+        "target1Level": 651.8,
+        "entryDate": "2026-08-19",
+        "entryPrice": 584,
+        "exitDate": "2026-08-26",
+        "exitPrice": 556.4,
+        "exitType": "time_exit",
+        "directionCorrect": false,
+        "pnlPct": -4.73
+      }
+    ],
+    "B": [
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-06-18",
+        "signalDate": "2026-06-22",
+        "status": "verified",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bearish",
+        "sectorBias": "bearish",
+        "eventRisk": "medium",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned",
+          "volume_confirmed"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.USDCNH",
+          "macro.SC0",
+          "sector",
+          "events.fomc",
+          "events.china_lpr"
+        ],
+        "triggerLevel": 3112.2,
+        "stopPrice": 3149.1,
+        "target1Level": 3038.4,
+        "entryDate": "2026-06-24",
+        "entryPrice": 3110,
+        "exitDate": "2026-07-01",
+        "exitPrice": 3067,
+        "exitType": "time_exit",
+        "directionCorrect": true,
+        "pnlPct": 1.38
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-06-26",
+        "signalDate": "2026-07-01",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bearish",
+        "sectorBias": "bearish",
+        "eventRisk": "medium",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.USDCNH",
+          "macro.SC0",
+          "macro.US10Y",
+          "sector",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 3050.9,
+        "stopPrice": 3092.3,
+        "target1Level": 2947.4
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-06-26",
+        "signalDate": "2026-07-02",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bearish",
+        "sectorBias": "bearish",
+        "eventRisk": "medium",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.USDCNH",
+          "macro.SC0",
+          "macro.US10Y",
+          "sector",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 3052.3,
+        "stopPrice": 3090.1,
+        "target1Level": 2957.8
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-14",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "pullback",
+        "triggerType": "pullback",
+        "executionStatus": "executable",
+        "macroBias": "conflict",
+        "sectorBias": "bearish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "volume_caution"
+        ],
+        "contextRefs": [
+          "macro.US10Y",
+          "macro.DR007",
+          "macro.SC0",
+          "sector",
+          "events.china_cpi_ppi"
+        ],
+        "triggerLevel": 3090,
+        "stopPrice": 3140.9,
+        "target1Level": 2978.1
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-31",
+        "signalDate": "2026-08-03",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "shock",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "conflict",
+        "sectorBias": "bearish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned",
+          "post_event_clarity"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.fomc",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 2949.1,
+        "stopPrice": 2999.5,
+        "target1Level": 2823.1
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-31",
+        "signalDate": "2026-08-04",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "shock",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "conflict",
+        "sectorBias": "bearish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned",
+          "post_event_clarity"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.fomc",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 2955.8,
+        "stopPrice": 3006.8,
+        "target1Level": 2828.3
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-31",
+        "signalDate": "2026-08-05",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "shock",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "conflict",
+        "sectorBias": "bearish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned",
+          "post_event_clarity"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.fomc",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 2962,
+        "stopPrice": 3014.5,
+        "target1Level": 2830.8
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-31",
+        "signalDate": "2026-08-06",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "shock",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "conflict",
+        "sectorBias": "bearish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned",
+          "post_event_clarity"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.fomc",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 2989.4,
+        "stopPrice": 3035.6,
+        "target1Level": 2873.9
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-08-14",
+        "signalDate": "2026-08-17",
+        "status": "verified",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "range",
+        "edge": "mean_reversion",
+        "triggerType": "pullback",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "sector_aligned",
+          "mean_reversion",
+          "volume_confirmed"
+        ],
+        "contextRefs": [
+          "macro.SC0",
+          "macro.US10Y",
+          "sector",
+          "events.china_cpi_ppi"
+        ],
+        "triggerLevel": 3020,
+        "stopPrice": 2981.6,
+        "target1Level": 3096.8,
+        "entryDate": "2026-08-19",
+        "entryPrice": 3023,
+        "exitDate": "2026-08-26",
+        "exitPrice": 3076,
+        "exitType": "time_exit",
+        "directionCorrect": true,
+        "pnlPct": 1.75
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-06-18",
+        "signalDate": "2026-06-22",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bearish",
+        "sectorBias": "neutral",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.SC0",
+          "sector",
+          "events.fomc"
+        ],
+        "triggerLevel": 2918.8,
+        "stopPrice": 2956.9,
+        "target1Level": 2842.6
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-06-18",
+        "signalDate": "2026-06-23",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bearish",
+        "sectorBias": "neutral",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.SC0",
+          "sector",
+          "events.fomc"
+        ],
+        "triggerLevel": 2931.6,
+        "stopPrice": 2970,
+        "target1Level": 2854.8
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-13",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.SC0",
+          "macro.DR007",
+          "macro.US10Y",
+          "sector",
+          "events.wasde",
+          "events.mpob"
+        ],
+        "triggerLevel": 3068.4,
+        "stopPrice": 3019.4,
+        "target1Level": 3190.8
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-14",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.SC0",
+          "macro.DR007",
+          "macro.US10Y",
+          "sector",
+          "events.wasde",
+          "events.mpob"
+        ],
+        "triggerLevel": 3068.3,
+        "stopPrice": 3016.8,
+        "target1Level": 3197.1
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-15",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.SC0",
+          "macro.DR007",
+          "macro.US10Y",
+          "sector",
+          "events.wasde",
+          "events.mpob"
+        ],
+        "triggerLevel": 3085.9,
+        "stopPrice": 3032.8,
+        "target1Level": 3218.7
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-16",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.SC0",
+          "macro.DR007",
+          "macro.US10Y",
+          "sector",
+          "events.wasde",
+          "events.mpob"
+        ],
+        "triggerLevel": 3088.2,
+        "stopPrice": 3031.6,
+        "target1Level": 3229.8
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-31",
+        "signalDate": "2026-08-03",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "conflict",
+        "sectorBias": "bearish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.SC0",
+          "sector",
+          "events.fomc",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 3046.4,
+        "stopPrice": 3120.6,
+        "target1Level": 2898.1
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-10",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bullish",
+        "sectorBias": "bullish",
+        "eventRisk": "medium",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "macro.SC0",
+          "sector",
+          "events.china_cpi_ppi",
+          "events.mpob"
+        ],
+        "triggerLevel": 3170.6,
+        "stopPrice": 3114.2,
+        "target1Level": 3311.6
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-11",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bullish",
+        "sectorBias": "bullish",
+        "eventRisk": "medium",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "macro.SC0",
+          "sector",
+          "events.china_cpi_ppi",
+          "events.mpob"
+        ],
+        "triggerLevel": 3156.6,
+        "stopPrice": 3115.2,
+        "target1Level": 3260.1
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-12",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bullish",
+        "sectorBias": "bullish",
+        "eventRisk": "medium",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "macro.SC0",
+          "sector",
+          "events.china_cpi_ppi",
+          "events.mpob"
+        ],
+        "triggerLevel": 3159.2,
+        "stopPrice": 3116.3,
+        "target1Level": 3266.4
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-13",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bullish",
+        "sectorBias": "bullish",
+        "eventRisk": "medium",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "macro.SC0",
+          "sector",
+          "events.china_cpi_ppi",
+          "events.mpob"
+        ],
+        "triggerLevel": 3171.4,
+        "stopPrice": 3122.8,
+        "target1Level": 3292.9
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-13",
+        "status": "gap_skip",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.eia_weekly",
+          "events.china_cpi_ppi"
+        ],
+        "triggerLevel": 497.7,
+        "stopPrice": 463.2,
+        "target1Level": 583.9,
+        "entryDate": "2026-07-15",
+        "entryPrice": 522
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-14",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.eia_weekly",
+          "events.china_cpi_ppi"
+        ],
+        "triggerLevel": 539.4,
+        "stopPrice": 493.7,
+        "target1Level": 653.7
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-15",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.eia_weekly",
+          "events.china_cpi_ppi"
+        ],
+        "triggerLevel": 539.5,
+        "stopPrice": 497.5,
+        "target1Level": 644.3
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-16",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.eia_weekly",
+          "events.china_cpi_ppi"
+        ],
+        "triggerLevel": 530.8,
+        "stopPrice": 494,
+        "target1Level": 623
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-08-14",
+        "signalDate": "2026-08-17",
+        "status": "verified",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "not_applicable",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.china_cpi_ppi",
+          "events.eia_weekly"
+        ],
+        "triggerLevel": 574.5,
+        "stopPrice": 542.3,
+        "target1Level": 638.9,
+        "entryDate": "2026-08-19",
+        "entryPrice": 584,
+        "exitDate": "2026-08-26",
+        "exitPrice": 556.4,
+        "exitType": "time_exit",
+        "directionCorrect": false,
+        "pnlPct": -4.73
+      }
+    ],
+    "C": [
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-06-18",
+        "signalDate": "2026-06-22",
+        "status": "verified",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bearish",
+        "sectorBias": "bearish",
+        "eventRisk": "medium",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned",
+          "volume_confirmed"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.USDCNH",
+          "macro.SC0",
+          "sector",
+          "events.fomc",
+          "events.china_lpr"
+        ],
+        "triggerLevel": 3112.2,
+        "stopPrice": 3149.1,
+        "target1Level": 3038.4,
+        "entryDate": "2026-06-24",
+        "entryPrice": 3110,
+        "exitDate": "2026-07-01",
+        "exitPrice": 3067,
+        "exitType": "time_exit",
+        "directionCorrect": true,
+        "pnlPct": 1.38
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-06-26",
+        "signalDate": "2026-07-01",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bearish",
+        "sectorBias": "bearish",
+        "eventRisk": "medium",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.USDCNH",
+          "macro.SC0",
+          "macro.US10Y",
+          "sector",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 3050.9,
+        "stopPrice": 3092.3,
+        "target1Level": 2947.4
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-06-26",
+        "signalDate": "2026-07-02",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bearish",
+        "sectorBias": "bearish",
+        "eventRisk": "medium",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.USDCNH",
+          "macro.SC0",
+          "macro.US10Y",
+          "sector",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 3052.3,
+        "stopPrice": 3090.1,
+        "target1Level": 2957.8
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-14",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "pullback",
+        "triggerType": "pullback",
+        "executionStatus": "executable",
+        "macroBias": "conflict",
+        "sectorBias": "bearish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned",
+          "volume_caution"
+        ],
+        "contextRefs": [
+          "macro.US10Y",
+          "macro.DR007",
+          "macro.SC0",
+          "sector",
+          "events.china_cpi_ppi"
+        ],
+        "triggerLevel": 3090,
+        "stopPrice": 3140.9,
+        "target1Level": 2978.1
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-31",
+        "signalDate": "2026-08-03",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "shock",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "conflict",
+        "sectorBias": "bearish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned",
+          "post_event_clarity"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.fomc",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 2949.1,
+        "stopPrice": 2999.5,
+        "target1Level": 2823.1
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-31",
+        "signalDate": "2026-08-04",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "shock",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "conflict",
+        "sectorBias": "bearish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned",
+          "post_event_clarity"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.fomc",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 2955.8,
+        "stopPrice": 3006.8,
+        "target1Level": 2828.3
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-31",
+        "signalDate": "2026-08-05",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "shock",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "conflict",
+        "sectorBias": "bearish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned",
+          "post_event_clarity"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.fomc",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 2962,
+        "stopPrice": 3014.5,
+        "target1Level": 2830.8
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-07-31",
+        "signalDate": "2026-08-06",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "high",
+        "regime": "shock",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "conflict",
+        "sectorBias": "bearish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned",
+          "sector_aligned",
+          "post_event_clarity"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "sector",
+          "events.fomc",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 2989.4,
+        "stopPrice": 3035.6,
+        "target1Level": 2873.9
+      },
+      {
+        "symbol": "RB0",
+        "anchorDate": "2026-08-14",
+        "signalDate": "2026-08-17",
+        "status": "verified",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "range",
+        "edge": "mean_reversion",
+        "triggerType": "pullback",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "sector_aligned",
+          "mean_reversion",
+          "volume_confirmed"
+        ],
+        "contextRefs": [
+          "macro.SC0",
+          "macro.US10Y",
+          "sector",
+          "events.china_cpi_ppi"
+        ],
+        "triggerLevel": 3020,
+        "stopPrice": 2981.6,
+        "target1Level": 3096.8,
+        "entryDate": "2026-08-19",
+        "entryPrice": 3023,
+        "exitDate": "2026-08-26",
+        "exitPrice": 3076,
+        "exitType": "time_exit",
+        "directionCorrect": true,
+        "pnlPct": 1.75
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-06-18",
+        "signalDate": "2026-06-22",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bearish",
+        "sectorBias": "neutral",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.SC0",
+          "sector",
+          "events.fomc"
+        ],
+        "triggerLevel": 2918.8,
+        "stopPrice": 2956.9,
+        "target1Level": 2842.6
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-06-18",
+        "signalDate": "2026-06-23",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bearish",
+        "sectorBias": "neutral",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.SC0",
+          "sector",
+          "events.fomc"
+        ],
+        "triggerLevel": 2931.6,
+        "stopPrice": 2970,
+        "target1Level": 2854.8
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-13",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.SC0",
+          "macro.DR007",
+          "macro.US10Y",
+          "sector",
+          "events.wasde",
+          "events.mpob"
+        ],
+        "triggerLevel": 3068.4,
+        "stopPrice": 3019.4,
+        "target1Level": 3190.8
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-14",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.SC0",
+          "macro.DR007",
+          "macro.US10Y",
+          "sector",
+          "events.wasde",
+          "events.mpob"
+        ],
+        "triggerLevel": 3068.3,
+        "stopPrice": 3016.8,
+        "target1Level": 3197.1
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-15",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.SC0",
+          "macro.DR007",
+          "macro.US10Y",
+          "sector",
+          "events.wasde",
+          "events.mpob"
+        ],
+        "triggerLevel": 3085.9,
+        "stopPrice": 3032.8,
+        "target1Level": 3218.7
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-16",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "high",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.SC0",
+          "macro.DR007",
+          "macro.US10Y",
+          "sector",
+          "events.wasde",
+          "events.mpob"
+        ],
+        "triggerLevel": 3088.2,
+        "stopPrice": 3031.6,
+        "target1Level": 3229.8
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-07-31",
+        "signalDate": "2026-08-03",
+        "status": "trigger_miss",
+        "direction": "bearish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "conflict",
+        "sectorBias": "bearish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.SC0",
+          "sector",
+          "events.fomc",
+          "events.china_pmi"
+        ],
+        "triggerLevel": 3046.4,
+        "stopPrice": 3120.6,
+        "target1Level": 2898.1
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-10",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bullish",
+        "sectorBias": "bullish",
+        "eventRisk": "medium",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "macro.SC0",
+          "sector",
+          "events.china_cpi_ppi",
+          "events.mpob"
+        ],
+        "triggerLevel": 3170.6,
+        "stopPrice": 3114.2,
+        "target1Level": 3311.6
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-11",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bullish",
+        "sectorBias": "bullish",
+        "eventRisk": "medium",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "macro.SC0",
+          "sector",
+          "events.china_cpi_ppi",
+          "events.mpob"
+        ],
+        "triggerLevel": 3156.6,
+        "stopPrice": 3115.2,
+        "target1Level": 3260.1
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-12",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bullish",
+        "sectorBias": "bullish",
+        "eventRisk": "medium",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "macro.SC0",
+          "sector",
+          "events.china_cpi_ppi",
+          "events.mpob"
+        ],
+        "triggerLevel": 3159.2,
+        "stopPrice": 3116.3,
+        "target1Level": 3266.4
+      },
+      {
+        "symbol": "M0",
+        "anchorDate": "2026-08-07",
+        "signalDate": "2026-08-13",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "trend_continuation",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "bullish",
+        "sectorBias": "bullish",
+        "eventRisk": "medium",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "macro.SC0",
+          "sector",
+          "events.china_cpi_ppi",
+          "events.mpob"
+        ],
+        "triggerLevel": 3171.4,
+        "stopPrice": 3122.8,
+        "target1Level": 3292.9
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-13",
+        "status": "gap_skip",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "breadth_confirmed"
+        ],
+        "contextRefs": [
+          "price.close",
+          "price.ma20",
+          "sector.ret5d",
+          "sector.breadth5d",
+          "sector.coherence5d",
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "events.eia_weekly",
+          "events.china_cpi_ppi"
+        ],
+        "triggerLevel": 497.7,
+        "stopPrice": 463.2,
+        "target1Level": 583.9,
+        "entryDate": "2026-07-15",
+        "entryPrice": 522
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-14",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "breadth_confirmed"
+        ],
+        "contextRefs": [
+          "price.close",
+          "price.ma20",
+          "sector.ret5d",
+          "sector.breadth5d",
+          "sector.coherence5d",
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "events.eia_weekly",
+          "events.china_cpi_ppi"
+        ],
+        "triggerLevel": 539.4,
+        "stopPrice": 493.7,
+        "target1Level": 653.7
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-15",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "breadth_confirmed"
+        ],
+        "contextRefs": [
+          "price.close",
+          "price.ma20",
+          "sector.ret5d",
+          "sector.breadth5d",
+          "sector.coherence5d",
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "events.eia_weekly",
+          "events.china_cpi_ppi"
+        ],
+        "triggerLevel": 539.5,
+        "stopPrice": 497.5,
+        "target1Level": 644.3
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-07-10",
+        "signalDate": "2026-07-16",
+        "status": "trigger_miss",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "transition",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "breadth_confirmed"
+        ],
+        "contextRefs": [
+          "price.close",
+          "price.ma20",
+          "sector.ret5d",
+          "sector.breadth5d",
+          "sector.coherence5d",
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "events.eia_weekly",
+          "events.china_cpi_ppi"
+        ],
+        "triggerLevel": 530.8,
+        "stopPrice": 494,
+        "target1Level": 623
+      },
+      {
+        "symbol": "SC0",
+        "anchorDate": "2026-08-14",
+        "signalDate": "2026-08-17",
+        "status": "verified",
+        "direction": "bullish",
+        "confidence": "medium",
+        "regime": "trend",
+        "edge": "breakout",
+        "triggerType": "breakout",
+        "executionStatus": "executable",
+        "macroBias": "neutral",
+        "sectorBias": "bullish",
+        "eventRisk": "low",
+        "finCotAlignment": "aligned",
+        "qualityFlags": [
+          "trend_aligned"
+        ],
+        "contextRefs": [
+          "price.close",
+          "price.ma20",
+          "price.ma60",
+          "price.volRatio",
+          "sector.ret5d",
+          "sector.ret20d",
+          "sector.breadth5d",
+          "macro.DXY",
+          "macro.US10Y",
+          "macro.DR007",
+          "events.china_cpi_ppi",
+          "events.eia_weekly"
+        ],
+        "triggerLevel": 574.5,
+        "stopPrice": 542.3,
+        "target1Level": 638.9,
+        "entryDate": "2026-08-19",
+        "entryPrice": 584,
+        "exitDate": "2026-08-26",
+        "exitPrice": 556.4,
+        "exitType": "time_exit",
+        "directionCorrect": false,
+        "pnlPct": -4.73
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "M0",
+  "anchorDate": "2026-06-11",
+  "direction": "neutral",
+  "confidence": "low",
+  "macroSupport": "conflict",
+  "sectorSupport": "bearish",
+  "eventRisk": "high",
+  "q1": "为什么动：宏观多空冲突——macro.DXY change5d=+0.27 与 macro.SC0 change5d=-3.56 偏空商品，但 macro.US10Y change5d=-0.45 偏多；sector.ret5d=-0.65、sector.breadth5d=0.4 显示板块温和偏弱；events.fomc（2026-06-17）仅为日程预期。驱动互相抵消，无法形成一致方向 → neutral，abstain reason: conflict_unresolved。",
+  "q2": "趋势还是脉冲：close 2939 低于 ma20 2968.5 与 ma60 2982.3，chg5=-0.14、volRatio=0.97，量价均无动能，ATR5=30 波动中性，属区间整理，既非趋势也非脉冲。",
+  "q3": "多空哪边更有赔率：空头有价格位于双均线下方、sector.ret5d=-0.65、sector.ret20d=-0.03；反面证据有 sector.ret1d=+0.44 当日板块反弹、macro.US10Y 下行对商品估值偏友好。两边证据都不强，赔率接近。",
+  "q4": "关键确认信号：若 FOMC 落地后 close 跌破 2900 且 volRatio≥1.0，确认空头；若 close 站上 2982.3（ma60）且 sector.breadth5d≥0.6，确认多头。",
+  "q5": "失效条件：若宏观冲突收敛——macro.DXY change5d 转负且 macro.US10Y 继续下行——并配合价格站上 MA60，则中性结论失效转多；若 DXY 与 US10Y 同步上行且价格跌破 2900，则转空。",
+  "q6": "交易风险：品种风险——豆粕有夜盘，CBOT 波动可能跳空；事件风险——events.fomc（6/17）临近，利率决议前后波动放大；执行风险——区间行情突破易假。",
+  "evidenceRefs": [
+    "macro.DXY",
+    "macro.US10Y",
+    "macro.SC0",
+    "sector.ret5d",
+    "sector.breadth5d",
+    "events.fomc"
+  ],
+  "opposingRefs": [
+    "sector.ret1d",
+    "macro.US10Y"
+  ],
+  "invalidateIf": "FOMC 后宏观冲突收敛且价格站上 MA60（转多），或 DXY 与 US10Y 同步上行且价格跌破 2900（转空），则 neutral 失效。"
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "M0",
+  "anchorDate": "2026-07-10",
+  "direction": "bullish",
+  "confidence": "high",
+  "macroSupport": "neutral",
+  "sectorSupport": "bullish",
+  "eventRisk": "low",
+  "q1": "为什么动：板块与价格共振多头——price close 3049 站上 ma20 2976.4 与 ma60 2982.3，chg5=+2.94；sector.ret5d=+0.68、sector.ret20d=+0.71、sector.breadth5d=0.6，M0 进入 leading（ret5d=2.94）；宏观中性（macro.SC0 change5d=+6.78、macro.DR007 change5d=-0.53 偏多，macro.US10Y change5d=+1.56 偏空）；events.wasde 与 events.mpob 已于 7/10 落地，nextScheduled 为空。",
+  "q2": "趋势还是脉冲：close 高于双均线，chg5=+2.94 趋势恢复，但 volRatio=0.79 显示量能未显著放大，ATR5=33 中等，属趋势中的温和上攻，非脉冲爆发。",
+  "q3": "多空哪边更有赔率：多头有价格站上双均线、板块共振且 M0 领涨、事件落地；反面证据有 sector.ret1d=+0.18 当日板块仅微涨、macro.US10Y +1.56 压制商品估值。赔率偏多但量能是软肋。",
+  "q4": "关键确认信号：T+1 收盘站上 3068.8（close 3049 + 0.6×ATR5 33）且 sector.breadth5d 保持≥0.6，确认做多。",
+  "q5": "失效条件：收盘回落至 2996 或 MA20 2976.4 下方，或 sector.breadth5d 跌破 0.4（Q1 板块驱动弱化），多头逻辑失效。",
+  "q6": "交易风险：品种风险——豆粕夜盘与 CBOT 联动跳空；执行风险——量能不足导致突破后回踩；事件风险——nextScheduled 为空，low。",
+  "evidenceRefs": [
+    "sector.ret5d",
+    "sector.ret20d",
+    "sector.breadth5d",
+    "macro.SC0",
+    "macro.DR007",
+    "macro.US10Y",
+    "events.wasde",
+    "events.mpob"
+  ],
+  "opposingRefs": [
+    "macro.US10Y",
+    "sector.ret1d"
+  ],
+  "invalidateIf": "收盘跌破 2996 或 MA20，或 sector.breadth5d 跌破 0.4，则多头失效。"
+}

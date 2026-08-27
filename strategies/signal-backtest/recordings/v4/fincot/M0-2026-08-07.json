@@ -1,0 +1,30 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "M0",
+  "anchorDate": "2026-08-07",
+  "direction": "bullish",
+  "confidence": "medium",
+  "macroSupport": "bullish",
+  "sectorSupport": "bullish",
+  "eventRisk": "medium",
+  "q1": "为什么动：宏观与板块共振多头——macro.DXY change5d=-0.19、macro.US10Y change5d=-2.11、macro.DR007 change5d=-4.83 偏多，macro.SC0 change5d=-2.69 小幅偏空；sector.ret5d=+1.77、sector.breadth5d=0.8、sector.coherence5d=0.75 板块健康；price close 3154 高于 ma20 3112.4 与 ma60 3019.1；events.china_cpi_ppi 与 events.mpob（8/10）为 verified=false 的日程预期。",
+  "q2": "趋势还是脉冲：close 高于双均线，chg5=+2.70、volRatio=1.11 温和放量，ATR5=41.2 偏高，趋势恢复确认，量价结构健康，非脉冲。",
+  "q3": "多空哪边更有赔率：多头有宏观与板块共振、价格趋势恢复；反面证据有 macro.SC0 -2.69 商品能源偏弱、sector.ret20d=-1.22 20 日动量仍为负、8/10 双日程事件。赔率偏多。",
+  "q4": "关键确认信号：T+1 收盘站上 3178.7（close 3154 + 0.6×ATR5 41.2）且 sector.breadth5d 保持≥0.6，确认做多。",
+  "q5": "失效条件：收盘跌破 3092，或 macro.US10Y change5d 转正且 macro.DR007 回升（Q1 宏观转空），多头失效。",
+  "q6": "交易风险：事件风险——8/10 双日程事件（verified=false 仅预期）medium；品种风险——夜盘跳空；执行风险——SC0 继续走弱或拖累商品情绪。",
+  "evidenceRefs": [
+    "macro.DXY",
+    "macro.US10Y",
+    "macro.DR007",
+    "sector.ret5d",
+    "sector.breadth5d",
+    "events.china_cpi_ppi",
+    "events.mpob"
+  ],
+  "opposingRefs": [
+    "macro.SC0",
+    "sector.ret20d"
+  ],
+  "invalidateIf": "收盘跌破 3092，或 US10Y/DR007 宏观组合转空，则多头失效。"
+}

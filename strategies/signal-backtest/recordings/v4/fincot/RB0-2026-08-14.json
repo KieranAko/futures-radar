@@ -1,0 +1,19 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "RB0",
+  "anchorDate": "2026-08-14",
+  "direction": "bullish",
+  "confidence": "medium",
+  "macroSupport": "neutral",
+  "sectorSupport": "bullish",
+  "eventRisk": "low",
+  "q1": "主驱动为黑色板块动量转正：sector.ret5d +2.25%、sector.ret20d +1.17%（转正）、sector.breadth5d 0.6，JM0 +19.57% 领涨；RB0 自身仍低于 MA20（close 3015 vs ma20 3033.2）但 volRatio 1.26 放量。宏观中性：macro.DXY +0.04%、macro.USDCNH +0.02%、macro.DR007 0.00%，仅 macro.SC0 +4.67% 偏多、macro.US10Y +0.65% 小拖累。events.china_cpi_ppi（08-10）verified=false，仅作日程记录，不作数据驱动。",
+  "q2": "volRatio 1.26 放量，价格低于 MA20 但 chg5 +0.23% 站稳 3000 上方；ATR5 26.6 中性。板块动量领先而 RB0 修复中，属趋势萌芽而非脉冲。",
+  "q3": "多头证据：sector.ret5d +2.25%、sector.ret20d +1.17%、sector.breadth5d 0.6、macro.SC0 +4.67%、volRatio 1.26。反面证据（空头）：价格低于 MA20/MA60、macro.US10Y +0.65%、SS0 ret5d -3.75% 板块内部分化。多头赔率更高，但需回踩或站上 MA20 确认。",
+  "q4": "RB0 回踩 3020 后收盘站回 3030 且 volRatio≥1.0 → 多头确认；或 RB0 收盘站上 3033（MA20）且 sector.breadth5d≥0.6 → 趋势确认。",
+  "q5": "若 RB0 收盘跌破 2990（3000 平台下方）→ 板块修复逻辑失效；或 sector.ret20d 重新转负且 JM0 回吐 5日涨幅一半 → 板块驱动反转，多头退出。",
+  "q6": "品种风险：夜盘跳空；执行风险：RB0 弱于板块，追多易买在均线反压位；事件风险：nextScheduled 为空，短期事件风险低。",
+  "evidenceRefs": ["sector.ret5d", "sector.ret20d", "sector.breadth5d", "macro.SC0"],
+  "opposingRefs": ["macro.US10Y", "sector.ret1d"],
+  "invalidateIf": "RB0 收盘跌破 2990 或 sector.ret20d 重新转负 → 多头驱动证伪。"
+}

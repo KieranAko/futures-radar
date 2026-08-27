@@ -1,0 +1,33 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "SC0",
+  "anchorDate": "2026-07-17",
+  "direction": "bullish",
+  "confidence": "medium",
+  "macroSupport": "neutral",
+  "sectorSupport": "bullish",
+  "eventRisk": "medium",
+  "q1": "驱动是趋势延续 + 油品链板块动量：price.close 510.5 已站上 ma20 475.4，chg5 +8.34；sector.ret5d +3.65、ret20d +1.34 同步转正，FU0/LU0/EB0 领涨，油品链扩散。宏观中性（DXY -0.2、US10Y -0.22 偏多，DR007 +3.97 偏空）。events.china_lpr 2026-07-20 为已排程事件，仅作日历预期。",
+  "q2": "趋势且量价配合：close 510.5 > ma20 475.4，ma60 568.7 仍在上方构成中期压力；volRatio 1.29 显示上攻放量，atr5 24.3 波动率扩张。价、量、波动率三者支持趋势延续，但 ma60 未收复使结构仍非完全多头。",
+  "q3": "多头赔率更高。多头：price 站上 ma20、volRatio 1.29 放量、sector.ret5d +3.65/ret20d +1.34、breadth5d 0.6。空头：price 仍低于 ma60 568.7、sector.ret1d -0.82 当日板块回踩、DR007 +3.97 资金面收紧。多头证据占优但存在 ma60 压制与资金面反向信号，给 medium。",
+  "q4": "确认信号：回踩 490.0（约 0.5*atr5 回调区）后 T+1 收盘站回 500.0 且 volRatio ≥ 0.9，或直接放量收盘站上 520.0。",
+  "q5": "失效条件：T+1 收盘跌破 470.0（ma20 475.4 下方），或板块 ret5d 转负（Q1 板块动量证伪），则趋势延续逻辑失效。",
+  "q6": "品种风险：INE 夜盘跳空；atr5 24.3 止损空间较宽。事件风险：07-20 LPR、07-23 EIA 为已排程日程。执行风险：追高易被 ma60 下方获利盘压制，故采用回踩触发。",
+  "evidenceRefs": [
+    "price.close",
+    "price.ma20",
+    "price.volRatio",
+    "sector.ret5d",
+    "sector.ret20d",
+    "sector.breadth5d",
+    "macro.DXY",
+    "macro.US10Y",
+    "macro.DR007"
+  ],
+  "opposingRefs": [
+    "price.ma60",
+    "sector.ret1d",
+    "macro.DR007"
+  ],
+  "invalidateIf": "T+1 收盘跌破 470.0（ma20 下方），或板块 ret5d 转负，则趋势延续逻辑失效。"
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "RB0",
+  "anchorDate": "2026-07-17",
+  "direction": "neutral",
+  "confidence": "low",
+  "macroSupport": "conflict",
+  "sectorSupport": "neutral",
+  "eventRisk": "medium",
+  "q1": "驱动冲突：RB0 收上 MA20 但 volRatio 0.83 无量，板块 sector.ret5d 0.00%、sector.coherence5d null 未确认；宏观 macro.DXY -0.20%、macro.US10Y -0.22%、macro.SC0 +8.34% 偏多，而 macro.DR007 +3.97% 偏紧。中性原因：conflict_unresolved。",
+  "q2": "volRatio 0.83 缩量站上 MA20，ATR5 30.2 为区间高位显示波动上升；但 MA60 3158.1 仍压制，量价结构属区间修复而非趋势反转，无放量脉冲。",
+  "q3": "多头证据：价格高于 MA20、macro.DXY -0.20%、macro.US10Y -0.22%、macro.SC0 +8.34%。空头证据：MA60 3158.1 压制、macro.DR007 +3.97%、sector.ret20d -2.10%、sector.breadth5d 0.4。多空赔率接近，驱动不纯。",
+  "q4": "RB0 收盘站上 3158（MA60）且 volRatio≥1.2 → 多头确认；RB0 收盘跌破 3090（MA20）且 sector.ret5d 转负 → 空头确认。",
+  "q5": "若 events.china_lpr 后 macro.DR007 升破 1.60 → 流动性转紧，多头判断失效；若 macro.SC0 回吐 5日涨幅且 sector.ret20d 下穿 -3% → 板块空头重启。",
+  "q6": "事件风险：events.china_lpr 于 07-20 报价，政策信号扰动；品种风险：夜盘跳空；执行风险：MA20/MA60 之间反复震荡，信号易被扫损。",
+  "evidenceRefs": ["macro.DXY", "macro.SC0", "macro.DR007", "sector.ret20d", "events.china_lpr"],
+  "opposingRefs": ["macro.US10Y", "sector.breadth5d"],
+  "invalidateIf": "RB0 收盘站上 3158 且 sector.ret20d 收窄至 -1% → 转多；RB0 收盘跌破 3090 且 macro.DR007 升破 1.60 → 转空。"
+}

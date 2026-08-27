@@ -1,0 +1,19 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "RB0",
+  "anchorDate": "2026-07-03",
+  "direction": "neutral",
+  "confidence": "low",
+  "macroSupport": "conflict",
+  "sectorSupport": "neutral",
+  "eventRisk": "medium",
+  "q1": "驱动互斥：macro.DXY -0.48%、macro.USDCNH -0.30%、macro.DR007 -5.63% 偏多，macro.US10Y +2.05%（stale，asOf 07-02）与 macro.SC0 -5.54% 偏空；板块 sector.ret5d -0.06% 走平、sector.ret20d -3.83% 仍弱、breadth5d 0.6 改善。中性原因：conflict_unresolved。",
+  "q2": "volRatio 1.02 无量，ATR5 19.6 显著收缩；价格仍低于 MA20/MA60，跌势进入低波动整理。无趋势加速，也无放量脉冲，判为过渡结构。",
+  "q3": "多头证据：macro.DXY -0.48%、macro.USDCNH -0.30%、macro.DR007 -5.63%、sector.breadth5d 0.6。空头证据：macro.US10Y +2.05%、macro.SC0 -5.54%、sector.ret20d -3.83%、价格低于 MA20/MA60。双方均有硬证据，赔率中性。",
+  "q4": "RB0 收盘站上 3100（MA20 下沿）且 sector.ret20d 收窄至 -2% 以内 → 转多确认；RB0 收盘跌破 3040 且 volRatio≥1.2 → 空头重启确认。",
+  "q5": "若 macro.DXY 跌破 99.8 且 macro.SC0 5日转正 → 多头驱动成立，中性判断解除；若 macro.DXY 站回 101.0 且 macro.SC0 续创新低 → 空头驱动成立。",
+  "q6": "事件风险：events.china_cpi_ppi 于 07-09 公布，数据前后波动易放大；品种风险：夜盘跳空；执行风险：ATR5 收缩至 19.6，突破后可能瞬时扩波，滑点增大。",
+  "evidenceRefs": ["macro.DXY", "macro.DR007", "sector.breadth5d", "events.china_cpi_ppi"],
+  "opposingRefs": ["macro.US10Y", "macro.SC0", "sector.ret20d"],
+  "invalidateIf": "RB0 收盘站上 3100 且 sector.ret20d ≥ -2% → 转多；RB0 收盘跌破 3040 且 macro.DXY 站回 101.0 → 转空。"
+}

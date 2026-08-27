@@ -1,0 +1,31 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "SC0",
+  "anchorDate": "2026-06-11",
+  "direction": "bearish",
+  "confidence": "medium",
+  "macroSupport": "conflict",
+  "sectorSupport": "bearish",
+  "eventRisk": "high",
+  "q1": "驱动是趋势结构偏空 + 美元与资金面收紧：price.close 582.1 低于 ma20 616.3 与 ma60 660.8；macro.DXY 99.6948（change5d +0.27）走强压制商品，macro.DR007 1.443（change5d +6.89）显示资金面收紧；sector.ret20d -3.07、breadth5d 0.4，板块方向偏空。宏观内部存在反向信号（US10Y -0.45、USDCNH -0.2），故 macroSupport=conflict。events.fomc 2026-06-17 为已排程高影响事件，仅作日历预期。",
+  "q2": "趋势而非脉冲：close 582.1 位于 ma20/ma60 下方，ma20 616.3 > ma60 660.8 的中期空头排列未被修复；volRatio 1.0 显示下跌未放量加速，atr5 26.22 处于偏高水平，波动率位置不低，属于趋势中的正常回摆而非脉冲式崩跌。",
+  "q3": "空头赔率更高。多头：US10Y 4.45（change5d -0.45）收益率回落、sector.ret1d +1.05 板块当日弱反弹、USDCNH -0.2。空头：price.close 低于 ma20/ma60、DXY +0.27、DR007 +6.89、sector.ret20d -3.07 且 breadth5d 0.4 显示反弹未获广度支撑。空头证据更多且与趋势方向一致，但宏观冲突与 FOMC 临近压制置信度，只给 medium。",
+  "q4": "确认信号：SC0 T+1 收盘跌破 569.0（close - 0.5*atr5）且 volRatio ≥ 1.0；同时 DXY 不跌破 99.0、板块 breadth5d 未升破 0.6。",
+  "q5": "失效条件：T+1 收盘重新站上 616.3（ma20），或 FOMC 后 DXY 跌破 99.0（Q1 美元走强驱动反转），则空头结构失效。",
+  "q6": "品种风险：INE 夜盘 21:00-02:30 跳空风险，SC0 合约价值约 58 万/手、保证金约 5.8 万/手，波动率偏高。事件风险：06-17 FOMC、06-18 EIA 周度库存为高影响日程。执行风险：宏观冲突下可能出现美元回落引发的空头挤压。",
+  "evidenceRefs": [
+    "price.close",
+    "price.ma20",
+    "price.ma60",
+    "macro.DXY",
+    "macro.DR007",
+    "sector.ret20d",
+    "sector.breadth5d"
+  ],
+  "opposingRefs": [
+    "macro.US10Y",
+    "macro.USDCNH",
+    "sector.ret1d"
+  ],
+  "invalidateIf": "T+1 收盘重新站上 616.3（ma20）上方，或 FOMC 后 DXY 跌破 99.0，则空头结构失效。"
+}

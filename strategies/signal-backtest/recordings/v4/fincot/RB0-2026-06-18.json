@@ -1,0 +1,19 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "RB0",
+  "anchorDate": "2026-06-18",
+  "direction": "bearish",
+  "confidence": "medium",
+  "macroSupport": "bearish",
+  "sectorSupport": "bearish",
+  "eventRisk": "medium",
+  "q1": "主驱动为美元走强与商品风险释放：macro.DXY +1.10%、macro.USDCNH +0.21% 形成商品计价压力，macro.SC0 -12.64% 显示能源/商品需求担忧；板块 sector.ret5d -1.02%、sector.breadth5d 0.2 同步偏弱。events.fomc 已于 06-17 落地（verified），不确定性释放后方向选择向下。",
+  "q2": "volRatio 1.27 放量下跌，价格低于 MA20/MA60 且 chg5 -0.79%，属放量趋势延续而非脉冲；ATR5 28 未异常放大，跌势有序。",
+  "q3": "空头证据：macro.DXY +1.10%、macro.USDCNH +0.21%、macro.SC0 -12.64%、sector.ret5d -1.02%、volRatio 1.27、价格低于 MA20/MA60。反面证据（多头）：sector.ret20d +2.15% 中期仍未转负、SC0 急跌后有反抽可能、FOMC 落地后利空兑现。空头证据更硬且量能配合，赔率偏空。",
+  "q4": "RB0 收盘跌破 3120 且 volRatio≥1.2 → 空头确认；或反抽 3165（MA20/MA60 密集区）失败后收盘回落 → 空头再确认。",
+  "q5": "若 RB0 收盘站上 3165（MA20/MA60 密集区）→ 美元走强驱动被价格否决，空头逻辑失效；或 macro.DXY 跌破 100.0 且 macro.SC0 单日反弹超 3% → 宏观驱动反转。",
+  "q6": "品种风险：夜盘跳空；事件风险：events.china_lpr 于 06-22 报价，政策信号可能扰动；执行风险：连续下跌后反抽，突破单滑点放大。",
+  "evidenceRefs": ["macro.DXY", "macro.USDCNH", "macro.SC0", "sector.ret5d", "events.fomc"],
+  "opposingRefs": ["sector.ret20d", "macro.SC0"],
+  "invalidateIf": "RB0 收盘站上 3165 或 macro.DXY 跌破 100.0 且 macro.SC0 单日反弹超 3% → 空头驱动证伪。"
+}

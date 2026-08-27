@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.12（2026-08-28）
+
+- **信号质量回测 v4（宏观/板块/事件 + FinCoT 微型试点）**：新增 `context-assembler.cjs`（确定性、asOf 截断）+ `contract-v4.md` + `runner-v4.cjs` + `recordings/v4/`——每品种最近 10 个锚点（2026-06-11..2026-08-14，5 日间隔）共 30 个；每个锚点冻结上下文包（DXY/USDCNH/US10Y/DR007/SC0 宏观序列 + 板块指数/广度/coherence + 事件日历），C 臂逐锚点跑完整六问 FinCoT 并适配报告式操作策略
+- **数据扩增**：拉取 47 个板块成员（黑色/农产品/能化）120 日 bars、4 个宏观指标历史序列，冻结于 `recordings/v4/`；事件日历经 web 检索核对（FOMC/CPI/PPI/PMI/LPR/EIA/OPEC/MPOB/WASDE），verified=false 的排期条目只作日程预期
+- **三臂消融结果（样本极小，仅试点）**：A 纯价格 42 信号→7 执行→6 成交→方向正确率 66.67%、平均 +1.93%；B +上下文 25→4→3→66.67%、-0.53%；C +完整 FinCoT 25→4→3→66.67%、-0.53%。消融增量：B-A 0pp/-2.46%、C-B 0pp/0%、C-A 0pp/-2.46%。B/C 在 27/30 个锚点的决策字段一致——完整六问 FinCoT 在本试点中没有产生独立增量（但把执行计划数从 A 的 25 收敛到 15，更保守）
+- **上下文可溯源**：C 臂每笔信号带 `macroBias/sectorBias/eventRisk/finCotAlignment/contextRefs`；成交 3 笔全部 aligned；输出 `strategies/signal-backtest/output/signal-quality-baseline-v4.md/json`
+- **版本对齐**：VERSION.md / package.json / SKILL.md / README.md / pipeline banner 统一为 0.1.12；新增 `npm run signal:backtest:v4`
+- 新增 signal-backtest-v4 测试 6 条（asOf 无泄漏、30 上下文包、A/B/C 计划与 FinCoT 校验、v4 artifact 一致性）；全量测试 608 → 614（107 → 110 套件）
+
 ## 0.1.11（2026-08-28）
 
 - **信号质量回测 v3（LLM 定性判断优先）**：新增 `strategies/signal-backtest/contract-v3.md` + `runner-v3.cjs` + `recordings/v3/`——立场从“参数组合选优”转为“证伪 LLM 定性判断”；锚点 schema 新增 `regime`（trend/range/transition/shock）、`edge`（trend_continuation/breakout/pullback/mean_reversion/range_fade）、`triggerType`（breakout/pullback）、`qualityFlags`（固定词表 0–3 个）、`thesis` 与 `invalidationReason`；数值参数降级为执行机制，报告不再下“最优组合”结论

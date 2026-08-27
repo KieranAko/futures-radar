@@ -1,0 +1,152 @@
+{
+  "schema": "futures-radar-signal-context/1",
+  "symbol": "SC0",
+  "anchorDate": "2026-06-26",
+  "anchorIdx": 455,
+  "price": {
+    "close": 467.2,
+    "ma20": 548.8,
+    "ma60": 617.8,
+    "atr5": 18.92,
+    "chg5": -8.12,
+    "volRatio": 1.42
+  },
+  "macro": {
+    "items": [
+      {
+        "id": "DXY",
+        "label": "DXY",
+        "asOf": "2026-06-26",
+        "value": 101.3551,
+        "change5d": 0.6,
+        "status": "fresh",
+        "source": "sina_fx"
+      },
+      {
+        "id": "USDCNH",
+        "label": "USDCNH",
+        "asOf": "2026-06-26",
+        "value": 6.8048,
+        "change5d": 0.33,
+        "status": "fresh",
+        "source": "sina_fx"
+      },
+      {
+        "id": "US10Y",
+        "label": "US10Y",
+        "asOf": "2026-06-26",
+        "value": 4.38,
+        "change5d": -1.79,
+        "status": "fresh",
+        "source": "akshare_bond_zh_us_rate"
+      },
+      {
+        "id": "DR007",
+        "label": "DR007",
+        "asOf": "2026-06-26",
+        "value": 1.47,
+        "change5d": 0.68,
+        "status": "fresh",
+        "source": "akshare_repo_rate"
+      },
+      {
+        "id": "SC0",
+        "label": "SC0",
+        "asOf": "2026-06-26",
+        "value": 467.2,
+        "change5d": -8.12,
+        "status": "fresh",
+        "source": "raw_contract"
+      }
+    ]
+  },
+  "sector": {
+    "status": "ok",
+    "sector": "energy_chemical",
+    "members": 22,
+    "index": 892.21,
+    "ret1d": -0.33,
+    "ret5d": -5.28,
+    "ret20d": -12.32,
+    "breadth5d": 0,
+    "coherence5d": 1,
+    "leading": [
+      {
+        "symbol": "FG0",
+        "ret5d": -1.02
+      },
+      {
+        "symbol": "LU0",
+        "ret5d": -2.71
+      },
+      {
+        "symbol": "SA0",
+        "ret5d": -2.75
+      }
+    ],
+    "lagging": [
+      {
+        "symbol": "SC0",
+        "ret5d": -8.12
+      },
+      {
+        "symbol": "NR0",
+        "ret5d": -8.08
+      },
+      {
+        "symbol": "BR0",
+        "ret5d": -8.06
+      }
+    ],
+    "daysAvailable": 76
+  },
+  "events": {
+    "past": [
+      {
+        "date": "2026-06-17",
+        "type": "fomc",
+        "title": "FOMC 6 月议息会议",
+        "verified": true,
+        "schedule": null
+      },
+      {
+        "date": "2026-06-18",
+        "type": "eia_weekly",
+        "title": "EIA 周度原油库存",
+        "verified": true,
+        "schedule": "weekly_thursday"
+      },
+      {
+        "date": "2026-06-22",
+        "type": "china_lpr",
+        "title": "中国 6 月 LPR 报价",
+        "verified": true,
+        "schedule": null
+      },
+      {
+        "date": "2026-06-25",
+        "type": "eia_weekly",
+        "title": "EIA 周度原油库存",
+        "verified": true,
+        "schedule": "weekly_thursday"
+      }
+    ],
+    "nextScheduled": [
+      {
+        "date": "2026-06-30",
+        "type": "china_pmi",
+        "title": "中国 6 月官方 PMI",
+        "verified": true,
+        "schedule": "month_last_day"
+      },
+      {
+        "date": "2026-07-02",
+        "type": "eia_weekly",
+        "title": "EIA 周度原油库存",
+        "verified": true,
+        "schedule": "weekly_thursday"
+      }
+    ],
+    "totalInCalendar": 24
+  }
+}

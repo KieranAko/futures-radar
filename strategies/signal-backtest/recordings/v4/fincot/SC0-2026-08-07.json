@@ -1,0 +1,33 @@
+{
+  "schema": "futures-radar-fincot-replay/1",
+  "symbol": "SC0",
+  "anchorDate": "2026-08-07",
+  "direction": "bullish",
+  "confidence": "medium",
+  "macroSupport": "bullish",
+  "sectorSupport": "neutral",
+  "eventRisk": "medium",
+  "q1": "驱动是宏观顺风 + 区间下沿支撑：macro.US10Y 4.65（change5d -2.11）明显回落，macro.DR007 1.38（change5d -4.83）显著下行，macro.DXY -0.19、macro.USDCNH -0.14 偏软；price.close 531.4 位于 520-570 区间下沿附近。板块中性：sector.ret5d -0.41、ret20d +3.6、breadth5d 0.6。注意 events.china_cpi_ppi 2026-08-10 verified=false 仅为日程预期，不得当作已发生事实。",
+  "q2": "区间整理而非趋势：close 531.4 略低于 ma20 535.2 与 ma60 543.7，chg5 -2.69，volRatio 0.91；atr5 26.96。价格在区间下沿，量价未形成突破，属于区间内波动。",
+  "q3": "多头赔率更高。多头：US10Y -2.11、DR007 -4.83、DXY/USDCNH 偏软、价格在区间下沿、sector.ret20d +3.6 中期仍正。空头：price 低于 ma20/ma60、sector.ret5d -0.41、CPI/PPI 日程未落地。多头有宏观顺风，但价格结构非趋势且板块短期走平，给 medium。",
+  "q4": "确认信号：T+1 收盘站回 535.2（ma20）且 volRatio ≥ 0.8；或回踩 520.0（区间下沿）后 T+1 收盘 ≥ 520.0 企稳。",
+  "q5": "失效条件：T+1 收盘跌破 505.0（区间下沿下方），或 US10Y 与 DR007 同步回升（Q1 宏观顺风证伪），则区间做多逻辑失效。",
+  "q6": "品种风险：INE 夜盘跳空；区间内假突破风险。事件风险：08-10 CPI/PPI 为 verified=false 的日程预期、08-13 EIA 周度库存。执行风险：区间下沿做多需严格等待止跌信号，否则可能破位。",
+  "evidenceRefs": [
+    "price.close",
+    "price.ma20",
+    "macro.US10Y",
+    "macro.DR007",
+    "macro.DXY",
+    "macro.USDCNH",
+    "sector.ret5d",
+    "sector.ret20d",
+    "sector.breadth5d"
+  ],
+  "opposingRefs": [
+    "price.ma20",
+    "price.ma60",
+    "sector.ret5d"
+  ],
+  "invalidateIf": "T+1 收盘跌破 505.0，或 US10Y 与 DR007 同步回升，则区间做多逻辑失效。"
+}
