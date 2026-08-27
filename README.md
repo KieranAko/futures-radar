@@ -130,10 +130,6 @@ npm run test:core        # 指标与统计核心
 - **沙箱/CI 中 spawn EPERM**——受限环境禁止管道捕获子进程输出；管道需要完整权限（本仓库脚本依赖 Node 调用 Python 采集行情）。
 - **运行数据在哪**——默认 `<skill>/data/futures-radar/runs/<runId>/`，可 `FUTURES_RUNTIME_ROOT` 重定向（如指向既有历史数据目录）。
 
-## 与 clowder-ai 内部副本的关系
-
-本仓库从 clowder-ai 内部开发副本（`packages/api/.claude/skills/futures-radar`）导出封装；两处代码在导出时点一致，日常雷达继续在 clowder-ai 内运行。跨仓库改动请以本仓库为分发基线、clowder 副本为开发基线，双向同步。
-
 ## 许可证
 
 [MIT](./LICENSE) © 2026 futures-radar contributors
