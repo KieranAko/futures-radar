@@ -1,7 +1,7 @@
 ---
 name: futures-radar
 description: 期货短期机会分析 + 离线模型回测——每日扫描~60个国内期货主力合约，波动率排名→Top 3深挖→4章短报告；research/backtest/ 支持 deterministic 与 LLM replay 回测
-version: 0.1.4
+version: 0.1.5
 ---
 
 # futures-radar
@@ -14,7 +14,7 @@ version: 0.1.4
 
 - **日常雷达**：`pipeline/run.cjs` 编排监测管道（采集→扫描→筛选→分析→报告）
 - **离线回测**：`research/backtest/`（deterministic 批量回测；`runMiniPipeline` 可选 LLM replay，见 `research/backtest/README.md`）
-- **数据文件库**：`data/` + `data-store/`（每日行情/ledger/合约bars/宏观快照，维护命令见 `data/README.md`）
+- **数据文件库**：`data/` + `data-store/`（每日行情/ledger/合约bars/宏观快照/板块序列，维护命令见 `data/README.md`）
 
 ## 触发条件
 
@@ -71,6 +71,12 @@ node pipeline/run.cjs --runId 20260730-1637-auto --from scan
 - **增量缓存（P1，v0.1.2）**：复用最近 run 的 raw.json（`collector/incremental-cache.cjs`）——1 次探测 sina 最新 bar 日期，缓存末 bar 同日则直接复用（深拷贝 + `cacheReused`/`cacheOriginRunId` 盖章），只拉缺失/落后品种；缓存超 5 天或序列非法 → 全量校准；`FUTURES_FULL_PULL=1` 强制全量。实测：全量 16.5s，全复用采集 0.0s。批量并发维持 4 进程 × 5 品种（P1 实测 4×15=60 并发触发 sina 456，不采用）
 - **快照优先增量（v0.1.3）**：日常场景（日线接口已发布今日 bar，缓存恰好落后一根=上一交易日）不再全量重拉 ~59 品种，改用收盘快照一次性补当日 bar（1 次 HTTP 调用，date==今日 && time>=15:00 校验 + CFMMC 交叉验证照常）。契约见不变量 #8；覆盖率 <90% 或任一品种落后超过一根 → 自动回退日线重拉（fail-open）。实测 2026-08-27：59/59 品种补入，raw.json 全序列与官方日线逐字段一致，Top10 扫描排名/分数不变；采集阶段 ~13s 全量 → ~1s 快照（另加 CFMMC 验证 ~3s，DCE 接口故障日受既定退避策略影响约 +7s）
 
+### 阶段1.4: Sector (auto, v0.1.5)
+运行 `collector/sector-aggregator.cjs` → 从本 run `raw.json` 确定性构建板块快照 → 产出 `sector-snapshot.json` 并镜像入文件库
+- 板块指数 = 成员等权日收益链式累乘（基点 1000）；不使用持仓数据
+- 指标：ret1d/5d/20d、上涨广度、方向 coherence、量比、领涨/领跌代表
+- 失败不阻断管道（failurePolicy=warn）；Analyze 阶段缺失时可用 raw.json 现场重算
+
 ### 阶段1.5: Macro (auto, Phase 3 阶段一)
 运行 `collector/macro-probe.cjs` → 5 个冻结宏观锚点（DXY/USDCNH/US10Y/DR007/SC0）快照 → 产出 `macro-snapshot.json`
 - 锚点取值取 `<= signalDate` 最后一根已完成日线，禁止使用盘中未完成 bar
@@ -98,7 +104,7 @@ LLM 读 `filter/blueprint.md` → 从 filtered-hard.json 中降权/保留/标记
 
 ### 阶段4: Analyze (manual)
 LLM 读 `analyze/blueprint.md` → 冻结 evidence packets → FinCoT 结构化结果 → 6 问框架 → 产出 `analysis.json`
-- 步骤 1（自动）：`analyze/freeze-packets.mjs` 冻结 `evidence-packets.json`——注入 term_structure（akshare 近/主/远月报价，品种串行 + 退避重试规避 sina 456），并从冻结 `macro-snapshot.json` 注入 packet 顶层 `macro_context`（三态 available/not_applicable/unavailable；evidence 仅观察值，relation 不写入 packet），渲染 FinCoT prompts（仅 FinCoT 含宏观区块，SP/UST-CoT/ST-CoT 无泄漏）
+- 步骤 1（自动）：`analyze/freeze-packets.mjs` 冻结 `evidence-packets.json`——注入 term_structure（akshare 近/主/远月报价，品种串行 + 退避重试规避 sina 456），并从冻结 `macro-snapshot.json` 注入 packet 顶层 `macro_context`（三态 available/not_applicable/unavailable；evidence 仅观察值，relation 不写入 packet），从 `sector-snapshot.json` 注入 `fields.sector_movement`（板块方向/广度/领涨领跌，仅作确认证据），渲染 FinCoT prompts（仅 FinCoT 含宏观区块，SP/UST-CoT/ST-CoT 无泄漏）
   - **单进程抓取（v0.1.3）**：主导合约 120 bar 历史随 term-structure 同一次 Python 调用附带返回（`futures-term-structure.py --contracts` 模式输出每合约 bars），免二次 spawn 重复下载同一合约全量历史；payload 缺失/异常回退原 `fetchContractHistory`。实测 packet 数值与旧路径完全一致（ma20/ma60/close_60d/series_contract 逐项相同）
 - 步骤 2（LLM）：读 prompts 输出推理文档到 `analyze/outputs/{symbol}-fincot.md`（macro_context 存在时按契约输出宏观三字段 `macro_support`/`macro_conflict`/`macro_evidence_ids`）
 - 步骤 3（自动）：`analyze/assemble-results.mjs` 执行 parser + grounding（evidence_ids/opposing_ids → fields；macro_evidence_ids → macro_context.evidence 独立域 fail-closed；不通过降级 pass/model_abstain）→ `reasoning-results.json`
@@ -134,9 +140,10 @@ LLM 读 `analyze/blueprint.md` → 冻结 evidence packets → FinCoT 结构化�
 ### 阶段6: Publish (manual)
 LLM 更新 `current.md` → 提取 runId + Top 3 摘要
 
-## 数据文件库（v0.1.4）
+## 数据文件库（v0.1.5）
 
 - 采集层写完 `raw.json` 后自动镜像到 `data/daily/<SYMBOL>.json` + `data/ledger/`；raw.json 仍是每个 run 的冻结权威
+- 板块聚合阶段写入 `data/sector/<SECTOR>.json` + `data/sector/snapshots/<RUN_ID>.json`
 - 增量采集优先从文件库读取；`research/backtest/` 的切片/采样也从文件库读取（旧 `historical-cache.json` 仅作回退）
 - 维护命令：`npm run store:seed|verify|stats|export|compact`（规则见 `data/README.md`）
 - `npm run filter:quant -- --runId <id>` 为软过滤 shadow（写 `filtered.quant.json`，不覆盖 `filtered.json`）

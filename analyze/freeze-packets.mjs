@@ -24,6 +24,7 @@ const { runDir } = require('../lib/workspace.cjs');
 const { validateMacroSnapshot } = require('../collector/macro-probe.cjs');
 const { relevantAnchorsFor } = require('../report/build-facts.cjs');
 const dataStore = require('../data-store/index.cjs');
+const { buildSectorField, buildSectorSnapshot } = require('../collector/sector-aggregator.cjs');
 
 const SYMBOL_GAP_MS = 2000; // 品种间 pacing（配合 Python 内 0.5s/合约，压低 sina 请求速率）
 const OBSERVED_FIELDS = ['price_data', 'volume_oi'];
@@ -71,6 +72,26 @@ if (lastDates.some((d) => d !== lastDates[0] || d === null)) {
 const signalDate = lastDates[0];
 
 console.log(`runId=${runId} signalDate=${signalDate} KEEP=${keeps.map((c) => c.symbol).join(',')}`);
+
+// v0.1.5：读采集层冻结的 sector-snapshot.json；缺失/损坏时用 raw.json 现场重算（同口径）
+const sectorSnapshotPath = path.join(dir, 'sector-snapshot.json');
+let sectorSnapshot = null;
+if (fs.existsSync(sectorSnapshotPath)) {
+  try {
+    sectorSnapshot = JSON.parse(fs.readFileSync(sectorSnapshotPath, 'utf-8'));
+  } catch (err) {
+    console.warn(`  sector-snapshot.json unreadable: ${err.message}`);
+  }
+}
+if (!sectorSnapshot || !sectorSnapshot.sectors) {
+  try {
+    const symbolsConfigPath = path.join(require('../lib/workspace.cjs').skillRoot, 'config', 'symbols.json');
+    sectorSnapshot = buildSectorSnapshot(rawData, JSON.parse(fs.readFileSync(symbolsConfigPath, 'utf-8')), { runId, signalDate });
+    console.log('  sector-snapshot.json 缺失 → 由 raw.json 现场重算');
+  } catch (err) {
+    console.warn(`  sector snapshot unavailable: ${err.message}`);
+  }
+}
 
 // 阶段二：读冻结 macro-snapshot.json（Stage 1 产物），每品种 packet 注入顶层 macro_context（fail-closed）
 const macroSnapshotPath = path.join(dir, 'macro-snapshot.json');
@@ -136,6 +157,22 @@ for (let i = 0; i < keeps.length; i++) {
       ? `  macro_context: available evidence=${mc.evidence.map((e) => e.id).join(',')} gaps=${mc.gaps.map((g) => g.id).join(',') || 'none'}`
       : `  macro_context: ${mc.status}${mc.reason ? ` (${mc.reason})` : ''}`
   );
+
+  // v0.1.5：板块联动证据注入 packet.fields.sector_movement（仅观察值，不替代方向判断）
+  if (sectorSnapshot && sectorSnapshot.sectors) {
+    const sectorField = buildSectorField(sectorSnapshot, rawData, symbol, signalDate);
+    if (sectorField) {
+      raw.fields.sector_movement = sectorField;
+      if (sectorField.gap === null) {
+        console.log(
+          `  sector_movement: ${sectorField.sector_label} ret1d=${sectorField.sector_ret1d}% ret5d=${sectorField.sector_ret5d}% ` +
+          `breadth=${sectorField.advance_ratio_1d}% leader=${sectorField.leader_symbol}`
+        );
+      } else {
+        console.log('  sector_movement: gap=missing (板块快照无该品种)');
+      }
+    }
+  }
 
   // P0：主导合约干净序列覆盖 price_data / volume_oi（架构裁定：主力连续是筛选指数，不是价格水平数据源）
   // P1：主导合约复用 extractTermStructure 的单一解析点（term_structure.main 与 price_data 同源，杜绝口径分叉）

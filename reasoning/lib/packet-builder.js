@@ -56,7 +56,7 @@ export function buildPacket(raw) {
  */
 function buildQualityCheck(fields, marketCutoffAt, packetFrozenAt) {
   const requiredFields = ['price_data', 'volume_oi'];
-  const optionalFields = ['basis', 'inventory', 'member_position', 'term_structure'];
+  const optionalFields = ['basis', 'inventory', 'member_position', 'term_structure', 'sector_movement'];
 
   const required_available = [];
   const optional_available = [];
@@ -181,6 +181,15 @@ function isFieldValid(fieldData, fieldName, marketCutoffAt, packetFrozenAt) {
     if (typeof fieldData.far_price !== 'number') return false;
     if (typeof fieldData.spread_pct !== 'number') return false;
     if (!['contango', 'backwardation'].includes(fieldData.shape)) return false;
+  }
+
+  if (fieldName === 'sector_movement') {
+    // sector_movement 必须带板块方向量化字段（optional，失败仅降级为missing）
+    if (typeof fieldData.sector !== 'string' || fieldData.sector.length === 0) return false;
+    if (typeof fieldData.sector_ret1d !== 'number') return false;
+    if (typeof fieldData.sector_ret5d !== 'number') return false;
+    if (typeof fieldData.advance_ratio_1d !== 'number') return false;
+    if (typeof fieldData.leader_symbol !== 'string') return false;
   }
 
   return true;

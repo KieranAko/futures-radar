@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.5（2026-08-27）
+
+- **板块异动分析**：新增 `collector/sector-aggregator.cjs`——从本 run raw.json 确定性构建板块指数（成员等权日收益链式，基点 1000）、1d/5d/20d 收益、上涨广度、方向 coherence、量比、领涨/领跌代表；不使用持仓数据
+- **板块数据入库**：data-store 新增 `data/sector/<SECTOR>.json`（跨 run 板块序列）+ `data/sector/snapshots/<RUN_ID>.json`（冻结快照），`ingestSectorSnapshot` / `getSectorSnapshot` / `getSectorSeries` 维护接口
+- **报告板块异动表**：report 5A/5B/5C 渲染板块方向/涨跌/广度/代表品种；驱动线索不臆测
+- **LLM 证据链**：`freeze-packets` 注入 `fields.sector_movement`；packet-builder 将 sector_movement 纳入 optional 域；FinCoT 提示词新增板块联动证据规则与独立证据域
+- 新增板块聚合与文件库测试；全量测试 542 → 546（88 套件）
+
 ## 0.1.4（2026-08-27）
 
 - **轻量数据文件库**：新增 `data-store/` 与 `data/` 文件库（JSON/JSONL，无 SQL）——`daily/<SYMBOL>.json` 当前最优序列 + `ledger/<SYMBOL>/<YYYY-MM>.jsonl` append-only 流水 + `contract-bars/` + `macro/`；采集层写完 raw.json 后自动镜像（失败 warn-only，raw.json 仍是 run 权威）

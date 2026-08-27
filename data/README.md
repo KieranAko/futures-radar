@@ -16,6 +16,8 @@
 | `ledger/_manifest.json` | ledger 文件清单 | data-store 自动维护 | 维护 |
 | `contract-bars/<CONTRACT>.json` | 主导合约 bars（按 run 保留） | freeze-packets 后 `ingestContractBars` | probability 回退、回测 |
 | `macro/<RUN_ID>.json` | 宏观快照（与 run 快照同构） | macro-probe 后 `ingestMacro` | report 回退、后续回测 |
+| `sector/<SECTOR>.json` | 板块指数/广度/领涨领跌序列 | sector-aggregator 后 `ingestSectorSnapshot` | 板块异动报告、LLM sector_movement 证据 |
+| `sector/snapshots/<RUN_ID>.json` | 每 run 冻结的板块快照 | sector-aggregator | analyze/report 回退 |
 | `runs/` | 每次运行的冻结产物 | pipeline | 报告、分析 |
 | `export/historical-cache.json` | 回测兼容导出（可重建） | `exportHistoricalCache` | 回测验证器 |
 

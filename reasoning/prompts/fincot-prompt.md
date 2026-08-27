@@ -8,6 +8,13 @@
 
 {{evidence}}
 
+### 板块联动证据使用规则（sector_movement，可选）
+
+- 若证据区存在 `sector_movement` 且 `gap: null`，可引用其中 `sector_ret1d/sector_ret5d/advance_ratio_1d/coherence_1d/leader_symbol` 等字段。
+- 板块联动是**确认证据**：可用于支持 Regime/Macro 分支判断或作为 opposing 证据，不得单独机械决定方向。
+- 若板块方向与个股方向相反，应记入 `opposing_ids`，并按冲突门禁处理。
+- `sector_movement.gap: missing` 时不得引用该证据。
+
 ## 领域专家蓝图（三分支结构，内部执行）
 
 ### 分支1: Regime（市场状态，必须available）
@@ -71,6 +78,7 @@
      - 域2：成交量/持仓（volume_oi）
      - 域3：期限结构（term_structure）
      - 域4：基差（basis，若可用）
+     - 域5：板块联动（sector_movement，若可用）
    - 单域支持 → 降级为 medium confidence 或 pass
 
 5. **冲突解决门禁**:

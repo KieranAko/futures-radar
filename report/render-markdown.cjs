@@ -128,9 +128,22 @@ if (macro && macro.available) {
 }
 
 ch1.push('### 板块异动');
-ch1.push('| 板块 | 方向 | 代表品种 | 驱动线索 |');
-ch1.push('|------|------|----------|----------|');
-ch1.push('| — | — | — | 板块异动规则化待实现（Phase 8-B） |\n');
+ch1.push('| 板块 | 方向 | 1日 | 5日 | 上涨广度 | 代表品种 | 驱动线索 |');
+ch1.push('|------|------|-----|-----|---------|----------|----------|');
+if (model.sector && model.sector.sectors && Object.keys(model.sector.sectors).length > 0) {
+  for (const sec of Object.values(model.sector.sectors)) {
+    const leader = sec.leaderSymbol
+      ? `${sec.leaderName || sec.leaderSymbol} (${sec.leaderSymbol})`
+      : '—';
+    ch1.push(
+      `| ${sec.label} | ${directionSymbol(sec.direction)} | ${fmtPct(sec.ret1d)} | ${fmtPct(sec.ret5d)} | ` +
+      `${sec.advanceRatio1d != null ? `${sec.advanceRatio1d.toFixed(0)}%` : '—'} | ${leader} | — |`
+    );
+  }
+  ch1.push(`\n> 板块指数由 raw.json 成员等权日收益链式构建（基点 1000）；驱动线索不在此处臆测，深挖品种见第三章。`);
+} else {
+  ch1.push('| — | — | — | — | — | — | 板块快照不可用 |\n');
+}
 
 console.log(`  ✓ Chapter 1: ${ch1.length} lines`);
 

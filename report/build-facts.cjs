@@ -408,6 +408,20 @@ function main() {
     ? `  ✓ macro-snapshot available (${macro.quality.available} available, ${macro.quality.missing} missing)`
     : `  macro unavailable: ${macro.reason}`);
 
+  // v0.1.5：板块异动快照（采集层产出；缺失时回退文件库同 runId 快照）
+  let sector = null;
+  const sectorSnapshotPath = path.join(RUN_DIR, 'sector-snapshot.json');
+  try {
+    sector = fs.existsSync(sectorSnapshotPath)
+      ? readJSON(sectorSnapshotPath)
+      : dataStore.getSectorSnapshot(runId);
+  } catch (e) {
+    console.warn(`  ⚠️ sector snapshot unavailable: ${e.message}`);
+  }
+  console.log(sector && sector.sectors
+    ? `  ✓ sector-snapshot available (${Object.keys(sector.sectors).length} sectors)`
+    : '  sector unavailable: report renders sector table as empty');
+
   // ── Output: report-facts.json ────────────────────────────────
   console.log('\n[Output] Writing report-facts.json...');
 
@@ -418,7 +432,7 @@ function main() {
       totalSymbols: candidates.meta.preFilter?.total || candidates.candidates.length,
       top10Count: top10.length,
       keepCount: filtered.candidates.length,
-      pipelineVersion: '0.1.4',
+      pipelineVersion: '0.1.5',
       artifacts: {
         candidates: {
           runId: candidates.meta.runId,
@@ -441,6 +455,7 @@ function main() {
     opportunities,
     rejected,
     macro,
+    sector,
     freshness
   };
 

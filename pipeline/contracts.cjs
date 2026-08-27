@@ -1,4 +1,4 @@
-// pipeline/contracts.cjs — futures-radar v0.1.4
+// pipeline/contracts.cjs — futures-radar v0.1.5
 // Single source of truth for artifact and stage declarations.
 // Shared by pipeline/run.cjs (orchestrator).
 //
@@ -47,6 +47,15 @@ const artifacts = [
     producedBy: 'collector/macro-probe.cjs',
     consumedBy: ['report-5a'],
     note: 'Phase 3 阶段一：5 个冻结宏观锚点快照（DXY/USDCNH/US10Y/DR007/SC0）。单指标失败标 missing；整阶段失败不阻断管道（failurePolicy=warn）。旧 run 缺失时报告显示宏观数据不可用'
+  },
+  {
+    id: 'sector-snapshot-json',
+    path: '{runDir}/sector-snapshot.json',
+    stage: 'sector',
+    required: false,
+    producedBy: 'collector/sector-aggregator.cjs',
+    consumedBy: ['analyze', 'report-5a'],
+    note: 'v0.1.5：由 raw.json 确定性构建的板块指数/广度/领涨领跌快照（不使用持仓数据）。失败不阻断管道；analyze 可回退现场重算。'
   },
   {
     id: 'candidates-json',
@@ -185,6 +194,22 @@ const stages = [
     script: 'collector/akshare-futures.cjs',
     args: (runId) => ['--runId', runId],
     note: 'Implemented: parallel collect + incremental cache + snapshot-first + CFMMC verification. Also mirrors bars into data-store.'
+  },
+
+  // ── Stage 1.4: Sector (v0.1.5) ──
+  {
+    id: 'sector',
+    label: '板块聚合指标',
+    auto: true,
+    dependsOn: ['collect'],
+    inputs: ['raw-json'],
+    outputs: ['sector-snapshot-json'],
+    validators: [],
+    failurePolicy: 'warn',
+    rebuildCommand: 'node collector/sector-aggregator.cjs --runId {runId}',
+    script: 'collector/sector-aggregator.cjs',
+    args: (runId) => ['--runId', runId],
+    note: '由 raw.json 确定性构建板块指数/广度/领涨领跌；不使用持仓数据；失败不阻断管道。'
   },
 
   // ── Stage 1.5: Macro (Phase 3 阶段一) ──

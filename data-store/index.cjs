@@ -35,11 +35,14 @@ const DAILY_DIR = path.join(DATA_ROOT, 'daily');
 const LEDGER_DIR = path.join(DATA_ROOT, 'ledger');
 const CONTRACT_BARS_DIR = path.join(DATA_ROOT, 'contract-bars');
 const MACRO_DIR = path.join(DATA_ROOT, 'macro');
+const SECTOR_DIR = path.join(DATA_ROOT, 'sector');
 const EXPORT_DIR = path.join(DATA_ROOT, 'export');
 
 const DAILY_SCHEMA = 'futures-radar-daily/1';
 const CONTRACT_SCHEMA = 'futures-radar-contract-bars/1';
 const MACRO_SCHEMA = 'futures-radar-macro-snapshot/1';
+const SECTOR_SCHEMA = 'futures-radar-sector-snapshot/1';
+const SECTOR_SERIES_SCHEMA = 'futures-radar-sector-series/1';
 
 // 同日期多来源时的取舍：日线接口优先于收盘快照；具体合约序列只用于 contract-bars
 const SOURCE_PRIORITY = {
@@ -75,7 +78,7 @@ function appendJsonl(filePath, row) {
 }
 
 function ensureDirs() {
-  for (const dir of [DATA_ROOT, DAILY_DIR, LEDGER_DIR, CONTRACT_BARS_DIR, MACRO_DIR, EXPORT_DIR]) {
+  for (const dir of [DATA_ROOT, DAILY_DIR, LEDGER_DIR, CONTRACT_BARS_DIR, MACRO_DIR, SECTOR_DIR, EXPORT_DIR]) {
     fs.mkdirSync(dir, { recursive: true });
   }
 }
@@ -289,7 +292,8 @@ function init() {
     [DAILY_DIR, { schema: 'futures-radar-daily-index/1', updatedAt: null, symbols: {} }],
     [LEDGER_DIR, { schema: 'futures-radar-ledger-manifest/1', updatedAt: null, symbols: {} }],
     [CONTRACT_BARS_DIR, { schema: 'futures-radar-contract-index/1', updatedAt: null, contracts: {} }],
-    [MACRO_DIR, { schema: 'futures-radar-macro-index/1', updatedAt: null, runs: {} }]
+    [MACRO_DIR, { schema: 'futures-radar-macro-index/1', updatedAt: null, runs: {} }],
+    [SECTOR_DIR, { schema: 'futures-radar-sector-index/1', updatedAt: null, sectors: {}, runs: {} }]
   ]) {
     const p = path.join(dir, dir === LEDGER_DIR ? '_manifest.json' : '_index.json');
     if (!fs.existsSync(p)) writeJsonAtomic(p, indexData);
@@ -496,6 +500,86 @@ function getMacroSnapshot(runId) {
   return wrapper && wrapper.schema === MACRO_SCHEMA ? wrapper.snapshot : null;
 }
 
+// ── 板块数据 ────────────────────────────────────────────────
+/**
+ * 写入一个 run 的板块快照：
+ *   data/sector/snapshots/<runId>.json  冻结快照（report/analyze 回退读取）
+ *   data/sector/<sectorId>.json         每板块序列（跨 run 维护，供后续回测）
+ */
+function ingestSectorSnapshot({ runId, snapshot }) {
+  ensureDirs();
+  if (!runId || !snapshot || !snapshot.sectors) {
+    return { runId, written: false, reason: 'missing runId/snapshot' };
+  }
+
+  const snapshotPath = path.join(SECTOR_DIR, 'snapshots', `${runId}.json`);
+  writeJsonAtomic(snapshotPath, { schema: SECTOR_SCHEMA, snapshot });
+
+  for (const [sectorId, sec] of Object.entries(snapshot.sectors)) {
+    const seriesPath = path.join(SECTOR_DIR, `${sectorId}.json`);
+    const series = readJson(seriesPath, {
+      schema: SECTOR_SERIES_SCHEMA,
+      sector: sectorId,
+      label: sec.label,
+      updatedAt: null,
+      rows: []
+    });
+    const row = {
+      date: sec.dataEnd,
+      runId,
+      direction: sec.direction,
+      indexLevel: sec.indexLevel,
+      ret1d: sec.ret1d,
+      ret5d: sec.ret5d,
+      ret20d: sec.ret20d,
+      advanceRatio1d: sec.advanceRatio1d,
+      advanceRatio5d: sec.advanceRatio5d,
+      coherence1d: sec.coherence1d,
+      volumeRatio20d: sec.volumeRatio20d,
+      leaderSymbol: sec.leaderSymbol,
+      leaderName: sec.leaderName,
+      leaderRet5d: sec.leaderRet5d,
+      members: sec.members
+    };
+    if (!row.date) continue;
+    const existingIdx = series.rows.findIndex((r) => r.date === row.date);
+    if (existingIdx >= 0) series.rows[existingIdx] = row;
+    else {
+      series.rows.push(row);
+      series.rows.sort((a, b) => a.date.localeCompare(b.date));
+    }
+    series.label = sec.label;
+    series.updatedAt = new Date().toISOString();
+    writeJsonAtomic(seriesPath, series);
+  }
+
+  const index = readJson(path.join(SECTOR_DIR, '_index.json'), {
+    schema: 'futures-radar-sector-index/1', updatedAt: null, sectors: {}, runs: {}
+  });
+  index.updatedAt = new Date().toISOString();
+  index.runs[runId] = {
+    runId,
+    signalDate: snapshot.meta && snapshot.meta.signalDate,
+    generatedAt: snapshot.meta && snapshot.meta.generatedAt,
+    sectors: Object.keys(snapshot.sectors)
+  };
+  for (const [sectorId, sec] of Object.entries(snapshot.sectors)) {
+    index.sectors[sectorId] = { sector: sectorId, label: sec.label, updatedAt: new Date().toISOString() };
+  }
+  writeJsonAtomic(path.join(SECTOR_DIR, '_index.json'), index);
+  return { runId, written: true, sectors: Object.keys(snapshot.sectors).length };
+}
+
+function getSectorSnapshot(runId) {
+  const wrapper = readJson(path.join(SECTOR_DIR, 'snapshots', `${runId}.json`));
+  return wrapper && wrapper.schema === SECTOR_SCHEMA ? wrapper.snapshot : null;
+}
+
+function getSectorSeries(sectorId) {
+  const wrapper = readJson(path.join(SECTOR_DIR, `${sectorId}.json`));
+  return wrapper && wrapper.schema === SECTOR_SERIES_SCHEMA ? wrapper : null;
+}
+
 // ── 校验 / 统计 / seed / compact ────────────────────────────
 function verify() {
   ensureDirs();
@@ -568,6 +652,24 @@ function verify() {
     }
   }
 
+  // sector 快照/序列合法性
+  if (fs.existsSync(SECTOR_DIR)) {
+    for (const file of fs.readdirSync(SECTOR_DIR)) {
+      if (file === '_index.json' || file === 'snapshots' || !file.endsWith('.json')) continue;
+      const wrapper = readJson(path.join(SECTOR_DIR, file));
+      if (!wrapper || wrapper.schema !== SECTOR_SERIES_SCHEMA) {
+        errors.push(`sector/${file}: bad schema`);
+        continue;
+      }
+      for (let i = 1; i < (wrapper.rows || []).length; i++) {
+        if (!(wrapper.rows[i].date > wrapper.rows[i - 1].date)) {
+          errors.push(`sector/${file}: rows not strictly ascending at ${i}`);
+          break;
+        }
+      }
+    }
+  }
+
   return { ok: errors.length === 0, errors, warnings, files, bars };
 }
 
@@ -589,6 +691,7 @@ function stats() {
   });
   const macroIndex = readJson(path.join(MACRO_DIR, '_index.json'), null);
   const contractIndex = readJson(path.join(CONTRACT_BARS_DIR, '_index.json'), null);
+  const sectorIndex = readJson(path.join(SECTOR_DIR, '_index.json'), null);
   return {
     source: 'data-store',
     dailyFiles: symbols.length,
@@ -596,6 +699,8 @@ function stats() {
     dateRange: cache.meta.dateRange,
     macroRuns: macroIndex && macroIndex.runs ? Object.keys(macroIndex.runs).length : 0,
     contracts: contractIndex && contractIndex.contracts ? Object.keys(contractIndex.contracts).length : 0,
+    sectorRuns: sectorIndex && sectorIndex.runs ? Object.keys(sectorIndex.runs).length : 0,
+    sectors: sectorIndex && sectorIndex.sectors ? Object.keys(sectorIndex.sectors).length : 0,
     perSymbol
   };
 }
@@ -787,6 +892,7 @@ module.exports = {
   LEDGER_DIR,
   CONTRACT_BARS_DIR,
   MACRO_DIR,
+  SECTOR_DIR,
   EXPORT_DIR,
   SOURCE_PRIORITY,
   init,
@@ -794,6 +900,9 @@ module.exports = {
   ingestRunBars,
   ingestMacro,
   getMacroSnapshot,
+  ingestSectorSnapshot,
+  getSectorSnapshot,
+  getSectorSeries,
   ingestContractBars,
   getContractBarsForRun,
   loadHistoricalCache,

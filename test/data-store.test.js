@@ -140,6 +140,27 @@ describe('data-store 文件库', () => {
     assert.deepEqual(dataStore.getMacroSnapshot('macro-run'), snapshot);
   });
 
+  it('sector 快照写入后可按 runId 读回，并生成板块序列', () => {
+    const snapshot = {
+      schema: 'futures-radar-sector-snapshot/1',
+      meta: { runId: 'sector-run', signalDate: '2026-08-27', generatedAt: '2026-08-27T09:00:00Z' },
+      sectors: {
+        black: {
+          sector: 'black', label: '黑色系', direction: 'up', indexLevel: 1010.5,
+          ret1d: 0.5, ret5d: 1.2, ret20d: null,
+          advanceRatio1d: 60, advanceRatio5d: 70, coherence1d: 66.7, volumeRatio20d: 1.1,
+          leaderSymbol: 'RB0', leaderName: '螺纹钢', leaderRet5d: 2.3, members: 9,
+          dataStart: '2026-08-20', dataEnd: '2026-08-27'
+        }
+      }
+    };
+    dataStore.ingestSectorSnapshot({ runId: 'sector-run', snapshot });
+    assert.deepEqual(dataStore.getSectorSnapshot('sector-run'), snapshot);
+    const series = dataStore.getSectorSeries('black');
+    assert.equal(series.rows.length, 1);
+    assert.equal(series.rows[0].leaderSymbol, 'RB0');
+  });
+
   it('contract bars 写入后可按 runId+symbol 读回', () => {
     const bars = [
       { date: '2026-08-26', open: 1, high: 2, low: 0.5, close: 1.5, volume: 10, hold: 20, settle: 1.4 },
