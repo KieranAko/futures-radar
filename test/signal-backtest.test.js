@@ -63,6 +63,36 @@ describe('signal-backtest recordings', () => {
     }
   });
 
+  it('anchor feature rows contain no look-ahead vs the frozen bars', () => {
+    const features = JSON.parse(fs.readFileSync(path.join(RECORDINGS, 'features.json'), 'utf8'));
+    const history = JSON.parse(fs.readFileSync(path.join(RECORDINGS, 'history-1y.json'), 'utf8'));
+    const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+    for (const sym of SYMBOLS) {
+      const bars = history.symbols[sym].bars;
+      for (const f of features.anchors[sym]) {
+        const i = f.idx;
+        assert.equal(bars[i].date, f.date);
+        const closes = bars.slice(0, i + 1).map(b => b.close);
+        const highs = bars.slice(0, i + 1).map(b => b.high);
+        const lows = bars.slice(0, i + 1).map(b => b.low);
+        const trs = [];
+        for (let j = 1; j <= i; j++) trs.push(Math.max(highs[j] - lows[j], Math.abs(highs[j] - closes[j - 1]), Math.abs(lows[j] - closes[j - 1])));
+        const atr5 = mean(trs.slice(-5));
+        const ma20 = mean(closes.slice(-20));
+        const ma60 = mean(closes.slice(-60));
+        const chg5 = ((closes[i] - closes[i - 5]) / closes[i - 5]) * 100;
+        const vols = bars.slice(0, i + 1).map(b => b.volume);
+        const volRatio = vols[i] / mean(vols.slice(-5));
+        assert.ok(Math.abs(f.close - closes[i]) < 0.1, `${sym} ${f.date} close`);
+        assert.ok(Math.abs(f.ma20 - ma20) < 0.1, `${sym} ${f.date} ma20`);
+        assert.ok(Math.abs(f.ma60 - ma60) < 0.1, `${sym} ${f.date} ma60`);
+        assert.ok(Math.abs(f.atr5 - atr5) < 0.05, `${sym} ${f.date} atr5`);
+        assert.ok(Math.abs(f.chg5 - chg5) < 0.05, `${sym} ${f.date} chg5`);
+        assert.ok(Math.abs(f.volRatio - volRatio) < 0.05, `${sym} ${f.date} volRatio`);
+      }
+    }
+  });
+
   it('ships a frozen 1-year OHLC fixture and falls back to it without data-store', () => {
     const fixture = JSON.parse(fs.readFileSync(path.join(RECORDINGS, 'history-1y.json'), 'utf8'));
     for (const sym of SYMBOLS) {

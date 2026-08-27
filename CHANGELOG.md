@@ -6,7 +6,7 @@
 - **基线结论**：185 个信号 → 39 个触发执行（27 笔成交 + 12 笔跳空放弃）→ 方向正确率 44.44%、目标1兑现率 14.81%、止损率 37.04%、平均单笔 -0.82%；输出 `strategies/signal-backtest/output/signal-quality-baseline.md/json`（含置信度交叉与参数组合证伪排序）
 - **数据扩增**：data-store 为 RB0/M0/SC0 摄入 250 个交易日历史（2025-08-18..2026-08-27，run `signal-history-1y`），daily 文件库合并保留跨 run 历史
 - **版本对齐**：VERSION.md / package.json / SKILL.md / README.md / pipeline banner 统一为 0.1.9
-- 新增 signal-backtest 测试 8 条；全量测试 591 → 599（100 → 103 套件）
+- 新增 signal-backtest 测试 9 条；全量测试 591 → 600（100 → 103 套件）
 
 ## 0.1.8（2026-08-27）
 

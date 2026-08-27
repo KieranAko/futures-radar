@@ -20,7 +20,7 @@
 - **信号质量回测（v0.1.9）**：`node strategies/signal-backtest/runner.cjs` 对 RB0/M0/SC0 的 1 年历史做“LLM 锚点（每 10 交易日）→ 确定性信号延续 → T+1 确认/T+2 执行 → 证伪”，产出 `strategies/signal-backtest/output/signal-quality-baseline.md/json`
 - **保守自动化（v0.1.4）**：软过滤 `--shadow` 输出 `filtered.quant.json`；六问预填充只生成 `analysis.draft.json`，LLM 边界不撤销
 - **离线回测**：strict no-look-ahead 实现 + LLM replay 评分卡；方向层已被大样本证伪并收口（诚实披露）
-- **599 个测试全绿**（103 套件），测试夹具内置、无机器路径依赖
+- **600 个测试全绿**（103 套件），测试夹具内置、无机器路径依赖
 
 ## 目录结构
 
