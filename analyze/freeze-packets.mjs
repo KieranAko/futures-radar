@@ -23,6 +23,7 @@ const require = createRequire(import.meta.url);
 const { runDir } = require('../lib/workspace.cjs');
 const { validateMacroSnapshot } = require('../collector/macro-probe.cjs');
 const { relevantAnchorsFor } = require('../report/build-facts.cjs');
+const dataStore = require('../data-store/index.cjs');
 
 const SYMBOL_GAP_MS = 2000; // 品种间 pacing（配合 Python 内 0.5s/合约，压低 sina 请求速率）
 const OBSERVED_FIELDS = ['price_data', 'volume_oi'];
@@ -160,6 +161,12 @@ for (let i = 0; i < keeps.length; i++) {
       // 封存时刻必须晚于历史抓取完成时刻（约束：fetchedAt ≤ packetFrozenAt）
       raw.packetFrozenAt = new Date().toISOString();
       mainSeries[symbol] = { contract: dominantContract, bars: historyBars };
+      // 文件库镜像（v0.1.4）：probability 在 main-series.json 缺失时按 runId 回退读取
+      try {
+        dataStore.ingestContractBars({ runId, symbol, contract: dominantContract, bars: historyBars });
+      } catch (err) {
+        console.warn(`  data-store contract-bars ingest failed (non-blocking): ${err.message}`);
+      }
       const pd = raw.fields.price_data;
       const maNote = pd.ma60 === null ? ' (ma60=null: 历史不足60bar)' : '';
       console.log(

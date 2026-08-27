@@ -19,6 +19,11 @@ const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
 
+// data-store 延迟加载：允许测试用 FUTURES_DATA_ROOT 隔离文件库。
+function loadDataStore() {
+  return require('../data-store/index.cjs');
+}
+
 // 校验缓存序列可用：非空、严格递增、末 bar <= today
 function validateCachedSeries(contract, today) {
   const dates = contract && contract.ohlcv && Array.isArray(contract.ohlcv.dates)
@@ -38,8 +43,18 @@ function validateCachedSeries(contract, today) {
   return { ok: true, last };
 }
 
-// 查找最新缓存 run（runId 字典序即时间序，排除当前 run）
+// 查找最新缓存 run（runId 字典序即时间序，排除当前 run）。
+// v0.1.4：优先从 data-store 文件库读取；文件库为空/损坏时回退旧 raw.json 扫描。
 function findLatestCacheRaw(runtimeRoot, currentRunId) {
+  try {
+    const storeCache = loadDataStore().getLatestCache({ excludeRunId: currentRunId });
+    if (storeCache && storeCache.raw && Object.keys(storeCache.raw.contracts || {}).length > 0) {
+      return storeCache;
+    }
+  } catch {
+    // data-store 不可用时回退既有路径
+  }
+
   const runsDir = path.join(runtimeRoot, 'runs');
   if (!fs.existsSync(runsDir)) return null;
   let entries;

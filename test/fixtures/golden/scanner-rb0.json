@@ -1,0 +1,58 @@
+{
+  "runId": "golden",
+  "pipelineVersion": "0.1.0",
+  "preFilter": {
+    "total": 1,
+    "passed": 1,
+    "rejected": 0,
+    "criteria": {
+      "minAvgTurnover": "1亿 (100,000,000 元)",
+      "minAvgOI": "1万手 (10,000 手)"
+    }
+  },
+  "scoring": {
+    "formula": "volatilityQuality×0.35 + trendStability×0.30 + momentumContinuity×0.20 + liquidity×0.15",
+    "sweetSpots": {
+      "volatility": "P60-P85 (punish P>90 extremes)",
+      "trend": "MA deviation 3-8% (punish >8% overbought/oversold)",
+      "momentum": "5d return 3-6% (punish >8% acceleration)"
+    },
+    "tradingDaysPerYear": 242
+  },
+  "candidates": [
+    {
+      "symbol": "RB0",
+      "name": "螺纹钢",
+      "exchange": "shfe",
+      "sector": "black",
+      "indicators": {
+        "atr5": 34,
+        "atrPct": 1.1398,
+        "hv5": 0.1165,
+        "hv20": 0.1013,
+        "volPercentile": 85.88,
+        "volMultiplier": 1.3128,
+        "change5d": -2.52
+      },
+      "trend": {
+        "close": 2983,
+        "vsMA20": -2.79,
+        "vsMA60": -4.54,
+        "direction": "down"
+      },
+      "liquidity": {
+        "avgVolume5d": 910733.6,
+        "avgTurnover5d": 27453236160,
+        "avgOI5d": 2293272.6
+      },
+      "score": 0.6895,
+      "scoreBreakdown": {
+        "volatilityQuality": 0.9413,
+        "trendStability": 0.3,
+        "momentumContinuity": 0.6,
+        "liquidity": 1
+      },
+      "rank": 1
+    }
+  ]
+}

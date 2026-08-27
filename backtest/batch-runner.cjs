@@ -19,8 +19,9 @@ const path = require('path');
 const cp = require('child_process');
 
 const { generateSamplePoints } = require('./time-sampler.cjs');
-const { sliceAllSymbols } = require('./cache-slicer.cjs');
+const { sliceAllSymbols, loadCache } = require('./cache-slicer.cjs');
 const { runMiniPipeline } = require('./mini-pipeline.cjs');
+const dataStore = require('../data-store/index.cjs');
 
 // ── Paths ────────────────────────────────────────────────────
 const BACKTEST_DIR = __dirname;
@@ -77,7 +78,7 @@ function runVerifier(cachePath, predictionPath, verifyDays, outputPath) {
 /**
  * 运行单次回测
  */
-async function runSingleBacktest(asOfDate, windowDays, verifyDays, logStream) {
+async function runSingleBacktest(asOfDate, windowDays, verifyDays, logStream, cachePath = CACHE_PATH) {
   const startTime = Date.now();
 
   console.log(`\n[${asOfDate}] Starting backtest...`);
@@ -106,7 +107,7 @@ async function runSingleBacktest(asOfDate, windowDays, verifyDays, logStream) {
     console.log(`  [3/3] Verifying predictions (T+${verifyDays})...`);
     const verificationPath = path.join(runDir, 'verification.json');
 
-    await runVerifier(CACHE_PATH, predictionPath, verifyDays, verificationPath);
+    await runVerifier(cachePath, predictionPath, verifyDays, verificationPath);
 
     const verification = JSON.parse(fs.readFileSync(verificationPath, 'utf8'));
 
@@ -172,6 +173,17 @@ async function runBatchBacktest(config) {
   ensureDir(RUNS_DIR);
   ensureDir(LOGS_DIR);
 
+  // 加载历史缓存一次（优先 data-store 文件库，旧缓存回退），并准备 Python 验证器输入文件
+  console.log('\n[Step 0] Loading historical cache...');
+  const cache = loadCache();
+  let cachePath = CACHE_PATH;
+  if (cache && cache.meta && cache.meta.source === 'data-store') {
+    cachePath = dataStore.exportHistoricalCache();
+    console.log(`  cache source: data-store → ${cachePath}`);
+  } else {
+    console.log(`  cache source: legacy → ${cachePath}`);
+  }
+
   // 生成采样时间点
   console.log('\n[Step 1] Generating sample points...');
   const samplePoints = generateSamplePoints({
@@ -180,7 +192,7 @@ async function runBatchBacktest(config) {
     sampleCount,
     mode: samplingMode,
     randomSeed
-  });
+  }, cache);
 
   console.log(`Generated ${samplePoints.length} sample points`);
 
@@ -209,7 +221,7 @@ async function runBatchBacktest(config) {
 
     console.log(`\n[${i + 1}/${samplePoints.length}] Processing ${asOfDate}...`);
 
-    const result = await runSingleBacktest(asOfDate, windowDays, verifyDays, logPath);
+    const result = await runSingleBacktest(asOfDate, windowDays, verifyDays, logPath, cachePath);
 
     if (result.status === 'success') {
       successCount++;

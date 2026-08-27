@@ -15,6 +15,7 @@ const fs = require('fs');
 const path = require('path');
 const { runtimeRoot, skillRoot } = require('../lib/workspace.cjs');
 const akshareMacro = require('./akshare-macro.cjs');
+const dataStore = require('../data-store/index.cjs');
 
 const SCHEMA_VERSION = '1.0.0';
 
@@ -358,6 +359,13 @@ async function runMacroProbe({ runId, fetchSeriesFn = null, nowIso = new Date().
 
   if (writeFile !== false) {
     writeJSON(path.join(runDir, 'macro-snapshot.json'), snapshot);
+  }
+  // 文件库镜像（v0.1.4）：report 阶段在 run 目录快照缺失时可按 runId 精确回退
+  try {
+    dataStore.ingestMacro({ runId, snapshot });
+  } catch (err) {
+    // 镜像失败不阻断宏观采集（macro-snapshot.json 仍是 run 权威）
+    console.warn(`WARN: data-store macro ingest failed (non-blocking): ${err.message}`);
   }
   return snapshot;
 }

@@ -14,6 +14,7 @@
 const fs = require('fs');
 const path = require('path');
 const { ParallelCollector } = require('../collector/parallel-collector.cjs');
+const dataStore = require('../data-store/index.cjs');
 
 // ── Paths ────────────────────────────────────────────────────
 const SKILL_ROOT = path.join(__dirname, '..');
@@ -128,6 +129,20 @@ async function main() {
 
   const cacheSize = (fs.statSync(CACHE_PATH).size / 1024 / 1024).toFixed(2);
   console.log(`Cache written: ${CACHE_PATH} (${cacheSize} MB)`);
+
+  // 7.5 写入 data-store 文件库：后续回测切片统一从 data/daily 读取，
+  // historical-cache.json 仅保留为兼容导出。
+  try {
+    const storeResult = dataStore.ingestRunBars({
+      runId: `bt-full-${new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}`,
+      rawJson: cache,
+      provenance: null
+    });
+    console.log(`data-store: ${storeResult.written} symbols mirrored, ${storeResult.barsChanged} bars changed`);
+    dataStore.exportHistoricalCache();
+  } catch (err) {
+    console.warn(`⚠️ data-store ingest failed (non-blocking): ${err.message}`);
+  }
 
   // 8. Write metadata file
   const meta = {

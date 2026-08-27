@@ -13,17 +13,30 @@
 
 const fs = require('fs');
 const path = require('path');
+const dataStore = require('../data-store/index.cjs');
 
 const CACHE_PATH = path.join(__dirname, 'data', 'historical-cache.json');
 
-// 缓存加载（单例模式）
+// 缓存加载（单例模式）。
+// v0.1.4：优先 data-store 文件库；文件库为空时回退旧 historical-cache.json，
+// 保证旧实验脚本与未 seed 环境仍可用。
 let _cache = null;
 
 function loadCache() {
   if (_cache) return _cache;
 
+  try {
+    const storeCache = dataStore.loadHistoricalCache();
+    if (storeCache && Object.keys(storeCache.contracts || {}).length > 0) {
+      _cache = storeCache;
+      return _cache;
+    }
+  } catch {
+    // data-store 不可用时回退旧缓存
+  }
+
   if (!fs.existsSync(CACHE_PATH)) {
-    throw new Error(`Cache not found: ${CACHE_PATH}. Run full-history-collector first.`);
+    throw new Error(`Cache not found: ${CACHE_PATH}. Run data-store seed first (npm run store:seed).`);
   }
 
   _cache = JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));

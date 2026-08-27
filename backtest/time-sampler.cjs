@@ -74,13 +74,14 @@ function shuffleArray(array) {
  * @param {number} config.sampleCount - 采样数量
  * @param {string} config.mode - 采样模式: 'uniform' | 'random' | 'monthly'
  * @param {number} [config.randomSeed] - 随机种子（可选，用于复现）
+ * @param {Object} [cache] - 可选历史缓存（调用方加载一次后复用，避免重复读盘）
  * @returns {string[]} 采样时间点数组
  */
-function generateSamplePoints(config) {
+function generateSamplePoints(config, cache = null) {
   const { startDate, endDate, sampleCount, mode, randomSeed } = config;
 
   // Get all trading days in range
-  const allDays = getTradingDaysFromCache(startDate, endDate);
+  const allDays = getTradingDaysFromCache(startDate, endDate, cache);
 
   console.log(`Total trading days in range: ${allDays.length}`);
 

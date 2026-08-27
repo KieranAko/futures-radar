@@ -15,7 +15,13 @@
     "test": "node --test \"test/*.test.js\" \"reasoning/test/*.test.js\" \"experiments/test/*.test.js\" \"backtest/test/*.test.cjs\"",
     "test:core": "node --test \"test/*.test.js\"",
     "test:reasoning": "node --test \"reasoning/test/*.test.js\"",
-    "install:skill": "node scripts/install.mjs"
+    "install:skill": "node scripts/install.mjs",
+    "store:init": "node data-store/index.cjs --init",
+    "store:seed": "node data-store/index.cjs --seed",
+    "store:verify": "node data-store/index.cjs --verify",
+    "store:stats": "node data-store/index.cjs --stats",
+    "store:export": "node data-store/index.cjs --export",
+    "store:compact": "node data-store/index.cjs --compact"
   },
   "keywords": [
     "futures",

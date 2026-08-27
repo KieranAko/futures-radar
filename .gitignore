@@ -1,6 +1,13 @@
 # ── 运行产物（管道输出，git 不追踪）──
 /output/
-/data/
+/data/*
+!/data/README.md
+/data/runs/
+/data/daily/
+/data/ledger/
+/data/contract-bars/
+/data/macro/
+/data/export/
 
 # ── Python ──
 __pycache__/

@@ -15,6 +15,7 @@ const { ParallelCollector } = require('./parallel-collector.cjs');
 const { rejectFutureDateContracts } = require('./future-date-guard.cjs');
 const { fetchCloseSnapshot, mergeSnapshotBars, todayStr } = require('./close-snapshot.cjs');
 const { runCfmmcVerification } = require('./cfmmc-verify.cjs');
+const dataStore = require('../data-store/index.cjs');
 
 // ── CLI ──────────────────────────────────────────────────────
 const args = process.argv.slice(2);
@@ -470,6 +471,15 @@ async function main() {
   fs.writeFileSync(provenancePath, JSON.stringify(provenance, null, 2));
   console.log(`provenance.json → ${provenancePath}`);
 
+  // 7.5 文件库镜像（v0.1.4）：raw.json 仍是本 run 权威；文件库供增量采集/回测复用。
+  // 写入失败不阻断采集（warn-only），下次 run 会自然补齐。
+  try {
+    const storeResult = dataStore.ingestRunBars({ runId, rawJson, provenance });
+    console.log(`data-store: ${storeResult.written} symbols mirrored, ${storeResult.barsChanged} bars changed`);
+  } catch (err) {
+    console.warn(`⚠️ data-store ingest failed (non-blocking): ${err.message}`);
+  }
+
   // 8. Write raw-snapshot.md (human-readable)
   function fmtTurnover(val) {
     if (val >= 1e12) return (val / 1e12).toFixed(2) + 'T';
@@ -551,7 +561,7 @@ async function main() {
   }
 
   md += `## 宏观锚点\n\n`;
-  md += `_宏观锚点采集暂未实现（Phase 3+）。将在 Top 3 分析阶段通过 mx-data/WebSearch 获取。_\n`;
+  md += `_宏观锚点由 pipeline Macro 阶段采集，见 ${runId}/macro-snapshot.json。_\n`;
 
   const snapshotPath = path.join(RUN_DIR, 'raw-snapshot.md');
   fs.writeFileSync(snapshotPath, md);

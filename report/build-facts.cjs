@@ -22,6 +22,7 @@ const path = require('path');
 const { runtimeRoot, skillRoot } = require('../lib/workspace.cjs');
 const { validateMacroSnapshot } = require('../collector/macro-probe.cjs');
 const { buildFreshness } = require('./freshness.cjs');
+const dataStore = require('../data-store/index.cjs');
 
 // ── Helpers ──────────────────────────────────────────────────
 function readJSON(filePath) {
@@ -76,23 +77,36 @@ function buildMacroDisplayMap() {
 }
 
 // 宏观段：快照存在且 schema 校验通过且 runId 一致 → available=true + 透传；
-// 快照缺失/不可解析/schema 损坏 → available=false（fail closed）；
-// runId 不一致 → 仍透传但标记不可用
-function buildMacroSection(runDir, runId, keepSymbols) {
+// 快照缺失/不可解析/schema 损坏 → 尝试 data-store 中同 runId 的精确镜像；
+// 仍无 → available=false（fail closed）；runId 不一致 → 仍透传但标记不可用
+function loadMacroSnapshotWithStoreFallback(runDir, runId) {
   const snapshotPath = path.join(runDir, 'macro-snapshot.json');
-  if (!fs.existsSync(snapshotPath)) {
+  if (fs.existsSync(snapshotPath)) {
+    try {
+      return { snapshot: readJSON(snapshotPath), fromStore: false };
+    } catch (e) {
+      // 文件损坏，尝试文件库精确镜像
+    }
+  }
+  try {
+    const stored = dataStore.getMacroSnapshot(runId);
+    if (stored) return { snapshot: stored, fromStore: true };
+  } catch {
+    // 忽略文件库异常，按缺失处理
+  }
+  return { snapshot: null, fromStore: false };
+}
+
+function buildMacroSection(runDir, runId, keepSymbols) {
+  const loaded = loadMacroSnapshotWithStoreFallback(runDir, runId);
+  if (!loaded.snapshot) {
     return { available: false, reason: 'no macro-snapshot.json in run (旧 run 未采集宏观快照)' };
   }
-  let snapshot;
-  try {
-    snapshot = readJSON(snapshotPath);
-  } catch (e) {
-    return { available: false, reason: `macro-snapshot.json unreadable: ${e.message}` };
-  }
+  const snapshot = loaded.snapshot;
   // 复用采集阶段同款校验：可解析但 schema 损坏的快照不得进入报告（fail closed）
   const v = validateMacroSnapshot(snapshot);
   if (!v.ok) {
-    return { available: false, reason: `macro-snapshot.json failed validation: ${v.errors.slice(0, 3).join('; ')}` };
+    return { available: false, reason: `macro-snapshot failed validation: ${v.errors.slice(0, 3).join('; ')}` };
   }
   const runIdMatch = snapshot.meta.runId === runId;
   const relevance = {};
@@ -106,7 +120,8 @@ function buildMacroSection(runDir, runId, keepSymbols) {
     indicators: snapshot.indicators,
     quality: snapshot.quality,
     relevance,
-    display: buildMacroDisplayMap()
+    display: buildMacroDisplayMap(),
+    fromStoreFallback: loaded.fromStore || undefined
   };
 }
 

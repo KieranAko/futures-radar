@@ -184,7 +184,7 @@ const stages = [
     rebuildCommand: 'node collector/akshare-futures.cjs --runId {runId}',
     script: 'collector/akshare-futures.cjs',
     args: (runId) => ['--runId', runId],
-    note: 'Phase 3 implementation — currently placeholder'
+    note: 'Implemented: parallel collect + incremental cache + snapshot-first + CFMMC verification. Also mirrors bars into data-store.'
   },
 
   // ── Stage 1.5: Macro (Phase 3 阶段一) ──
@@ -216,7 +216,7 @@ const stages = [
     rebuildCommand: 'node scanner/index.cjs --runId {runId}',
     script: 'scanner/index.cjs',
     args: (runId) => ['--runId', runId],
-    note: 'Phase 4 implementation — currently placeholder'
+    note: 'Implemented: ATR/HV percentile weighted ranking, Top 10 output.'
   },
 
   // ── Stage 3a: Filter-Hard ──

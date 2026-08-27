@@ -1,11 +1,22 @@
 // test/incremental-cache.test.js — P1 增量缓存单元测试（纯逻辑 + 临时目录夹具，无网络）
-import { test } from 'node:test';
+import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import ic from '../collector/incremental-cache.cjs';
 const { findLatestCacheRaw, isCacheStale, planIncremental, cloneContractsForReuse, validateCachedSeries, planSnapshotFirst, probeLatestSinaBarDates } = ic;
+
+// 隔离 data-store，避免测试读到本地已 seed 的真实文件库
+let storeTmp;
+before(() => {
+  storeTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-store-isolate-'));
+  process.env.FUTURES_DATA_ROOT = storeTmp;
+});
+after(() => {
+  delete process.env.FUTURES_DATA_ROOT;
+  if (storeTmp) fs.rmSync(storeTmp, { recursive: true, force: true });
+});
 
 function makeContract(dataEnd, dates) {
   return {

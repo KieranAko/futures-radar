@@ -10,6 +10,7 @@ const path = require('path');
 const { extractOHLC, getLatestClose } = require('./ohlc-reader.cjs');
 const { autoEstimateHV, hvPercentile } = require('./hv-estimators.js');
 const { probabilityCone, compareBands } = require('./probability-cone.js');
+const dataStore = require('../data-store/index.cjs');
 
 /**
  * P0（主力连续污染修复）：优先使用主导合约干净序列（analyze/main-series.json）。
@@ -20,22 +21,49 @@ const { probabilityCone, compareBands } = require('./probability-cone.js');
 const CLEAN_MIN_BARS = 21; // 20 日 HV 窗口最低 bar 数
 
 /**
- * 读取 analyze/main-series.json（freeze-packets 产出）
+ * 读取 analyze/main-series.json（freeze-packets 产出）。
+ * v0.1.4：main-series.json 缺失/损坏时，回退 data-store contract-bars（同 runId 冻结值），
+ * 再不行才回退 raw.json 主力连续（旧 run 口径）。
  * @param {string} runDir - Run directory path
+ * @param {string} [runId] - 用于文件库回退
+ * @param {string[]} [symbols] - 需要回退的 KEEP 品种
  * @returns {Object} { [symbol]: { contract, bars } }（缺失/损坏时 {}）
  */
-function loadMainSeries(runDir) {
+function loadMainSeries(runDir, runId = null, symbols = []) {
   const p = path.join(runDir, 'analyze', 'main-series.json');
+  const out = {};
+  let needFallback = false;
+
   if (!fs.existsSync(p)) {
-    console.log('  main-series.json 不存在 → 回退 raw.json（旧 run 口径）');
-    return {};
+    needFallback = true;
+  } else {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(p, 'utf8'));
+      Object.assign(out, parsed);
+      for (const sym of symbols) {
+        if (!out[sym]) needFallback = true;
+      }
+    } catch (err) {
+      console.log(`  ⚠️  main-series.json 解析失败（${err.message}）`);
+      needFallback = true;
+    }
   }
-  try {
-    return JSON.parse(fs.readFileSync(p, 'utf8'));
-  } catch (err) {
-    console.log(`  ⚠️  main-series.json 解析失败（${err.message}）→ 回退 raw.json`);
-    return {};
+
+  if (needFallback && runId && symbols.length > 0) {
+    for (const sym of symbols) {
+      if (out[sym]) continue;
+      try {
+        const stored = dataStore.getContractBarsForRun(runId, sym);
+        if (stored) {
+          out[sym] = stored;
+          console.log(`  main-series.json 缺失 → data-store contract-bars 回退: ${sym} (${stored.contract})`);
+        }
+      } catch (err) {
+        console.log(`  ⚠️  data-store contract-bars 回退失败: ${sym} (${err.message})`);
+      }
+    }
   }
+  return out;
 }
 
 /**
@@ -95,7 +123,11 @@ async function execute(runDir, artifacts) {
 
   console.log(`Processing ${keepCandidates.length} KEEP candidates:\n`);
 
-  const mainSeries = loadMainSeries(runDir);
+  const mainSeries = loadMainSeries(
+    runDir,
+    filtered.meta && filtered.meta.runId ? filtered.meta.runId : null,
+    keepCandidates.map((c) => c.symbol)
+  );
   const probabilities = [];
   const estimatorUsed = {};
 
