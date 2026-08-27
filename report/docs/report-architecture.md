@@ -503,7 +503,8 @@ interface ReportModel {
 
 **当前约束**:
 - 5B 直接使用已有 `analysis.json`（人工填写）
-- 板块异动、成交持仓异常暂时不实现（Chapter 1 部分字段显示 "—"）
+- 板块异动暂时不实现（Chapter 1 显示占位 "—"）
+- 成交/持仓异常已取消：分析报告不支持持仓分析（2026-08-27 裁定）
 - 宏观锚点采集未自动化（Phase 3+）
 
 ### Phase 8-B（后续迭代）
@@ -513,9 +514,7 @@ interface ReportModel {
    - 按 sector 聚合 KEEP 品种
    - 代表品种选择规则（rank 最高 + volMultiplier 最大）
    - 方向规则（sector 内多数 KEEP 的 finalDirection）
-2. 成交持仓异常规则化：
-   - 从 `raw.json` OI 序列计算 5 日变化率
-   - 异常阈值：volMultiplier ∈ [<0.8, >1.5]、OI 变化 ∈ [<-10%, >10%]
+2. ~~成交持仓异常规则化~~：已取消，分析报告不支持持仓分析
 3. 驱动因素提取规则：
    - WebSearch 结果结构化解析
    - 证据强度评分规则
@@ -557,7 +556,7 @@ interface ReportModel {
 ### 可以延后（P2）
 
 1. 板块异动规则化
-2. 成交持仓异常规则化
+2. ~~成交持仓异常规则化~~（已取消）
 3. 多 run 数据对比
 4. 自适应篇幅预算
 

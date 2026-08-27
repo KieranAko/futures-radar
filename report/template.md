@@ -10,7 +10,7 @@
 
 **Four chapters + appendix.** This is a short actionable report with fixed structure:
 
-1. **Chapter 1 (市场雷达)**: 宏观锚点表 + 板块异动 + 成交持仓异常
+1. **Chapter 1 (市场雷达)**: 宏观锚点表 + 板块异动
 2. **Chapter 2 (候选品种筛选)**: Top 10 表格 + 过滤决策表
 3. **Chapter 3 (重点机会分析)**: 每个 KEEP 品种完整 6 问框架 + 价格区间对比表
 4. **Chapter 4 (今日不做什么)**: ≥2 个反面案例
@@ -49,10 +49,6 @@
 |------|------|----------|----------|
 | {sector1} | ↑/↓ | {top1}, {top2} | STORY 10字以内 |
 | {sector2} | → | — | 横盘无方向 |
-
-### 成交/持仓异常
-- {symbol}：成交量 {X}倍放大，持仓 {变化}
-- {symbol}：持仓连续{N}日{增加/减少}
 
 ## 二、候选品种筛选
 
