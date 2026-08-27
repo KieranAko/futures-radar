@@ -1,0 +1,1244 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "libraryId": "futures-radar-strategy-library",
+    "title": "futures-radar 交易策略库（统一收敛版）",
+    "builtBy": "strategy-architect",
+    "team": "futures-radar-strategy",
+    "task": "t5",
+    "date": "2026-08-27",
+    "sourceFiles": {
+      "macro": "strategies/research/macro-strategies.md",
+      "category": "strategies/research/category-strategies.md",
+      "execution": "strategies/research/execution-playbooks.md",
+      "risk": "strategies/research/risk-framework.md"
+    },
+    "upstreamTasks": ["t1", "t2", "t3", "t4"],
+    "downstreamConsumers": ["t6 (strategy-matching-rules.json)", "t7 (report-strategy-section.md)", "t8 (strategy-matcher)", "t9 (报告渲染)", "t12 (修复回归)"],
+    "idPrefixes": {
+      "MS": "宏观/regime 级策略（macro）",
+      "CS": "细分品类策略（category）",
+      "PB": "执行 playbook（execution）",
+      "RK": "风控 overlay 规则（risk）"
+    }
+  },
+  "dataDiscipline": {
+    "allowedInputs": [
+      "futures-radar/output/runs/<runId>/report-model.json（opportunities[].thesis.* / marketFacts.hv / priceRanges[] / screening / macro.indicators）",
+      "futures-radar/output/runs/<runId>/probability.json（probabilities[].hv / cone / atrComparison）",
+      "futures-radar/output/runs/<runId>/sector-snapshot.json（sectors[code].*）",
+      "futures-radar/output/runs/<runId>/sector-driver.json（sectors[code].driver.*）",
+      "futures-radar/output/runs/<runId>/macro-snapshot.json（indicators.*）",
+      "futures-radar/config/symbols.json（symbol, exchange, sector, active, multiplier, unit）"
+    ],
+    "forbidden": [
+      "新增持仓（OI）数据依赖——报告 Q4/Q5 中既有的持仓表述（如“持仓继续增加”）仅可作为报告文本引用，不得引入任何新的持仓数据源",
+      "报告未提供的量化数据（库存、利润、开工率、完整期限结构曲线等）——只能从驱动文本间接引用，且必须标记为定性证据",
+      "未来数据 / 前视偏差——匹配与风控公式只使用信号日（T）及之前的已冻结值",
+      "收益承诺 / 预期收益数字——策略库与报告板块不得出现任何收益或胜率承诺",
+      "修改报告方向或置信度——风险与执行规则不得反向修改报告结论（方向判断以报告原文为准）"
+    ],
+    "disclaimer": "本策略库为研究方向增强与执行参考的研究素材，不构成投资建议，不执行真实交易。历史文献与样本内回测结论不代表未来表现。"
+  },
+  "sectorCodes": {
+    "black": "黑色系",
+    "nonferrous": "有色金属",
+    "precious": "贵金属",
+    "energy_chemical": "能化",
+    "agriculture": "农产品",
+    "new_materials": "新材料",
+    "shipping": "航运"
+  },
+  "fieldCatalog": {
+    "_comment": "确定性匹配（t6/t8）只允许读取以下字段路径；[] 表示按 TOP3 品种逐符号求值。",
+    "rm": {
+      "driverPrimary": "report-model.opportunities[i].thesis.driver.primary",
+      "driverSecondary": "report-model.opportunities[i].thesis.driver.secondary",
+      "trendAssessment": "report-model.opportunities[i].thesis.trendOrImpulse.assessment",
+      "oddsReasoning": "report-model.opportunities[i].thesis.odds.reasoning",
+      "oddsBias": "report-model.opportunities[i].thesis.odds.bias",
+      "confirmSignals": "report-model.opportunities[i].thesis.confirmations.signals[]",
+      "invalidationConditions": "report-model.opportunities[i].thesis.invalidations.conditions[]",
+      "risks": "report-model.opportunities[i].thesis.risks.items[]",
+      "finalDirection": "report-model.opportunities[i].thesis.finalDirection (bullish|bearish|neutral)",
+      "finalConfidence": "report-model.opportunities[i].thesis.finalConfidence (high|medium|low)",
+      "hvAnnual": "report-model.opportunities[i].marketFacts.hv.annual",
+      "hvPercentile90d": "report-model.opportunities[i].marketFacts.hv.percentile90d",
+      "hvDegraded": "report-model.opportunities[i].marketFacts.hv.degraded",
+      "atr5": "report-model.opportunities[i].priceRanges[0].atrBand.atr5",
+      "atrBand": "report-model.opportunities[i].priceRanges[0].atrBand.band[]",
+      "divergencePct": "report-model.opportunities[i].priceRanges[0].divergence.pct",
+      "divergenceInterpretation": "report-model.opportunities[i].priceRanges[0].divergence.interpretation",
+      "macroIndicators": "report-model.macro.indicators.{DXY|USDCNH|US10Y|DR007|SC0}.{status|value|change5d}",
+      "screeningDecision": "report-model.screening.decisions[].{decision|initialConfidence|initialDirection}"
+    },
+    "ss": {
+      "sectorDirection": "sector-snapshot.sectors[code].direction",
+      "sectorRet5d": "sector-snapshot.sectors[code].ret5d",
+      "advanceRatio1d": "sector-snapshot.sectors[code].advanceRatio1d",
+      "volumeRatio20d": "sector-snapshot.sectors[code].volumeRatio20d",
+      "leaders": "sector-snapshot.sectors[code].leaders[]",
+      "laggards": "sector-snapshot.sectors[code].laggards[]"
+    },
+    "sd": {
+      "directionObserved": "sector-driver.sectors[code].direction_observed",
+      "driverPrimary": "sector-driver.sectors[code].driver.primary",
+      "driverConfidence": "sector-driver.sectors[code].driver.confidence"
+    },
+    "pb": {
+      "cone3d": "probability.probabilities[symbol].cone['3d']",
+      "cone5d": "probability.probabilities[symbol].cone['5d']",
+      "hv95Band3d": "probability.probabilities[symbol].atrComparison.hv95Band3d",
+      "atrComparison": "probability.probabilities[symbol].atrComparison.{atr5|atr2xBand|divergencePct}"
+    },
+    "cfg": {
+      "symbolMeta": "config/symbols.json[symbol].{exchange|sector|active|multiplier|unit}"
+    }
+  },
+  "matchOpVocabulary": {
+    "_comment": "t6/t8 必须实现的确定性操作符，字段路径取自 fieldCatalog。",
+    "ops": ["eq", "ne", "gt", "gte", "lt", "lte", "matchesAny", "matchesAll", "containsNone", "exists", "in"],
+    "matchesAny": "对文本字段做子串包含（任一关键词命中即真）；用于 Q1/Q3 文本的定性证据匹配（定性证据必须降权）",
+    "containsNone": "文本字段不包含任何关键词（用于 forbidden 类条件）"
+  },
+  "riskConfig": {
+    "_source": "strategies/research/risk-framework.md §0/§1-§8，数值一致",
+    "riskPerTradePct": { "default": 0.01, "range": [0.005, 0.01], "type": "hard-cap" },
+    "confidenceScale": { "high": 1.0, "medium": 0.75, "low": 0, "type": "fixed" },
+    "bookRiskCap": { "value": 0.025, "type": "hard-cap" },
+    "volTargetPerPosition": { "default": 0.10, "range": [0.05, 0.15], "type": "default" },
+    "volTargetBook": { "cap": 0.20, "range": [0.10, 0.20], "type": "hard-cap" },
+    "stopK": { "default": 1.5, "range": [1.0, 2.0], "byConfidence": { "high": 2.0, "medium": 1.5 }, "type": "default" },
+    "limitStopCap": { "value": 0.8, "range": [0.6, 1.0], "meaning": "stopDistancePct ≤ 0.8 × limitPct（距涨跌停幅度留 20% 余量）", "type": "hard" },
+    "maxPositionsPerSector": { "value": 1, "type": "hard" },
+    "maxConcurrentPositions": { "value": 3, "type": "hard", "note": "与雷达 TOP3 上限一致" },
+    "marginUtilizationCap": { "value": 0.33, "preferred": 0.20, "type": "hard-cap" },
+    "singleSymbolMarginGate": { "value": 0.20, "range": [0.10, 0.30], "meaning": "1 手保证金 > 20% 权益 → 该品种降级为观察", "type": "hard" },
+    "maxHoldingDays": { "default": 5, "range": [3, 5], "note": "对齐 5d 概率锥", "type": "hard" },
+    "minRR": { "value": 1.5, "range": [1.0, null], "meaning": "目标距离 ≥ 1.5 × 止损距离", "type": "hard" },
+    "volPercentileWarn": { "value": 0.85, "action": "减半且仅 high 置信可执行", "type": "warning" },
+    "volPercentileSkip": { "value": 0.95, "action": "跳过（status=skip）", "type": "hard" },
+    "divergenceDegrade": { "value": 0.20, "action": "波动率目标上限 ×0.5，主要依靠 ATR 止损与保证金约束", "type": "warning" },
+    "tailGapWarn": { "rule": "3d p95 反向边距 ≥ limitPct → 标记连续停板风险并减半", "type": "warning" },
+    "drawdownLadder": [
+      { "from": 0.0, "to": 0.05, "riskScale": 1.0, "volTargetScale": 1.0, "action": "正常执行" },
+      { "from": 0.05, "to": 0.08, "riskScale": 0.5, "volTargetScale": 0.5, "action": "风险预算与波动率目标减半" },
+      { "from": 0.08, "to": 0.12, "riskScale": 0.25, "volTargetScale": 0.25, "action": "仅 high 置信策略" },
+      { "from": 0.12, "to": null, "riskScale": 0.0, "volTargetScale": 0.0, "action": "停止新开仓，现有持仓按失效条件退出" }
+    ],
+    "consecutiveLossCircuit": { "3 losses": "暂停新开仓 1 个交易日", "5 losses": "暂停新开仓 5 个交易日" },
+    "weeklyLossCap": { "value": 0.03, "action": "单周权益损失 ≥ 3% → 当周停止新开仓" },
+    "antiMartingale": { "value": true, "meaning": "禁止亏损加仓摊低成本（Hard）" },
+    "marginRateDefault": { "value": 0.08, "note": "Q6 保证金区间（5%–15%）中值，实际执行以交易所+期货公司当日公告为准" }
+  },
+  "positionSizing": {
+    "_source": "strategies/research/risk-framework.md §9 确定性仓位公式，实现时必须保持数值一致",
+    "inputs": ["symbol", "equity", "direction", "confidence", "close", "atr5", "hv.annual", "hv.degraded", "hv.percentile90d", "divergencePct", "limitPct", "multiplier", "marginRate", "structuralStop(Q5/Q4)", "tailGapPct(3d p95)"],
+    "steps": [
+      "1. direction == neutral || confidence == low → status=watch, lots=0（转执行触发 = Q4 确认信号），仍输出止损/失效参数",
+      "2. stopDistance = min(STOP_K[conf]×atr5, 0.8×limitPct/100×close)；再与 |structuralStop−close| 取更小者；stopPrice = close ∓ stopDistance；unitRisk = stopDistance × multiplier",
+      "3. lotsRisk = floor(equity×riskPerTradePct×CONF[conf]/unitRisk)；lotsVol = floor(equity×volTargetPerPosition/(hv.annual×close×multiplier))；lotsMargin = floor(equity×marginUtilizationCap/(close×multiplier×marginRate))；lots = min(三值)",
+      "4. 警示调整：hv.degraded || divergencePct≥20 → lots 与 lotsVol×0.5 重算取小；volPercentile≥85 → lots=floor(lots/2) 且仅 high 置信；volPercentile≥95 → lots=0,status=skip；tailGapPct≥limitPct → 标记连续停板风险, lots=floor(lots/2)；stressRisk>1.5×预算 → 按比例减手数",
+      "5. Hard 校验：lots≤0 → status=watch（含最小可执行权益说明）；lots×unitRisk/equity>riskPerTradePct → 减手数重算；1 手保证金>0.20×equity → status=watch；组合校验 Σ(lots×unitRisk)/equity ≤ bookRiskCap；同 sector 可执行计划 ≤ 1",
+      "6. 盈亏比校验：|target−close| ≥ minRR × stopDistance，否则 status=skip"
+    ],
+    "note": "手数几乎总是由风险预算或波动率目标决定，保证金只是安全上限；watch/skip 是合法执行状态，策略适配内容必须完整输出（队长裁定）。"
+  },
+  "strategies": {
+    "_comment": "三个家族 23 条策略。role 语义：direction=给出方向依据；regime-filter=背景过滤器；evidence-tag=仅作证据标签；risk-overlay=仓位管理（不独立产生方向）；execution-template=入场/止损/目标模板。",
+    "macro": [
+      {
+        "id": "MS-01",
+        "sourceId": "macro-ts-mom",
+        "family": "macro",
+        "name": "时间序列动量 / 趋势跟踪",
+        "category": "trend-following",
+        "role": "direction",
+        "summary": "以价格自身的动量符号为方向信号，仓位按波动率倒数缩放；futures-radar 语境下即 CTA 趋势策略（Faber 10 月均线规则的日频变体）。",
+        "regimeFit": "持续性趋势 regime（vsMA20/60 同向 + change5d 同向）；不适用窄幅震荡",
+        "sectors": ["*"],
+        "direction": "long-short",
+        "maturity": "very-high",
+        "confidenceHint": "high",
+        "defaultStatus": "active",
+        "match": {
+          "required": [
+            { "field": "rm.finalDirection", "op": "ne", "value": "neutral" },
+            { "field": "rm.trendAssessment", "op": "matchesAny", "values": ["趋势对齐", "MA20/MA60"], "evidenceType": "deterministic" }
+          ],
+          "forbidden": [
+            { "field": "rm.divergencePct", "op": "gt", "value": 20, "note": "波动率模型不稳定 → 降级而非禁用" }
+          ],
+          "weight": 4,
+          "note": "趋势对齐 + 方向非中性即命中；divergence>20% 时命中但降权（×0.5）"
+        },
+        "conditions": [
+          "screening.initialDirection 与 thesis.trend（vsMA20、vsMA60）同号，且 change5d 与方向一致",
+          "入场区建议在 priceRanges 的 ATR 带内侧（不追 2×ATR 带外）"
+        ],
+        "invalidation": [
+          "方向信号反转（价格回到均线另一侧）；futures-radar 映射：thesis.invalidation（Q5）任一条件被收盘触发即退出",
+          "regime 切换为震荡（HV 高但无趋势、MA 频繁穿越）",
+          "divergence.pct > 20% 时趋势过滤信号可靠性下降，需降级处理",
+          "政策干预性市场（强平仓、临时交易限制）中动量信号失真"
+        ],
+        "entryExit": {
+          "entry": "报告方向非中性 + 趋势对齐确认后，按执行层 playbook（PB-01/PB-03）的 T+1 开盘规则入场",
+          "exit": "Q5 失效条件收盘触发即退出；或波动率目标机制强制减仓（见 MS-04 / riskConfig）",
+          "stop": "ATR5 的 1–3 倍设初始止损（默认 stopK=1.5），与 Q5 结构位取更紧者"
+        },
+        "fieldRefs": ["rm.finalDirection", "rm.trendAssessment", "rm.hvAnnual", "rm.atr5", "rm.invalidationConditions"],
+        "evidenceSources": [
+          { "title": "Moskowitz, Ooi, Pedersen (2012), Time Series Momentum, JFE 104(2)", "url": "https://research.cbs.dk/da/publications/time-series-momentum/" },
+          { "title": "Hurst, Ooi, Pedersen (2017), A Century of Evidence on Trend-Following Investing", "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2993026" },
+          { "title": "Faber (2007), A Quantitative Approach to Tactical Asset Allocation", "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=962461" },
+          { "title": "Baltas (2020), Demystifying Time-Series Momentum Strategies", "url": "https://onlinelibrary.wiley.com/doi/10.1002/9781119599364.ch3" },
+          { "title": "Liu & Jiao, Risk-Weighted Time-Series Momentum: China's Commodity Futures", "url": "https://www.semanticscholar.org/paper/22b4708b17bc5e775d4457bd716bf34c5a51ea04" },
+          { "title": "Revisiting time series momentum in China's commodity futures market, Economic Modelling 128 (2023)", "url": "https://econpapers.repec.org/article/eeeecmode/v_3a128_3ay_3a2023_3ai_3ac_3as0264999323003346.htm" },
+          { "title": "The crisis alpha of managed futures: Myth or reality?", "url": "https://www.sciencedirect.com/science/article/abs/pii/S1057521922000242" }
+        ],
+        "limitations": "参数敏感（回看窗口、波动率估计器）；横盘期连续小亏；文献结论只保证长期历史样本中的显著性，不保证任何未来区间收益。",
+        "riskHooks": ["volTargetPerPosition", "stopK", "divergenceDegrade"],
+        "pairsWith": ["PB-01", "PB-03"]
+      },
+      {
+        "id": "MS-02",
+        "sourceId": "macro-risk-regime",
+        "family": "macro",
+        "name": "风险偏好 regime 轮动（Risk-On / Risk-Off）",
+        "category": "regime-switching",
+        "role": "regime-filter",
+        "summary": "用 5 个宏观锚点的 5 日变化构造 risk-on/off 评分，评分 ≥3 时作为顺周期多头/宏观空头的门禁。",
+        "regimeFit": "regime 具有持续性的阶段；不适用宏观指标剧烈震荡的“消息市”",
+        "sectors": ["nonferrous", "black", "energy_chemical", "agriculture", "shipping"],
+        "direction": "long-short",
+        "maturity": "high",
+        "confidenceHint": "medium",
+        "defaultStatus": "active",
+        "match": {
+          "formula": "riskOnScore",
+          "steps": [
+            "riskOn 评分 = Σ（各 +1）：DXY.change5d<0；US10Y.change5d<+0.20pp；USDCNH.change5d<0；DR007 低位且 change5d<+0.5pp；SC0.change5d>-1%",
+            "riskOff 评分 = 相反条件之和",
+            "stale 锚点（status!=fresh）该信号按 0 计，并在 rationale 中标出"
+          ],
+          "required": [
+            { "field": "riskOnScore", "op": "gte", "value": 3, "note": "riskOn≥3 允许做多顺周期候选；riskOff≥3 只允许做空候选或空仓；评分 1–2 中性、仓位减半" },
+            { "field": "ss.sectorDirection", "op": "eq", "value": "reportDirection", "note": "板块 direction 与候选方向一致" },
+            { "field": "ss.advanceRatio1d", "op": "gte", "value": 50, "note": "广度 ≥50% 才采信 regime 信号" }
+          ],
+          "weight": 3,
+          "note": "regime 信号对商品期货是背景过滤器而非独立开仓信号，必须与品种 Q1 驱动叠加"
+        },
+        "conditions": [
+          "riskOn≥3 → 允许做多顺周期品种（有色/黑色/能化需求侧/农产品多头/航运 EC0）",
+          "riskOff≥3 → 只允许做空候选或空仓",
+          "评分 1–2 中性：按品种自身 Q1–Q6 逻辑交易但仓位减半"
+        ],
+        "invalidation": [
+          "regime 评分反向达到 ≥3 → regime 驱动仓位全部退出",
+          "单一锚点极端变化（US10Y.change5d≥+0.25pp 或 DXY.change5d≥+1%）→ 提前降仓",
+          "连续 3 个交易日评分在 2–3 间摆动 → 停用本策略"
+        ],
+        "entryExit": {
+          "entry": "regime 评分与方向门禁通过后，按品种 Q4 确认信号入场",
+          "exit": "评分反向 ≥3 或品种 Q5 失效触发",
+          "stop": "沿用 riskConfig.stopK 与 Q5 结构位"
+        },
+        "fieldRefs": ["rm.macroIndicators", "ss.sectorDirection", "ss.advanceRatio1d"],
+        "evidenceSources": [
+          { "title": "Ang, Chen, Xing (2006), Downside Risk, RFS 19(4)", "url": "https://www.nber.org/papers/w11824" },
+          { "title": "Ang, Chen, Xing (2006) RFS 原文", "url": "https://academic.oup.com/rfs/article-abstract/19/4/1191/1580531" },
+          { "title": "Whaley (2000), The Investor Fear Gauge", "url": "https://www.mendeley.com/catalogue/c6699227-6680-3a5d-9620-59502892bd29/" },
+          { "title": "Kritzman, Page, Turkington (2012), Regime Shifts: Implications for Dynamic Strategies, FAJ 68(3)", "url": "https://www.tandfonline.com/doi/abs/10.2469/faj.v68.n3.3" }
+        ],
+        "limitations": "regime 识别天然滞后（需 change5d 确认）；USDCNH/US10Y 在本管道可能 stale（落后一日），规则必须容忍 1 日滞后。",
+        "riskHooks": ["confidenceScale"],
+        "pairsWith": ["MS-01", "MS-06"]
+      },
+      {
+        "id": "MS-03",
+        "sourceId": "macro-carry",
+        "family": "macro",
+        "name": "宏观利差 / Carry（商品期限结构）",
+        "category": "carry",
+        "role": "evidence-tag",
+        "summary": "做多持有收益高的资产；商品版 carry ≈ 展期收益。本版管道无全品种期限结构序列，只能作为 Q3 证据标签参与匹配权重。",
+        "regimeFit": "宏观平稳、无突发供给冲击的 regime；供给冲击期信号失真",
+        "sectors": ["energy_chemical", "agriculture", "nonferrous"],
+        "direction": "long-short",
+        "maturity": "high",
+        "confidenceHint": "low",
+        "defaultStatus": "active",
+        "match": {
+          "required": [
+            { "field": "rm.oddsReasoning", "op": "matchesAny", "values": ["期限结构", "近月升水", "backwardation", "近端偏紧", "展期收益", "contango", "近月贴水"], "evidenceType": "qualitative", "note": "仅作证据标签，不独立生成开仓信号" }
+          ],
+          "weight": 2,
+          "evidenceType": "qualitative"
+        },
+        "conditions": [
+          "thesis.odds 文本出现期限结构支撑/压制 → 视为 carry 方向证据（正/负），计入策略匹配权重",
+          "升级为独立信号需要新增期限结构采集（后续版本工作，不在本次范围）"
+        ],
+        "invalidation": [
+          "供给冲击引发期限结构急变（backwardation 暴涨后常伴随均值回归）",
+          "宏观紧缩导致风险溢价整体重定价",
+          "risk-off 评分 ≥3 时禁止开 carry 方向仓位"
+        ],
+        "entryExit": {
+          "entry": "不独立入场；仅作为其他策略的加分证据",
+          "exit": "品种 Q5 失效条件触发即退出",
+          "stop": "沿用主策略止损"
+        },
+        "fieldRefs": ["rm.oddsReasoning", "rm.driverPrimary"],
+        "evidenceSources": [
+          { "title": "Koijen, Moskowitz, Pedersen, Vrugt (2018), Carry, JFE 127(2)", "url": "https://econpapers.repec.org/article/eeejfinec/v_3a127_3ay_3a2018_3ai_3a2_3ap_3a197-225.htm" },
+          { "title": "Gorton & Rouwenhorst (2006), Facts and Fantasies about Commodity Futures, FAJ 62(2)", "url": "https://www.tandfonline.com/doi/abs/10.2469/faj.v62.n2.4083" },
+          { "title": "Szymanowska, de Roon, Nijman, van den Goorbergh (2014), An Anatomy of Commodity Futures Risk Premia, JF 69(1)", "url": "https://onlinelibrary.wiley.com/doi/10.1111/jofi.12096" },
+          { "title": "Erb & Harvey (2006), The Strategic and Tactical Value of Commodity Futures, FAJ 62(2)", "url": "https://www.tandfonline.com/doi/abs/10.2469/faj.v62.n2.4084" }
+        ],
+        "limitations": "本管道数据不完整，只能做标签；carry 危机期回撤极深，必须与 regime 过滤叠加。",
+        "riskHooks": ["confidenceScale"],
+        "pairsWith": ["CS-01"]
+      },
+      {
+        "id": "MS-04",
+        "sourceId": "macro-vol-target",
+        "family": "macro",
+        "name": "波动率目标 / 波动率管理",
+        "category": "volatility-overlay",
+        "role": "risk-overlay",
+        "summary": "仓位比例 = volTarget / 已实现波动率，HV 升高自动减仓、降低恢复敞口（设 0.2–1.0 夹取），所有 regime 通用。",
+        "regimeFit": "全部 regime 通用（overlay）",
+        "sectors": ["*"],
+        "direction": "neutral",
+        "maturity": "high",
+        "confidenceHint": "high",
+        "defaultStatus": "active",
+        "match": {
+          "formula": "volTargetScale",
+          "steps": [
+            "scale = clamp(volTarget / max(hv.annual, 0.05), 0.2, 1.0)；宏观研究笔记默认 volTarget=0.15（可配置 0.10–0.20），但本管线以 riskConfig.volTargetPerPosition=0.10 为唯一权威参数",
+            "divergence.pct < 10% → 直接用 scale",
+            "divergence.pct ∈ [10,20] → scale ×0.75",
+            "divergence.pct > 20% 或 hv.degraded → scale ×0.5，止损改按 atrBand.atr5 计算",
+            "volPercentile ≥ 95 → 强制 scale ≤ 0.5"
+          ],
+          "required": [],
+          "weight": 0,
+          "note": "overlay 不参与匹配计分。关键裁定：手数只由 positionSizing（risk-framework §9）决定，其 lotsVol = floor(equity×volTargetPerPosition/(hv×close×multiplier)) 已是波动率缩放的最终形式；MS-04 的 scale 公式与 §9 lotsVol 是同一思想的两种表达，实现（t8）只执行 §9，本条目贡献的退化规则（divergence≥20 → ×0.5、volPercentile≥95 → ≤0.5）已并入 §9 step 4，不得双重缩放。"
+        },
+        "conditions": [
+          "scale 下限 0.2（跌破即“波动过大禁止新仓”门禁，只允许持有既有仓并收紧止损）",
+          "scale 上限 1.0（禁止加杠杆放大）"
+        ],
+        "invalidation": [
+          "波动率跳跃（跳空）使日频缩放滞后——隔夜跳空风险由 Q6 提示覆盖，本策略无法消除，只能缩小敞口"
+        ],
+        "entryExit": {
+          "entry": "不产生方向；对每条可执行计划计算 sizeScale",
+          "exit": "无方向性退出",
+          "stop": "divergence>20% 时止损改按 ATR 口径"
+        },
+        "fieldRefs": ["rm.hvAnnual", "rm.hvDegraded", "rm.divergencePct", "rm.atr5", "rm.hvPercentile90d"],
+        "evidenceSources": [
+          { "title": "Moreira & Muir (2017), Volatility-Managed Portfolios, JF 72(4)", "url": "https://onlinelibrary.wiley.com/doi/10.1111/jofi.12513" }
+        ],
+        "limitations": "波动率聚集导致缩放滞后于跳变；volTarget 是主观参数；长期低波动环境会持续满仓，风险并非恒定。",
+        "riskHooks": ["volTargetPerPosition", "volPercentileWarn", "divergenceDegrade"],
+        "pairsWith": ["RK-02"]
+      },
+      {
+        "id": "MS-05",
+        "sourceId": "macro-quadrant",
+        "family": "macro",
+        "name": "增长-通胀象限 regime 配置（All-Weather / 投资时钟）",
+        "category": "business-cycle",
+        "role": "regime-filter",
+        "summary": "用已有锚点把宏观状态近似映射到增长×通胀四象限，按象限偏好顺周期多头/供给受限多头/宏观空头/中性。",
+        "regimeFit": "增长/通胀出现明确共同趋势的阶段；象限内切换频率低",
+        "sectors": ["nonferrous", "black", "energy_chemical", "agriculture"],
+        "direction": "long-short",
+        "maturity": "medium-high",
+        "confidenceHint": "low",
+        "defaultStatus": "active",
+        "match": {
+          "formula": "quadrantProxy",
+          "steps": [
+            "增长代理 = US10Y.change5d 方向 + DR007 水平（收益率上行且资金利率低 → 增长↑）",
+            "通胀代理 = SC0.change5d 方向 + 农产品板块 direction",
+            "再通胀（增↑通↑）：偏好顺周期多头；滞胀（增↓通↑）：偏好供给受限多头；通缩衰退（增↓通↓）：宏观空头占优、多头全部降级；复苏（增↑通↓）：中性按品种 Q1 交易",
+            "仅 status==fresh 的锚点参与计算；stale 锚点按 0 计并在 rationale 标出"
+          ],
+          "required": [],
+          "weight": 2,
+          "note": "低频近似背景，任何象限仓位只允许满仓的 50%–75%"
+        },
+        "conditions": [
+          "象限仓位只允许满仓的 50%–75%，剩余留给品种自身逻辑",
+          "锚点互相矛盾（如增↑通↑但 USDCNH 反向）→ 连续 5 日不稳定则停用"
+        ],
+        "invalidation": [
+          "象限切换即减仓原象限偏好仓位",
+          "结构性脱钩（中国内需与美债收益率脱钩）时增长代理失效"
+        ],
+        "entryExit": {
+          "entry": "不独立入场，作为象限偏好权重作用于候选计划",
+          "exit": "象限切换减仓；品种 Q5 触发无条件退出",
+          "stop": "沿用 riskConfig"
+        },
+        "fieldRefs": ["rm.macroIndicators", "ss.sectorDirection"],
+        "evidenceSources": [
+          { "title": "Bridgewater All-Weather 四象限框架介绍", "url": "https://www.cnbctv18.com/personal-finance/how-ray-dalio-builds-an-all%e2%80%91weather-portfolio-that-works-in-any-market-ws-l-19873783.htm/amp" },
+          { "title": "美林投资时钟框架说明（博时基金）", "url": "https://www.bosera.com.hk/zh-HK/infos/insights/detail/10614" },
+          { "title": "美林时钟 30 年回测讨论（香港经济日报）", "url": "https://wealth.hket.com/article/3553515/" },
+          { "title": "Kritzman, Page, Turkington (2012), Regime Shifts: Implications for Dynamic Strategies, FAJ 68(3)", "url": "https://www.tandfonline.com/doi/abs/10.2469/faj.v68.n3.3" }
+        ],
+        "limitations": "本管道宏观锚点只有 5 个、5 日变化口径，象限判定是低频近似，不构成严格的增长/通胀量化模型；投资时钟相位划分存在事后划分批评。",
+        "riskHooks": ["confidenceScale"],
+        "pairsWith": ["MS-02"]
+      },
+      {
+        "id": "MS-06",
+        "sourceId": "macro-event",
+        "family": "macro",
+        "name": "宏观事件驱动（政策窗口 / 供给冲击事件）",
+        "category": "event-driven",
+        "role": "direction",
+        "summary": "围绕供给/地缘/政策事件做顺事件方向的确认跟随；不推荐对地缘事件做 fade。",
+        "regimeFit": "事件窗口期（事件后 3–10 日）；不适用事件密集叠加期",
+        "sectors": ["agriculture", "energy_chemical", "black", "nonferrous", "shipping"],
+        "direction": "long-short",
+        "maturity": "medium",
+        "confidenceHint": "medium",
+        "defaultStatus": "active",
+        "match": {
+          "required": [
+            { "field": "rm.driverPrimary", "op": "matchesAny", "values": ["黑海", "粮道", "制裁", "减产", "极端天气", "OPEC", "限产", "收储", "抛储", "地缘", "检修", "关税", "物流"], "evidenceType": "deterministic" },
+            { "field": "rm.confirmSignals", "op": "exists", "note": "Q4 确认信号非空（事件续走入场前提）" }
+          ],
+          "forbidden": [],
+          "weight": 4,
+          "note": "事件驱动方向只顺事件方向，不逆向猜顶；EC0 类超高波动品种仅允许事件续走 + 强波动率缩放"
+        },
+        "conditions": [
+          "事件续走（event-join）：driver.primary 命中事件关键词 + Q4 确认信号非空 + thesis.trend 与方向一致",
+          "事件修复（event-fade）仅限一次性发布类冲击（数据/库存报告），quarter-size；禁止对地缘事件做 fade",
+          "US 议息窗口只映射为 regime 评分临时 ±1 调整，不做直接开仓依据"
+        ],
+        "invalidation": [
+          "Q5 失效条件为硬退出（事件解决即平仓）",
+          "事件发生后第 N 日（默认 N=5）价格未沿事件方向创新高/新低 → 事件动能衰竭，减半仓",
+          "事件被证伪（源头信息反转）；事件路径与宏观 regime 冲突 → 放弃交易"
+        ],
+        "entryExit": {
+          "entry": "Q4 确认信号触发后按 PB-07 事件后确认规则入场；half-size 起步，确认后补齐",
+          "exit": "Q5 任一条件触发即退出",
+          "stop": "条件单（收盘触发），不用市价追损；事件品种隔夜跳空风险大"
+        },
+        "fieldRefs": ["rm.driverPrimary", "rm.confirmSignals", "rm.invalidationConditions", "rm.trendAssessment"],
+        "evidenceSources": [
+          { "title": "Lucca & Moench (2015), The Pre-FOMC Announcement Drift, JF 70(1)", "url": "https://onlinelibrary.wiley.com/doi/abs/10.1111/jofi.12196" },
+          { "title": "Agricultural commodity market response to Russia's withdrawal from the grain deal, JAE 75(3) (2024)", "url": "https://onlinelibrary.wiley.com/doi/abs/10.1111/1477-9552.12611" },
+          { "title": "Short-term market impact of Black Sea Grain Initiative on four grain markets, JFM 44(4) (2024)", "url": "https://econpapers.repec.org/article/wlyjfutmk/v_3a44_3ay_3a2024_3ai_3a4_3ap_3a619-630.htm" }
+        ],
+        "limitations": "FOMC 漂移证据集中在美股且近年有衰减争论；事件定义需要关键词规则（易过拟合）；禁止用事件规则对未发生的事件做收益预测。",
+        "riskHooks": ["tailGapWarn", "stopK"],
+        "pairsWith": ["CS-06", "PB-07"]
+      },
+      {
+        "id": "MS-07",
+        "sourceId": "macro-sector-rot",
+        "family": "macro",
+        "name": "板块动量轮动 / 广度确认",
+        "category": "sector-rotation",
+        "role": "regime-filter",
+        "summary": "以板块方向 + 上涨广度作为品种信号的共振过滤器（板块因子 ±1）。",
+        "regimeFit": "板块轮动清晰期（广度 50%–85%）；不适用全市场同涨同跌",
+        "sectors": ["black", "nonferrous", "energy_chemical", "agriculture", "new_materials"],
+        "direction": "long-short",
+        "maturity": "high",
+        "confidenceHint": "medium",
+        "defaultStatus": "active",
+        "match": {
+          "required": [
+            { "field": "ss.advanceRatio1d", "op": "gte", "value": 50, "note": "广度 ≥50% 且与板块方向一致 → 板块因子 +1；<50% → 板块因子 −1" },
+            { "field": "ss.sectorDirection", "op": "eq", "value": "reportDirection", "note": "候选方向与板块方向一致" }
+          ],
+          "weight": 2,
+          "note": "成员 <3 的板块（贵金属/航运本期“成员不足，不判定”）跳过该因子"
+        },
+        "conditions": [
+          "候选品种方向与板块方向一致且板块因子=+1 → 正常仓位",
+          "方向相反 → 降级 half-size 或不执行（除非 Q1 驱动为独立产业逻辑，如 RM0 粮道事件）",
+          "候选品种是板块 representative/leader → 额外确认"
+        ],
+        "invalidation": [
+          "板块方向反转（连续 3 日反向）或广度跌破 50% → 板块共振仓位退出",
+          "品种自身 Q5 无条件优先"
+        ],
+        "entryExit": {
+          "entry": "不独立入场，板块因子作用于仓位（共振 +25% 上限、对抗 −50% 起）",
+          "exit": "板块方向反转或 Q5 触发",
+          "stop": "沿用 riskConfig"
+        },
+        "fieldRefs": ["ss.sectorDirection", "ss.advanceRatio1d", "ss.leaders"],
+        "evidenceSources": [
+          { "title": "Grinblatt & Moskowitz (1999), Industry Momentum", "url": "https://web.lib.aalto.fi/en/oa/db/SCIMA/?cmd=listget&id=192340" },
+          { "title": "Miffre & Rallis (2007), Momentum strategies in commodity futures markets, JBF 31(6)", "url": "https://econpapers.repec.org/article/eeejbfina/v_3a31_3ay_3a2007_3ai_3a6_3ap_3a1863-1886.htm" },
+          { "title": "Erb & Harvey (2006), The Strategic and Tactical Value of Commodity Futures", "url": "https://www.tandfonline.com/doi/abs/10.2469/faj.v62.n2.4084" }
+        ],
+        "limitations": "板块动量日频噪声大；本管道只输出 Top3 方向，不做多空组合。",
+        "riskHooks": ["maxPositionsPerSector"],
+        "pairsWith": ["MS-01"]
+      }
+    ],
+    "category": [
+      {
+        "id": "CS-01",
+        "sourceId": "CS-01",
+        "family": "category",
+        "name": "期限结构 / 展期收益",
+        "category": "term-structure",
+        "role": "evidence-tag",
+        "summary": "backwardation 多头展期收益为正、contango 相反；本版只能从 Q3 文本定性提取期限结构证据。",
+        "regimeFit": "宏观平稳期",
+        "sectors": ["energy_chemical", "nonferrous", "agriculture", "black"],
+        "direction": "follow-report",
+        "maturity": "high",
+        "confidenceHint": "low",
+        "defaultStatus": "active",
+        "match": {
+          "required": [
+            { "field": "rm.oddsReasoning", "op": "matchesAny", "values": ["期限结构", "近月升水", "近端偏紧", "backwardation", "contango", "展期"], "evidenceType": "qualitative", "note": "报告无期限结构序列，只能定性匹配、低权重" }
+          ],
+          "weight": 2,
+          "evidenceType": "qualitative"
+        },
+        "conditions": [
+          "驱动文本出现“期限结构近端偏紧/近月升水”等字眼（如 EG0/PX0 的 Q3 文本）作为定性佐证",
+          "主力合约展期日 > 20 个交易日（避免临近交割展期拥挤，由 Q6 换月提示近似）"
+        ],
+        "invalidation": [
+          "期限结构斜率快速平坦化/翻转（价差回到历史中位区）",
+          "库存拐点出现（驱动文本“累库开始/去库结束”）",
+          "|价差| < 1×ATR5（展期收益被短期波动覆盖）"
+        ],
+        "entryExit": {
+          "entry": "不独立入场；作为方向增强证据",
+          "exit": "Q5 触发",
+          "stop": "沿用主策略止损"
+        },
+        "fieldRefs": ["rm.oddsReasoning", "rm.driverPrimary", "rm.atr5"],
+        "evidenceSources": [
+          { "title": "Szymanowska et al. (2014), An Anatomy of Commodity Futures Risk Premia, JF", "url": "https://onlinelibrary.wiley.com/doi/abs/10.1111/jofi.12096" },
+          { "title": "Gorton, Hayashi & Rouwenhorst (2007), The Fundamentals of Commodity Futures Returns, NBER WP 13249", "url": "https://www.nber.org/papers/w13249" }
+        ],
+        "limitations": "报告只提供主力连续价格，无完整远期曲线；单腿展期收益幅度小；contango 下做空有逼仓风险。",
+        "riskHooks": [],
+        "pairsWith": ["MS-03"]
+      },
+      {
+        "id": "CS-02",
+        "sourceId": "CS-02",
+        "family": "category",
+        "name": "季节性",
+        "category": "seasonality",
+        "role": "evidence-tag",
+        "summary": "日历规律驱动的方向过滤/时点增强；需要品种-月份日历表，本版未内置则禁用自动匹配，仅作文本佐证。",
+        "regimeFit": "季节窗口期",
+        "sectors": ["agriculture", "energy_chemical", "black", "nonferrous"],
+        "direction": "follow-report",
+        "maturity": "medium-high",
+        "confidenceHint": "low",
+        "defaultStatus": "active",
+        "match": {
+          "required": [
+            { "field": "rm.driverPrimary", "op": "matchesAny", "values": ["旺季", "备货", "水产", "节假日", "金三银四", "金九银十", "季节性"], "evidenceType": "qualitative" },
+            { "field": "ss.advanceRatio1d", "op": "gte", "value": 50, "note": "板块广度共振确认" }
+          ],
+          "weight": 2,
+          "evidenceType": "qualitative",
+          "note": "日历表（品种-月份映射）未内置前，本策略不自动给分，仅当驱动文本显式出现季节逻辑时作低权佐证"
+        },
+        "conditions": [
+          "当前日期落入品种历史高胜率季节窗口（需 ≥5 年统计、胜率 >60% 才可引用；本版无日历表 → 不自动判定）",
+          "季节方向与 finalDirection 及板块 direction 一致",
+          "板块 advanceRatio1d ≥ 50% 且与方向一致"
+        ],
+        "invalidation": [
+          "当年供需结构被政策/天气改变（“今年与往年不同”类表述）",
+          "价格提前透支季节预期（窗口前 20 日累计涨跌幅超历史同期均值 +1σ）",
+          "季节方向与报告方向相反 → 不引用季节因子"
+        ],
+        "entryExit": {
+          "entry": "进入窗口 + 方向共振 + 收盘价位于 MA20 上方（多头）",
+          "exit": "窗口结束或 Q5 失效触发",
+          "stop": "沿用主策略止损"
+        },
+        "fieldRefs": ["rm.driverPrimary", "ss.advanceRatio1d", "ss.sectorRet5d", "rm.trendAssessment"],
+        "evidenceSources": [
+          { "title": "Analysis of selected seasonality effects in markets of futures contracts", "url": "http://yadda.icm.edu.pl/yadda/element/bwmeta1.element.ekon-element-000171476545" },
+          { "title": "How to time the commodities markets, J. Derivatives & Hedge Funds (2010)", "url": "https://link.springer.com/article/10.1057/jdhf.2010.4" }
+        ],
+        "limitations": "样本年份有限、扰动多，只能作方向过滤/时点增强，不能单独构成交易依据；报告当前无内置日历。",
+        "riskHooks": [],
+        "pairsWith": ["MS-07"]
+      },
+      {
+        "id": "CS-03",
+        "sourceId": "CS-03",
+        "family": "category",
+        "name": "产业利润 / 成本曲线驱动",
+        "category": "industry-margin",
+        "role": "evidence-tag",
+        "summary": "利润极端处存在成本支撑/利润顶；报告无量化利润数据，只能从驱动文本定性提取。",
+        "regimeFit": "产业利润处于极端区间",
+        "sectors": ["black", "energy_chemical", "new_materials", "agriculture"],
+        "direction": "follow-report",
+        "maturity": "medium-high",
+        "confidenceHint": "low",
+        "defaultStatus": "active",
+        "match": {
+          "required": [
+            { "field": "rm.driverPrimary", "op": "matchesAny", "values": ["利润压缩", "亏损", "成本支撑", "贴水成本", "减产", "加工费", "现金成本", "利润修复"], "evidenceType": "qualitative" }
+          ],
+          "weight": 2,
+          "evidenceType": "qualitative"
+        },
+        "conditions": [
+          "利润/成本类关键信号为 driver.primary 级别",
+          "报告 finalDirection 与产业逻辑同向（利润极低→易反弹；利润极高→易回落）"
+        ],
+        "invalidation": [
+          "成本锚本身移动（原料价格同步变动）",
+          "政策限产/环保打断利润-开工传导链条",
+          "利润极端状态长期持续（产能过剩期可长期亏损，成本支撑不即时生效）"
+        ],
+        "entryExit": {
+          "entry": "成本/利润信号 + 量价确认（收盘突破 MA20）",
+          "exit": "利润修复至中位或 Q5 触发",
+          "stop": "沿用主策略止损"
+        },
+        "fieldRefs": ["rm.driverPrimary", "rm.driverSecondary", "rm.finalDirection"],
+        "evidenceSources": [
+          { "title": "国投期货：螺矿比预计走扩，建议套利操作", "url": "https://www.hgwm.com/hyzx/show/id/1858.html" },
+          { "title": "我的钢铁转载：螺矿比", "url": "https://m.mysteel.com/a/24111208/54BB613DC9D72D8B_abc.html" },
+          { "title": "证券时报：锂电企业成本/利润周期", "url": "https://www.stcn.com/article/detail/4090000.html" }
+        ],
+        "limitations": "报告不含利润/开工/库存量化数据，只能定性提取，无法计算利润分位；成本锚估算主观；利润极端≠立即反转。",
+        "riskHooks": [],
+        "pairsWith": ["CS-04"]
+      },
+      {
+        "id": "CS-04",
+        "sourceId": "CS-04",
+        "family": "category",
+        "name": "跨品种价差 / 相对价值",
+        "category": "relative-value",
+        "role": "evidence-tag",
+        "summary": "两腿价差围绕产业均衡均值回归；报告只输出单品种分析，价差需自行构建且无内置历史价差数据。",
+        "regimeFit": "产业均衡未变的阶段",
+        "sectors": ["black", "agriculture", "energy_chemical", "nonferrous", "precious"],
+        "direction": "follow-report",
+        "maturity": "high",
+        "confidenceHint": "low",
+        "defaultStatus": "active",
+        "match": {
+          "required": [
+            { "field": "rm.driverPrimary", "op": "matchesAny", "values": ["螺矿比", "卷螺差", "焦炭焦煤比", "油粕比", "豆菜粕价差", "裂解价差", "金银比", "铜锌比", "价差"], "evidenceType": "qualitative" },
+            { "field": "ss.leaders", "op": "exists", "note": "板块 leaders/laggards 提供两腿强弱对比" }
+          ],
+          "weight": 2,
+          "evidenceType": "qualitative",
+          "note": "报告为单品种分析，价差腿之一不在 TOP3 时仅输出观察性注释，不生成执行计划"
+        },
+        "conditions": [
+          "价差偏离历史均值 >2σ（至少 120 日窗口）且产业逻辑支持回归",
+          "两腿均为品种池内活跃品种（config/symbols.json active=true）",
+          "报告对两腿相对强弱描述一致（如“原油重挫带动化工跟跌”）"
+        ],
+        "invalidation": [
+          "价差中枢迁移（政策、工艺、供给格局改变）",
+          "单腿逼仓/流动性缺失",
+          "价差继续走扩且超历史极值（结构破裂，不接飞刀）"
+        ],
+        "entryExit": {
+          "entry": "价差 >2σ + 逻辑支持（本版无价差序列，仅作注释级输出）",
+          "exit": "价差回归均值 ±0.5σ 或任一腿 Q5 触发",
+          "stop": "双腿同步止损"
+        },
+        "fieldRefs": ["rm.driverPrimary", "ss.leaders", "ss.laggards"],
+        "evidenceSources": [
+          { "title": "Gatev, Goetzmann & Rouwenhorst (2006), Pairs Trading, RFS 19(3)", "url": "https://academic.oup.com/rfs/article-abstract/19/3/797/1646694" },
+          { "title": "Crack Spread Backtest: Heating Oil vs Crude Oil (Fractiz)", "url": "https://www.fractiz.com/strategies/cl-ho-crack-spread/" },
+          { "title": "What can we learn from the history of gasoline crack spreads? Economic Modelling", "url": "https://www.sciencedirect.com/science/article/abs/pii/S0264999311002586" },
+          { "title": "国投期货：螺矿比套利", "url": "https://www.hgwm.com/hyzx/show/id/1858.html" }
+        ],
+        "limitations": "需双倍保证金与双腿同步执行；报告无内置历史价差数据，本版只输出观察性注释；中枢迁移是最主要风险。",
+        "riskHooks": ["marginUtilizationCap"],
+        "pairsWith": ["CS-03"]
+      },
+      {
+        "id": "CS-05",
+        "sourceId": "CS-05",
+        "family": "category",
+        "name": "库存周期 / 基差回归",
+        "category": "inventory-cycle",
+        "role": "evidence-tag",
+        "summary": "低库存 + 近月升水 → 易涨难跌；高库存 + contango → 上方受限。报告无库存数据，只能从驱动文本间接提取。",
+        "regimeFit": "库存极端状态",
+        "sectors": ["nonferrous", "black", "energy_chemical", "agriculture"],
+        "direction": "follow-report",
+        "maturity": "medium-high",
+        "confidenceHint": "low",
+        "defaultStatus": "active",
+        "match": {
+          "required": [
+            { "field": "rm.driverPrimary", "op": "matchesAny", "values": ["库存低位", "去库", "累库", "低库存", "结转库存", "港口库存", "厂库"], "evidenceType": "qualitative" }
+          ],
+          "weight": 2,
+          "evidenceType": "qualitative"
+        },
+        "conditions": [
+          "驱动文本出现库存极端表述，方向与 finalDirection 一致（低库存→看多增强，高库存→看空增强）",
+          "板块 volumeRatio20d > 1 佐证产业活跃度"
+        ],
+        "invalidation": [
+          "库存拐点确认（“开始累库/去库结束”）",
+          "需求崩塌（低库存也可能随需求崩盘，挤仓后大跌）",
+          "库存数据源滞后（周度数据晚于价格变化，信号已失效）"
+        ],
+        "entryExit": {
+          "entry": "库存极端 + 方向一致 + 价格结构确认（MA20 同侧）",
+          "exit": "库存拐点或 Q5 触发",
+          "stop": "沿用主策略止损"
+        },
+        "fieldRefs": ["rm.driverPrimary", "rm.oddsReasoning", "ss.volumeRatio20d"],
+        "evidenceSources": [
+          { "title": "Gorton, Hayashi & Rouwenhorst (2007), The Fundamentals of Commodity Futures Returns, NBER WP 13249", "url": "https://www.nber.org/papers/w13249" },
+          { "title": "Szymanowska et al. (2014), An Anatomy of Commodity Futures Risk Premia, JF", "url": "https://onlinelibrary.wiley.com/doi/abs/10.1111/jofi.12096" }
+        ],
+        "limitations": "报告不含库存数据，只能从驱动文本间接提取，无法量化分位；“易涨难跌”是概率性表述；库存数据发布滞后。",
+        "riskHooks": [],
+        "pairsWith": ["CS-01"]
+      },
+      {
+        "id": "CS-06",
+        "sourceId": "CS-06",
+        "family": "category",
+        "name": "供给冲击事件后确认跟随",
+        "category": "event-driven",
+        "role": "direction",
+        "summary": "持续供给约束类冲击 → 量价确认 → 跟随；与报告 Q1+Q4+Q5 框架完全同构，是最易确定性匹配的策略。",
+        "regimeFit": "事件窗口期",
+        "sectors": ["agriculture", "energy_chemical", "nonferrous", "shipping", "black", "new_materials"],
+        "direction": "follow-report",
+        "maturity": "medium-high",
+        "confidenceHint": "high",
+        "defaultStatus": "active",
+        "match": {
+          "required": [
+            { "field": "rm.driverPrimary", "op": "matchesAny", "values": ["黑海", "粮道", "天气", "物流", "OPEC", "管道", "装置检修", "安检", "限产", "环保", "减产", "制裁", "矿端", "运河", "拥堵", "航线"], "evidenceType": "deterministic" },
+            { "field": "rm.confirmSignals", "op": "exists", "note": "Q4 确认信号非空" }
+          ],
+          "weight": 5,
+          "note": "thesis.driver.primary 含供给冲击关键词 + confirmations.signals[] 非空 → 直接命中；失效条件即 invalidations.conditions[]"
+        },
+        "conditions": [
+          "driver.primary 为供给冲击类事件，证据文本明确“供应受限/不可一日逆转”",
+          "价格完成确认：收盘突破报告 Q4 确认水平且量能达标",
+          "板块方向一致（direction 同向且 advanceRatio1d ≥ 50%）"
+        ],
+        "invalidation": [
+          "供给恢复消息（Q5 类条件：“粮道恢复通行”“装置重启”）",
+          "价格收回关键位（收盘收回 MA20）",
+          "事件被证伪（信息源纠错）"
+        ],
+        "entryExit": {
+          "entry": "事件 + Q4 确认触发（如 RM0 站稳 2314、EG0 跌破 5000）",
+          "exit": "Q5 任一条件触发，不预测事件本身",
+          "stop": "沿用 riskConfig.stopK 与 Q5 结构位"
+        },
+        "fieldRefs": ["rm.driverPrimary", "rm.confirmSignals", "rm.invalidationConditions"],
+        "evidenceSources": [
+          { "title": "Kilian (2009), Not All Oil Price Shocks Are Alike, AER 99(3)", "url": "https://www.aeaweb.org/articles?id=10.1257/aer.99.3.1053" },
+          { "title": "报告运行 20260827-1910-auto 中 RM0（黑海粮道扰动）为该方法应用样例", "url": "futures-radar/output/runs/20260827-1910-auto/report.md" }
+        ],
+        "limitations": "事件反复（地缘谈判）导致假突破频发；确认入场意味着放弃部分初始涨幅；事件信息更新快，日频报告存在隔夜风险。",
+        "riskHooks": ["tailGapWarn", "stopK"],
+        "pairsWith": ["MS-06", "PB-07"]
+      },
+      {
+        "id": "CS-07",
+        "sourceId": "CS-07",
+        "family": "category",
+        "name": "贵金属实际利率 / 趋势跟随",
+        "category": "precious-real-rate",
+        "role": "direction",
+        "summary": "实际利率下行/美元走弱 → 金价趋势上行；MA 结构与宏观锚点双重确认。",
+        "regimeFit": "贵金属趋势市",
+        "sectors": ["precious"],
+        "direction": "follow-report",
+        "maturity": "high",
+        "confidenceHint": "medium",
+        "defaultStatus": "active",
+        "match": {
+          "required": [
+            { "field": "rm.sector", "op": "eq", "value": "precious" },
+            { "field": "rm.trendAssessment", "op": "matchesAny", "values": ["MA20", "MA60"] }
+          ],
+          "forbidden": [],
+          "weight": 3,
+          "note": "贵金属板块成员少（常“成员不足，不判定”），板块共振信号弱，不依赖广度条件"
+        },
+        "conditions": [
+          "宏观锚点方向一致：US10Y 下行或 DXY 下行（金价多头增强）",
+          "收盘价位于 MA20/MA60 上方且 5 日收益为正（趋势结构）",
+          "金银比位于 90 日历史极端分位（>90% 或 <10%）→ 仅作相对价值脚注"
+        ],
+        "invalidation": [
+          "实际利率方向反转（US10Y 持续上行 + DXY 走强）",
+          "金价收盘跌破 MA20 且连续 2 日不收回",
+          "避险溢价消退（地缘缓和，金价与利率关系恢复）"
+        ],
+        "entryExit": {
+          "entry": "宏观锚点 + MA 结构共振",
+          "exit": "宏观锚点反转或跌破 MA20",
+          "stop": "止损带宽（贵金属波动大），沿用 stopK"
+        },
+        "fieldRefs": ["rm.sector", "rm.macroIndicators", "rm.trendAssessment"],
+        "evidenceSources": [
+          { "title": "Erb & Harvey, Is There Still a Golden Dilemma?", "url": "https://nftrh.com/wp-content/uploads/2024/05/harvey-erb.pdf" },
+          { "title": "FA Magazine, Gold's Role Reconsidered", "url": "https://www.fa-mag.com/news/gold-s-role-reconsidered--what-drives-its-value-and-returns-84410.html" }
+        ],
+        "limitations": "贵金属板块成员少，板块共振信号弱；避险情绪短期扰动可脱离利率框架。",
+        "riskHooks": ["stopK"],
+        "pairsWith": ["MS-01"]
+      },
+      {
+        "id": "CS-08",
+        "sourceId": "CS-08",
+        "family": "category",
+        "name": "航运运价脉冲 / 均值回归",
+        "category": "freight-impulse",
+        "role": "direction",
+        "summary": "运价脉冲式上涨后长期均值回归，波动率极高；只做日频、单品种、单方向，禁止隔夜重仓。",
+        "regimeFit": "事件脉冲或极端分位回落期",
+        "sectors": ["shipping"],
+        "direction": "follow-report",
+        "maturity": "medium",
+        "confidenceHint": "low",
+        "defaultStatus": "active",
+        "match": {
+          "required": [
+            { "field": "rm.sector", "op": "eq", "value": "shipping" },
+            { "field": "rm.confirmSignals", "op": "exists", "note": "Q4 确认（事件跟随腿）" }
+          ],
+          "weight": 3,
+          "note": "仅适用于 shipping（EC0）；必须与波动率收缩规则绑定，否则不建议启用"
+        },
+        "conditions": [
+          "事件驱动 + 放量突破（Q4 确认）→ 跟随多头",
+          "或运价位于 90 日历史极高分位且收盘连续 2 日回落 → 均值回归空头候选",
+          "仅日频、单品种、单方向操作，禁止隔夜重仓（波动率约束）"
+        ],
+        "invalidation": [
+          "事件升级持续推涨（运河/航线谈判恶化）→ 空头逻辑失效",
+          "现货升水大幅扩大（期货折价加深，做空贴水风险）",
+          "波动率收缩后重新放大（HV 分位 <50% 后再度抬升）"
+        ],
+        "entryExit": {
+          "entry": "Q4 确认或极端分位回落确认",
+          "exit": "事件反转或 HV 分位回归中位",
+          "stop": "波动率极高，止损带宽与跳空风险大（tailGapWarn 强制）"
+        },
+        "fieldRefs": ["rm.sector", "rm.hvAnnual", "rm.hvPercentile90d", "rm.confirmSignals"],
+        "evidenceSources": [
+          { "title": "南华期货：集装箱产业风险管理日报", "url": "https://mall.nanhua.net/mall/nh/api/report/getReportFile?reportId=60353" },
+          { "title": "临时航线谈判进展顺利 集运指数期货显著回调（EC 事件-回落案例）", "url": "https://www.sohu.com/a/1067801698_122014422" }
+        ],
+        "limitations": "波动极大、跳空频繁、止损执行难；单品种板块无共振可依；样本历史短，统计分位可信度低。",
+        "riskHooks": ["tailGapWarn", "volPercentileSkip", "volTargetPerPosition"],
+        "pairsWith": ["CS-06"]
+      }
+    ],
+    "execution": [
+      {
+        "id": "PB-01",
+        "sourceId": "PB-01",
+        "family": "execution",
+        "name": "趋势动量延续（EMA20 斜率 + 20 日新高/新低突破）",
+        "category": "trend-momentum",
+        "role": "execution-template",
+        "summary": "趋势方向上以“突破新高 + 放量”证明加速时入场；本仓库样本内唯一正向验证的方向型模型。",
+        "evidenceLevel": "A-",
+        "defaultStatus": "active",
+        "params": {
+          "trendGate": "close > MA20 且 EMA20 斜率 ≥ +0.3%/日（空头镜像 ≤ −0.3%/日）",
+          "entryTrigger": "T 收盘突破近 20 日最高（多）/ 最低（空），且量比 ≥ 1.2",
+          "execution": "T+1 开盘；跳空 > 0.5×ATR5 放弃",
+          "initialStop": "min(入场价 ∓ 1.5×ATR5, 突破前 3 日极值 ∓ 0.25×ATR5)，取更近者",
+          "targetT1": "2R 平 50%",
+          "targetT2": "3R 或 3d p95 上/下沿取先到者；余仓 2×ATR5 移动止损",
+          "timeStop": "持有满 10 个交易日未触及 T1 → 全平",
+          "addOn": "浮盈 ≥1R 且再创 5 日新高/低 → +0.5 单位（止损上移至加仓价 ∓1×ATR5）；最多 2 次",
+          "holdingDays": [2, 10],
+          "gapCap": 0.5,
+          "notes": "空头距涨停 <1×ATR5 禁开（逼仓风险，Q6 口径）；持仓确认（OIΔ≥0）仅引用报告 Q4/Q5 既有持仓表述，不新增 OI 数据依赖"
+        },
+        "invalidation": [
+          "收盘跌回 20 日高点下方 >0.5×ATR5（空头镜像）→ 次日开盘离场",
+          "量比 <0.8 连续 2 日 → 动能衰竭，次日离场",
+          "playbook 级：回测样本 ≥200 笔时扣成本胜率 <35% 或盈利因子 <1.2 → 停用本参数组"
+        ],
+        "fieldRefs": ["rm.trendAssessment", "rm.finalDirection", "pb.cone3d", "rm.atr5"],
+        "evidenceSources": [
+          { "title": "内部：SIMPLE-MOMENTUM-RESULTS.md（EMA20 严格 17 笔 +1.54%、Sharpe 3.54；放宽 65 笔 +1.21%、Sharpe 3.25 —— 均为样本内探索性结果）", "url": "futures-radar/research/archive/backtest-reports/SIMPLE-MOMENTUM-RESULTS.md" },
+          { "title": "Moskowitz, Ooi & Pedersen (2012), Time Series Momentum, JFE 104(2)", "url": "https://research.cbs.dk/da/publications/time-series-momentum/" },
+          { "title": "Hurst, Ooi & Pedersen (2017), A Century of Evidence on Trend-Following Investing", "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2993026" }
+        ],
+        "limitations": "内部样本内正向 + 外部学术文献，但缺样本外验证；本仓库方向预测大样本已证伪（50.94%），radar 方向只作过滤不作入场理由。",
+        "riskHooks": ["stopK", "timeStop"],
+        "pairsWith": ["MS-01"]
+      },
+      {
+        "id": "PB-02",
+        "sourceId": "PB-02",
+        "family": "execution",
+        "name": "Donchian 通道突破（海龟式）",
+        "category": "channel-breakout",
+        "role": "execution-template",
+        "summary": "经典海龟系统；本仓库样本内初步证伪（Donchian 邻近度 5 笔、准确率 20%、均值 −1.36%），默认停用。",
+        "evidenceLevel": "B-",
+        "defaultStatus": "disabled",
+        "disableReason": "本仓库样本内出现反面证据（SIMPLE-MOMENTUM-RESULTS.md），未经 ≥200 笔、95% CI 不含 0 的验证禁止启用",
+        "params": {
+          "entryFast": "T 收盘突破前 20 日最高/最低",
+          "entrySlow": "T 收盘突破前 55 日最高/最低",
+          "exitFast": "反向突破前 10 日最低/最高",
+          "exitSlow": "反向突破前 20 日最低/最高",
+          "nUnit": "ATR20",
+          "initialStop": "入场价 ∓ 2N；2N 风险 >2% 权益 → 减手数至 ≤2%",
+          "addOn": "浮盈每 +0.5N 加 1 单位，最多 4 单位；每单位止损同步上移 0.5N",
+          "trailingStop": "浮盈 ≥3N 后启用 2N 追踪",
+          "execution": "T+1 开盘；跳空 >0.5N 放弃",
+          "holdingDays": [5, 60],
+          "gapCap": 0.5
+        },
+        "invalidation": [
+          "收盘回到通道内 >0.5N → 次日开盘离场",
+          "playbook 级：本仓库样本内已证伪 → 默认停用，重新验证口径见 execution-playbooks.md §10"
+        ],
+        "fieldRefs": ["rm.close", "rm.atr5"],
+        "evidenceSources": [
+          { "title": "Curtis Faith (2007), Way of the Turtle；原版海龟法则（1983）", "url": "https://en.wikipedia.org/wiki/Turtle_trading" },
+          { "title": "内部反面证据：SIMPLE-MOMENTUM-RESULTS.md（Donchian ❌）", "url": "futures-radar/research/archive/backtest-reports/SIMPLE-MOMENTUM-RESULTS.md" }
+        ],
+        "limitations": "经典但本样本初步证伪，默认停用；必须经本仓库回测框架重新验证后才能启用。",
+        "riskHooks": ["stopK"],
+        "pairsWith": ["MS-01"]
+      },
+      {
+        "id": "PB-03",
+        "sourceId": "PB-03",
+        "family": "execution",
+        "name": "回踩趋势延续（MA20/MA60 对齐 + 确认 K 线）",
+        "category": "pullback-continuation",
+        "role": "execution-template",
+        "summary": "趋势中不追突破，等回踩 MA20 支撑带出现“收盘反包”确认后再入场，R 赔率更优。",
+        "evidenceLevel": "B",
+        "defaultStatus": "active",
+        "params": {
+          "trendGate": "close > MA20 且 MA20 > MA60（或 MA20 斜率向上）；空头镜像",
+          "pullbackZone": "盘中/收盘触及 MA20 ± 0.25×ATR5；量比 0.8–1.5（缩量回踩为佳）",
+          "confirmBar": "T 收盘 > T−1 最高价（空头：T 收盘 < T−1 最低价）",
+          "execution": "T+1 开盘；跳空 > 0.75×ATR5 放弃",
+          "initialStop": "回踩极值 ∓ 0.25×ATR5；止损距离必须 ≤ 1.5R 否则放弃",
+          "targetT1": "前高/前低 或 3d p68 沿取先到者，平 50%",
+          "targetT2": "2R–3R，余仓 1×ATR5 移动止损",
+          "addOn": "突破 T1 且量比 ≥1.2 → +0.5 单位（止损上移 1×ATR5）；最多 1 次",
+          "timeStop": "持有满 8 个交易日未触及 T1 → 全平",
+          "holdingDays": [3, 8],
+          "gapCap": 0.75,
+          "notes": "空头反抽要求持仓不增（OIΔ≤+2%，仅引用报告既有表述），规避逼仓"
+        },
+        "invalidation": [
+          "收盘 < MA20 − 0.5×ATR5 且量比 ≥1.5（放量破位）→ 次日开盘离场",
+          "playbook 级：连续 10 笔止损或 200 笔盈利因子 <1.2 → 停用"
+        ],
+        "fieldRefs": ["rm.trendAssessment", "pb.cone3d", "rm.atr5"],
+        "evidenceSources": [
+          { "title": "Linda Raschke & Laurence Connors (1996), Street Smarts（回踩入场与 Holy Grail 形态）", "url": "https://www.goodreads.com/book/show/444518.Street_Smarts" },
+          { "title": "Edwards & Magee, Technical Analysis of Stock Trends", "url": "https://www.goodreads.com/book/show/599061.Technical_Analysis_of_Stock_Trends" }
+        ],
+        "limitations": "经典文献与行业通行，本仓库未直接回测。",
+        "riskHooks": ["stopK", "minRR"],
+        "pairsWith": ["MS-01"]
+      },
+      {
+        "id": "PB-04",
+        "sourceId": "PB-04",
+        "family": "execution",
+        "name": "波动率压缩 → 扩张爆发（NR7 / 低 HV 分位 + 放量方向确认）",
+        "category": "volatility-expansion",
+        "role": "execution-template",
+        "summary": "波动率压缩后第一根放量扩张 K 线往往启动短期趋势——只做扩张方向跟随，不做方向预测。",
+        "evidenceLevel": "C",
+        "defaultStatus": "active",
+        "params": {
+          "compressionGate": "HV%ile ≤ 30，或 NR7（T 日 TR 为近 7 日最小）",
+          "expansionTrigger": "T 日 TR ≥ 2× 近 5 日平均 TR，且收盘位于当日区间上 20%（多）/下 20%（空），量比 ≥ 1.5",
+          "execution": "T+1 开盘（跳空 ≤ 0.5×ATR5）或 T+1 收盘再确认、T+2 开盘（保守档）",
+          "initialStop": "min(入场价 ∓ 1×ATR5, 扩张日区间中点)，取更近者",
+          "targetT1": "2R 平 50%",
+          "targetT2": "3d p95 上/下沿，余仓 1×ATR5 移动止损",
+          "timeStop": "持有满 5 个交易日未触及 T1 → 全平",
+          "addOn": "浮盈 ≥1R 且连续 2 日收盘同向 → +0.5 单位；最多 1 次",
+          "holdingDays": [2, 5],
+          "gapCap": 0.5,
+          "notes": "禁止在扩张日反向抄底/摸顶；多空对称"
+        },
+        "invalidation": [
+          "收盘回到扩张日区间内 50% 以下（多，空头镜像）→ 次日开盘离场",
+          "playbook 级：回测 200 笔扣成本胜率 <40% → 停用"
+        ],
+        "fieldRefs": ["rm.hvPercentile90d", "pb.cone3d", "rm.atr5"],
+        "evidenceSources": [
+          { "title": "Toby Crabel (1990), Day Trading with Short Term Price Patterns and Opening Range Breakout（NR7）", "url": "https://www.goodreads.com/book/show/701222.Day_Trading_with_Short_Term_Price_Patterns_and_Opening_Range_Breakout" },
+          { "title": "Bollinger (2002), Bollinger on Bollinger Bands（带宽挤压）", "url": "https://www.goodreads.com/book/show/336385.Bollinger_on_Bollinger_Bands" }
+        ],
+        "limitations": "假设性，未回测；需按 §10 验证口径（≥200 笔、95% CI 不含 0、purged walk-forward）验证。",
+        "riskHooks": ["volPercentileWarn", "stopK"],
+        "pairsWith": ["MS-01"]
+      },
+      {
+        "id": "PB-05",
+        "sourceId": "PB-05",
+        "family": "execution",
+        "name": "均值回归（2×ATR 极值偏离 MA20 的逆向交易）",
+        "category": "mean-reversion",
+        "role": "execution-template",
+        "summary": "价格超出 MA20 ± 2×ATR5 带属统计极端，在无新驱动、波动率未失控时逆向回归均线；仅限 HV%ile 低-中位品种。",
+        "evidenceLevel": "C",
+        "defaultStatus": "active",
+        "params": {
+          "gate": "无当日新驱动（Q1 驱动为空/旧）；HV%ile ≤ 85；持仓变动绝对值 ≤5%（仅引用报告既有表述）",
+          "entryTrigger": "T 收盘 ≤ MA20 − 2×ATR5 且当日未触及跌停（空头镜像）",
+          "execution": "T+1 开盘；跳空 > 0.5×ATR5 放弃（禁止接刀）",
+          "initialStop": "min(入场价 ∓ 1×ATR5, 极值价 ∓ 0.5×ATR5)，取更近者",
+          "targetT1": "MA20（平 50%）",
+          "targetT2": "2R（全平）",
+          "timeStop": "持有满 5 个交易日未触及 T1 → 全平",
+          "addOn": "禁止加仓；浮盈 1R 后止损移至成本",
+          "holdingDays": [1, 5],
+          "gapCap": 0.5,
+          "notes": "多头回归附加：板块当日上涨广度 ≥30%；内部证据提示高波动品种动量 > 均值回归"
+        },
+        "invalidation": [
+          "出现新驱动新闻 → 前提破坏，立即离场",
+          "HV%ile 升破 90 → 当日弃用本 playbook",
+          "playbook 级：回测 200 笔盈利因子 <1.2，或 HV%ile≥60 子样本亏损 → 缩窄适用范围至 HV%ile≤60"
+        ],
+        "fieldRefs": ["rm.atr5", "rm.hvPercentile90d", "rm.driverPrimary", "ss.advanceRatio1d"],
+        "evidenceSources": [
+          { "title": "Connors & Alvarez (2009), Short Term Trading Strategies That Work（RSI(2)<5/>95 逆向）", "url": "https://chartschool.stockcharts.com/table-of-contents/trading-strategies-and-models/trading-strategies/rsi-2" },
+          { "title": "Bollinger (2002)，±2σ 带约含 88% 收盘价的经验观察", "url": "https://www.goodreads.com/book/show/336385.Bollinger_on_Bollinger_Bands" },
+          { "title": "内部反面提示：SIMPLE-MOMENTUM-RESULTS.md（高波动商品中简单动量 >> 均值回归）", "url": "futures-radar/research/archive/backtest-reports/SIMPLE-MOMENTUM-RESULTS.md" }
+        ],
+        "limitations": "未回测 + 内部存在反向证据提示，仅限低波动子集试验。",
+        "riskHooks": ["stopK", "antiMartingale"],
+        "pairsWith": ["PB-08"]
+      },
+      {
+        "id": "PB-06",
+        "sourceId": "PB-06",
+        "family": "execution",
+        "name": "区间 / 箱体边界交易（回归 + 突破双模式）",
+        "category": "range-trading",
+        "role": "execution-template",
+        "summary": "低波动率箱体内做边界回归；箱体放量突破则切换为顺势模式（移交 PB-02 管理）。",
+        "evidenceLevel": "C",
+        "defaultStatus": "active",
+        "params": {
+          "boxDefinition": "近 20 日最高/最低价构成箱体；HV%ile ≤ 40；箱宽 ≥ 2.5×ATR5；箱体内至少 4 次触及边界",
+          "modeAEntry": "触及边界当日收盘仍在箱内 → T+1 反向入场（上沿空/下沿多）",
+          "modeBEntry": "T 收盘突破边界且量比 ≥1.5 → T+1 顺势入场（移交 PB-02 管理）",
+          "execution": "T+1 开盘；跳空 > 0.5×ATR5 放弃",
+          "stopA": "边界外 0.25×ATR5",
+          "stopB": "1×ATR5（按 PB-02 可扩至 2N）",
+          "targetA": "对侧边界；入场前必须满足潜在盈利 ≥1.5R，否则不做",
+          "targetB": "箱高 1:1 投影 或 2R 取先到者",
+          "addOn": "A 禁止；B 按 PB-02 金字塔（0.5N、最多 4 单位）",
+          "holdingDays": "A：1–4 日；B：5–20 日",
+          "gapCap": 0.5
+        },
+        "invalidation": [
+          "模式 A：连续 2 日收盘在箱外 → 区间失效，离场并转 B 模式逻辑",
+          "playbook 级：A 模式 200 笔盈利因子 <1.2 → 只保留 B 模式；箱体突破后 5 日内未回归比例 >70% → 箱宽门槛收紧至 3×ATR5"
+        ],
+        "fieldRefs": ["rm.hvPercentile90d", "rm.atr5", "rm.close"],
+        "evidenceSources": [
+          { "title": "Edwards & Magee（箱体/矩形整理）；Nicolas Darvas 箱体理论（1960）", "url": "https://www.goodreads.com/book/show/599061.Technical_Analysis_of_Stock_Trends" },
+          { "title": "内部反面提示：SIMPLE-MOMENTUM-RESULTS.md（纯边界位置不预测方向 → B 模式强制量比确认）", "url": "futures-radar/research/archive/backtest-reports/SIMPLE-MOMENTUM-RESULTS.md" }
+        ],
+        "limitations": "未回测；B 模式与 PB-02 共享反面证据风险。",
+        "riskHooks": ["stopK", "minRR"],
+        "pairsWith": ["PB-02"]
+      },
+      {
+        "id": "PB-07",
+        "sourceId": "PB-07",
+        "family": "execution",
+        "name": "事件后确认（消息驱动 + 量仓验证 + 回踩不破）",
+        "category": "event-confirmation",
+        "role": "execution-template",
+        "summary": "重大消息引爆的放量大阳/大阴线当日不追，等“资金确认”或“回踩不破”再入场。",
+        "evidenceLevel": "B",
+        "defaultStatus": "active",
+        "params": {
+          "eventDay": "|Δclose| ≥ max(2×ATR5, 3%)，量比 ≥ 2，且 Q1 存在可识别驱动",
+          "entryA": "事件后 T+1/T+2 收盘 > 事件日最高，且持仓增（OIΔ≥+2%，仅引用报告既有表述）",
+          "entryB": "回撤 ≤ 事件区间幅度 50%，且连续 2 日收盘站稳事件区间中点上方 → 第 3 日开盘入场",
+          "execution": "开盘入场；跳空 > 0.75×ATR5 放弃",
+          "initialStopA": "事件日最低价 − 0.25×ATR5",
+          "initialStopB": "事件区间中点 − 0.25×ATR5",
+          "targetT1": "3d p95 上/下沿，平 50%",
+          "targetT2": "2× 事件区间投影 或 3R 取先到者",
+          "timeStop": "持有满 8 个交易日未触及 T1 → 全平",
+          "addOn": "浮盈 ≥1R 且持仓维持同向 → +0.5 单位；最多 1 次",
+          "holdingDays": [2, 8],
+          "gapCap": 0.75,
+          "notes": "空头距涨停 <1×ATR5 禁开；多头入场要求持仓增（资金进场确认）"
+        },
+        "invalidation": [
+          "收盘回到事件前 5 日区间内 → 事件影响消退，次日开盘离场",
+          "多头持仓转降 → 次日离场（仅报告既有表述）",
+          "radar Q5 失效条件触发（如黑海粮道恢复通行）→ 立即离场",
+          "playbook 级：样本 ≥100 笔时延迟入场相对当日追入的收益差 <0.5R → 改用当日模式重新验证"
+        ],
+        "fieldRefs": ["rm.driverPrimary", "rm.confirmSignals", "rm.invalidationConditions", "pb.cone3d"],
+        "evidenceSources": [
+          { "title": "内部：20260827-1910-auto report.md RM0 案例（黑海粮道扰动、Q4 确认、Q5 失效）", "url": "futures-radar/output/runs/20260827-1910-auto/report.md" },
+          { "title": "Sumner & Mueller (1989), Are Harvest Forecasts News? AER", "url": "https://www.aeaweb.org/articles?id=10.1257/aer.89.4.763" },
+          { "title": "Kilian (2009), Not All Oil Price Shocks Are Alike, AER（供给冲击持续性差异）", "url": "https://www.aeaweb.org/articles?id=10.1257/aer.99.3.1053" }
+        ],
+        "limitations": "内部有同类案例、外部有事件研究，但 playbook 规则本身未回测。",
+        "riskHooks": ["stopK", "tailGapWarn"],
+        "pairsWith": ["CS-06", "MS-06"]
+      },
+      {
+        "id": "PB-08",
+        "sourceId": "PB-08",
+        "family": "execution",
+        "name": "概率锥区间管理（HV 锥 + ATR 带统一执行框架）",
+        "category": "probability-cone",
+        "role": "execution-template",
+        "summary": "把 3d/5d 概率锥当“统计定价区间”执行——区间下沿逢低接多、上沿兑现，p95 带外即统计失效。",
+        "evidenceLevel": "B-",
+        "defaultStatus": "active",
+        "params": {
+          "gate": "偏差分析 < 20%（>20% 当日弃用本 playbook）",
+          "entryTrigger": "价格回落至 3d p68 下沿 ±0.25×ATR5 且 radar 方向为多；空头镜像",
+          "execution": "T+1 开盘；跳空 > 0.5×ATR5 放弃",
+          "initialStop": "3d p95 下沿（多）− 0.25×ATR5；止损距离 >1.5R 预期则放弃",
+          "targetT1": "3d p68 上沿（多），平 50%",
+          "targetT2": "3d p95 上沿（多），余仓 1×ATR5 移动止损",
+          "timeStop": "锥有效期 5 个交易日（5 日后重算概率锥，未入场则放弃该信号）",
+          "addOn": "突破 p68 上沿且量比 ≥1.2 → +0.5 单位；最多 1 次",
+          "holdingDays": [1, 5],
+          "gapCap": 0.5,
+          "notes": "p95 带外连续 2 日收盘 → GBM 假设破裂，离场并当日弃用；p95 止损必须叠加 0.25×ATR 缓冲"
+        },
+        "invalidation": [
+          "连续 2 日收盘在 p95 带外 → 离场",
+          "锥过期（>5 日）未触发 → 放弃",
+          "playbook 级：回测 200 笔中 p68 带内收盘占比与理论 68% 偏差 >10pp → 该品种停用本 playbook"
+        ],
+        "fieldRefs": ["pb.cone3d", "pb.cone5d", "pb.atrComparison", "rm.divergencePct"],
+        "evidenceSources": [
+          { "title": "内部：probability/blueprint.md（Yang-Zhang 锥 + ATR 带 + 偏差分析，已实现并有测试套件）", "url": "futures-radar/probability/blueprint.md" },
+          { "title": "内部：probability/test-hv-cone.js（合成数据验证）", "url": "futures-radar/probability/test-hv-cone.js" }
+        ],
+        "limitations": "区间框架已验证、交易用法未回测；厚尾与跳空会系统性击穿锥（报告已声明）。",
+        "riskHooks": ["stopK", "minRR"],
+        "pairsWith": ["PB-05"]
+      }
+    ]
+  },
+  "riskOverlay": {
+    "_comment": "RK 组件来自 risk-framework.md，是作用于所有计划的 overlay，不参与匹配计分。",
+    "components": [
+      { "id": "RK-01", "name": "单笔风险上限", "config": "riskPerTradePct / confidenceScale", "type": "hard" },
+      { "id": "RK-02", "name": "波动率目标仓位", "config": "volTargetPerPosition / volTargetBook", "type": "hard-cap" },
+      { "id": "RK-03", "name": "ATR 止损与结构止损", "config": "stopK / limitStopCap", "type": "hard" },
+      { "id": "RK-04", "name": "最大回撤阶梯", "config": "drawdownLadder / consecutiveLossCircuit / weeklyLossCap", "type": "hard" },
+      { "id": "RK-05", "name": "相关性与板块集中度", "config": "maxPositionsPerSector / maxConcurrentPositions", "type": "hard" },
+      { "id": "RK-06", "name": "事件风险 / 跳空风险", "config": "tailGapWarn", "type": "warning" },
+      { "id": "RK-07", "name": "失效退出与时间止损", "config": "maxHoldingDays / Q5 条件直译", "type": "hard" }
+    ],
+    "marketStructure": [
+      "合约乘数必须用 config/symbols.json 的 multiplier",
+      "保证金率默认 8%（Q6 区间中值），实际以交易所+期货公司当日公告为准",
+      "保证金占用 ≤ 33%（20% 更优）；1 手保证金 >20% 权益 → 观察",
+      "止损距离 ≤ 0.8 × 当日涨跌停幅度；停板期间市价止损可能不成交",
+      "夜盘/无夜盘品种的隔夜跳空计入尾部校验；长假前保证金占用降至 20% 以下或平仓",
+      "计划必须绑定 probability.json 的 seriesSource（specific_contract）并提示 Q6 换月距离"
+    ]
+  },
+  "planSchema": {
+    "_comment": "t6/t7/t9/t12 的产出契约；队长裁定已固化：策略适配与执行许可分层。",
+    "version": "1.0.0",
+    "guarantees": [
+      "每个 TOP3 品种必须匹配 ≥1 个策略（matchedStrategies.length ≥ 1）——策略适配内容不得因 watch/skip 而省略",
+      "每个 plan 必须包含 riskAssessment 与 executionStatus（watch/skip 是合法执行状态，必须附 statusReasons）",
+      "同板块同方向集中度冲突：保留置信度更高/赔率更优的一个 executable，其余标记 watch 并注明“集中度冲突”原因",
+      "所有 plan 必须附免责声明（不构成投资建议）；不得输出收益/胜率承诺"
+    ],
+    "plan": {
+      "required": ["symbol", "rank", "sector", "matchedStrategies", "playbook", "riskAssessment", "executionStatus", "statusReasons", "invalidation", "entryPlan", "disclaimer"],
+      "matchedStrategies": {
+        "minItems": 1,
+        "item": {
+          "strategyId": "MS-* / CS-* 之一",
+          "matchEvidence": "命中了哪些字段与条件（引用 fieldCatalog 路径与实值）",
+          "evidenceType": "deterministic | qualitative",
+          "weight": "本条在 t6 计分中的权重"
+        }
+      },
+      "playbook": {
+        "playbookId": "PB-*（执行模板，与 matchedStrategies 中最强的方向策略 pairsWith 对齐）",
+        "entry": "入场触发与执行价口径（T+1 开盘 + 跳空阈值）",
+        "stop": "止损价与计算依据（ATR/结构位取更紧者）",
+        "targets": "T1/T2 目标（仅区间与 R 口径，不含收益数字）"
+      },
+      "riskAssessment": {
+        "_source": "risk-framework.md §9 risk 对象 schema",
+        "required": ["riskPerTradePct", "confidenceScale", "stopK", "stopDistancePts", "stopPrice", "structuralStop", "unitRiskCny", "lots", "marginPerLotCny", "marginUtilizationPct", "volContributionPctAnnual", "tailGapPct3d", "stressRiskCny", "eventRiskNote", "maxHoldingDays"]
+      },
+      "executionStatus": {
+        "enum": ["executable", "watch", "skip"],
+        "rule": "executable=lots≥1 且全部 hard 校验通过；watch=lots=0 但给出转执行触发条件（Q4 确认信号）；skip=波动率分位/盈亏比/停板等硬否决"
+      },
+      "statusReasons": {
+        "minItems": 1,
+        "examples": ["集中度冲突：同板块同向仓位保留置信度更高者", "波动率分位 ≥85（仅 high 置信可执行）", "区间模型失稳 divergencePct≥20", "尾部 3d p95 反向边距 ≥ 涨跌停幅度", "风险回报比不足（<1.5）", "资金不足（1 手保证金 >20% 权益）"]
+      },
+      "invalidation": {
+        "hard": "Q5 失效条件逐条直译",
+        "timeStop": "T+5 无确认无失效则市价退出",
+        "supersededByNextRun": true
+      },
+      "concentrationRule": {
+        "sameSectorSameDirection": "同 sector 且同方向的可执行计划只能保留一个（置信度更高/赔率更优者），其余 status=watch，statusReasons 必须包含“集中度冲突”",
+        "sameCostAnchor": "不同 sector 但共享同一主驱动（如 EG0/PX0 均以 SC0 原油为成本锚）视为相关，按同规则处理"
+      }
+    },
+    "reportContract": {
+      "_note": "t7 细化；此处给最低要求",
+      "minSections": ["策略匹配与理由", "执行计划（入场/止损/目标）", "风险评估（手数/每手风险/保证金占用）", "失效条件与时间止损", "免责声明"],
+      "forbidden": ["收益数字/预期收益", "胜率承诺", "新增数据源", "修改报告方向或置信度"]
+    }
+  }
+}

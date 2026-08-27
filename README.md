@@ -14,9 +14,10 @@
 - **FinCoT 推理层**：evidence packet 冻结 → 三分支蓝图 → 门禁 + grounding 校验（fail-closed 降级）
 - **轻量数据文件库（v0.1.4）**：`data/daily` + `data/ledger` 纯 JSON/JSONL，采集后自动镜像，增量采集与回测统一从这里读取；`data-store/` 提供 seed/verify/export/compact 维护命令
 - **板块异动分析（v0.1.5）**：采集层从 raw.json 确定性构建板块指数/广度/领涨领跌，入库 `data/sector/`；板块驱动 LLM（Sector-Driver）单独归因板块整体，`sector_movement` 观察值注入 FinCoT，驱动结论只作 context、禁止混入个股证据链（不使用持仓数据）
+- **交易策略板块（策略库/匹配引擎）**：`strategies/` 四路研究（宏观/品类/playbook/风控）→ 统一策略库 `strategy-library.json`（23 条策略 + riskConfig + planSchema）→ 确定性匹配规则 `strategy-matching-rules.json` → 匹配引擎 `strategies/lib/strategy-matcher.cjs` + CLI `build-strategy-plan.cjs`（产出 `strategy-plan.json`）→ 报告新增「五、交易策略板块（执行参考）」章节（`report/render-strategy-section.cjs` 渲染；`strategy-plan.json` 缺失时自动跳过，四章+附录不变）。所有策略为方向增强/执行参考：**不构成投资建议、无收益承诺、不使用新增持仓数据**
 - **保守自动化（v0.1.4）**：软过滤 `--shadow` 输出 `filtered.quant.json`；六问预填充只生成 `analysis.draft.json`，LLM 边界不撤销
 - **离线回测**：strict no-look-ahead 实现 + LLM replay 评分卡；方向层已被大样本证伪并收口（诚实披露）
-- **552 个测试全绿**（89 套件），测试夹具内置、无机器路径依赖
+- **585 个测试全绿**（98 套件），测试夹具内置、无机器路径依赖
 
 ## 目录结构
 

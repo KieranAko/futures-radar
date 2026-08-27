@@ -343,7 +343,31 @@ const header = [
 // 数据时效说明卡片（v0.1.2）：header 之后、第一章之前；旧 run 无 freshness 时跳过
 const freshnessCard = model.freshness ? renderFreshnessCard(model.freshness) : [];
 
-const report = [...header, ...freshnessCard, ...ch1, ...ch2, ...ch3, ...ch4].join('\n');
+// ── 交易策略板块（t9）：可选章节「五、交易策略板块（执行参考）」 ──
+// 契约 strategies/report-strategy-section.md §3.2：strategy-plan.json 存在且非空时，
+// 在第四章之后、附录「价格区间方法说明」之前插入；缺失/为空时跳过，四章+附录不变。
+const { renderStrategySection, composeReportWithStrategy } = require('./render-strategy-section.cjs');
+let strategySection = null;
+const strategyPlanPath = path.join(RUN_DIR, 'strategy-plan.json');
+if (fs.existsSync(strategyPlanPath)) {
+  try {
+    const strategyPlan = JSON.parse(fs.readFileSync(strategyPlanPath, 'utf8'));
+    if (strategyPlan && Array.isArray(strategyPlan.plans) && strategyPlan.plans.length > 0) {
+      const library = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'strategies', 'strategy-library.json'), 'utf8'));
+      strategySection = renderStrategySection(strategyPlan, library);
+      console.log(`  ✓ 交易策略板块: rendered (${strategyPlan.plans.length} plans, ${strategySection.length} chars)`);
+    } else {
+      console.log('  - 交易策略板块: strategy-plan.json 为空，跳过');
+    }
+  } catch (err) {
+    console.warn(`  - 交易策略板块: 跳过（${err.message}）`);
+  }
+} else {
+  console.log('  - 交易策略板块: strategy-plan.json 不存在，跳过');
+}
+
+const baseReport = [...header, ...freshnessCard, ...ch1, ...ch2, ...ch3, ...ch4].join('\n');
+const report = strategySection ? composeReportWithStrategy(baseReport, strategySection) : baseReport;
 
 // ── Write report.md ──────────────────────────────────────────
 const outputPath = path.join(RUN_DIR, 'report.md');

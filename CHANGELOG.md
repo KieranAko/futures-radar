@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.6（2026-08-27）
+
+- **交易策略板块（策略库）**：新增 `strategies/` 工作区——四路研究笔记（宏观/细分品类/执行 playbook/风控框架）+ 统一策略库 `strategy-library.json`（23 条策略 MS/CS/PB + riskConfig + positionSizing §9 + planSchema，64 条证据 URL，全部可溯源）+ 可读说明 `strategy-library.md`
+- **确定性匹配规则与引擎**：`strategy-matching-rules.json`（计分公式/确定性公式/playbook 状态门/集中度仲裁/workedExample）+ `strategies/lib/strategy-matcher.cjs` + CLI `strategies/build-strategy-plan.cjs --runId`（产出 `output/runs/<runId>/strategy-plan.json`，经 `report/strategy-plan.schema.json` 机械校验；确定性双跑一致）
+- **报告「五、交易策略板块（执行参考）」**：`report/render-strategy-section.cjs` 从 `strategy-plan.json` 渲染策略匹配/入场/止损/目标/仓位/风险评估/执行状态/失效退出/免责声明；插入点=第四章后、附录前；`strategy-plan.json` 缺失或为空时自动跳过，四章+附录逐行不变（回归验证 236 行基线全序保留）
+- **边界**：每个 TOP3 ≥1 matchedStrategy（BASE-01 报告结论跟随保底）；watch/skip 为合法执行状态且不省略策略适配内容；集中度冲突保留一个 executable 其余 watch；无收益承诺、无新增持仓数据、不构成投资建议
+- **审查修复（review round 1 → repair → round 2 pass）**：MS-01 证据串按方向取符号（bullish `>`/bearish `<`）；top-3 截断后的 ≥阈值落选者并入 supportingEvidence（标注「超出展示上限」）；`effectiveRiskConfig()` 使 library.riskConfig 成为风控参数单一事实来源（stopK 分层 high=2.0/medium=1.5，分数→百分数归一，DEFAULTS 仅回退）；执行口径方向化（多头「多头距跌停」/空头「空头距涨停」）
+- **观察项处理**：内部证据路径渲染为纯文本并标注「内部」（OBS-1）；strategy-library.md 登记组合级覆盖组件（volTargetBook/drawdownLadder 等）未实现原因（OBS-3，单 run 静态 plan 无组合历史）；既有 artifact 口径差异登记为上游既有问题（OBS-2）
+- 新增 matcher（21 条）与渲染（12 条）测试；全量测试 552 → 585（98 套件）
+
 ## 0.1.5（2026-08-27）
 
 - **板块异动分析**：新增 `collector/sector-aggregator.cjs`——从本 run raw.json 确定性构建板块指数（成员等权日收益链式，基点 1000）、1d/5d/20d 收益、上涨广度、方向 coherence、量比、领涨/领跌代表；不使用持仓数据
