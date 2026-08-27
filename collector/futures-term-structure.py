@@ -28,6 +28,8 @@ TRANSIENT_ERR_TYPES = {
 }
 MAX_RETRIES = 2
 BACKOFF_SLEEPS = [20, 60]
+# v0.1.3: --contracts 模式每合约附带的历史 bar 数（覆盖 probability HV percentile ≥110 bar 窗口）
+DEFAULT_BARS = 120
 
 
 def _is_transient(exc):
@@ -59,7 +61,29 @@ def fetch_df(code):
     return False, f"{type(last_err).__name__}: {str(last_err)[:120]}"
 
 
-def fetch_one(code, target_date):
+def df_to_bars(df, target, max_bars):
+    """取 <= target_date 的最后 max_bars 根 bar，转 dict 列表（与 --history 模式同口径）。
+
+    v0.1.3: --contracts 模式附带各合约 bars，供 freeze-packets 直接复用主导合约
+    干净序列，避免再次 spawn + 重复下载同一合约全量历史。
+    """
+    recent = df[df["date"] <= target].tail(max_bars)
+    bars = []
+    for _, row in recent.iterrows():
+        bars.append({
+            "date": str(row["date"].date()),
+            "open": float(row["open"]),
+            "high": float(row["high"]),
+            "low": float(row["low"]),
+            "close": float(row["close"]),
+            "volume": int(row["volume"]),
+            "hold": int(row["hold"]),
+            "settle": float(row["settle"]),
+        })
+    return bars
+
+
+def fetch_one(code, target_date, max_bars=DEFAULT_BARS):
     """Fetch the last bar on or before target_date for a specific contract.
 
     Returns (ok, result_dict). A contract counts as available only when it
@@ -97,6 +121,7 @@ def fetch_one(code, target_date):
         "close": close,
         "volume": volume,
         "hold": int(row["hold"]),
+        "bars": df_to_bars(df, target, max_bars),
     }
 
 
@@ -117,19 +142,7 @@ def fetch_history(code, target_date, max_bars):
     if len(recent) == 0:
         return False, {"contract": code, "available": False, "reason": "no_bar_on_or_before_date"}
 
-    bars = []
-    for _, row in recent.iterrows():
-        bars.append({
-            "date": str(row["date"].date()),
-            "open": float(row["open"]),
-            "high": float(row["high"]),
-            "low": float(row["low"]),
-            "close": float(row["close"]),
-            "volume": int(row["volume"]),
-            "hold": int(row["hold"]),
-            "settle": float(row["settle"]),
-        })
-    return True, {"contract": code, "available": True, "bars": bars}
+    return True, {"contract": code, "available": True, "bars": df_to_bars(df, target, max_bars)}
 
 
 
@@ -141,7 +154,7 @@ def main():
     parser.add_argument("--delay", type=float, default=0.5, help="Seconds between contract requests (pacing, default 0.5)")
     parser.add_argument("--output", help="Output JSON file path (default: stdout)")
     parser.add_argument("--history", help="Mode: contract code to fetch full OHLCV history for")
-    parser.add_argument("--bars", type=int, default=80, help="Max bars for --history mode (default 80)")
+    parser.add_argument("--bars", type=int, default=DEFAULT_BARS, help=f"Max bars per contract (default {DEFAULT_BARS})")
     args = parser.parse_args()
 
     # Mode 1: single-contract OHLCV history (P0 clean series for deep-dig)
@@ -187,7 +200,9 @@ def main():
     for i, code in enumerate(codes):
         if i > 0 and args.delay > 0:
             time.sleep(args.delay)
-        is_ok, result = fetch_one(code, args.date)
+        # v0.1.3: 附带每合约最近 args.bars 根日线（freeze-packets 直接复用主导合约
+        # 干净序列，避免二次 spawn 重复下载）
+        is_ok, result = fetch_one(code, args.date, args.bars)
         contracts[code] = result
         if is_ok:
             ok_count += 1

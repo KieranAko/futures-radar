@@ -110,6 +110,7 @@ const reportModel = {
   screening: reportFacts.screening,
   rejected: reportFacts.rejected,
   macro: reportFacts.macro,
+  freshness: reportFacts.freshness || null,
   opportunities: []
 };
 

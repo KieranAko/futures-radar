@@ -28,6 +28,7 @@ class ParallelCollector {
     this.days = options.days || 30;
     this.timeout = options.timeout || 180000; // 3 minutes
     this.maxRetries = options.maxRetries || 3;
+    this.retryBackoffMs = options.retryBackoffMs || 4000; // P2: 重试波次间冷却（456 退避）
     this.pythonScript = options.pythonScript;
     this.tempDir = options.tempDir;
 
@@ -109,6 +110,8 @@ class ParallelCollector {
       const batch = this.queue.shift();
       if (!batch) {
         // No more tasks in main queue, check failure pool later
+        const poolExhausted = [...this.failurePool.values()].every(c => c >= this.maxRetries);
+        if (poolExhausted) break; // P2: 全部批次已达重试上限，避免空转
         await new Promise(resolve => setTimeout(resolve, 100));
         continue;
       }
@@ -171,6 +174,9 @@ class ParallelCollector {
     if (this.failurePool.size === 0) return;
 
     console.log(`\n=== Retrying ${this.failurePool.size} failed batches ===`);
+    // P2: 456 退避 — 重试波次前冷却，避免在限流窗口内立即再打同一端点
+    console.log(`  (cooldown ${this.retryBackoffMs}ms before retry wave)`);
+    await new Promise(resolve => setTimeout(resolve, this.retryBackoffMs));
 
     const retryBatches = [];
     for (const [batchId, retryCount] of this.failurePool.entries()) {

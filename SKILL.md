@@ -1,7 +1,7 @@
 ---
 name: futures-radar
 description: 期货短期机会分析 + 离线模型回测——每日扫描~60个国内期货主力合约，波动率排名→Top 3深挖→4章短报告；backtest/ 支持 deterministic 与 LLM replay 回测
-version: 0.1.1
+version: 0.1.3
 ---
 
 # futures-radar
@@ -41,10 +41,12 @@ version: 0.1.1
 | 变量 | 必填 | 说明 |
 |------|------|------|
 | `FUTURES_SKILL_ROOT` | 否 | skill 根目录；默认自动探测（向上找 SKILL.md） |
-| `FUTURES_RUNTIME_ROOT` | 否 | 运行产物目录；默认 `<项目根>/data/futures-radar`（无项目根时 `<skill>/data/futures-radar`） |
+| `FUTURES_RUNTIME_ROOT` | 否 | 运行产物目录；默认 `<skill>/output`（runs 落在 `<skill>/output/runs/<runId>/`，已 gitignore） |
 | `MX_DATA_PATH` | 否 | `mx_data.py` 完整路径；默认探测 skill 兄弟目录 / `~/.agents/skills` / `~/.claude/skills` |
 | `MX_APIKEY` | 否 | mx-data API key（缺失时 Top 3 增强降级为 WebSearch-only） |
 | `FUTURES_TEST_RAW_JSON` | 否 | 测试用 raw.json 路径；默认使用内置夹具（真实 artifact 冻结切片） |
+| `FUTURES_FAST_CLOSE` | 否 | 收盘快照快速通道开关；`0` 关闭（默认开；`0` 同时禁用快照优先增量） |
+| `FUTURES_VERBOSE` | 否 | `1` 时打印快照优先增量不启用原因等诊断日志（默认关） |
 
 ## 管道
 
@@ -63,18 +65,25 @@ node pipeline/run.cjs --runId 20260730-1637-auto --from scan
 运行 `collector/akshare-futures.cjs` → 逐一拉取 `config/symbols.json` 白名单品种日线 OHLCV → 产出 `raw.json` + `raw-snapshot.md` + `provenance.json`
 - 首次全量 ~60s，后续增量 ~5s（仅最新一根日线）
 - 采集失败标 gap，不阻塞管道
+- **收盘快照快速通道（v0.1.2）**：日线接口收盘后经常延迟数小时发布当日 bar；采集时若日线序列缺少本地今日，自动用 sina 收盘快照（`hq.sinajs.cn nf_` 主力连续，date==本地今日 && time>=15:00 完整会话）兜底补入当日 bar（append-only，来源盖章 `lastBarSource=sina_close_snapshot`，provenance/raw-snapshot.md 透传）。实测 2026-08-27 快照与监控中心官方日线（CFMMC）逐字段一致。`FUTURES_FAST_CLOSE=0` 可关闭
+- **CFMMC 交叉验证层（P0，v0.1.2）**：快照补入的当日 bar 与 CFMMC 官方日线逐品种比对（`collector/cfmmc-verify.cjs` + `collector/cfmmc_daily.py`）——主导合约=当日成交量最大行，价格字段阈值 0.1%、量/仓阈值 5%；三态 verified/diverged/unverified 写入 provenance（perSymbol.lastBarVerification）与 raw.json meta.cfmmcVerify；结算价不一致仅标 `settleProvisional=true`（只标注不修订）；DCE 接口失败 → unverified 延后比对（warn-only 不阻塞）；`FUTURES_CFMMC_VERIFY=0` 可关闭
+- **增量缓存（P1，v0.1.2）**：复用最近 run 的 raw.json（`collector/incremental-cache.cjs`）——1 次探测 sina 最新 bar 日期，缓存末 bar 同日则直接复用（深拷贝 + `cacheReused`/`cacheOriginRunId` 盖章），只拉缺失/落后品种；缓存超 5 天或序列非法 → 全量校准；`FUTURES_FULL_PULL=1` 强制全量。实测：全量 16.5s，全复用采集 0.0s。批量并发维持 4 进程 × 5 品种（P1 实测 4×15=60 并发触发 sina 456，不采用）
+- **快照优先增量（v0.1.3）**：日常场景（日线接口已发布今日 bar，缓存恰好落后一根=上一交易日）不再全量重拉 ~59 品种，改用收盘快照一次性补当日 bar（1 次 HTTP 调用，date==今日 && time>=15:00 校验 + CFMMC 交叉验证照常）。契约见不变量 #8；覆盖率 <90% 或任一品种落后超过一根 → 自动回退日线重拉（fail-open）。实测 2026-08-27：59/59 品种补入，raw.json 全序列与官方日线逐字段一致，Top10 扫描排名/分数不变；采集阶段 ~13s 全量 → ~1s 快照（另加 CFMMC 验证 ~3s，DCE 接口故障日受既定退避策略影响约 +7s）
 
 ### 阶段1.5: Macro (auto, Phase 3 阶段一)
 运行 `collector/macro-probe.cjs` → 5 个冻结宏观锚点（DXY/USDCNH/US10Y/DR007/SC0）快照 → 产出 `macro-snapshot.json`
 - 锚点取值取 `<= signalDate` 最后一根已完成日线，禁止使用盘中未完成 bar
 - 单指标失败标 missing（带 reason），不伪造、不用近似源顶替
+- **P2 容错（v0.1.2）**：sina_fx 主通道指数退避重试 2 次（`collector/backoff.cjs`）；USDCNH 主通道失败 → sina 实时快照兜底（`fx_susdcnh`，同族真实数据，仅当日观测值可用，change5d 标 —）；DXY 无实时码 → 保持 missing（不近似顶替）。实测 2026-08-27：sina 外汇 456 时 USDCNH 6.7196 兜底成功、DXY missing
 - 整阶段失败不阻断期货雷达（failurePolicy=warn）；报告阶段不联网，只读快照
 - 数据源纪律：仅 akshare/sina 同源族 + 本 run raw.json（SC0 复用），不用 ttfund/Wind/iFinD
 - 传导路由：`config/macro-transmission.json` 按品种前缀首个命中；未命中 → 空集（合法，不强行编造驱动）
+- **管道并行（v0.1.3）**：`pipeline/run.cjs` 中 Macro 与 Scan 阶段只依赖 collect 产物、互不依赖，并发执行（宏观采集耗时移出关键路径；宏观看门 warn 不阻塞 scan）
 
 ### 阶段2: Scan (auto)
 运行 `scanner/index.cjs` → ATR/HV/分位数计算 + 加权排名 → 产出 `candidates.json`（Top 10）
 - 自动排除：日均成交额 < 1亿 / 日均持仓 < 1万手 / 距交割 < 15天 / 涨跌停封板中
+- v0.1.3 起与 Macro 阶段并行执行（见阶段1.5）
 
 ### 阶段3a: Filter-Hard (auto)
 运行 `filter/hard-filter.cjs` → 确定性硬过滤 → 产出 `filtered-hard.json`
@@ -89,6 +98,7 @@ LLM 读 `filter/blueprint.md` → 从 filtered-hard.json 中降权/保留/标记
 ### 阶段4: Analyze (manual)
 LLM 读 `analyze/blueprint.md` → 冻结 evidence packets → FinCoT 结构化结果 → 6 问框架 → 产出 `analysis.json`
 - 步骤 1（自动）：`analyze/freeze-packets.mjs` 冻结 `evidence-packets.json`——注入 term_structure（akshare 近/主/远月报价，品种串行 + 退避重试规避 sina 456），并从冻结 `macro-snapshot.json` 注入 packet 顶层 `macro_context`（三态 available/not_applicable/unavailable；evidence 仅观察值，relation 不写入 packet），渲染 FinCoT prompts（仅 FinCoT 含宏观区块，SP/UST-CoT/ST-CoT 无泄漏）
+  - **单进程抓取（v0.1.3）**：主导合约 120 bar 历史随 term-structure 同一次 Python 调用附带返回（`futures-term-structure.py --contracts` 模式输出每合约 bars），免二次 spawn 重复下载同一合约全量历史；payload 缺失/异常回退原 `fetchContractHistory`。实测 packet 数值与旧路径完全一致（ma20/ma60/close_60d/series_contract 逐项相同）
 - 步骤 2（LLM）：读 prompts 输出推理文档到 `analyze/outputs/{symbol}-fincot.md`（macro_context 存在时按契约输出宏观三字段 `macro_support`/`macro_conflict`/`macro_evidence_ids`）
 - 步骤 3（自动）：`analyze/assemble-results.mjs` 执行 parser + grounding（evidence_ids/opposing_ids → fields；macro_evidence_ids → macro_context.evidence 独立域 fail-closed；不通过降级 pass/model_abstain）→ `reasoning-results.json`
 - 步骤 4（LLM）：六问 → `analysis.json`
@@ -117,6 +127,7 @@ LLM 读 `analyze/blueprint.md` → 冻结 evidence packets → FinCoT 结构化�
 **5C**: 运行 `report/render-markdown.cjs` → Markdown 渲染 → 产出 `report.md`
 - 4 章固定结构 + 附录
 - 价格区间对比表（HV 概率锥 + ATR 通道 + 偏差）
+- **数据时效说明卡片（v0.1.2）**：报告头部展示行情末 bar 日期、当日 bar 来源（日线接口 vs 收盘快照通道）、宏观锚点 asOf 分布（stale/missing 标注）、采集时刻与口径（`report/freshness.cjs` 确定性推导；旧 run 无 raw.json 自动跳过）
 - 篇幅软预算（结构完整性优先，不强制截断）
 
 ### 阶段6: Publish (manual)
@@ -129,6 +140,7 @@ LLM 更新 `current.md` → 提取 runId + Top 3 摘要
 - 基差/库存/会员持仓不出现在全市场扫描中（只出现在 Top 3 深挖里）
 - 每条数据标 source + fetchedAt（provenance 机制）
 - 报告阶段不得调用数据源；所有值取自已完成的快照
+- **三级来源链（P2）**：sina 日线（主序列）→ CFMMC 官方日线（只验证/回填口径，不进主序列，避免连续口径漂移）→ 收盘快照（兜底当日 bar）；单级失败不阻塞，逐级标原因（gap/diverged/unverified/missing）
 
 ### 冻结不变量（2026-08-27 冻结）
 
@@ -136,6 +148,10 @@ LLM 更新 `current.md` → 提取 runId + Top 3 摘要
 2. **夜盘归属下一交易日**（源盖章）：Sina 完整日线 = 前夜夜盘 + 当日日盘，按日盘所在交易日归属，open 取夜盘开盘。管道零日期推断、无交易日历依赖；夜盘结束后跑雷达无需调整日期取值区间，主链路锚定最后一根完整日线
 3. **分钟接口仅限定性**：分钟数据仅用于确认方向/量级（如夜盘破位确认），禁止聚合重建日线、禁止计算正式 MA/HV/ATR、禁止进概率锥回测
 4. **provisional 夜盘快照独立通道**（挂起，未实现）：独立接口 + 自然时段 + dataAsOf 标注，只消费于报告 banner 与 LLM 定性上下文；待铲屎官触发后实现
+5. **收盘快照快速通道**（v0.1.2，铲屎官 2026-08-27 触发）：sina 日线接口滞后时兜底补当日 bar。契约：仅当日线序列缺少本地今日时启用；快照 date 必须===本地今日且 time>=15:00:00（盘中/午休一律拒绝）；append-only 不覆盖历史；bar 盖章 `lastBarSource=sina_close_snapshot`+`lastBarAsOf`；快照失败 warn 不阻塞（日线仍为权威主序列）。对照组：2026-08-27 RB2701/CU2610 快照与 CFMMC 官方日线 open/high/low/close/settle/pre_settle/volume/OI 一致
+6. **CFMMC 交叉验证契约**（P0，v0.1.2）：仅验证快照补入的当日 bar（日线接口 bar 标 not_applicable 不比对）；品种映射=主力连续去尾 0 → CFMMC 当日行按 volume 最大选主导合约；阈值：价格（open/high/low/close/settle）相对差 ≤0.1%、volume/open_interest 相对差 ≤5%；三态 verified/diverged（记录 diffs 字段级）/unverified（市场失败或该品种无当日行，延后比对）；结算价不一致仅标 settleProvisional=true（只标注不修订，官方结算发布后以 CFMMC 为准）；验证层失败 warn-only，不阻塞采集（快照 date/time 校验仍是底线）
+7. **容错契约**（P2，v0.1.2）：统一指数退避（`collector/backoff.cjs`：批次重试波次冷却 4s、快照分块重试 1 次 3s、宏观锚点重试 2 次 5s 基座）；探针结果 30 分钟窗口内跨阶段复用（`--reuse-if-fresh`，fatal 除外，`FUTURES_FORCE_PROBE=1` 强制）；宏观外汇备用通道仅用于 USDCNH 且须当日观测值（change5d 不可用标 —），DXY 无备用源 → missing 不伪造
+8. **快照优先增量契约**（v0.1.3）：仅当日线接口已发布今日 bar（探测 latest===本地今日）且缓存恰好落后一根（全部品种缓存末 bar===探测 prev）时启用；快照补入沿用不变量 #5 的 date/time/OHLC 校验与来源盖章；覆盖率 <90%（或快照 fetch 异常）→ 回退日线重拉（fail-open，官方日线仍为权威主序列）；CFMMC 交叉验证（不变量 #6）照常执行；`FUTURES_FAST_CLOSE=0` 同时禁用本通道。对照组（2026-08-27）：快照优先 raw.json 与官方日线全序列 59/59 逐字段一致，Top10 扫描排名/分数不变
 
 **对照证据（2026-08-26 SA2701）**：8-26 日线 open=1045 = 8-25 夜盘开盘（日盘首分钟 open 1042）；close/low/末持仓与夜盘收盘吻合；分钟聚合 high 差 1 tick、volume 差 ~6.4%（佐证不变量 #1/#2，禁止重建日线）
 
@@ -155,7 +171,7 @@ LLM 更新 `current.md` → 提取 runId + Top 3 摘要
 |------|--------|
 | 前置 | `VERSION.md` → 运行 `collector/probe-sources.cjs` |
 | 0-Probe | `collector/probe-sources.cjs` → `config/sources.json` |
-| 1-Collect | `collector/akshare-futures.cjs` → `config/symbols.json` |
+| 1-Collect | `collector/akshare-futures.cjs` + `collector/close-snapshot.cjs`（收盘快照通道/快照优先增量）+ `collector/incremental-cache.cjs`（增量缓存）→ `config/symbols.json` |
 | 1.5-Macro | `collector/macro-probe.cjs` → `collector/akshare-macro.cjs` → `collector/macro_collector.py` → `config/macro-indicators.json` + `config/macro-transmission.json` |
 | 2-Scan | `scanner/index.cjs` → `config/symbols.json` |
 | 3a-FilterHard | `filter/hard-filter.cjs` → `filter/rules.json` |

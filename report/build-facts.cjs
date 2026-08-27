@@ -21,6 +21,7 @@ const fs = require('fs');
 const path = require('path');
 const { runtimeRoot, skillRoot } = require('../lib/workspace.cjs');
 const { validateMacroSnapshot } = require('../collector/macro-probe.cjs');
+const { buildFreshness } = require('./freshness.cjs');
 
 // ── Helpers ──────────────────────────────────────────────────
 function readJSON(filePath) {
@@ -369,6 +370,25 @@ function main() {
   // ── Step 7: Macro section（Phase 3 阶段一）────────────────────
   console.log('\n[7/7] Building macro section...');
   const macro = buildMacroSection(RUN_DIR, runId, keepSymbols);
+
+  // 数据时效段（v0.1.2）：只读 raw.json 的 meta/contracts 元数据（末 bar 日期/来源盖章），
+  // 不重算行情数值；raw.json 缺失/不可解析 → freshness=null，5C 跳过卡片（旧 run 兼容）
+  let freshness = null;
+  const rawJsonPath = path.join(RUN_DIR, 'raw.json');
+  if (fs.existsSync(rawJsonPath)) {
+    try {
+      freshness = buildFreshness({
+        rawJson: readJSON(rawJsonPath),
+        macroSnapshot: macro.available ? macro : null
+      });
+      console.log(`\n  freshness: latestBar=${freshness.latestBarDate} (${freshness.withLatestBar}/${freshness.totalSymbols})`);
+    } catch (e) {
+      console.warn(`  ⚠️ freshness unavailable: ${e.message}`);
+      freshness = null;
+    }
+  } else {
+    console.warn('  ⚠️ raw.json not found — freshness card disabled');
+  }
   console.log(macro.available
     ? `  ✓ macro-snapshot available (${macro.quality.available} available, ${macro.quality.missing} missing)`
     : `  macro unavailable: ${macro.reason}`);
@@ -383,7 +403,7 @@ function main() {
       totalSymbols: candidates.meta.preFilter?.total || candidates.candidates.length,
       top10Count: top10.length,
       keepCount: filtered.candidates.length,
-      pipelineVersion: '0.1.0',
+      pipelineVersion: '0.1.2',
       artifacts: {
         candidates: {
           runId: candidates.meta.runId,
@@ -405,7 +425,8 @@ function main() {
     },
     opportunities,
     rejected,
-    macro
+    macro,
+    freshness
   };
 
   const outputPath = path.join(RUN_DIR, 'report-facts.json');

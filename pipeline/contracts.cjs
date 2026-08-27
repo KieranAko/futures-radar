@@ -1,4 +1,4 @@
-// pipeline/contracts.cjs — futures-radar v0.1.0
+// pipeline/contracts.cjs — futures-radar v0.1.2
 // Single source of truth for artifact and stage declarations.
 // Shared by pipeline/run.cjs (orchestrator).
 //
@@ -168,7 +168,7 @@ const stages = [
     failurePolicy: 'hard_fail',
     rebuildCommand: 'node collector/probe-sources.cjs --runId {runId}',
     script: 'collector/probe-sources.cjs',
-    args: (runId) => ['--runId', runId]
+    args: (runId) => ['--runId', runId, '--reuse-if-fresh'] // P2：窗口内复用探针，避免背靠背 456
   },
 
   // ── Stage 1: Collect ──
@@ -285,14 +285,14 @@ const stages = [
     label: '报告事实组装 (确定性)',
     auto: true,
     dependsOn: ['probability'],
-    inputs: ['candidates-json', 'filtered-json', 'probability-json', 'macro-snapshot-json'],
+    inputs: ['candidates-json', 'filtered-json', 'probability-json', 'macro-snapshot-json', 'raw-json'],
     outputs: ['report-facts-json'],
     validators: [],
     failurePolicy: 'hard_fail',
     rebuildCommand: 'node report/build-facts.cjs --runId {runId}',
     script: 'report/build-facts.cjs',
     args: (runId) => ['--runId', runId],
-    note: 'Phase 8-A: Deterministic facts assembly from 3 JSON artifacts + macro-snapshot 透传. Symbol join + provenance tracking + data quality aggregation.'
+    note: 'Phase 8-A: Deterministic facts assembly from 3 JSON artifacts + macro-snapshot 透传 + raw.json 时效推导（v0.1.2 freshness card）. Symbol join + provenance tracking + data quality aggregation.'
   },
 
   // ── Stage 5B: Analysis Integration (Auto) ──

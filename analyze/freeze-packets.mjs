@@ -107,7 +107,7 @@ for (let i = 0; i < keeps.length; i++) {
     }
   }
 
-  const { field: tsField, dominantContract } = await extractTermStructure(rawJsonPath, symbol, signalDate);
+  const { field: tsField, dominantContract, contractsResult } = await extractTermStructure(rawJsonPath, symbol, signalDate);
   if (tsField.gap === null) {
     raw.fields.term_structure = tsField;
     raw.packetFrozenAt = tsField.fetchedAt;
@@ -138,9 +138,22 @@ for (let i = 0; i < keeps.length; i++) {
 
   // P0：主导合约干净序列覆盖 price_data / volume_oi（架构裁定：主力连续是筛选指数，不是价格水平数据源）
   // P1：主导合约复用 extractTermStructure 的单一解析点（term_structure.main 与 price_data 同源，杜绝口径分叉）
+  // v0.1.3：主导合约历史已随 term-structure 同进程抓取（--contracts 模式附带 bars），
+  // 免去第二次 spawn 重复下载同一合约全量历史；payload 缺失/异常时回退原 fetchContractHistory。
   if (dominantContract) {
+    const tsBars = contractsResult && contractsResult[dominantContract] && Array.isArray(contractsResult[dominantContract].bars)
+      ? contractsResult[dominantContract].bars
+      : null;
     // 120 bar：probability 阶段 HV percentile（需 ≥110 bar）用同一干净序列
-    const historyBars = await fetchContractHistory(dominantContract, signalDate, { bars: 120 });
+    let historyBars;
+    let historySource;
+    if (tsBars && tsBars.length > 0) {
+      historyBars = tsBars;
+      historySource = 'term-structure payload (single spawn)';
+    } else {
+      historyBars = await fetchContractHistory(dominantContract, signalDate, { bars: 120 });
+      historySource = 'history spawn (fallback)';
+    }
     const historyFetchedAt = new Date().toISOString();
     const override = overrideWithCleanSeries(raw, dominantContract, historyBars, historyFetchedAt);
     if (override.ok) {
@@ -150,7 +163,7 @@ for (let i = 0; i < keeps.length; i++) {
       const pd = raw.fields.price_data;
       const maNote = pd.ma60 === null ? ' (ma60=null: 历史不足60bar)' : '';
       console.log(
-        `  clean series: ${dominantContract} ${historyBars.length} bars → ma20=${pd.ma20?.toFixed?.(2) ?? pd.ma20}` +
+        `  clean series: ${dominantContract} ${historyBars.length} bars (${historySource}) → ma20=${pd.ma20?.toFixed?.(2) ?? pd.ma20}` +
         ` ma60=${pd.ma60?.toFixed?.(2) ?? pd.ma60}${maNote}`
       );
     } else {

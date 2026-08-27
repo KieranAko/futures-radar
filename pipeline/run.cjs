@@ -1,4 +1,4 @@
-// pipeline/run.cjs — futures-radar v0.1.0
+// pipeline/run.cjs — futures-radar v0.1.3
 // Single pipeline entry point. Orchestrates automatable stages, stops at LLM boundaries.
 //
 // Usage:
@@ -87,6 +87,27 @@ function runStage(scriptRelPath, scriptArgs) {
   return { ok: res.status === 0, exitCode: res.status };
 }
 
+// v0.1.3: 异步阶段执行（供 macro ∥ scan 并行；输出直通控制台）
+function runStageAsync(scriptRelPath, scriptArgs) {
+  const scriptPath = path.join(skillRoot, scriptRelPath);
+  if (!fs.existsSync(scriptPath)) {
+    console.error(`  ERROR: script not found: ${scriptPath}`);
+    return Promise.resolve({ ok: false, error: 'script_missing' });
+  }
+  return new Promise((resolve) => {
+    const child = cp.spawn('node', [scriptPath, ...scriptArgs], {
+      stdio: 'inherit',
+      timeout: 300000,
+      windowsHide: true
+    });
+    child.on('error', (err) => {
+      console.error(`  ERROR: spawn failed: ${err.message}`);
+      resolve({ ok: false, error: err.message });
+    });
+    child.on('close', (code) => resolve({ ok: code === 0, exitCode: code }));
+  });
+}
+
 function checkArtifactById(artifactId) {
   const artifact = artifacts.find(a => a.id === artifactId);
   if (!artifact) return false;
@@ -106,7 +127,7 @@ let stoppedForLLM = false;
 let stoppedAtStage = null;
 let stoppedReason = null; // 'placeholder' | 'llm_boundary'
 
-console.log(`=== futures-radar pipeline v0.1.0 ===`);
+console.log(`=== futures-radar pipeline v0.1.3 ===`);
 console.log(`runId: ${runId}  from: ${fromStage}`);
 console.log(`skillRoot: ${skillRoot}`);
 console.log(`runtimeRoot: ${runtimeRoot}\n`);
@@ -119,12 +140,62 @@ if (fromStage !== 'collect') {
   }
 }
 
+(async () => {
 for (let i = startIdx; i < stageOrder.length; i++) {
   const sid = stageOrder[i];
   const stage = stageMap[sid];
 
   // Skip publish-current when not running full report
   if (sid === 'publish-current' && fromStage !== 'report') continue;
+
+  // v0.1.3: 并行阶段对 — macro（failurePolicy=warn）与 scan 只依赖 collect 产物，
+  // 互不依赖；并行执行把宏观采集耗时移出关键路径（实测宏观 ~18s 串行 → 并行不增加总时长）
+  if (sid === 'macro' && stageOrder[i + 1] === 'scan') {
+    const scanStage = stageMap['scan'];
+    console.log(`── ${stage.label} ──`);
+    console.log(`── ${scanStage.label} ──`);
+
+    // 输入门禁（两阶段各自 inputs 检查）
+    const stageInputs = [stage, scanStage];
+    const missingInputs = [];
+    for (const s of stageInputs) {
+      if (s.inputs && s.inputs.length > 0) {
+        for (const id of s.inputs) {
+          if (!checkArtifactById(id)) missingInputs.push(`${s.label}: ${id}`);
+        }
+      }
+    }
+    if (missingInputs.length > 0) {
+      console.error(`  FATAL: missing inputs: ${missingInputs.join(', ')}`);
+      process.exit(1);
+    }
+    if (!fs.existsSync(path.join(skillRoot, stage.script)) || !fs.existsSync(path.join(skillRoot, scanStage.script))) {
+      console.error(`  FATAL: script missing for macro/scan parallel pair`);
+      process.exit(1);
+    }
+
+    console.log(`  Running (parallel): node ${stage.script} ${stage.args(runId).join(' ')}`);
+    console.log(`                      node ${scanStage.script} ${scanStage.args(runId).join(' ')}`);
+    const [macroRes, scanRes] = await Promise.all([
+      runStageAsync(stage.script, stage.args(runId)),
+      runStageAsync(scanStage.script, scanStage.args(runId))
+    ]);
+
+    if (!scanRes.ok) {
+      console.error(`\nFATAL: ${scanStage.label} failed (exit ${scanRes.exitCode}). Pipeline stopped.`);
+      process.exit(1);
+    }
+    if (!macroRes.ok) {
+      if (stage.failurePolicy === 'warn' || stage.failurePolicy === 'degraded') {
+        console.warn(`  WARN: ${stage.label} failed (exit ${macroRes.exitCode}) — continuing (failurePolicy=${stage.failurePolicy}).`);
+      } else {
+        console.error(`\nFATAL: ${stage.label} failed (exit ${macroRes.exitCode}). Pipeline stopped.`);
+        process.exit(1);
+      }
+    }
+    i++; // scan 已执行，跳过
+    continue;
+  }
 
   console.log(`── ${stage.label} ──`);
 
@@ -223,3 +294,7 @@ if (stoppedForLLM) {
   console.log('=== PIPELINE COMPLETE ===');
   console.log(`runId: ${runId}`);
 }
+})().catch((err) => {
+  console.error(`\nFATAL: pipeline crashed: ${err && err.stack ? err.stack : err}`);
+  process.exit(1);
+});

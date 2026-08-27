@@ -314,7 +314,7 @@ function validateMacroSnapshot(snapshot, { anchorDecls = null } = {}) {
 }
 
 // ── 主流程 ──────────────────────────────────────────────────
-function runMacroProbe({ runId, fetchSeriesFn = null, nowIso = new Date().toISOString(), runtimeRootOverride = null, writeFile = true }) {
+async function runMacroProbe({ runId, fetchSeriesFn = null, nowIso = new Date().toISOString(), runtimeRootOverride = null, writeFile = true }) {
   const rt = runtimeRootOverride || runtimeRoot;
   const runDir = path.join(rt, 'runs', runId);
   const rawPath = path.join(runDir, 'raw.json');
@@ -337,8 +337,9 @@ function runMacroProbe({ runId, fetchSeriesFn = null, nowIso = new Date().toISOS
     } else {
       let seriesResult;
       try {
-        const fetchFn = fetchSeriesFn || akshareMacro.fetchSeries;
-        seriesResult = fetchFn(cfg.fetch, { signalDate });
+        // P2：默认走带重试+备用通道的适配器（sina_fx 失败 → USDCNH 实时快照兜底）
+        const fetchFn = fetchSeriesFn || akshareMacro.fetchSeriesWithBackup;
+        seriesResult = await fetchFn(cfg.fetch, { signalDate });
       } catch (e) {
         seriesResult = { ok: false, error: (e && e.message) || String(e), fetchedAt: null };
       }
@@ -362,7 +363,7 @@ function runMacroProbe({ runId, fetchSeriesFn = null, nowIso = new Date().toISOS
 }
 
 // ── CLI ──────────────────────────────────────────────────────
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   const i = args.indexOf('--runId');
   const runId = i >= 0 ? args[i + 1] : null;
@@ -376,7 +377,7 @@ function main() {
 
   let snapshot;
   try {
-    snapshot = runMacroProbe({ runId, nowIso });
+    snapshot = await runMacroProbe({ runId, nowIso });
   } catch (e) {
     console.error(`FATAL: macro probe failed: ${e.message}`);
     process.exit(1);
@@ -398,7 +399,10 @@ function main() {
 }
 
 if (require.main === module) {
-  main();
+  main().catch((e) => {
+    console.error(`FATAL: macro probe failed: ${e.message}`);
+    process.exit(1);
+  });
 }
 
 module.exports = {

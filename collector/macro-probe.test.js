@@ -406,10 +406,10 @@ describe('runMacroProbe', () => {
     return { ok: true, ...base[key] };
   };
 
-  it('写出 macro-snapshot.json：SC0 复用 raw.json，外部指标走抓取器，失败标 missing', () => {
+  it('写出 macro-snapshot.json：SC0 复用 raw.json，外部指标走抓取器，失败标 missing', async () => {
     const tmp = makeTempRoot();
     const { runId, runDir } = makeProbeFixture(tmp);
-    const snap = runMacroProbe({
+    const snap = await runMacroProbe({
       runId,
       runtimeRootOverride: tmp,
       fetchSeriesFn: fakeFetch,
@@ -435,10 +435,10 @@ describe('runMacroProbe', () => {
     fs.rmSync(tmp, { recursive: true, force: true });
   });
 
-  it('全部外部指标失败也不抛出，快照仍写出（不阻断管道）', () => {
+  it('全部外部指标失败也不抛出，快照仍写出（不阻断管道）', async () => {
     const tmp = makeTempRoot();
     const { runId, runDir } = makeProbeFixture(tmp);
-    const snap = runMacroProbe({
+    const snap = await runMacroProbe({
       runId,
       runtimeRootOverride: tmp,
       fetchSeriesFn: () => ({ ok: false, error: 'network down', fetchedAt: '2026-08-26T05:59:00Z' }),
@@ -452,11 +452,11 @@ describe('runMacroProbe', () => {
     fs.rmSync(tmp, { recursive: true, force: true });
   });
 
-  it('raw.json 缺失时抛错（由管道 failurePolicy=warn 兜底）', () => {
+  it('raw.json 缺失时抛错（由管道 failurePolicy=warn 兜底）', async () => {
     const tmp = makeTempRoot();
     const runDir = path.join(tmp, 'runs', 'NO-RAW');
     fs.mkdirSync(runDir, { recursive: true });
-    assert.throws(() => runMacroProbe({ runId: 'NO-RAW', runtimeRootOverride: tmp, fetchSeriesFn: fakeFetch }));
+    await assert.rejects(runMacroProbe({ runId: 'NO-RAW', runtimeRootOverride: tmp, fetchSeriesFn: fakeFetch }));
     fs.rmSync(tmp, { recursive: true, force: true });
   });
 });

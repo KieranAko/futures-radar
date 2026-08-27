@@ -153,8 +153,26 @@ function probeWebSearch() {
 function main() {
   const args = process.argv.slice(2);
   const jsonFlag = args.includes('--json');
+  const reuseIfFresh = args.includes('--reuse-if-fresh');
   const runIdIdx = args.indexOf('--runId');
   const runId = runIdIdx >= 0 ? args[runIdIdx + 1] : null;
+
+  // P2：窗口内探针复用（已有 source-probe.json 且非 fatal 且未过期 → 不重打探针端点）
+  if (reuseIfFresh && runId) {
+    const { runtimeRoot } = require('../lib/workspace.cjs');
+    const { readFreshProbeIfValid } = require('./probe-reuse.cjs');
+    const reuse = readFreshProbeIfValid(path.join(runtimeRoot, 'runs', runId));
+    if (reuse.reused) {
+      const p = reuse.probe;
+      console.log('=== futures-radar 前置探测（窗口内复用） ===');
+      console.log(`时间: ${p.meta.checkedAt}（${reuse.reason}）`);
+      console.log(`判定: ${p.summary.verdict}`);
+      console.log(`可用: [${p.summary.available.join(', ')}]`);
+      if (p.summary.degraded && p.summary.degraded.length) console.log(`降级: [${p.summary.degraded.join(', ')}]`);
+      process.exit(0);
+    }
+    console.log(`(probe reuse skipped: ${reuse.reason})`);
+  }
 
   const results = {
     checkedAt: new Date().toISOString(),

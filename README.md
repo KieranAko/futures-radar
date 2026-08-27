@@ -9,9 +9,11 @@
 
 - **半自动管道**：`pipeline/run.cjs` 编排 采集→宏观→扫描→硬过滤→概率锥→报告渲染，自动阶段确定性运行，LLM 边界自动停止
 - **严格数据纪律**：白名单品种、akshare 主源、provenance 溯源、冻结不变量（完整 bar / 夜盘归属 / 防未来函数）
+- **收盘快照快速通道（v0.1.2）**：sina 日线接口滞后时，用收盘快照（date==今日 && time>=15:00 完整会话）兜底补当日 bar，实测与监控中心官方日线一致
+- **快照优先增量（v0.1.3）**：日线已发布今日 + 缓存落后一根时跳过 ~59 次日线重拉，快照一次性补当日 bar（实测全序列与官方日线逐字段一致，采集 ~13s → ~1s）
 - **FinCoT 推理层**：evidence packet 冻结 → 三分支蓝图 → 门禁 + grounding 校验（fail-closed 降级）
 - **离线回测**：strict no-look-ahead 实现 + LLM replay 评分卡；方向层已被大样本证伪并收口（诚实披露）
-- **473 个测试全绿**（84 套件），测试夹具内置、无机器路径依赖
+- **532 个测试全绿**（84 套件），测试夹具内置、无机器路径依赖
 
 ## 目录结构
 
@@ -78,10 +80,14 @@ node pipeline/run.cjs --runId <id> --from probability   # 续跑概率锥+报告
 | 变量 | 必填 | 说明 |
 |------|------|------|
 | `FUTURES_SKILL_ROOT` | 否 | skill 根目录（默认自动探测：向上找 SKILL.md） |
-| `FUTURES_RUNTIME_ROOT` | 否 | 运行产物目录。默认：有项目 package.json 时 `<项目根>/data/futures-radar`；独立安装时 `<skill>/data/futures-radar`（已 gitignore） |
+| `FUTURES_RUNTIME_ROOT` | 否 | 运行产物目录。默认 `<skill>/output`（runs 落在 `<skill>/output/runs/<runId>/`，已 gitignore） |
 | `MX_DATA_PATH` | 否 | `mx_data.py` 完整路径 |
 | `MX_APIKEY` | 否 | mx-data API key |
 | `FUTURES_TEST_RAW_JSON` | 否 | 测试用 raw.json（默认内置夹具） |
+| `FUTURES_FAST_CLOSE` | 否 | 收盘快照快速通道开关；`0` 关闭（默认开；`0` 同时禁用快照优先增量） |
+| `FUTURES_FULL_PULL` | 否 | 强制全量采集（跳过增量缓存）；`1` 开启（默认增量） |
+| `FUTURES_CFMMC_VERIFY` | 否 | CFMMC 交叉验证开关；`0` 关闭（默认开） |
+| `FUTURES_VERBOSE` | 否 | `1` 时打印快照优先增量不启用原因等诊断日志（默认关） |
 | `FUTURES_VALIDATION_RUNS_DIR` / `FUTURES_VALIDATION_DELTA_DIR` | 否 | llm-validation 一次性校验脚本的输入目录 |
 
 ## 接入你的 Agent
@@ -128,7 +134,7 @@ npm run test:core        # 指标与统计核心
 - **探针 fatal：sina 456 限流**——akshare 健康检查端点（qihuohangqing.js）被 sina 临时限流，几分钟至十几分钟自动恢复；冷却后重试 `node collector/probe-sources.cjs`，不要绕过探针。采集端（日线 jsonp）与探测端不同端点，通常不受影响。
 - **mx-data auth_missing**——未设置 `MX_APIKEY`；Top 3 增强降级为 WebSearch-only，不影响主流程。
 - **沙箱/CI 中 spawn EPERM**——受限环境禁止管道捕获子进程输出；管道需要完整权限（本仓库脚本依赖 Node 调用 Python 采集行情）。
-- **运行数据在哪**——默认 `<skill>/data/futures-radar/runs/<runId>/`，可 `FUTURES_RUNTIME_ROOT` 重定向（如指向既有历史数据目录）。
+- **运行数据在哪**——默认 `<skill>/output/runs/<runId>/`，可 `FUTURES_RUNTIME_ROOT` 重定向（如指向既有历史数据目录）。
 
 ## 许可证
 

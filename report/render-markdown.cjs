@@ -16,6 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const { runtimeRoot } = require('../lib/workspace.cjs');
+const { renderFreshnessCard } = require('./freshness.cjs');
 
 // ── CLI ──────────────────────────────────────────────────────
 const args = process.argv.slice(2);
@@ -303,7 +304,10 @@ const header = [
   `> 运行 ID: ${model.meta.runId} | 扫描品种: ${model.meta.totalSymbols} | 候选: ${model.meta.top10Count} | 深挖: ${model.meta.keepCount}\n`
 ];
 
-const report = [...header, ...ch1, ...ch2, ...ch3, ...ch4].join('\n');
+// 数据时效说明卡片（v0.1.2）：header 之后、第一章之前；旧 run 无 freshness 时跳过
+const freshnessCard = model.freshness ? renderFreshnessCard(model.freshness) : [];
+
+const report = [...header, ...freshnessCard, ...ch1, ...ch2, ...ch3, ...ch4].join('\n');
 
 // ── Write report.md ──────────────────────────────────────────
 const outputPath = path.join(RUN_DIR, 'report.md');

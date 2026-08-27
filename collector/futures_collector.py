@@ -57,10 +57,30 @@ def collect_one(symbol, days):
 
 def main():
     parser = argparse.ArgumentParser(description="futures-radar akshare collector")
-    parser.add_argument("--symbols", required=True, help="Comma-separated symbol list (e.g. RB0,M0,SC0)")
+    parser.add_argument("--symbols", required=False, help="Comma-separated symbol list (e.g. RB0,M0,SC0)；--probe-latest 模式下可省略")
     parser.add_argument("--days", type=int, default=90, help="Days of history to pull (default: 90, -1 for full history)")
     parser.add_argument("--output", help="Output JSON file path (default: stdout)")
+    parser.add_argument("--probe-latest", help="P1 增量缓存：仅打印单个主力连续符号的最后一根日线日期（LAST=YYYY-MM-DD），不拉全量")
     args = parser.parse_args()
+
+    if args.probe_latest:
+        # P1: 增量模式用一次调用探测源端最新 bar 日期，决定哪些品种可复用缓存
+        # 输出最后两根 bar 日期：LAST=当日（兼容旧解析），PREV=前一交易日。
+        # PREV 供快照优先增量（snapshot-first）判断缓存是否"仅落后一根 bar"。
+        ok, res = collect_one(args.probe_latest, -1)
+        if ok:
+            dates = res.get("ohlcv", {}).get("dates") or []
+            last = res["dataEnd"]
+            prev = dates[-2] if len(dates) >= 2 else last
+            print(f"LAST={last}")
+            print(f"PREV={prev}")
+            sys.exit(0)
+        print(f"LAST=ERROR:{str(res.get('reason', 'unknown'))[:120]}", file=sys.stderr)
+        sys.exit(2)
+
+    if not args.symbols:
+        print(json.dumps({"error": "no_symbols", "detail": "--symbols is required in batch mode"}), file=sys.stderr)
+        sys.exit(1)
 
     symbols = [s.strip() for s in args.symbols.split(",") if s.strip()]
     if not symbols:

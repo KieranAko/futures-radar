@@ -6,7 +6,7 @@
  *   node forward-cli.js settle   <rawPath> <signalDate> [--manifest <path>]
  *   node forward-cli.js status   [--manifest <path>]
  *
- * 默认 manifest: data/futures-radar/forward/manifest.json
+ * 默认 manifest: <runtimeRoot>/forward/manifest.json（默认 <skill>/output/forward/manifest.json）
  * freezeSignalDate 未设置时 register 一律拒绝（正式样本必须从 freeze commit 后开始）。
  */
 
