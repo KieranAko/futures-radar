@@ -18,7 +18,7 @@
 - **证伪反馈机制（v0.1.7）**：每期 executable 计划冻结至 `data/strategy-feedback/ledger/`；下次运行按锚定合约验证触发/止损/目标/时间离场并输出归因 codes；报告回显“上一期策略证伪反馈”
 - **保守自动化（v0.1.4）**：软过滤 `--shadow` 输出 `filtered.quant.json`；六问预填充只生成 `analysis.draft.json`，LLM 边界不撤销
 - **离线回测**：strict no-look-ahead 实现 + LLM replay 评分卡；方向层已被大样本证伪并收口（诚实披露）
-- **588 个测试全绿**（99 套件），测试夹具内置、无机器路径依赖
+- **590 个测试全绿**（100 套件），测试夹具内置、无机器路径依赖
 
 ## 目录结构
 

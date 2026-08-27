@@ -259,4 +259,41 @@ function verifyPlans(currentRunId, raw, rootOverride = null) {
   return out;
 }
 
-module.exports = { recordExecutablePlans, verifyPlans, parseFirstNumber };
+/**
+ * 用截断到 signalDate 的 bars 构造一个可证伪计划（回测/测试用）。
+ * 只允许读取 bars[0..signalIdx]，禁止任何未来数据。
+ */
+function buildHistoricalPlan(bars, signalDate, opts = {}) {
+  const idx = bars.findIndex(b => b.date === signalDate);
+  if (idx < 5) throw new Error(`buildHistoricalPlan: signalDate ${signalDate} needs at least 6 bars`);
+  const slice = bars.slice(0, idx + 1);
+  const closes = slice.map(b => b.close);
+  const highs = slice.map(b => b.high);
+  const lows = slice.map(b => b.low);
+  let trs = [];
+  for (let i = 1; i < slice.length; i++) {
+    trs.push(Math.max(highs[i] - lows[i], Math.abs(highs[i] - closes[i - 1]), Math.abs(lows[i] - closes[i - 1])));
+  }
+  const atr5 = trs.slice(-5).reduce((a, b) => a + b, 0) / 5;
+  const ma20 = closes.slice(-20).reduce((a, b) => a + b, 0) / Math.min(20, closes.length);
+  const close = closes[closes.length - 1];
+  const direction = opts.direction || (close >= ma20 ? 'bullish' : 'bearish');
+  const sign = direction === 'bullish' ? 1 : -1;
+  const triggerLevel = parseFloat((close + sign * 0.5 * atr5).toFixed(1));
+  const stopPrice = parseFloat((close - sign * 1.5 * atr5).toFixed(1));
+  const target1 = parseFloat((close + sign * 2 * atr5).toFixed(1));
+  return {
+    signalDate,
+    direction,
+    close,
+    atr5: parseFloat(atr5.toFixed(2)),
+    ma20: parseFloat(ma20.toFixed(2)),
+    triggerLevel,
+    stopPrice,
+    target1Level: target1,
+    target1Text: `${target1}（回测目标）`,
+    triggerTiming: 'T+1 收盘确认；确认后下一交易日开盘执行'
+  };
+}
+
+module.exports = { recordExecutablePlans, verifyPlans, parseFirstNumber, buildHistoricalPlan };
