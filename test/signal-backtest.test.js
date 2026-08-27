@@ -7,11 +7,12 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { makeSignal, verifySignal, loadBars } = require('../strategies/signal-backtest/runner.cjs');
+const { makeSignal, verifySignal, loadBars, isBannedCombo, BANNED_COMBOS } = require('../strategies/signal-backtest/runner.cjs');
 const store = require('../data-store/index.cjs');
 
 const ROOT = path.resolve(__dirname, '..', 'strategies', 'signal-backtest');
-const RECORDINGS = path.join(ROOT, 'recordings');
+const RECORDINGS = path.join(ROOT, 'recordings', '2y');
+const RECORDINGS_1Y = path.join(ROOT, 'recordings', '1y');
 const OUTPUT = path.join(ROOT, 'output');
 const SYMBOLS = ['RB0', 'M0', 'SC0'];
 
@@ -27,15 +28,15 @@ function syntheticBars(n = 30) {
   return bars;
 }
 
-describe('signal-backtest recordings', () => {
-  it('has one recorded anchor file per symbol with valid contract shape', () => {
+describe('signal-backtest v2 recordings（2y / 5d anchors）', () => {
+  it('has one recorded anchor file per symbol with valid contract shape and no banned combo', () => {
     for (const sym of SYMBOLS) {
       const p = path.join(RECORDINGS, `anchors-${sym}.json`);
       assert.ok(fs.existsSync(p), `missing ${p}`);
       const j = JSON.parse(fs.readFileSync(p, 'utf8'));
       assert.equal(j.symbol, sym);
-      assert.equal(j.step, 10);
-      assert.ok(j.anchors.length >= 20, `${sym} should cover ~1 year of 10-day anchors`);
+      assert.equal(j.step, 5);
+      assert.equal(j.anchors.length, 95, `${sym} should cover 2 years of 5-day anchors`);
       for (const [i, a] of j.anchors.entries()) {
         assert.match(a.date, /^\d{4}-\d{2}-\d{2}$/, `${sym}[${i}] bad date`);
         assert.match(a.direction, /^(bullish|bearish|neutral)$/, `${sym}[${i}] bad direction`);
@@ -49,13 +50,15 @@ describe('signal-backtest recordings', () => {
           assert.ok(a.targetR >= 1 && a.targetR <= 4, `${sym}[${i}] targetR range`);
           assert.ok(a.maxHoldDays >= 2 && a.maxHoldDays <= 10, `${sym}[${i}] maxHoldDays range`);
           assert.equal(typeof a.invalidationLevel, 'number', `${sym}[${i}] invalidationLevel`);
+          assert.ok(!isBannedCombo(a), `${sym}[${i}] uses the banned v1-worst combo`);
         }
       }
     }
   });
 
-  it('anchor dates align with the 10-day feature grid', () => {
+  it('anchor dates align with the 5-day feature grid', () => {
     const features = JSON.parse(fs.readFileSync(path.join(RECORDINGS, 'features.json'), 'utf8'));
+    assert.equal(features.step, 5);
     for (const sym of SYMBOLS) {
       const j = JSON.parse(fs.readFileSync(path.join(RECORDINGS, `anchors-${sym}.json`), 'utf8'));
       const featDates = features.anchors[sym].map(f => f.date);
@@ -63,12 +66,13 @@ describe('signal-backtest recordings', () => {
     }
   });
 
-  it('anchor feature rows contain no look-ahead vs the frozen bars', () => {
+  it('anchor feature rows contain no look-ahead vs the frozen 2y bars', () => {
     const features = JSON.parse(fs.readFileSync(path.join(RECORDINGS, 'features.json'), 'utf8'));
-    const history = JSON.parse(fs.readFileSync(path.join(RECORDINGS, 'history-1y.json'), 'utf8'));
+    const history = JSON.parse(fs.readFileSync(path.join(RECORDINGS, 'history-2y.json'), 'utf8'));
     const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
     for (const sym of SYMBOLS) {
       const bars = history.symbols[sym].bars;
+      assert.equal(bars.length, 500, `${sym} should have 500 bars`);
       for (const f of features.anchors[sym]) {
         const i = f.idx;
         assert.equal(bars[i].date, f.date);
@@ -93,20 +97,42 @@ describe('signal-backtest recordings', () => {
     }
   });
 
-  it('ships a frozen 1-year OHLC fixture and falls back to it without data-store', () => {
-    const fixture = JSON.parse(fs.readFileSync(path.join(RECORDINGS, 'history-1y.json'), 'utf8'));
-    for (const sym of SYMBOLS) {
-      assert.equal(fixture.symbols[sym].bars.length, 250, `${sym} fixture should cover 1 year`);
-    }
+  it('ships the frozen 2y OHLC fixture and falls back to it without data-store', () => {
+    const fixture = JSON.parse(fs.readFileSync(path.join(RECORDINGS, 'history-2y.json'), 'utf8'));
+    for (const sym of SYMBOLS) assert.equal(fixture.symbols[sym].bars.length, 500);
     const original = store.loadHistoricalCache;
     store.loadHistoricalCache = () => ({ contracts: {} });
     try {
       const { bars, source } = loadBars('RB0');
-      assert.equal(bars.length, 250);
-      assert.match(source, /fixture/);
+      assert.equal(bars.length, 500);
+      assert.match(source, /history-2y\.json/);
     } finally {
       store.loadHistoricalCache = original;
     }
+  });
+
+  it('preserves the frozen v1 edition (1y/10d) for reproducibility', () => {
+    assert.ok(fs.existsSync(path.join(RECORDINGS_1Y, 'features.json')));
+    assert.ok(fs.existsSync(path.join(RECORDINGS_1Y, 'history-1y.json')));
+    for (const sym of SYMBOLS) assert.ok(fs.existsSync(path.join(RECORDINGS_1Y, `anchors-${sym}.json`)));
+    const v1 = JSON.parse(fs.readFileSync(path.join(OUTPUT, 'signal-quality-baseline.json'), 'utf8'));
+    assert.equal(v1.schema, 'futures-radar-signal-backtest/1');
+    assert.equal(v1.meta.anchorStep, 10);
+  });
+});
+
+describe('signal-backtest banned-combo elimination', () => {
+  it('recognizes the v1-worst combo exactly and nothing else', () => {
+    assert.deepEqual(BANNED_COMBOS, [{ triggerAtrMult: 0.5, stopAtrMult: 1.5, targetR: 2, maxHoldDays: 6 }]);
+    assert.equal(isBannedCombo({ triggerAtrMult: 0.5, stopAtrMult: 1.5, targetR: 2, maxHoldDays: 6 }), true);
+    assert.equal(isBannedCombo({ triggerAtrMult: 0.5, stopAtrMult: 1.6, targetR: 2, maxHoldDays: 6 }), false);
+    assert.equal(isBannedCombo({ triggerAtrMult: 0.5, stopAtrMult: 1.5, targetR: 2, maxHoldDays: 5 }), false);
+  });
+
+  it('v2 baseline contains no signal from the banned combo', () => {
+    const j = JSON.parse(fs.readFileSync(path.join(OUTPUT, 'signal-quality-baseline-2y.json'), 'utf8'));
+    assert.ok(j.meta.bannedComboSkippedAnchors >= 0);
+    for (const sig of j.signals) assert.ok(!isBannedCombo(sig), `banned combo leaked into ${sig.symbol} ${sig.signalDate}`);
   });
 });
 
@@ -165,20 +191,24 @@ describe('signal-backtest verifier (feedback semantics)', () => {
   });
 });
 
-describe('signal-quality baseline artifacts', () => {
+describe('signal-quality v2 baseline artifacts', () => {
   it('produces a JSON baseline consistent with its markdown export', () => {
-    const p = path.join(OUTPUT, 'signal-quality-baseline.json');
+    const p = path.join(OUTPUT, 'signal-quality-baseline-2y.json');
     assert.ok(fs.existsSync(p), 'run `node strategies/signal-backtest/runner.cjs` first');
     const j = JSON.parse(fs.readFileSync(p, 'utf8'));
-    assert.equal(j.schema, 'futures-radar-signal-backtest/1');
+    assert.equal(j.schema, 'futures-radar-signal-backtest/2');
     assert.deepEqual(j.meta.universe, SYMBOLS);
-    assert.equal(j.meta.anchorStep, 10);
-    assert.equal(j.meta.anchorCount, 69);
+    assert.equal(j.meta.anchorStep, 5);
+    assert.equal(j.meta.anchorCount, 285);
+    assert.equal(j.meta.bannedComboSkippedAnchors, 0);
     const perSymbolSignals = SYMBOLS.reduce((acc, s) => acc + j.perSymbol[s].signalCount, 0);
     assert.equal(j.aggregate.signalCount, perSymbolSignals);
     assert.equal(j.signals.length, perSymbolSignals);
-    const md = fs.readFileSync(path.join(OUTPUT, 'signal-quality-baseline.md'), 'utf8');
-    assert.match(md, /# 信号质量回测基线/);
+    assert.ok(j.comparison && j.comparison.v1, 'v1 comparison expected');
+    const md = fs.readFileSync(path.join(OUTPUT, 'signal-quality-baseline-2y.md'), 'utf8');
+    assert.match(md, /# 信号质量回测基线 v2/);
+    assert.match(md, /v1 vs v2 对照/);
+    assert.match(md, /淘汰组合命中/);
     assert.match(md, /方向正确率/);
   });
 });

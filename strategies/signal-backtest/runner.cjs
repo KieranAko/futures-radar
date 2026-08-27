@@ -1,10 +1,11 @@
-// strategies/signal-backtest/runner.cjs — 信号质量回测（v0.1.9）
+// strategies/signal-backtest/runner.cjs — 信号质量回测（v0.1.10 · 2y/5d）
 //
 // 只测「LLM 锚点 → 确定性信号延续 → 策略计划 → 证伪」链路。
 // 纪律：
 //   - 信号生成阶段只允许读取 bars[0..signalIdx]（截断特征）；
 //   - 未来数据只用于验证（T+1 确认、T+2 执行、止损/目标/时间退出）；
 //   - 不写真实 strategy-feedback 台账，输出只在 output/。
+//   - v1 证伪的最差参数组合（trigger0.5×stop1.5×R2×hold6）永久淘汰。
 //
 // 用法：
 //   node strategies/signal-backtest/runner.cjs
@@ -15,9 +16,22 @@ const path = require('path');
 const store = require('../../data-store/index.cjs');
 
 const ROOT = __dirname;
-const RECORDINGS = path.join(ROOT, 'recordings');
+const RECORDINGS = path.join(ROOT, 'recordings', '2y');
 const OUT_DIR = path.join(ROOT, 'output');
 const UNIVERSE = ['RB0', 'M0', 'SC0'];
+// v1 基线证伪淘汰：trigger0.5×stop1.5×R2×hold6（2 笔，方向正确率 0%）
+const BANNED_COMBOS = [
+  { triggerAtrMult: 0.5, stopAtrMult: 1.5, targetR: 2, maxHoldDays: 6 }
+];
+
+function isBannedCombo(anchor) {
+  return BANNED_COMBOS.some(c =>
+    anchor.triggerAtrMult === c.triggerAtrMult &&
+    anchor.stopAtrMult === c.stopAtrMult &&
+    anchor.targetR === c.targetR &&
+    anchor.maxHoldDays === c.maxHoldDays
+  );
+}
 
 const mean = arr => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0);
 
@@ -46,12 +60,17 @@ function loadBars(symbol) {
     }
     return { bars, source: 'data-store daily merged' };
   }
-  // 可复现兜底：仓库内冻结的 1 年历史（git 追踪）
-  const fixture = path.join(RECORDINGS, 'history-1y.json');
-  if (fs.existsSync(fixture)) {
-    const j = JSON.parse(fs.readFileSync(fixture, 'utf8'));
-    const h = j.symbols && j.symbols[symbol];
-    if (h && Array.isArray(h.bars) && h.bars.length > 0) return { bars: h.bars, source: 'recordings/history-1y.json fixture' };
+  // 可复现兜底：仓库内冻结的 2 年历史（git 追踪），再退 v1 的 1 年夹具
+  for (const [name, rel] of [
+    ['history-2y.json', RECORDINGS],
+    ['history-1y.json', path.join(ROOT, 'recordings', '1y')]
+  ]) {
+    const fixture = path.join(rel, name);
+    if (fs.existsSync(fixture)) {
+      const j = JSON.parse(fs.readFileSync(fixture, 'utf8'));
+      const h = j.symbols && j.symbols[symbol];
+      if (h && Array.isArray(h.bars) && h.bars.length > 0) return { bars: h.bars, source: `${path.relative(ROOT, fixture)} fixture` };
+    }
   }
   throw new Error(`signal-backtest: no bars for ${symbol}`);
 }
@@ -82,7 +101,9 @@ function loadAnchors(symbol) {
   const byDate = new Map(bars.map((b, i) => [b.date, i]));
   const anchors = (j.anchors || []).map(a => ({ ...a, idx: byDate.get(a.date) })).filter(a => a.idx != null);
   if (anchors.length === 0) throw new Error(`signal-backtest: no valid anchors for ${symbol}`);
-  return { bars, anchors, step: j.step || 10, barsSource: source };
+  const step = j.step || 5;
+  for (const a of anchors) a.banned = isBannedCombo(a);
+  return { bars, anchors, step, barsSource: source, bannedCount: anchors.filter(a => a.banned).length };
 }
 
 /**
@@ -193,7 +214,7 @@ function verifySignal(sig, bars) {
 }
 
 function simulateSymbol(symbol) {
-  const { bars, anchors, step, barsSource } = loadAnchors(symbol);
+  const { bars, anchors, step, barsSource, bannedCount } = loadAnchors(symbol);
   const signals = [];
   let anchorCursor = 0;
   let pending = null; // 待 T+1 确认的信号
@@ -253,7 +274,7 @@ function simulateSymbol(symbol) {
       while (anchorCursor < anchors.length - 1 && s > anchors[anchorCursor].idx + step - 1) anchorCursor++;
       const anchor = anchors[anchorCursor];
       const windowEnd = Math.min(anchor.idx + step - 1, bars.length - 1);
-      if (s >= anchor.idx + 1 && s <= windowEnd && anchor.direction !== 'neutral') {
+      if (s >= anchor.idx + 1 && s <= windowEnd && anchor.direction !== 'neutral' && !anchor.banned) {
         const a5 = atr5(bars, s);
         const m20 = ma20(bars, s);
         const b = bars[s];
@@ -299,7 +320,7 @@ function simulateSymbol(symbol) {
     open = null;
   }
 
-  return { bars, anchors, signals, barsSource };
+  return { bars, anchors, signals, barsSource, step, bannedCount };
 }
 
 function bucketParams(sig) {
@@ -349,10 +370,11 @@ function aggregate(signals) {
 function renderMd(report) {
   const L = [];
   const a = report.aggregate;
-  L.push('# 信号质量回测基线（RB0 / M0 / SC0 · 1 年）');
+  L.push('# 信号质量回测基线 v2（RB0 / M0 / SC0 · 2 年 · 5 日锚点）');
   L.push('');
-  L.push('> 链路：LLM 锚点（每 10 个交易日）→ 确定性信号延续 → T+1 收盘确认 → T+2 开盘执行 → 止损/目标1/时间退出。');
+  L.push(`> 链路：LLM 锚点（每 ${report.meta.anchorStep} 个交易日）→ 确定性信号延续 → T+1 收盘确认 → T+2 开盘执行 → 止损/目标1/时间退出。`);
   L.push('> 信号生成只用锚点日及以前的截断行情；未来行情只用于验证。');
+  L.push('> 淘汰参数组合：trigger0.5×stop1.5×R2×hold6（v1 证伪，2 笔 0% 方向正确率）。');
   L.push('');
   L.push('## 总览');
   L.push('');
@@ -360,7 +382,8 @@ function renderMd(report) {
   L.push('|---|---|');
   L.push(`| 品种 | ${report.meta.universe.join(' / ')} |`);
   L.push(`| 行情区间 | ${report.meta.barsRange} |`);
-  L.push(`| LLM 锚点数 | ${report.meta.anchorCount}（每 10 交易日） |`);
+  L.push(`| LLM 锚点数 | ${report.meta.anchorCount}（每 ${report.meta.anchorStep} 交易日） |`);
+  L.push(`| 淘汰组合命中锚点（已跳过） | ${report.meta.bannedComboSkippedAnchors} |`);
   L.push(`| 生成信号 | ${a.signalCount} |`);
   L.push(`| 触发率 | ${a.triggerRate}% |`);
   L.push(`| 执行（含跳空放弃） | ${a.executedCount} |`);
@@ -394,6 +417,15 @@ function renderMd(report) {
   for (const p of a.byParams) {
     L.push(`| ${p.params} | ${p.n} | ${p.directionCorrectRate}% | ${p.avgPnlPct}% | ${p.example.symbol} ${p.example.date} ${p.example.direction} |`);
   }
+  if (report.comparison) {
+    L.push('');
+    L.push('## v1 vs v2 对照');
+    L.push('');
+    L.push('| 版本 | 历史 | 锚点间隔 | 锚点数 | 信号 | 执行 | 方向正确率 | 平均盈亏 |');
+    L.push('|---|---|---|---|---|---|---|---|');
+    L.push(`| v1 | 1 年（250 交易日） | 10 | 69 | ${report.comparison.v1.signalCount} | ${report.comparison.v1.executedCount} | ${report.comparison.v1.directionCorrectRate}% | ${report.comparison.v1.avgPnlPct}% |`);
+    L.push(`| v2 | 2 年（500 交易日） | ${report.meta.anchorStep} | ${report.meta.anchorCount} | ${a.signalCount} | ${a.executedCount} | ${a.directionCorrectRate}% | ${a.avgPnlPct}% |`);
+  }
   L.push('');
   L.push('## 证伪结论');
   L.push('');
@@ -415,15 +447,19 @@ function main() {
   const anchorDistribution = {};
   const sims = {};
   let anchorCount = 0;
+  let bannedSkipped = 0;
+  let anchorStep = 5;
   let minDate = null; let maxDate = null;
   for (const sym of UNIVERSE) {
     const sim = simulateSymbol(sym);
     sims[sym] = sim;
     perSymbol[sym] = aggregate(sim.signals);
-    const dist = { bullish: 0, bearish: 0, neutral: 0 };
-    for (const a of sim.anchors) dist[a.direction]++;
+    const dist = { bullish: 0, bearish: 0, neutral: 0, banned: 0 };
+    for (const a of sim.anchors) { dist[a.direction]++; if (a.banned) dist.banned++; }
     anchorDistribution[sym] = dist;
     anchorCount += sim.anchors.length;
+    bannedSkipped += sim.bannedCount;
+    anchorStep = sim.step;
     if (!minDate || sim.bars[0].date < minDate) minDate = sim.bars[0].date;
     if (!maxDate || sim.bars[sim.bars.length - 1].date > maxDate) maxDate = sim.bars[sim.bars.length - 1].date;
   }
@@ -432,6 +468,7 @@ function main() {
   const aggregateAll = aggregate(signals);
 
   const falsification = [];
+  if (bannedSkipped > 0) falsification.push(`淘汰组合命中 ${bannedSkipped} 个锚点：trigger0.5×stop1.5×R2×hold6 已按契约跳过，不产生任何信号。`);
   const worst = aggregateAll.byParams[0];
   if (worst) falsification.push(`方向正确率最低的参数组合：${worst.params}（${worst.n} 笔，${worst.directionCorrectRate}%），优先证伪/调参。`);
   const best = aggregateAll.byParams[aggregateAll.byParams.length - 1];
@@ -439,22 +476,41 @@ function main() {
   const stopOut = signals.filter(s => s.status === 'verified' && s.stoppedOut);
   if (stopOut.length) falsification.push(`止损样本 ${stopOut.length} 笔：${stopOut.map(s => `${s.symbol} ${s.signalDate}`).slice(0, 5).join('、')}${stopOut.length > 5 ? ' 等' : ''}，需要区分“止损过紧 / 方向错误 / 事件冲击”。`);
   if (aggregateAll.gapSkipCount) falsification.push(`跳空放弃 ${aggregateAll.gapSkipCount} 笔：触发与执行价差超过 0.5×止损距离，跳空是主要执行摩擦。`);
-  falsification.push('结论只覆盖 1 年行情、3 个主力连续品种、录制的 LLM 锚点；样本量不足以下最终结论，仅作为基线。');
+  falsification.push('结论覆盖 2 年行情、3 个主力连续品种、录制的 LLM 锚点；样本量仍然有限，仅作为基线。');
+
+  // v1 基线对照（冻结 artifact）
+  let comparison = null;
+  const v1Path = path.join(OUT_DIR, 'signal-quality-baseline.json');
+  if (fs.existsSync(v1Path)) {
+    const v1 = JSON.parse(fs.readFileSync(v1Path, 'utf8'));
+    comparison = {
+      v1: {
+        barsRange: v1.meta && v1.meta.barsRange,
+        signalCount: v1.aggregate && v1.aggregate.signalCount,
+        executedCount: v1.aggregate && v1.aggregate.executedCount,
+        directionCorrectRate: v1.aggregate && v1.aggregate.directionCorrectRate,
+        avgPnlPct: v1.aggregate && v1.aggregate.avgPnlPct
+      }
+    };
+  }
 
   const report = {
-    schema: 'futures-radar-signal-backtest/1',
+    schema: 'futures-radar-signal-backtest/2',
     meta: {
       generatedAt: new Date().toISOString(),
       universe: UNIVERSE,
       barsRange: `${minDate}..${maxDate}`,
       barsSource: sims[UNIVERSE[0]].barsSource,
-      anchorStep: 10,
+      anchorStep,
       anchorCount,
+      bannedComboSkippedAnchors: bannedSkipped,
+      bannedCombos: BANNED_COMBOS,
       signalCount: aggregateAll.signalCount
     },
     aggregate: aggregateAll,
     perSymbol,
     anchorDistribution,
+    comparison,
     falsification,
     signals: signals.map(s => ({
       symbol: s.symbol, anchorDate: s.anchorDate, signalDate: s.signalDate,
@@ -466,13 +522,13 @@ function main() {
       driver: s.driver
     }))
   };
-  const jsonPath = path.join(OUT_DIR, 'signal-quality-baseline.json');
-  const mdPath = path.join(OUT_DIR, 'signal-quality-baseline.md');
+  const jsonPath = path.join(OUT_DIR, 'signal-quality-baseline-2y.json');
+  const mdPath = path.join(OUT_DIR, 'signal-quality-baseline-2y.md');
   fs.writeFileSync(jsonPath, JSON.stringify(report, null, 2), 'utf8');
   fs.writeFileSync(mdPath, renderMd(report), 'utf8');
-  console.log(JSON.stringify({ meta: report.meta, aggregate: report.aggregate, perSymbol: report.perSymbol, anchorDistribution: report.anchorDistribution, jsonPath, mdPath }, null, 2));
+  console.log(JSON.stringify({ meta: report.meta, aggregate: report.aggregate, perSymbol: report.perSymbol, anchorDistribution: report.anchorDistribution, comparison: report.comparison, jsonPath, mdPath }, null, 2));
 }
 
 if (require.main === module) main();
 
-module.exports = { loadBars, loadAnchors, makeSignal, verifySignal, simulateSymbol, aggregate, main };
+module.exports = { BANNED_COMBOS, isBannedCombo, loadBars, loadAnchors, makeSignal, verifySignal, simulateSymbol, aggregate, main };

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.10（2026-08-28）
+
+- **信号质量回测 v2（2 年 / 5 日锚点）**：`strategies/signal-backtest/` 扩展为 2 年 500 个交易日（2024-08-06..2026-08-27），LLM 锚点间隔 10 → 5 个交易日（285 个锚点，仍只读锚点日及以前截断特征）；recordings 按版本冻结为 `recordings/1y` + `recordings/2y`，v1 基线 artifact 不变
+- **淘汰 v1 最差参数组合**：`triggerAtrMult=0.5 × stopAtrMult=1.5 × targetR=2 × maxHoldDays=6`（v1 证伪 2 笔 0%）写入禁用组合契约；LLM 锚点决策禁用，runner 命中即整锚点跳过并计入 `bannedComboSkippedAnchors`（本版 285 个锚点命中 0 个）
+- **v2 基线结论**：479 个信号 → 72 个触发执行（50 笔成交 + 22 笔跳空放弃）→ 方向正确率 38.00%、目标1兑现率 12.00%、止损率 34.00%、平均单笔 -0.65%；输出 `strategies/signal-backtest/output/signal-quality-baseline-2y.md/json`（含置信度交叉、参数组合证伪排序、v1 vs v2 对照）
+- **数据扩增**：data-store 为 RB0/M0/SC0 摄入 2 年历史（run `signal-history-2y`，500 交易日）；仓库内冻结 `recordings/2y/history-2y.json` 可复现夹具
+- **版本对齐**：VERSION.md / package.json / SKILL.md / README.md / pipeline banner 统一为 0.1.10
+- 更新 signal-backtest 测试至 12 条（含禁用组合识别、无泄漏审计、v2 artifact 一致性）；全量测试 600 → 603（103 → 104 套件）
+
 ## 0.1.9（2026-08-28）
 
 - **信号质量回测路径**：新增 `strategies/signal-backtest/`（`contract.md` 契约 + `runner.cjs` + `recordings/`）——固定 RB0/M0/SC0、1 年 250 个交易日、跳过扫描/筛选；LLM 锚点每 10 个交易日做方向/参数决策（69 个锚点，只读锚点日及以前的截断特征），锚点有效期内确定性规则延续生成信号；T+1 收盘确认 → T+2 开盘执行（跳空放弃）→ 止损/目标1/时间退出证伪

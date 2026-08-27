@@ -1,4 +1,4 @@
-// pipeline/run.cjs — futures-radar v0.1.9
+// pipeline/run.cjs — futures-radar v0.1.10
 // Single pipeline entry point. Orchestrates automatable stages, stops at LLM boundaries.
 //
 // Usage:
@@ -127,7 +127,7 @@ let stoppedForLLM = false;
 let stoppedAtStage = null;
 let stoppedReason = null; // 'placeholder' | 'llm_boundary'
 
-console.log(`=== futures-radar pipeline v0.1.9 ===`);
+console.log(`=== futures-radar pipeline v0.1.10 ===`);
 console.log(`runId: ${runId}  from: ${fromStage}`);
 console.log(`skillRoot: ${skillRoot}`);
 console.log(`runtimeRoot: ${runtimeRoot}\n`);
