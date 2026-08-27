@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.11（2026-08-28）
+
+- **信号质量回测 v3（LLM 定性判断优先）**：新增 `strategies/signal-backtest/contract-v3.md` + `runner-v3.cjs` + `recordings/v3/`——立场从“参数组合选优”转为“证伪 LLM 定性判断”；锚点 schema 新增 `regime`（trend/range/transition/shock）、`edge`（trend_continuation/breakout/pullback/mean_reversion/range_fade）、`triggerType`（breakout/pullback）、`qualityFlags`（固定词表 0–3 个）、`thesis` 与 `invalidationReason`；数值参数降级为执行机制，报告不再下“最优组合”结论
+- **纯量化对照臂**：同 500 bars、同 T+1/T+2 验证语义，MA20 趋势 + trigger0.5/stop1.5/R2/hold5、不含 LLM——用于回答“LLM 判断多贡献了什么”
+- **v3 基线结论**：LLM 锚点臂 380 信号 → 73 触发执行（53 笔成交 + 20 笔跳空放弃）→ 方向正确率 49.06%、平均单笔 -0.23%；纯量化对照臂 876 信号 → 169 执行（116 笔成交）→ 方向正确率 40.52%、平均单笔 -0.16%。**LLM 定性判断方向正确率领先 8.54pp**；qualityFlags 交叉：volume_confirmed 61.11%（18 笔）vs trend_aligned 40.00%（35 笔）；edge 交叉：range_fade 100%（3 笔）、pullback 33.33%（6 笔）、mean_reversion 0%（1 笔）
+- **v3 报告**：输出 `strategies/signal-backtest/output/signal-quality-baseline-v3.md/json`（含 regime/edge/triggerType/qualityFlag 交叉证伪表、对照臂对比表、执行参数观察表）
+- **版本对齐**：VERSION.md / package.json / SKILL.md / README.md / pipeline banner 统一为 0.1.11；新增 `npm run signal:backtest:v3`
+- 新增 signal-backtest-v3 测试 5 条；全量测试 603 → 608（104 → 107 套件）
+
 ## 0.1.10（2026-08-28）
 
 - **信号质量回测 v2（2 年 / 5 日锚点）**：`strategies/signal-backtest/` 扩展为 2 年 500 个交易日（2024-08-06..2026-08-27），LLM 锚点间隔 10 → 5 个交易日（285 个锚点，仍只读锚点日及以前截断特征）；recordings 按版本冻结为 `recordings/1y` + `recordings/2y`，v1 基线 artifact 不变
