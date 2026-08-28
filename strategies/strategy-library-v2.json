@@ -2579,6 +2579,18 @@
         "H-MECH-03": "screen_pending"
       },
       "note": "探针不改变核心 manifest；本轮无 promote/discard；下一轮假设须重新预注册（24 协议）。"
+    },
+    "ga8BasisHistory": {
+      "collector": "strategies/research/v2/falsification/ga8-basis-history-collector.py",
+      "docs": "strategies/research/v2/falsification/26-ga8-basis-history.md",
+      "store": "strategies/research/v2/falsification/data/basis-history/",
+      "rateConvention": "br = (S - F) / S = -dom_basis_rate",
+      "status": "backfilling",
+      "range": "2014-01-01..2026-08-27",
+      "symbols": [
+        "RB0", "M0", "RM0", "CU0", "AL0", "ZN0", "NI0", "SN0", "PB0", "AG0", "AU0"
+      ],
+      "nextAfterBackfill": "verify --strict → FS-02 基差适配器（F2/F3 helper 已就绪 harness-lib/basis.cjs）→ 23/24 协议保真证伪"
     }
   }
 }
