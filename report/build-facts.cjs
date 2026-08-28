@@ -457,7 +457,7 @@ function main() {
       totalSymbols: candidates.meta.preFilter?.total || candidates.candidates.length,
       top10Count: top10.length,
       keepCount: filtered.candidates.length,
-      pipelineVersion: '0.1.13',
+      pipelineVersion: '0.1.14',
       artifacts: {
         candidates: {
           runId: candidates.meta.runId,
