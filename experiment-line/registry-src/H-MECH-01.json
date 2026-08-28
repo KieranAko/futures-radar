@@ -1,0 +1,23 @@
+{
+  "id": "H-MECH-01",
+  "name": "全球实际利率-美元双锚共振 → 沪金/沪银",
+  "family": "momentum",
+  "theoryRef": "02-term-structure.md §二 适用边界（宏观锚与沪盘联动）；04-ilmanen-expected-returns.md §一 R1（来源三分类：risk/behavioral 待族级证据确认）",
+  "proposition": {
+    "H0": "双锚同向共振事件后 10 日方向化净收益 mean(net) ≤ 0",
+    "H1": "双锚共振事件后 mean(net) > 0"
+  },
+  "whyItWorks": "贵金属是无息美元资产；利率+美元双紧压制、双松支撑。中国央行购金等结构性噪音在单锚下污染信号，双锚共振是过滤条件（21-waitlist-screening M3 段 β 不稳定证据）。",
+  "applicableStates": {
+    "anchorState": "US10Y Δ5d 与 DXY Δ5d 同向共振（TIGHT/LOOSE）",
+    "instrumentState": "AU0/AG0 可交易，非换月跳变日"
+  },
+  "timeScale": "持有 10 交易日；冲击吸收 |Δr5|<0.10pp 为 edge 衰减",
+  "invalidation": "结构性失效：沪金定价锚切换（如人民币计价主导）；状态性失灵：单锚冲突、央行购金窗口",
+  "probeRef": "strategies/research/v2/falsification/mechanism/H-MECH-01-macro-dual-anchor-precious.json",
+  "g1Decision": {
+    "promote": "promote",
+    "discard": ["discard"],
+    "pending": { "maxRounds": 2 }
+  }
+}

@@ -53,3 +53,8 @@ Thumbs.db
 /strategies/research/v2/falsification/data/basis-history/fetches/
 /strategies/research/v2/falsification/data/basis-history/*.jsonl
 /strategies/research/v2/falsification/data/basis-history/backfill-*.log
+
+# ── 实验线镜像运行产物（可重建）──
+/experiment-line/runs/
+/experiment-line/results/
+/experiment-line/registry/

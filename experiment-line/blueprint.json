@@ -1,0 +1,165 @@
+{
+  "schema": "futures-radar-experiment-line-blueprint/1",
+  "architectureRef": "strategies/research/v2/experiment-line-architecture.md",
+  "architectureVersion": "v6",
+  "createdAt": "2026-08-28T21:26:12.076Z",
+  "policy": {
+    "promoteUnit": "whole-stage-segment",
+    "hotUpdateWhitelist": false,
+    "g1GateRequired": true,
+    "shadow": {
+      "verdictRulesAtRegister": true,
+      "fixedObservationWindow": false,
+      "reviewSnapshotsImmutable": true
+    }
+  },
+  "stages": [
+    {
+      "id": "source-probe",
+      "auto": true,
+      "stable": {
+        "script": "collector/probe-sources.cjs",
+        "outputs": [
+          "source-probe"
+        ]
+      },
+      "candidate": null
+    },
+    {
+      "id": "collect",
+      "auto": true,
+      "stable": {
+        "script": "collector/akshare-futures.cjs",
+        "outputs": [
+          "raw-json",
+          "raw-snapshot",
+          "provenance-json"
+        ]
+      },
+      "candidate": null
+    },
+    {
+      "id": "sector",
+      "auto": true,
+      "stable": {
+        "script": "collector/sector-aggregator.cjs",
+        "outputs": [
+          "sector-snapshot-json"
+        ]
+      },
+      "candidate": null
+    },
+    {
+      "id": "macro",
+      "auto": true,
+      "stable": {
+        "script": "collector/macro-probe.cjs",
+        "outputs": [
+          "macro-snapshot-json"
+        ]
+      },
+      "candidate": null
+    },
+    {
+      "id": "scan",
+      "auto": true,
+      "stable": {
+        "script": "scanner/index.cjs",
+        "outputs": [
+          "candidates-json"
+        ]
+      },
+      "candidate": null
+    },
+    {
+      "id": "filter-hard",
+      "auto": true,
+      "stable": {
+        "script": "filter/hard-filter.cjs",
+        "outputs": [
+          "filtered-hard-json"
+        ]
+      },
+      "candidate": null
+    },
+    {
+      "id": "filter-llm",
+      "auto": false,
+      "stable": {
+        "manual": true,
+        "outputs": [
+          "filtered-json"
+        ]
+      },
+      "candidate": null
+    },
+    {
+      "id": "analyze",
+      "auto": false,
+      "stable": {
+        "manual": true,
+        "outputs": [
+          "evidence-packets-json",
+          "reasoning-results-json",
+          "analysis-json"
+        ]
+      },
+      "candidate": null
+    },
+    {
+      "id": "probability",
+      "auto": true,
+      "stable": {
+        "script": "probability/stage-4-5.cjs",
+        "outputs": [
+          "probability-json"
+        ]
+      },
+      "candidate": null
+    },
+    {
+      "id": "report-5a",
+      "auto": true,
+      "stable": {
+        "script": "report/build-facts.cjs",
+        "outputs": [
+          "report-facts-json"
+        ]
+      },
+      "candidate": null
+    },
+    {
+      "id": "report-5b",
+      "auto": true,
+      "stable": {
+        "script": "report/build-model.cjs",
+        "outputs": [
+          "report-model-json"
+        ]
+      },
+      "candidate": null
+    },
+    {
+      "id": "report-5c",
+      "auto": true,
+      "stable": {
+        "script": "report/render-markdown.cjs",
+        "outputs": [
+          "report"
+        ]
+      },
+      "candidate": null
+    },
+    {
+      "id": "publish-current",
+      "auto": false,
+      "stable": {
+        "manual": true,
+        "outputs": [
+          "current"
+        ]
+      },
+      "candidate": null
+    }
+  ]
+}
