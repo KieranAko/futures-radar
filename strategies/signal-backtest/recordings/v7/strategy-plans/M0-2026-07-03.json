@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "runId": "v7-M0-2026-07-03",
+    "signalDate": "2026-07-03",
+    "matcherVersion": "1.0.0",
+    "rulesVersion": "1.0.0",
+    "libraryVersion": "1.0.0",
+    "equityCny": 100000,
+    "marginRate": 0.08,
+    "generatedAt": "2026-07-03T00:00:00.000Z",
+    "inputsSha": "7295be0c5681756c1ece9720b39437a49eda868e612663599116ba6c8a77ff89"
+  },
+  "plans": [
+    {
+      "symbol": "M0",
+      "name": "豆粕",
+      "contract": "M0",
+      "rank": 1,
+      "sector": "agriculture",
+      "reportBaseline": {
+        "direction": "neutral",
+        "confidence": "low",
+        "driver": "价格 2962 位于 m20 2944 与 m60 2976.1 之间；板块质量弱：br 0.2、co 0.44，r5 +0.45 勉强为正；宏观冲突：DXY -0.48 偏多，US10Y +2.05、SC0 -5.54 偏空；nxt.wasde 与 nxt.china_cpi_ppi 双事件。区间中位且事件密集，abstain 原因：conflict_unresolved + event_dense。",
+        "confirmSignals": [
+          "BP-RANGE:stall@2976.1"
+        ],
+        "invalidationConditions": [
+          "收盘站上 m60 或跌破 m20 则区间中性失效"
+        ]
+      },
+      "matchedStrategies": [
+        {
+          "strategyId": "BASE-01",
+          "name": "报告结论跟随（Q1+Q4+Q5 框架基线）",
+          "score": 0,
+          "matchEvidence": "无策略命中，按报告 Q1（驱动）+Q4（确认）+Q5（失效）框架基线适配",
+          "evidenceType": "deterministic"
+        }
+      ],
+      "supportingEvidence": [],
+      "playbook": {
+        "playbookId": "PB-08",
+        "gateStatus": "pending",
+        "gateNote": "divergencePct=0<20；价格未触及 3d p68 上沿（—）±0.25×ATR5 → 触发 pending",
+        "executionConvention": "T+1 开盘；跳空 >0.5×ATR5 放弃；方向中性：仅观察"
+      },
+      "entry": {
+        "trigger": "→ 中性：BP-RANGE:stall@2976.1",
+        "triggerLevel": 2976.1,
+        "triggerSource": "BP-RANGE:stall@2976.1",
+        "triggerTiming": "无执行时点（观察）",
+        "execution": "T+1 开盘；跳空 >0.5×ATR5 放弃"
+      },
+      "stop": {
+        "stopPrice": 3014.5,
+        "stopDistancePts": 52.5,
+        "basis": "min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)"
+      },
+      "targets": {
+        "t1": "3d p68 下沿 —（平 50%）",
+        "t2": "3d p95 下沿 —",
+        "basis": "概率锥区间"
+      },
+      "position": {
+        "lots": 0,
+        "lotsBasis": "min(风险预算 0 手, 波动率目标 1 手, 保证金 13 手)"
+      },
+      "riskAssessment": {
+        "riskPerTradePct": 0.01,
+        "confidenceScale": 0,
+        "stopK": 1.5,
+        "stopDistancePts": 52.5,
+        "stopPrice": 3014.5,
+        "structuralStop": null,
+        "unitRiskCny": 525,
+        "lots": 0,
+        "marginPerLotCny": 2370,
+        "marginUtilizationPct": 0,
+        "volContributionPctAnnual": 0,
+        "tailGapPct3d": -1.77,
+        "stressRiskCny": 0,
+        "eventRiskNote": "—",
+        "maxHoldingDays": 5
+      },
+      "executionStatus": "watch",
+      "statusReasons": [
+        "报告置信度为 low：只观察不持仓"
+      ],
+      "invalidation": {
+        "hard": [
+          "收盘站上 m60 或跌破 m20 则区间中性失效"
+        ],
+        "timeStop": "T+5 无确认无失效则市价退出",
+        "supersededByNextRun": true
+      },
+      "notes": [],
+      "disclaimer": "⚠️ 免责声明：本板块策略为分析工具输出，仅为方向增强与执行参考，不构成投资建议，不执行真实交易。所有参数（手数/止损/目标）均为按示例权益的确定性风险计算演示，不含任何收益承诺或预期收益；历史文献与样本内回测结论不代表未来表现。保证金与涨跌停以交易所当日公告为准。报告结论（方向/置信度）是第一依据，本板块不得反向修改。"
+    }
+  ],
+  "concentrationDecisions": [],
+  "provenance": {
+    "source": "output/runs/v7-M0-2026-07-03/{report-model,probability,sector-snapshot,sector-driver,macro-snapshot,analysis,raw}.json + config/symbols.json",
+    "generator": "futures-radar/strategies/lib/strategy-matcher.cjs",
+    "discipline": [
+      "无新增持仓(OI)数据依赖：Q4/Q5 既有持仓表述仅文本引用（未读取 ohlcv.openInterest/derived.avgOI5d）",
+      "无前视：只使用信号日 T 及之前的已冻结值",
+      "无收益承诺：不输出任何收益/胜率数字",
+      "不修改报告方向与置信度"
+    ]
+  },
+  "disclaimer": "⚠️ 免责声明：本板块策略为分析工具输出，仅为方向增强与执行参考，不构成投资建议，不执行真实交易。所有参数（手数/止损/目标）均为按示例权益的确定性风险计算演示，不含任何收益承诺或预期收益；历史文献与样本内回测结论不代表未来表现。保证金与涨跌停以交易所当日公告为准。报告结论（方向/置信度）是第一依据，本板块不得反向修改。"
+}

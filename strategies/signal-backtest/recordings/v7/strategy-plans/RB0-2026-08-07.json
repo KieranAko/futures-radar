@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "runId": "v7-RB0-2026-08-07",
+    "signalDate": "2026-08-07",
+    "matcherVersion": "1.0.0",
+    "rulesVersion": "1.0.0",
+    "libraryVersion": "1.0.0",
+    "equityCny": 100000,
+    "marginRate": 0.08,
+    "generatedAt": "2026-08-07T00:00:00.000Z",
+    "inputsSha": "5bb763f02e2e74cafa55b043dbc0e053447157e6d57dd9a64bd6b51ca3387e4d"
+  },
+  "plans": [
+    {
+      "symbol": "RB0",
+      "name": "螺纹钢",
+      "contract": "RB0",
+      "rank": 1,
+      "sector": "black",
+      "reportBaseline": {
+        "direction": "bullish",
+        "confidence": "low",
+        "driver": "资金面宽松与板块情绪回暖（macro.DR007、sect.r5、sect.br），价格在区间下沿获支撑，偏多驱动；能源端偏空制约。",
+        "confirmSignals": [
+          "BP-RANGE:pullback@3055.5"
+        ],
+        "invalidationConditions": [
+          "收盘跌破区间下沿（当前收盘）则 range_fade 证伪。"
+        ]
+      },
+      "matchedStrategies": [
+        {
+          "strategyId": "MS-02",
+          "name": "风险偏好 regime 轮动（Risk-On / Risk-Off）",
+          "score": 2.25,
+          "matchEvidence": "riskOn=4 ≥3；板块方向与广度共振",
+          "evidenceType": "deterministic"
+        },
+        {
+          "strategyId": "MS-07",
+          "name": "板块动量轮动 / 广度确认",
+          "score": 1.5,
+          "matchEvidence": "ss.advanceRatio1d gte 50 → 实值=80；ss.sectorDirection eq reportDirection → 实值=up",
+          "evidenceType": "deterministic"
+        }
+      ],
+      "supportingEvidence": [
+        {
+          "strategyId": "MS-05",
+          "name": "增长-通胀象限 regime 配置（All-Weather / 投资时钟）",
+          "score": 1,
+          "matchEvidence": "策略条件求值通过（用已有锚点把宏观状态近似映射到增长×通胀四象限，按象限偏好顺周期多头/供给受限多头/宏观空头/中性。）",
+          "evidenceType": "deterministic"
+        }
+      ],
+      "playbook": {
+        "playbookId": "PB-08",
+        "gateStatus": "pending",
+        "gateNote": "divergencePct=0<20；价格未触及 3d p68 下沿（—）±0.25×ATR5 → 触发 pending",
+        "executionConvention": "T+1 开盘；跳空 >0.5×ATR5 放弃；多头距跌停 <1×ATR5 禁开（Q6 口径）"
+      },
+      "entry": {
+        "trigger": "↑ 多：BP-RANGE:pullback@3055.5",
+        "triggerLevel": 3055.5,
+        "triggerSource": "BP-RANGE:pullback@3055.5",
+        "triggerTiming": "T+1 开盘执行",
+        "execution": "T+1 开盘；跳空 >0.5×ATR5 放弃"
+      },
+      "stop": {
+        "stopPrice": 2962.1,
+        "stopDistancePts": 45.9,
+        "basis": "min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)"
+      },
+      "targets": {
+        "t1": "3d p68 上沿 —（平 50%）",
+        "t2": "3d p95 上沿 —",
+        "basis": "概率锥区间"
+      },
+      "position": {
+        "lots": 0,
+        "lotsBasis": "min(风险预算 0 手, 波动率目标 1 手, 保证金 13 手)"
+      },
+      "riskAssessment": {
+        "riskPerTradePct": 0.01,
+        "confidenceScale": 0,
+        "stopK": 1.5,
+        "stopDistancePts": 45.9,
+        "stopPrice": 2962.1,
+        "structuralStop": null,
+        "unitRiskCny": 459,
+        "lots": 0,
+        "marginPerLotCny": 2406,
+        "marginUtilizationPct": 0,
+        "volContributionPctAnnual": 0,
+        "tailGapPct3d": -1.53,
+        "stressRiskCny": 0,
+        "eventRiskNote": "—",
+        "maxHoldingDays": 5
+      },
+      "executionStatus": "watch",
+      "statusReasons": [
+        "报告置信度为 low：只观察不持仓"
+      ],
+      "invalidation": {
+        "hard": [
+          "收盘跌破区间下沿（当前收盘）则 range_fade 证伪。"
+        ],
+        "timeStop": "T+5 无确认无失效则市价退出",
+        "supersededByNextRun": true
+      },
+      "notes": [],
+      "disclaimer": "⚠️ 免责声明：本板块策略为分析工具输出，仅为方向增强与执行参考，不构成投资建议，不执行真实交易。所有参数（手数/止损/目标）均为按示例权益的确定性风险计算演示，不含任何收益承诺或预期收益；历史文献与样本内回测结论不代表未来表现。保证金与涨跌停以交易所当日公告为准。报告结论（方向/置信度）是第一依据，本板块不得反向修改。"
+    }
+  ],
+  "concentrationDecisions": [],
+  "provenance": {
+    "source": "output/runs/v7-RB0-2026-08-07/{report-model,probability,sector-snapshot,sector-driver,macro-snapshot,analysis,raw}.json + config/symbols.json",
+    "generator": "futures-radar/strategies/lib/strategy-matcher.cjs",
+    "discipline": [
+      "无新增持仓(OI)数据依赖：Q4/Q5 既有持仓表述仅文本引用（未读取 ohlcv.openInterest/derived.avgOI5d）",
+      "无前视：只使用信号日 T 及之前的已冻结值",
+      "无收益承诺：不输出任何收益/胜率数字",
+      "不修改报告方向与置信度"
+    ]
+  },
+  "disclaimer": "⚠️ 免责声明：本板块策略为分析工具输出，仅为方向增强与执行参考，不构成投资建议，不执行真实交易。所有参数（手数/止损/目标）均为按示例权益的确定性风险计算演示，不含任何收益承诺或预期收益；历史文献与样本内回测结论不代表未来表现。保证金与涨跌停以交易所当日公告为准。报告结论（方向/置信度）是第一依据，本板块不得反向修改。"
+}

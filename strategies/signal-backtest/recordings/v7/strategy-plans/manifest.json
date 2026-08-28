@@ -1,0 +1,328 @@
+{
+  "schema": "futures-radar-v7-strategy-plan-manifest/1",
+  "generatedAt": "2026-08-28T05:18:00.837Z",
+  "symbols": [
+    {
+      "symbol": "RB0",
+      "plans": [
+        {
+          "date": "2026-06-11",
+          "symbol": "RB0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-08"
+        },
+        {
+          "date": "2026-06-18",
+          "symbol": "RB0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "executable",
+          "playbookId": "PB-03"
+        },
+        {
+          "date": "2026-06-26",
+          "symbol": "RB0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "executable",
+          "playbookId": "PB-03"
+        },
+        {
+          "date": "2026-07-03",
+          "symbol": "RB0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "executable",
+          "playbookId": "PB-03"
+        },
+        {
+          "date": "2026-07-10",
+          "symbol": "RB0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "executable",
+          "playbookId": "PB-03"
+        },
+        {
+          "date": "2026-07-17",
+          "symbol": "RB0",
+          "direction": "neutral",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-08"
+        },
+        {
+          "date": "2026-07-24",
+          "symbol": "RB0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "executable",
+          "playbookId": "PB-03"
+        },
+        {
+          "date": "2026-07-31",
+          "symbol": "RB0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "executable",
+          "playbookId": "PB-03"
+        },
+        {
+          "date": "2026-08-07",
+          "symbol": "RB0",
+          "direction": "bullish",
+          "matchedStrategies": [
+            "MS-02",
+            "MS-07"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-08"
+        },
+        {
+          "date": "2026-08-14",
+          "symbol": "RB0",
+          "direction": "bullish",
+          "matchedStrategies": [
+            "MS-07"
+          ],
+          "executionStatus": "executable",
+          "playbookId": "PB-08"
+        }
+      ]
+    },
+    {
+      "symbol": "M0",
+      "plans": [
+        {
+          "date": "2026-06-11",
+          "symbol": "M0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "MS-02"
+          ],
+          "executionStatus": "executable",
+          "playbookId": "PB-03"
+        },
+        {
+          "date": "2026-06-18",
+          "symbol": "M0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "MS-02",
+            "MS-07"
+          ],
+          "executionStatus": "executable",
+          "playbookId": "PB-03"
+        },
+        {
+          "date": "2026-06-26",
+          "symbol": "M0",
+          "direction": "bullish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-08"
+        },
+        {
+          "date": "2026-07-03",
+          "symbol": "M0",
+          "direction": "neutral",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-08"
+        },
+        {
+          "date": "2026-07-10",
+          "symbol": "M0",
+          "direction": "bullish",
+          "matchedStrategies": [
+            "MS-02",
+            "MS-07"
+          ],
+          "executionStatus": "executable",
+          "playbookId": "PB-08"
+        },
+        {
+          "date": "2026-07-17",
+          "symbol": "M0",
+          "direction": "bullish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-03"
+        },
+        {
+          "date": "2026-07-24",
+          "symbol": "M0",
+          "direction": "bullish",
+          "matchedStrategies": [
+            "MS-02",
+            "MS-07"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-01"
+        },
+        {
+          "date": "2026-07-31",
+          "symbol": "M0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "MS-02"
+          ],
+          "executionStatus": "executable",
+          "playbookId": "PB-08"
+        },
+        {
+          "date": "2026-08-07",
+          "symbol": "M0",
+          "direction": "bullish",
+          "matchedStrategies": [
+            "MS-02",
+            "MS-07"
+          ],
+          "executionStatus": "executable",
+          "playbookId": "PB-03"
+        },
+        {
+          "date": "2026-08-14",
+          "symbol": "M0",
+          "direction": "bullish",
+          "matchedStrategies": [
+            "MS-07"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-03"
+        }
+      ]
+    },
+    {
+      "symbol": "SC0",
+      "plans": [
+        {
+          "date": "2026-06-11",
+          "symbol": "SC0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "MS-02"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-01"
+        },
+        {
+          "date": "2026-06-18",
+          "symbol": "SC0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "MS-02"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-01"
+        },
+        {
+          "date": "2026-06-26",
+          "symbol": "SC0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-01"
+        },
+        {
+          "date": "2026-07-03",
+          "symbol": "SC0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-01"
+        },
+        {
+          "date": "2026-07-10",
+          "symbol": "SC0",
+          "direction": "bearish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-01"
+        },
+        {
+          "date": "2026-07-17",
+          "symbol": "SC0",
+          "direction": "bullish",
+          "matchedStrategies": [
+            "MS-02",
+            "MS-07"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-01"
+        },
+        {
+          "date": "2026-07-24",
+          "symbol": "SC0",
+          "direction": "bullish",
+          "matchedStrategies": [
+            "MS-02",
+            "MS-07"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-01"
+        },
+        {
+          "date": "2026-07-31",
+          "symbol": "SC0",
+          "direction": "bullish",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-08"
+        },
+        {
+          "date": "2026-08-07",
+          "symbol": "SC0",
+          "direction": "neutral",
+          "matchedStrategies": [
+            "BASE-01"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-03"
+        },
+        {
+          "date": "2026-08-14",
+          "symbol": "SC0",
+          "direction": "bullish",
+          "matchedStrategies": [
+            "MS-07"
+          ],
+          "executionStatus": "watch",
+          "playbookId": "PB-01"
+        }
+      ]
+    }
+  ]
+}

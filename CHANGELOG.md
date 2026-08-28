@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.17（2026-08-28）
+
+- **V7 生产策略适配器（FinCoT 只做分析，策略库负责交易计划）**：新增 `strategies/signal-backtest/adapters/strategy-plan-adapter.cjs`——把每个锚点的证据包 + V7 FinCoT 六问包装成生产 run 目录形状（report-model/thesis、analysis.json、macro/sector/probability/raw/main-series），**原样调用 `strategies/lib/strategy-matcher.cjs`**，不修改生产匹配引擎、不调用 LLM
+- **产出 30 份生产 schema 的 strategy-plan.json**（`recordings/v7/strategy-plans/`）：全部通过 `report/strategy-plan.schema.json` 校验；FinCoT direction 100% 传播到 `reportBaseline.direction`。匹配分布：MS-02 executable 5 / watch 6、MS-07 executable 1 / watch 2、BASE-01 executable 6 / watch 10（共 12 executable / 18 watch）。后续执行引擎可直接消费 strategy-plan 字段，回测与报告共用同一策略链
+- **版本对齐**：VERSION.md / package.json / SKILL.md / README.md / pipeline banner 统一为 0.1.17；新增 `npm run signal:backtest:v7:adapt`
+- 新增 signal-backtest-v7-adapter 测试 2 条（30 份 plan 过生产 schema、FinCoT 方向传播）；全量测试 632 → 634（119 → 120 套件）
+
 ## 0.1.16（2026-08-28）
 
 - **信号质量回测 V7（FinCoT 蓝图版 10 锚点试点）**：按 `contract-v7.md`（已对齐 arXiv:2506.16123）落地——`reasoning-blueprints/blueprints.json` 五个领域蓝图（BP-TREND/BP-BREAK/BP-PULL/BP-RANGE/BP-SHOCK，各含分步工作流 + Mermaid + 模板默认执行参数）；T1 FinCoT 严格按论文结构输出 `blueprintId + thinking + selfCheck(unit/evidence/opposing) + 结构化 q1-q6`；T2 为确定性模板计划（`build-plans-v7.cjs`，无 LLM 数值生成）；L3 复用 v6.1 安全执行引擎
