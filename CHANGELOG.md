@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.0（2026-08-29）— V1 正式版本
+
+两条线完整保留：**生产线**（每日期货雷达：采集→扫描→过滤→FinCoT 分析→概率锥→报告→策略板块）与**实验线**（生产线的完整映射/测试版本）。
+
+- **实验线 v6 架构落地**：管道镜像（stable 回放 14/14 一致）· G1 机制命题检验漏斗（carry 族 3 形态证据关闭）· G2 门槛框架 · 族级证据账本 · 三层可信度模型（族级证据×状态匹配×实现保真，强制降档）· 机制识别 · 影子框架（不可变快照）· promote/revert 账本 · 前向验证（G4）
+- **报告产出升级**：策略板块逐品种可信度评级（A/B/C/D+原因）、前向账本滚动（上期计划验证状态）、板块集中度提示、期限结构入 Q3（GA-8 基差库）、族级证据状态行
+- **analyze candidate v2 promote 回生产**：单轮合并推理（2 次逻辑 LLM 调用 vs 旧 7-9 次）、确定性预填最大化、机制候选前置、增量上下文；历史回放方向一致率 100%（6/6）、影子 N=1 与生产同分
+- **理论库**：theory-base 四份吸收报告（Chan 流程 / 期限结构 / Carver 系统化 / Ilmanen 来源），自洽性+项目相关性检验通过，遇阻回查使用
+- **数据前置**：GA-1..GA-8 全量（59 品种全历史、派生序列、板块、宏观、基差 PIT 回填 33,214 行）
+- **策略库状态**：v2 库 8 条全部定案（2 falsified / 1 family_g1_closed / 1 strategy_gate_failed / 3 not_evaluable / 1 insufficient_sample），诚实收口
+- 全量测试 **669/669（126 套件）**
+
 ## 0.1.19（2026-08-28）
 
 - **V8.1 定价层（F1-F5 落地）**：新增 `pricing-layer-v8.cjs`——对 30 份生产 strategy-plan 做确定性定价审计：F1 触发价须在锚点日 ±2×ATR 可执行带；F2 q4 类型与 triggerSource 类型一致；F3 range/transition 禁止 breakout；F5 breakout 必须有结构目标（前高/前低），不得用概率锥代理兜底；F4 记录目标距离 ATR（只报告不降级）。`runner-v8-1.cjs` 只执行 `effectiveExecutionStatus=executable` 的计划

@@ -125,7 +125,8 @@ describe('experiment-line v6 (full mirror of production)', () => {
   it('experiment-line report assembles real report + appendix', () => {
     const prodRunId = '20260827-2159-auto';
     const baseFile = path.join(EL, 'runs', prodRunId, 'report.md');
-    if (!fs.existsSync(baseFile)) return;
+    const trustFile = path.join(EL, 'results', 'trust', `${prodRunId}.json`);
+    if (!fs.existsSync(baseFile) || !fs.existsSync(trustFile)) return; // 运行产物清理后跳过（可重建）
     const report = require(path.join(EL, 'report.cjs'));
     const out = report.main(prodRunId);
     const md = fs.readFileSync(out.file, 'utf8');

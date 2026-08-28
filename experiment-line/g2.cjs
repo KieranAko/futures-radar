@@ -44,8 +44,6 @@ function assess(id) {
   const regFile = path.join(EL, 'registry', `${id}.json`);
   if (!fs.existsSync(regFile)) throw new Error(`mechanism not registered: ${id}`);
   const reg = readJson(regFile);
-  const resultFile = path.join(EL, 'results', 'g1', `${id}-result.json`);
-  if (!fs.existsSync(resultFile)) throw new Error(`G1 result missing: ${resultFile}`);
 
   if (reg.status !== 'g1_pass') {
     const out = {
@@ -60,6 +58,9 @@ function assess(id) {
     console.log(`[${id}] G2 rejected: ${out.reason}`);
     return out;
   }
+
+  const resultFile = path.join(EL, 'results', 'g1', `${id}-result.json`);
+  if (!fs.existsSync(resultFile)) throw new Error(`G1 result missing: ${resultFile}`);
 
   const r = readJson(resultFile);
   const nets = (r.events || []).map((e) => e.netPct).filter((v) => Number.isFinite(v));

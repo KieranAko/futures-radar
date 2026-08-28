@@ -1,7 +1,7 @@
 ---
 name: futures-radar
 description: 期货短期机会分析 + 离线模型回测——每日扫描~60个国内期货主力合约，波动率排名→Top 3深挖→4章短报告；research/backtest/ 支持 deterministic 与 LLM replay 回测
-version: 0.1.19
+version: 1.0.0
 ---
 
 # futures-radar

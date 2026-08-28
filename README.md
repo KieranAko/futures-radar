@@ -19,8 +19,10 @@
 - **完整策略链回测试点（v0.1.8）**：`strategies/backtest/pilot-runner.cjs` 用 3 品种 × 5 信号日跑通“截断数据 + recorded LLM 决策 + strategy-matcher + feedback 验证”闭环，产出 `strategies/backtest/baseline-report.md`
 - **信号质量回测（v0.1.9 → v0.1.12）**：RB0/M0/SC0 的“LLM 锚点 → 确定性信号延续 → T+1 确认/T+2 执行 → 证伪”；v1=1 年/10 日锚点、v2=2 年/5 日锚点（`runner.cjs`），v3=LLM 定性判断+纯量化对照臂（`runner-v3.cjs`），v4=最近 10 锚点×3 品种的宏观/板块/事件上下文 + 完整六问 FinCoT + 报告式策略三臂消融（`runner-v4.cjs`），v5=20 锚点×3 品种高效版：紧凑 bundle + 变化驱动 FinCoT + C 臂强制消费 FinCoT（`runner-v5.cjs`），v6=v5 计划 + 五道安全闸初版（`runner-v6.cjs`），v6.1=硬约束修正版（`runner-v6-1.cjs`）；v7=FinCoT 蓝图推理 + 安全执行（`runner-v7.cjs`）；v7 适配器把 FinCoT 消费进生产策略库（`adapters/strategy-plan-adapter.cjs`）；v8=按生产 strategy-plan 执行（`runner-v8.cjs`）；v8.1=+F1-F5 定价层（`pricing-layer-v8.cjs` + `runner-v8-1.cjs` → `signal-quality-baseline-v8-1.md/json`）
 - **保守自动化（v0.1.4）**：软过滤 `--shadow` 输出 `filtered.quant.json`；六问预填充只生成 `analysis.draft.json`，LLM 边界不撤销
+- **实验线（v1.0.0）**：生产线的完整映射/测试版本（`experiment-line/`）——管道镜像与 stable 回放、G1 机制命题检验漏斗、G2 门槛、族级证据账本、三层可信度模型（族级证据×状态匹配×实现保真）、机制识别、影子快照、promote/revert、前向验证；实验线结论经整段 promote 回生产（analyze v2 已回）
+- **理论库（theory-base/）**：Chan 研究业务 / 期限结构 / Carver 系统化交易 / Ilmanen 收益来源四份吸收报告（自洽性+项目相关性检验），项目遇阻时按 README 使用规则回查
 - **离线回测**：strict no-look-ahead 实现 + LLM replay 评分卡；方向层已被大样本证伪并收口（诚实披露）
-- **638 个测试全绿**（122 套件），测试夹具内置、无机器路径依赖
+- **669 个测试全绿**（122 套件），测试夹具内置、无机器路径依赖
 
 ## 目录结构
 
