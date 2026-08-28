@@ -1,0 +1,4597 @@
+{
+  "schema": "futures-strategy-mechanism-probe-result/1",
+  "id": "H-MECH-03",
+  "name": "极端隔夜跳空后的短期反转（散户过度反应）",
+  "family": "trader",
+  "preregistrationHash": "5e5e64cf5847c76ef448e027c582b397d0c7ae1516add6b91a77ab16ac95c3d4",
+  "runAt": "2026-08-28T19:25:51.303Z",
+  "runCommand": "node strategies/research/v2/falsification/mechanism/mechanism-bound-probes.cjs --hypothesis H-MECH-03",
+  "seed": 20260828,
+  "alphaAdj": 0.0167,
+  "decision": "screen_pending",
+  "primary": {
+    "meanNetPct": 0.024044,
+    "ci": {
+      "lo": -0.251601,
+      "hi": 0.29663,
+      "level": 0.95,
+      "B": 10000,
+      "seed": 20260828,
+      "method": "bootstrap-percentile"
+    },
+    "n": 541,
+    "sigmaPct": 3.284722
+  },
+  "secondary": {
+    "hitRate": {
+      "k": 264,
+      "n": 541,
+      "rate": 0.487985,
+      "pOneSided": 0.7263622187761876,
+      "alphaAdj": 0.0167,
+      "powerFor3pp": 0.23178,
+      "validityGate": "low_power_no_conclusion"
+    },
+    "upVsDownGap": {
+      "upGap": {
+        "n": 281,
+        "meanNetPct": -0.239987
+      },
+      "downGap": {
+        "n": 260,
+        "meanNetPct": 0.3094
+      }
+    },
+    "followDirectionControl": {
+      "n": 541,
+      "meanNetPct": -0.164044,
+      "note": "同事件集追涨杀跌方向净收益（仅报告）"
+    },
+    "perSymbol": {
+      "A0": {
+        "n": 26,
+        "meanNetPct": -0.106499
+      },
+      "AG0": {
+        "n": 13,
+        "meanNetPct": -0.817106
+      },
+      "AL0": {
+        "n": 7,
+        "meanNetPct": -0.876559
+      },
+      "AP0": {
+        "n": 6,
+        "meanNetPct": -0.655291
+      },
+      "AU0": {
+        "n": 27,
+        "meanNetPct": -0.583922
+      },
+      "B0": {
+        "n": 51,
+        "meanNetPct": 0.235914
+      },
+      "BC0": {
+        "n": 1,
+        "meanNetPct": 4.398413
+      },
+      "BU0": {
+        "n": 10,
+        "meanNetPct": 0.9132
+      },
+      "C0": {
+        "n": 37,
+        "meanNetPct": 0.229866
+      },
+      "CF0": {
+        "n": 23,
+        "meanNetPct": -0.221906
+      },
+      "CJ0": {
+        "n": 5,
+        "meanNetPct": -0.572785
+      },
+      "CS0": {
+        "n": 17,
+        "meanNetPct": -0.857773
+      },
+      "CU0": {
+        "n": 12,
+        "meanNetPct": -0.65087
+      },
+      "EB0": {
+        "n": 3,
+        "meanNetPct": 2.307608
+      },
+      "EG0": {
+        "n": 6,
+        "meanNetPct": -1.382085
+      },
+      "FG0": {
+        "n": 6,
+        "meanNetPct": 0.364681
+      },
+      "FU0": {
+        "n": 50,
+        "meanNetPct": -0.114518
+      },
+      "HC0": {
+        "n": 4,
+        "meanNetPct": -0.260004
+      },
+      "I0": {
+        "n": 4,
+        "meanNetPct": -0.157561
+      },
+      "J0": {
+        "n": 11,
+        "meanNetPct": 1.246879
+      },
+      "JD0": {
+        "n": 11,
+        "meanNetPct": 0.077241
+      },
+      "JM0": {
+        "n": 5,
+        "meanNetPct": -0.272062
+      },
+      "L0": {
+        "n": 10,
+        "meanNetPct": 0.800722
+      },
+      "LH0": {
+        "n": 8,
+        "meanNetPct": -1.160145
+      },
+      "LU0": {
+        "n": 2,
+        "meanNetPct": 1.967718
+      },
+      "M0": {
+        "n": 28,
+        "meanNetPct": -0.651659
+      },
+      "MA0": {
+        "n": 7,
+        "meanNetPct": -0.577353
+      },
+      "NI0": {
+        "n": 1,
+        "meanNetPct": 4.050588
+      },
+      "NR0": {
+        "n": 1,
+        "meanNetPct": 2.785868
+      },
+      "OI0": {
+        "n": 13,
+        "meanNetPct": 1.844505
+      },
+      "P0": {
+        "n": 11,
+        "meanNetPct": 1.198248
+      },
+      "PB0": {
+        "n": 9,
+        "meanNetPct": 0.535877
+      },
+      "PF0": {
+        "n": 1,
+        "meanNetPct": 0.596445
+      },
+      "PG0": {
+        "n": 2,
+        "meanNetPct": -0.066972
+      },
+      "PK0": {
+        "n": 3,
+        "meanNetPct": -0.315213
+      },
+      "PP0": {
+        "n": 8,
+        "meanNetPct": -1.052771
+      },
+      "RB0": {
+        "n": 10,
+        "meanNetPct": 1.356731
+      },
+      "RM0": {
+        "n": 7,
+        "meanNetPct": 0.113053
+      },
+      "RU0": {
+        "n": 10,
+        "meanNetPct": -0.267903
+      },
+      "SA0": {
+        "n": 1,
+        "meanNetPct": 1.939274
+      },
+      "SC0": {
+        "n": 1,
+        "meanNetPct": 0.356921
+      },
+      "SF0": {
+        "n": 4,
+        "meanNetPct": -0.838748
+      },
+      "SM0": {
+        "n": 6,
+        "meanNetPct": -0.336092
+      },
+      "SN0": {
+        "n": 0,
+        "meanNetPct": null
+      },
+      "SP0": {
+        "n": 3,
+        "meanNetPct": -0.839843
+      },
+      "SR0": {
+        "n": 15,
+        "meanNetPct": 0.326566
+      },
+      "SS0": {
+        "n": 0,
+        "meanNetPct": null
+      },
+      "TA0": {
+        "n": 13,
+        "meanNetPct": -0.530838
+      },
+      "UR0": {
+        "n": 4,
+        "meanNetPct": -0.807257
+      },
+      "V0": {
+        "n": 12,
+        "meanNetPct": 1.131101
+      },
+      "Y0": {
+        "n": 10,
+        "meanNetPct": 0.883176
+      },
+      "ZN0": {
+        "n": 6,
+        "meanNetPct": -0.274441
+      }
+    }
+  },
+  "powerReport": {
+    "meanMdePct": 0.1,
+    "meanPowerAtMde": 0.045981,
+    "meanPowerRule": "报告用途；探针非策略级主检验（24 协议 §2.4 适用于策略级）",
+    "hitRatePowerFor3pp": 0.23178
+  },
+  "events": [
+    {
+      "date": "2005-05-09",
+      "symbol": "A0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.101695,
+      "netPct": 2.392057
+    },
+    {
+      "date": "2006-09-28",
+      "symbol": "A0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.921569,
+      "netPct": -1.750672
+    },
+    {
+      "date": "2007-01-04",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.719562,
+      "netPct": -1.791047
+    },
+    {
+      "date": "2007-05-09",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.999712,
+      "netPct": 2.664839
+    },
+    {
+      "date": "2007-07-06",
+      "symbol": "A0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.191199,
+      "netPct": -2.809726
+    },
+    {
+      "date": "2008-02-27",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.173573,
+      "netPct": 13.219529
+    },
+    {
+      "date": "2008-10-06",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.122494,
+      "netPct": -8.799069
+    },
+    {
+      "date": "2009-05-04",
+      "symbol": "A0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.222025,
+      "netPct": 1.981282
+    },
+    {
+      "date": "2010-10-11",
+      "symbol": "A0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.496579,
+      "netPct": 0.165294
+    },
+    {
+      "date": "2011-07-06",
+      "symbol": "A0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.274775,
+      "netPct": -5.025872
+    },
+    {
+      "date": "2013-06-06",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.691511,
+      "netPct": -0.854563
+    },
+    {
+      "date": "2013-10-15",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.531103,
+      "netPct": -0.179818
+    },
+    {
+      "date": "2014-02-10",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.305603,
+      "netPct": 0.217166
+    },
+    {
+      "date": "2014-03-25",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.671208,
+      "netPct": -0.213232
+    },
+    {
+      "date": "2014-07-01",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.189578,
+      "netPct": -0.412779
+    },
+    {
+      "date": "2014-11-25",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.300112,
+      "netPct": 0.632576
+    },
+    {
+      "date": "2015-09-07",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.727599,
+      "netPct": 0.366258
+    },
+    {
+      "date": "2017-12-11",
+      "symbol": "A0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.978419,
+      "netPct": -1.645892
+    },
+    {
+      "date": "2018-07-30",
+      "symbol": "A0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.297328,
+      "netPct": 0.613995
+    },
+    {
+      "date": "2018-12-24",
+      "symbol": "A0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.36514,
+      "netPct": -2.360985
+    },
+    {
+      "date": "2020-08-19",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.848433,
+      "netPct": -2.475345
+    },
+    {
+      "date": "2022-12-14",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.383759,
+      "netPct": -1.949699
+    },
+    {
+      "date": "2023-04-10",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.091164,
+      "netPct": -1.531419
+    },
+    {
+      "date": "2023-06-15",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.197334,
+      "netPct": 5.335965
+    },
+    {
+      "date": "2024-06-18",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.336145,
+      "netPct": 2.522511
+    },
+    {
+      "date": "2024-08-16",
+      "symbol": "A0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.103633,
+      "netPct": -1.080338
+    },
+    {
+      "date": "2013-02-18",
+      "symbol": "AG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.014042,
+      "netPct": -3.628321
+    },
+    {
+      "date": "2013-04-15",
+      "symbol": "AG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.959097,
+      "netPct": -2.501486
+    },
+    {
+      "date": "2013-09-24",
+      "symbol": "AG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.149321,
+      "netPct": 0.317862
+    },
+    {
+      "date": "2014-02-14",
+      "symbol": "AG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.860072,
+      "netPct": 0.447901
+    },
+    {
+      "date": "2014-04-15",
+      "symbol": "AG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.527076,
+      "netPct": -1.907335
+    },
+    {
+      "date": "2015-10-08",
+      "symbol": "AG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.077764,
+      "netPct": -1.440262
+    },
+    {
+      "date": "2016-10-10",
+      "symbol": "AG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.360525,
+      "netPct": 0.231963
+    },
+    {
+      "date": "2017-11-21",
+      "symbol": "AG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.005394,
+      "netPct": -0.120201
+    },
+    {
+      "date": "2018-05-03",
+      "symbol": "AG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.061224,
+      "netPct": -0.229659
+    },
+    {
+      "date": "2018-06-19",
+      "symbol": "AG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.465219,
+      "netPct": 0.681476
+    },
+    {
+      "date": "2020-04-07",
+      "symbol": "AG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.557838,
+      "netPct": -3.237668
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "AG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -9.063481,
+      "netPct": 5.694706
+    },
+    {
+      "date": "2025-06-03",
+      "symbol": "AG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.67486,
+      "netPct": -4.931357
+    },
+    {
+      "date": "2006-04-19",
+      "symbol": "AL0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.691112,
+      "netPct": -2.584231
+    },
+    {
+      "date": "2010-04-28",
+      "symbol": "AL0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.287017,
+      "netPct": -1.30839
+    },
+    {
+      "date": "2010-09-27",
+      "symbol": "AL0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.257552,
+      "netPct": -4.0075
+    },
+    {
+      "date": "2013-05-02",
+      "symbol": "AL0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.255639,
+      "netPct": 1.173094
+    },
+    {
+      "date": "2015-02-25",
+      "symbol": "AL0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.828484,
+      "netPct": -0.456997
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "AL0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.546099,
+      "netPct": 1.219609
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "AL0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.953967,
+      "netPct": -0.171497
+    },
+    {
+      "date": "2018-07-12",
+      "symbol": "AP0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 9.376321,
+      "netPct": -1.375201
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "AP0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.075472,
+      "netPct": 2.236569
+    },
+    {
+      "date": "2021-12-17",
+      "symbol": "AP0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.679055,
+      "netPct": -1.654634
+    },
+    {
+      "date": "2022-12-15",
+      "symbol": "AP0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.990521,
+      "netPct": -2.65213
+    },
+    {
+      "date": "2023-12-06",
+      "symbol": "AP0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.396285,
+      "netPct": 2.445337
+    },
+    {
+      "date": "2024-04-10",
+      "symbol": "AP0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.523469,
+      "netPct": -2.931685
+    },
+    {
+      "date": "2008-06-27",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.894363,
+      "netPct": -0.459275
+    },
+    {
+      "date": "2008-08-12",
+      "symbol": "AU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.482759,
+      "netPct": -2.102204
+    },
+    {
+      "date": "2008-09-18",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.760814,
+      "netPct": -4.450952
+    },
+    {
+      "date": "2008-12-02",
+      "symbol": "AU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.973778,
+      "netPct": 1.057596
+    },
+    {
+      "date": "2008-12-29",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.107599,
+      "netPct": 2.10414
+    },
+    {
+      "date": "2009-02-02",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.746307,
+      "netPct": -0.449593
+    },
+    {
+      "date": "2009-06-01",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.966631,
+      "netPct": 1.845691
+    },
+    {
+      "date": "2009-10-09",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.02652,
+      "netPct": 0.202715
+    },
+    {
+      "date": "2010-02-05",
+      "symbol": "AU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.124679,
+      "netPct": 2.340148
+    },
+    {
+      "date": "2010-05-07",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.246321,
+      "netPct": -2.84662
+    },
+    {
+      "date": "2010-07-02",
+      "symbol": "AU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.053914,
+      "netPct": -1.062499
+    },
+    {
+      "date": "2011-01-05",
+      "symbol": "AU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.537279,
+      "netPct": 0.518039
+    },
+    {
+      "date": "2012-01-30",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.249492,
+      "netPct": 0.147434
+    },
+    {
+      "date": "2012-03-01",
+      "symbol": "AU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.364633,
+      "netPct": -1.848538
+    },
+    {
+      "date": "2012-09-10",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.505649,
+      "netPct": -2.085677
+    },
+    {
+      "date": "2013-02-18",
+      "symbol": "AU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.339295,
+      "netPct": -1.727056
+    },
+    {
+      "date": "2013-04-15",
+      "symbol": "AU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.925435,
+      "netPct": 3.773217
+    },
+    {
+      "date": "2013-06-21",
+      "symbol": "AU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.251892,
+      "netPct": -6.570479
+    },
+    {
+      "date": "2014-04-15",
+      "symbol": "AU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.45561,
+      "netPct": -1.43486
+    },
+    {
+      "date": "2014-05-05",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.074131,
+      "netPct": 0.971864
+    },
+    {
+      "date": "2016-02-15",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.124034,
+      "netPct": -0.619451
+    },
+    {
+      "date": "2016-10-10",
+      "symbol": "AU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.100946,
+      "netPct": 0.076359
+    },
+    {
+      "date": "2020-04-07",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.714097,
+      "netPct": -2.706586
+    },
+    {
+      "date": "2023-05-04",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.202414,
+      "netPct": 0.079286
+    },
+    {
+      "date": "2025-02-05",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.15965,
+      "netPct": -1.378706
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "AU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.038969,
+      "netPct": 6.197743
+    },
+    {
+      "date": "2025-10-09",
+      "symbol": "AU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.066789,
+      "netPct": -5.33763
+    },
+    {
+      "date": "2008-06-10",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.87039,
+      "netPct": 2.652772
+    },
+    {
+      "date": "2009-03-12",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.207735,
+      "netPct": 3.180689
+    },
+    {
+      "date": "2009-04-08",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.085754,
+      "netPct": -4.236667
+    },
+    {
+      "date": "2009-05-11",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.806979,
+      "netPct": -5.333158
+    },
+    {
+      "date": "2009-06-12",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.563094,
+      "netPct": -0.706943
+    },
+    {
+      "date": "2009-10-09",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.952954,
+      "netPct": -1.966368
+    },
+    {
+      "date": "2009-11-03",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.888594,
+      "netPct": -1.214835
+    },
+    {
+      "date": "2010-01-29",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.99389,
+      "netPct": 1.249797
+    },
+    {
+      "date": "2010-03-10",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.798212,
+      "netPct": -0.07
+    },
+    {
+      "date": "2010-03-30",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.369684,
+      "netPct": 0.99141
+    },
+    {
+      "date": "2010-04-16",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 9.530938,
+      "netPct": -2.626391
+    },
+    {
+      "date": "2010-06-03",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.819588,
+      "netPct": -4.545309
+    },
+    {
+      "date": "2010-08-31",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.181601,
+      "netPct": 2.817649
+    },
+    {
+      "date": "2011-06-15",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.492067,
+      "netPct": -1.575776
+    },
+    {
+      "date": "2011-07-05",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.366492,
+      "netPct": -0.821566
+    },
+    {
+      "date": "2011-12-01",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.32672,
+      "netPct": 0.101306
+    },
+    {
+      "date": "2012-01-10",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.951168,
+      "netPct": 1.396583
+    },
+    {
+      "date": "2012-04-25",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.589322,
+      "netPct": 1.259683
+    },
+    {
+      "date": "2012-08-22",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4,
+      "netPct": 2.940753
+    },
+    {
+      "date": "2012-11-12",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.643824,
+      "netPct": 0.451059
+    },
+    {
+      "date": "2012-11-28",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.054924,
+      "netPct": 0.220758
+    },
+    {
+      "date": "2013-03-29",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.282324,
+      "netPct": -3.359029
+    },
+    {
+      "date": "2013-07-12",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.368866,
+      "netPct": 2.424551
+    },
+    {
+      "date": "2013-09-26",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.104233,
+      "netPct": -1.640552
+    },
+    {
+      "date": "2013-12-31",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 9.305873,
+      "netPct": -0.546908
+    },
+    {
+      "date": "2014-01-22",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.294479,
+      "netPct": 8.874544
+    },
+    {
+      "date": "2014-04-24",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.954477,
+      "netPct": 6.139405
+    },
+    {
+      "date": "2014-05-23",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.727015,
+      "netPct": 0.095367
+    },
+    {
+      "date": "2014-06-13",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.263345,
+      "netPct": -0.427058
+    },
+    {
+      "date": "2014-08-28",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4,
+      "netPct": 0.24091
+    },
+    {
+      "date": "2014-09-16",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.014493,
+      "netPct": -9.055507
+    },
+    {
+      "date": "2015-01-26",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.551084,
+      "netPct": 0.987543
+    },
+    {
+      "date": "2015-06-23",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.844173,
+      "netPct": 1.755558
+    },
+    {
+      "date": "2015-09-16",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.628931,
+      "netPct": -2.52283
+    },
+    {
+      "date": "2015-10-19",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.901037,
+      "netPct": 4.819329
+    },
+    {
+      "date": "2016-01-06",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.961832,
+      "netPct": 2.16411
+    },
+    {
+      "date": "2016-03-31",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.632115,
+      "netPct": 1.834762
+    },
+    {
+      "date": "2016-06-08",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.995675,
+      "netPct": 5.370806
+    },
+    {
+      "date": "2016-07-14",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.985915,
+      "netPct": -5.923659
+    },
+    {
+      "date": "2016-10-12",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.333333,
+      "netPct": -1.191795
+    },
+    {
+      "date": "2016-11-23",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.015625,
+      "netPct": 4.130442
+    },
+    {
+      "date": "2016-12-07",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.769231,
+      "netPct": 4.189347
+    },
+    {
+      "date": "2017-02-08",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.223944,
+      "netPct": -1.945
+    },
+    {
+      "date": "2017-05-19",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.673469,
+      "netPct": 0.21133
+    },
+    {
+      "date": "2017-06-30",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.898551,
+      "netPct": -0.742372
+    },
+    {
+      "date": "2018-08-31",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.561114,
+      "netPct": 0.022994
+    },
+    {
+      "date": "2019-04-16",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.657019,
+      "netPct": 6.855964
+    },
+    {
+      "date": "2021-06-15",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.360111,
+      "netPct": -1.387073
+    },
+    {
+      "date": "2024-04-24",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 9.167992,
+      "netPct": -2.13914
+    },
+    {
+      "date": "2025-12-18",
+      "symbol": "B0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.622359,
+      "netPct": 0.394576
+    },
+    {
+      "date": "2026-06-18",
+      "symbol": "B0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.17843,
+      "netPct": -1.764452
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "BC0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.606735,
+      "netPct": 4.398413
+    },
+    {
+      "date": "2014-05-01",
+      "symbol": "BU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.281027,
+      "netPct": -1.448327
+    },
+    {
+      "date": "2014-05-19",
+      "symbol": "BU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.564547,
+      "netPct": 0.302613
+    },
+    {
+      "date": "2014-09-10",
+      "symbol": "BU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.903226,
+      "netPct": -0.165283
+    },
+    {
+      "date": "2015-06-02",
+      "symbol": "BU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.453759,
+      "netPct": 4.185319
+    },
+    {
+      "date": "2015-06-23",
+      "symbol": "BU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.220419,
+      "netPct": -3.76863
+    },
+    {
+      "date": "2019-09-16",
+      "symbol": "BU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.550886,
+      "netPct": 1.53
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "BU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.180628,
+      "netPct": 5.89693
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "BU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.481994,
+      "netPct": 0.505758
+    },
+    {
+      "date": "2025-10-15",
+      "symbol": "BU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.559271,
+      "netPct": 2.13195
+    },
+    {
+      "date": "2026-01-05",
+      "symbol": "BU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.752306,
+      "netPct": -0.038334
+    },
+    {
+      "date": "2005-09-05",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.344382,
+      "netPct": -0.07
+    },
+    {
+      "date": "2005-10-31",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.933985,
+      "netPct": -3.006378
+    },
+    {
+      "date": "2005-11-22",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.600473,
+      "netPct": -0.692568
+    },
+    {
+      "date": "2005-12-21",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.686109,
+      "netPct": -1.254308
+    },
+    {
+      "date": "2006-01-19",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.001464,
+      "netPct": 3.493636
+    },
+    {
+      "date": "2006-07-06",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.669405,
+      "netPct": -0.138399
+    },
+    {
+      "date": "2006-11-21",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.845053,
+      "netPct": -1.064152
+    },
+    {
+      "date": "2007-01-15",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.299176,
+      "netPct": 4.219694
+    },
+    {
+      "date": "2007-04-02",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.550296,
+      "netPct": 1.608657
+    },
+    {
+      "date": "2007-05-22",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.333333,
+      "netPct": -1.924067
+    },
+    {
+      "date": "2008-01-03",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.555027,
+      "netPct": -1.506464
+    },
+    {
+      "date": "2008-03-27",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.034969,
+      "netPct": -0.916113
+    },
+    {
+      "date": "2008-08-26",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.893495,
+      "netPct": 0.364783
+    },
+    {
+      "date": "2008-10-06",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.260181,
+      "netPct": 1.720123
+    },
+    {
+      "date": "2009-02-10",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.654694,
+      "netPct": -2.371635
+    },
+    {
+      "date": "2009-12-09",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.411633,
+      "netPct": -0.876452
+    },
+    {
+      "date": "2010-02-03",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.008667,
+      "netPct": -0.339833
+    },
+    {
+      "date": "2010-10-11",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.211036,
+      "netPct": -0.397103
+    },
+    {
+      "date": "2010-11-10",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.567733,
+      "netPct": 4.517156
+    },
+    {
+      "date": "2011-05-09",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.487877,
+      "netPct": -0.364489
+    },
+    {
+      "date": "2011-07-20",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.757432,
+      "netPct": -0.996316
+    },
+    {
+      "date": "2012-06-12",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.975124,
+      "netPct": -3.687464
+    },
+    {
+      "date": "2012-07-03",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.245056,
+      "netPct": 3.653404
+    },
+    {
+      "date": "2012-10-18",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.547009,
+      "netPct": -0.855773
+    },
+    {
+      "date": "2013-02-04",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.061856,
+      "netPct": 1.463495
+    },
+    {
+      "date": "2013-07-05",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.258727,
+      "netPct": -0.363871
+    },
+    {
+      "date": "2014-07-14",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.189456,
+      "netPct": 0.973932
+    },
+    {
+      "date": "2015-06-24",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.133593,
+      "netPct": 9.663271
+    },
+    {
+      "date": "2017-12-05",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.025015,
+      "netPct": 0.547978
+    },
+    {
+      "date": "2018-03-15",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.970297,
+      "netPct": -1.259128
+    },
+    {
+      "date": "2018-07-09",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.766161,
+      "netPct": -0.663952
+    },
+    {
+      "date": "2018-11-14",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.238619,
+      "netPct": 1.13603
+    },
+    {
+      "date": "2018-12-03",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.508961,
+      "netPct": -2.374872
+    },
+    {
+      "date": "2019-08-06",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.965661,
+      "netPct": 3.018608
+    },
+    {
+      "date": "2019-12-03",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.675261,
+      "netPct": -0.438809
+    },
+    {
+      "date": "2024-12-17",
+      "symbol": "C0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.757374,
+      "netPct": -0.344851
+    },
+    {
+      "date": "2025-08-13",
+      "symbol": "C0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.654867,
+      "netPct": -1.968734
+    },
+    {
+      "date": "2005-05-11",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.259491,
+      "netPct": 1.024527
+    },
+    {
+      "date": "2005-09-06",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.851641,
+      "netPct": 1.593128
+    },
+    {
+      "date": "2006-06-15",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.908587,
+      "netPct": 2.128917
+    },
+    {
+      "date": "2006-07-25",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.381799,
+      "netPct": 0.523161
+    },
+    {
+      "date": "2006-10-30",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.706928,
+      "netPct": -4.520262
+    },
+    {
+      "date": "2007-03-07",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.322206,
+      "netPct": 1.022319
+    },
+    {
+      "date": "2007-05-23",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.729952,
+      "netPct": -1.340879
+    },
+    {
+      "date": "2008-02-01",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.046385,
+      "netPct": -1.168535
+    },
+    {
+      "date": "2008-05-23",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 10.664336,
+      "netPct": 2.462863
+    },
+    {
+      "date": "2010-02-22",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.744301,
+      "netPct": 0.138209
+    },
+    {
+      "date": "2010-04-16",
+      "symbol": "CF0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.542122,
+      "netPct": -0.751078
+    },
+    {
+      "date": "2010-05-21",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.189498,
+      "netPct": 8.928906
+    },
+    {
+      "date": "2011-05-27",
+      "symbol": "CF0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.032309,
+      "netPct": 3.808514
+    },
+    {
+      "date": "2013-10-11",
+      "symbol": "CF0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.451363,
+      "netPct": -0.889022
+    },
+    {
+      "date": "2015-06-23",
+      "symbol": "CF0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.123476,
+      "netPct": 0.205482
+    },
+    {
+      "date": "2016-02-03",
+      "symbol": "CF0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.143854,
+      "netPct": -1.750672
+    },
+    {
+      "date": "2016-04-05",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.03125,
+      "netPct": -5.343343
+    },
+    {
+      "date": "2018-03-26",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.610832,
+      "netPct": 1.31844
+    },
+    {
+      "date": "2018-05-14",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.658583,
+      "netPct": -10.231241
+    },
+    {
+      "date": "2018-11-21",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.633074,
+      "netPct": 2.30013
+    },
+    {
+      "date": "2019-04-03",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.974223,
+      "netPct": -1.570639
+    },
+    {
+      "date": "2019-12-03",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.765359,
+      "netPct": -2.001248
+    },
+    {
+      "date": "2026-08-12",
+      "symbol": "CF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.01353,
+      "netPct": -0.991522
+    },
+    {
+      "date": "2020-08-21",
+      "symbol": "CJ0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.174692,
+      "netPct": -1.326545
+    },
+    {
+      "date": "2021-11-23",
+      "symbol": "CJ0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 10.588972,
+      "netPct": 0.368853
+    },
+    {
+      "date": "2023-04-18",
+      "symbol": "CJ0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.521156,
+      "netPct": -0.90211
+    },
+    {
+      "date": "2026-04-08",
+      "symbol": "CJ0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.016847,
+      "netPct": -1.776485
+    },
+    {
+      "date": "2026-08-06",
+      "symbol": "CJ0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.203125,
+      "netPct": 0.772359
+    },
+    {
+      "date": "2015-10-09",
+      "symbol": "CS0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.801865,
+      "netPct": -4.369517
+    },
+    {
+      "date": "2016-04-05",
+      "symbol": "CS0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.018296,
+      "netPct": -1.418548
+    },
+    {
+      "date": "2016-06-28",
+      "symbol": "CS0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -9.830818,
+      "netPct": -3.121526
+    },
+    {
+      "date": "2017-10-09",
+      "symbol": "CS0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.744939,
+      "netPct": -0.22448
+    },
+    {
+      "date": "2018-06-19",
+      "symbol": "CS0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.668478,
+      "netPct": -0.973342
+    },
+    {
+      "date": "2019-04-16",
+      "symbol": "CS0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.819957,
+      "netPct": -0.323165
+    },
+    {
+      "date": "2019-12-23",
+      "symbol": "CS0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.884615,
+      "netPct": -0.91332
+    },
+    {
+      "date": "2020-04-15",
+      "symbol": "CS0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.951797,
+      "netPct": -0.153022
+    },
+    {
+      "date": "2022-02-21",
+      "symbol": "CS0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.156658,
+      "netPct": -5.380559
+    },
+    {
+      "date": "2022-10-25",
+      "symbol": "CS0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.677364,
+      "netPct": 1.534814
+    },
+    {
+      "date": "2023-02-14",
+      "symbol": "CS0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.911795,
+      "netPct": -0.463959
+    },
+    {
+      "date": "2024-02-08",
+      "symbol": "CS0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.533569,
+      "netPct": -0.725625
+    },
+    {
+      "date": "2024-08-20",
+      "symbol": "CS0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.153316,
+      "netPct": 2.776442
+    },
+    {
+      "date": "2025-02-21",
+      "symbol": "CS0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.952569,
+      "netPct": -1.324276
+    },
+    {
+      "date": "2025-06-24",
+      "symbol": "CS0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.340757,
+      "netPct": -0.033557
+    },
+    {
+      "date": "2025-08-15",
+      "symbol": "CS0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.965257,
+      "netPct": -1.021626
+    },
+    {
+      "date": "2026-08-13",
+      "symbol": "CS0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.051371,
+      "netPct": 1.55312
+    },
+    {
+      "date": "2005-10-10",
+      "symbol": "CU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.557617,
+      "netPct": -0.828808
+    },
+    {
+      "date": "2006-03-20",
+      "symbol": "CU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.286684,
+      "netPct": -1.903333
+    },
+    {
+      "date": "2006-04-19",
+      "symbol": "CU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.49782,
+      "netPct": -9.822066
+    },
+    {
+      "date": "2006-05-24",
+      "symbol": "CU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 13.064402,
+      "netPct": -0.67274
+    },
+    {
+      "date": "2006-10-17",
+      "symbol": "CU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.472917,
+      "netPct": 1.190504
+    },
+    {
+      "date": "2007-01-04",
+      "symbol": "CU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.494008,
+      "netPct": 0.462012
+    },
+    {
+      "date": "2010-03-01",
+      "symbol": "CU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.086785,
+      "netPct": -0.900703
+    },
+    {
+      "date": "2011-12-01",
+      "symbol": "CU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.615356,
+      "netPct": 2.373609
+    },
+    {
+      "date": "2013-06-13",
+      "symbol": "CU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.884072,
+      "netPct": -3.526311
+    },
+    {
+      "date": "2019-05-06",
+      "symbol": "CU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.942378,
+      "netPct": -0.922923
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "CU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.747189,
+      "netPct": 1.740056
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "CU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.619325,
+      "netPct": 5.000267
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "EB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.383137,
+      "netPct": 3.900149
+    },
+    {
+      "date": "2020-03-09",
+      "symbol": "EB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.17039,
+      "netPct": -1.02
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "EB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.763578,
+      "netPct": 4.042676
+    },
+    {
+      "date": "2019-09-16",
+      "symbol": "EG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.00631,
+      "netPct": 1.444563
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "EG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.244654,
+      "netPct": 3.62934
+    },
+    {
+      "date": "2020-03-09",
+      "symbol": "EG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.062996,
+      "netPct": 3.520426
+    },
+    {
+      "date": "2021-02-18",
+      "symbol": "EG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 9.342105,
+      "netPct": -18.35
+    },
+    {
+      "date": "2024-12-17",
+      "symbol": "EG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.697536,
+      "netPct": 0.533161
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "EG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.15882,
+      "netPct": 0.93
+    },
+    {
+      "date": "2015-02-24",
+      "symbol": "FG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.389776,
+      "netPct": -0.709659
+    },
+    {
+      "date": "2015-12-02",
+      "symbol": "FG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.286039,
+      "netPct": -0.799927
+    },
+    {
+      "date": "2019-08-09",
+      "symbol": "FG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.945381,
+      "netPct": 2.890289
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "FG0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.165312,
+      "netPct": 2.53492
+    },
+    {
+      "date": "2025-12-16",
+      "symbol": "FG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 9.368421,
+      "netPct": 0.414027
+    },
+    {
+      "date": "2026-04-16",
+      "symbol": "FG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 10.401648,
+      "netPct": -2.141563
+    },
+    {
+      "date": "2005-06-20",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.671392,
+      "netPct": -0.389149
+    },
+    {
+      "date": "2005-08-18",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.684564,
+      "netPct": 2.028139
+    },
+    {
+      "date": "2006-06-05",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.089903,
+      "netPct": 2.828551
+    },
+    {
+      "date": "2007-01-04",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.054645,
+      "netPct": 4.340058
+    },
+    {
+      "date": "2007-05-08",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.55594,
+      "netPct": 0.935917
+    },
+    {
+      "date": "2008-09-16",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.520737,
+      "netPct": 5.828457
+    },
+    {
+      "date": "2009-11-13",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.652259,
+      "netPct": -2.374038
+    },
+    {
+      "date": "2009-12-29",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.393064,
+      "netPct": -4.603333
+    },
+    {
+      "date": "2010-02-22",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.230908,
+      "netPct": -0.424139
+    },
+    {
+      "date": "2011-01-04",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.266103,
+      "netPct": 0.924318
+    },
+    {
+      "date": "2011-04-01",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.681081,
+      "netPct": -1.411191
+    },
+    {
+      "date": "2011-08-05",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.419675,
+      "netPct": -0.231911
+    },
+    {
+      "date": "2012-07-18",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.931507,
+      "netPct": 0.899237
+    },
+    {
+      "date": "2013-01-07",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.142432,
+      "netPct": 0.516854
+    },
+    {
+      "date": "2013-03-22",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.362319,
+      "netPct": -0.302693
+    },
+    {
+      "date": "2013-04-16",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.232323,
+      "netPct": 0.765073
+    },
+    {
+      "date": "2013-05-09",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 11.09127,
+      "netPct": 0.615622
+    },
+    {
+      "date": "2013-06-06",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.006056,
+      "netPct": 0.056316
+    },
+    {
+      "date": "2013-06-25",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.092652,
+      "netPct": -2.448073
+    },
+    {
+      "date": "2013-07-24",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.010753,
+      "netPct": -1.764915
+    },
+    {
+      "date": "2013-08-22",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.008787,
+      "netPct": -7.353382
+    },
+    {
+      "date": "2013-09-18",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.7942,
+      "netPct": -5.140093
+    },
+    {
+      "date": "2013-10-28",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.793029,
+      "netPct": 0.643792
+    },
+    {
+      "date": "2013-11-21",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.51088,
+      "netPct": 3.359724
+    },
+    {
+      "date": "2013-12-06",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.791029,
+      "netPct": 0.701084
+    },
+    {
+      "date": "2013-12-31",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.849363,
+      "netPct": 7.446261
+    },
+    {
+      "date": "2014-03-03",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.439024,
+      "netPct": 4.93
+    },
+    {
+      "date": "2014-04-11",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.998731,
+      "netPct": 1.415426
+    },
+    {
+      "date": "2014-05-19",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.871986,
+      "netPct": 6.827369
+    },
+    {
+      "date": "2014-07-07",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.440918,
+      "netPct": -3.357293
+    },
+    {
+      "date": "2014-08-21",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5,
+      "netPct": -12.350702
+    },
+    {
+      "date": "2014-10-08",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.590604,
+      "netPct": -0.462029
+    },
+    {
+      "date": "2014-12-15",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.3125,
+      "netPct": 6.920699
+    },
+    {
+      "date": "2014-12-30",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4,
+      "netPct": -0.07
+    },
+    {
+      "date": "2016-02-05",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.501618,
+      "netPct": -0.150972
+    },
+    {
+      "date": "2016-03-31",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.373786,
+      "netPct": -0.514984
+    },
+    {
+      "date": "2016-05-17",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.700855,
+      "netPct": -3.827911
+    },
+    {
+      "date": "2016-09-14",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.463687,
+      "netPct": -0.07
+    },
+    {
+      "date": "2016-11-02",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.854938,
+      "netPct": -6.426099
+    },
+    {
+      "date": "2017-01-03",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.624916,
+      "netPct": -5.460293
+    },
+    {
+      "date": "2017-03-29",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.262735,
+      "netPct": 2.663078
+    },
+    {
+      "date": "2017-06-16",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.772009,
+      "netPct": -6.713785
+    },
+    {
+      "date": "2017-07-13",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.836134,
+      "netPct": -0.386372
+    },
+    {
+      "date": "2017-08-02",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.836134,
+      "netPct": -3.008902
+    },
+    {
+      "date": "2017-08-25",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.62773,
+      "netPct": -0.07
+    },
+    {
+      "date": "2017-09-26",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.17409,
+      "netPct": -0.521527
+    },
+    {
+      "date": "2017-10-18",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.363927,
+      "netPct": -0.07
+    },
+    {
+      "date": "2019-09-16",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 9.315068,
+      "netPct": -0.154069
+    },
+    {
+      "date": "2022-10-10",
+      "symbol": "FU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 11.844518,
+      "netPct": 10.235085
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "FU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.877323,
+      "netPct": -0.549124
+    },
+    {
+      "date": "2015-02-25",
+      "symbol": "HC0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.905054,
+      "netPct": 0.084202
+    },
+    {
+      "date": "2019-04-09",
+      "symbol": "HC0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.947262,
+      "netPct": 0.611199
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "HC0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.810281,
+      "netPct": 2.406014
+    },
+    {
+      "date": "2023-04-03",
+      "symbol": "HC0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.564772,
+      "netPct": -4.141429
+    },
+    {
+      "date": "2014-10-23",
+      "symbol": "I0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.142857,
+      "netPct": 1.63778
+    },
+    {
+      "date": "2016-04-05",
+      "symbol": "I0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 11.254851,
+      "netPct": -7.40945
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "I0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.620477,
+      "netPct": 1.858133
+    },
+    {
+      "date": "2020-08-11",
+      "symbol": "I0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.774049,
+      "netPct": 3.283293
+    },
+    {
+      "date": "2011-08-18",
+      "symbol": "J0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.096475,
+      "netPct": 1.92115
+    },
+    {
+      "date": "2011-11-10",
+      "symbol": "J0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.598282,
+      "netPct": 3.67359
+    },
+    {
+      "date": "2012-04-12",
+      "symbol": "J0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.633782,
+      "netPct": 2.582771
+    },
+    {
+      "date": "2013-02-06",
+      "symbol": "J0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.89749,
+      "netPct": 5.36162
+    },
+    {
+      "date": "2013-06-20",
+      "symbol": "J0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.866347,
+      "netPct": 0.757016
+    },
+    {
+      "date": "2013-10-29",
+      "symbol": "J0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.783748,
+      "netPct": -0.007539
+    },
+    {
+      "date": "2014-07-21",
+      "symbol": "J0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.642923,
+      "netPct": 2.177191
+    },
+    {
+      "date": "2015-08-11",
+      "symbol": "J0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.439024,
+      "netPct": -0.317525
+    },
+    {
+      "date": "2015-09-07",
+      "symbol": "J0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.122449,
+      "netPct": 1.141735
+    },
+    {
+      "date": "2015-11-25",
+      "symbol": "J0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -10.727142,
+      "netPct": -0.39
+    },
+    {
+      "date": "2023-04-14",
+      "symbol": "J0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.014212,
+      "netPct": -3.184334
+    },
+    {
+      "date": "2014-07-25",
+      "symbol": "JD0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.707174,
+      "netPct": -0.315048
+    },
+    {
+      "date": "2014-10-08",
+      "symbol": "JD0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.161137,
+      "netPct": 3.169835
+    },
+    {
+      "date": "2014-12-01",
+      "symbol": "JD0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.170626,
+      "netPct": 3.889484
+    },
+    {
+      "date": "2019-12-04",
+      "symbol": "JD0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.047565,
+      "netPct": -6.664203
+    },
+    {
+      "date": "2020-06-24",
+      "symbol": "JD0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.394999,
+      "netPct": 3.388943
+    },
+    {
+      "date": "2024-02-21",
+      "symbol": "JD0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.762231,
+      "netPct": -3.047233
+    },
+    {
+      "date": "2024-09-10",
+      "symbol": "JD0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.001622,
+      "netPct": 1.722319
+    },
+    {
+      "date": "2024-12-17",
+      "symbol": "JD0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.177112,
+      "netPct": -0.965954
+    },
+    {
+      "date": "2025-10-09",
+      "symbol": "JD0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.871626,
+      "netPct": 3.658223
+    },
+    {
+      "date": "2026-02-09",
+      "symbol": "JD0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.539945,
+      "netPct": -3.668726
+    },
+    {
+      "date": "2026-04-01",
+      "symbol": "JD0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.959302,
+      "netPct": -0.317985
+    },
+    {
+      "date": "2013-11-04",
+      "symbol": "JM0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.55597,
+      "netPct": 0.818099
+    },
+    {
+      "date": "2014-07-22",
+      "symbol": "JM0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.131579,
+      "netPct": -1.335823
+    },
+    {
+      "date": "2015-09-07",
+      "symbol": "JM0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 10.175439,
+      "netPct": 0.623241
+    },
+    {
+      "date": "2019-04-10",
+      "symbol": "JM0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.292683,
+      "netPct": -0.296929
+    },
+    {
+      "date": "2019-08-21",
+      "symbol": "JM0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.839858,
+      "netPct": -1.168901
+    },
+    {
+      "date": "2010-09-24",
+      "symbol": "L0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.930589,
+      "netPct": -2.047401
+    },
+    {
+      "date": "2012-03-14",
+      "symbol": "L0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.504673,
+      "netPct": 1.205046
+    },
+    {
+      "date": "2013-11-13",
+      "symbol": "L0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.828797,
+      "netPct": -0.526621
+    },
+    {
+      "date": "2015-08-04",
+      "symbol": "L0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.485714,
+      "netPct": 5.061265
+    },
+    {
+      "date": "2015-09-07",
+      "symbol": "L0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.557377,
+      "netPct": -0.482007
+    },
+    {
+      "date": "2015-10-08",
+      "symbol": "L0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.727273,
+      "netPct": 0.401143
+    },
+    {
+      "date": "2015-11-26",
+      "symbol": "L0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -9.0625,
+      "netPct": -0.002751
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "L0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.80014,
+      "netPct": 4.93
+    },
+    {
+      "date": "2020-03-09",
+      "symbol": "L0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.130435,
+      "netPct": 0.465988
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "L0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.771131,
+      "netPct": -0.997441
+    },
+    {
+      "date": "2021-08-19",
+      "symbol": "LH0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 10.034386,
+      "netPct": 1.254122
+    },
+    {
+      "date": "2022-08-08",
+      "symbol": "LH0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.740234,
+      "netPct": -1.971925
+    },
+    {
+      "date": "2023-04-13",
+      "symbol": "LH0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 9.078591,
+      "netPct": -5.447028
+    },
+    {
+      "date": "2023-06-02",
+      "symbol": "LH0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.783766,
+      "netPct": 0.554805
+    },
+    {
+      "date": "2024-02-20",
+      "symbol": "LH0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.985294,
+      "netPct": -1.936574
+    },
+    {
+      "date": "2024-08-07",
+      "symbol": "LH0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.405881,
+      "netPct": 3.256918
+    },
+    {
+      "date": "2026-01-30",
+      "symbol": "LH0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.164801,
+      "netPct": 0.40089
+    },
+    {
+      "date": "2026-08-03",
+      "symbol": "LH0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 10.580524,
+      "netPct": -5.392371
+    },
+    {
+      "date": "2024-10-08",
+      "symbol": "LU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 9.077156,
+      "netPct": 4.328965
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "LU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.271777,
+      "netPct": -0.393529
+    },
+    {
+      "date": "2005-10-14",
+      "symbol": "M0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.044118,
+      "netPct": 6.091695
+    },
+    {
+      "date": "2006-04-17",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.740201,
+      "netPct": 4.834762
+    },
+    {
+      "date": "2006-07-10",
+      "symbol": "M0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.314679,
+      "netPct": 0.391991
+    },
+    {
+      "date": "2007-01-15",
+      "symbol": "M0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.175635,
+      "netPct": -5.051625
+    },
+    {
+      "date": "2007-04-02",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.276119,
+      "netPct": -1.00633
+    },
+    {
+      "date": "2008-04-01",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.473098,
+      "netPct": 1.652457
+    },
+    {
+      "date": "2008-06-24",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.977826,
+      "netPct": 5.610351
+    },
+    {
+      "date": "2008-10-06",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.957714,
+      "netPct": -12.436807
+    },
+    {
+      "date": "2008-12-29",
+      "symbol": "M0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.232578,
+      "netPct": -8.465368
+    },
+    {
+      "date": "2013-02-08",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.347826,
+      "netPct": 5.495749
+    },
+    {
+      "date": "2013-03-29",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.952816,
+      "netPct": -3.301821
+    },
+    {
+      "date": "2013-05-30",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.377325,
+      "netPct": -5.241907
+    },
+    {
+      "date": "2013-08-26",
+      "symbol": "M0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.856266,
+      "netPct": -1.119724
+    },
+    {
+      "date": "2013-10-31",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -9.032077,
+      "netPct": 0.054301
+    },
+    {
+      "date": "2014-02-24",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.597759,
+      "netPct": -0.614465
+    },
+    {
+      "date": "2014-06-09",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.066381,
+      "netPct": 7.848811
+    },
+    {
+      "date": "2014-06-25",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.854506,
+      "netPct": -5.456351
+    },
+    {
+      "date": "2014-07-29",
+      "symbol": "M0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.436521,
+      "netPct": 0.112482
+    },
+    {
+      "date": "2014-08-27",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.096059,
+      "netPct": -0.397654
+    },
+    {
+      "date": "2017-10-09",
+      "symbol": "M0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.119458,
+      "netPct": -2.586175
+    },
+    {
+      "date": "2018-06-19",
+      "symbol": "M0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.451448,
+      "netPct": -0.1682
+    },
+    {
+      "date": "2019-11-27",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.131944,
+      "netPct": -0.433636
+    },
+    {
+      "date": "2021-12-06",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.605465,
+      "netPct": 1.457462
+    },
+    {
+      "date": "2022-02-07",
+      "symbol": "M0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.578449,
+      "netPct": -0.447358
+    },
+    {
+      "date": "2022-04-27",
+      "symbol": "M0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.958825,
+      "netPct": 2.673142
+    },
+    {
+      "date": "2022-08-11",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.802117,
+      "netPct": -2.744512
+    },
+    {
+      "date": "2025-03-28",
+      "symbol": "M0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.095541,
+      "netPct": -3.944915
+    },
+    {
+      "date": "2025-11-28",
+      "symbol": "M0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.430442,
+      "netPct": -1.052801
+    },
+    {
+      "date": "2015-06-23",
+      "symbol": "MA0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.208748,
+      "netPct": -0.311838
+    },
+    {
+      "date": "2016-05-03",
+      "symbol": "MA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.553606,
+      "netPct": -2.437758
+    },
+    {
+      "date": "2016-08-09",
+      "symbol": "MA0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.708928,
+      "netPct": -0.412131
+    },
+    {
+      "date": "2020-03-09",
+      "symbol": "MA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.610236,
+      "netPct": 2.45809
+    },
+    {
+      "date": "2021-08-16",
+      "symbol": "MA0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.805731,
+      "netPct": -2.813581
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "MA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.275469,
+      "netPct": -4.660985
+    },
+    {
+      "date": "2025-08-12",
+      "symbol": "MA0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.018418,
+      "netPct": 4.136731
+    },
+    {
+      "date": "2016-02-15",
+      "symbol": "NI0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.513529,
+      "netPct": 4.050588
+    },
+    {
+      "date": "2021-04-30",
+      "symbol": "NR0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -9.717868,
+      "netPct": 2.785868
+    },
+    {
+      "date": "2008-01-31",
+      "symbol": "OI0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.400419,
+      "netPct": 9.638203
+    },
+    {
+      "date": "2009-08-17",
+      "symbol": "OI0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.280954,
+      "netPct": 2.155131
+    },
+    {
+      "date": "2010-04-26",
+      "symbol": "OI0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.766319,
+      "netPct": 1.328767
+    },
+    {
+      "date": "2010-10-11",
+      "symbol": "OI0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.441871,
+      "netPct": 0.016207
+    },
+    {
+      "date": "2012-06-13",
+      "symbol": "OI0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.061178,
+      "netPct": 2.113141
+    },
+    {
+      "date": "2013-03-25",
+      "symbol": "OI0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.630522,
+      "netPct": -1.29825
+    },
+    {
+      "date": "2015-09-07",
+      "symbol": "OI0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.758976,
+      "netPct": 0.000796
+    },
+    {
+      "date": "2016-05-03",
+      "symbol": "OI0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.927406,
+      "netPct": 1.524155
+    },
+    {
+      "date": "2018-04-09",
+      "symbol": "OI0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.898083,
+      "netPct": 1.839091
+    },
+    {
+      "date": "2018-12-04",
+      "symbol": "OI0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.786911,
+      "netPct": -0.661178
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "OI0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.89337,
+      "netPct": 8.28443
+    },
+    {
+      "date": "2022-12-15",
+      "symbol": "OI0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.179212,
+      "netPct": -3.100882
+    },
+    {
+      "date": "2025-08-13",
+      "symbol": "OI0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.09684,
+      "netPct": 2.138955
+    },
+    {
+      "date": "2008-04-01",
+      "symbol": "P0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.341305,
+      "netPct": 6.879646
+    },
+    {
+      "date": "2012-10-19",
+      "symbol": "P0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.460432,
+      "netPct": 1.093757
+    },
+    {
+      "date": "2013-02-04",
+      "symbol": "P0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.128205,
+      "netPct": 1.519958
+    },
+    {
+      "date": "2014-05-01",
+      "symbol": "P0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.132137,
+      "netPct": -1.420906
+    },
+    {
+      "date": "2015-02-25",
+      "symbol": "P0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.442754,
+      "netPct": 3.766834
+    },
+    {
+      "date": "2015-09-07",
+      "symbol": "P0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.942911,
+      "netPct": 1.905541
+    },
+    {
+      "date": "2018-12-03",
+      "symbol": "P0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.044917,
+      "netPct": -0.603333
+    },
+    {
+      "date": "2019-04-10",
+      "symbol": "P0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.867257,
+      "netPct": 0.186301
+    },
+    {
+      "date": "2021-04-13",
+      "symbol": "P0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -9.739037,
+      "netPct": 6.101026
+    },
+    {
+      "date": "2023-04-18",
+      "symbol": "P0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.478579,
+      "netPct": -4.493338
+    },
+    {
+      "date": "2026-08-07",
+      "symbol": "P0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.35642,
+      "netPct": -1.754755
+    },
+    {
+      "date": "2011-12-01",
+      "symbol": "PB0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.922775,
+      "netPct": 0.375576
+    },
+    {
+      "date": "2012-09-14",
+      "symbol": "PB0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.329549,
+      "netPct": 0.393106
+    },
+    {
+      "date": "2013-05-02",
+      "symbol": "PB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.846847,
+      "netPct": 0.659129
+    },
+    {
+      "date": "2013-05-17",
+      "symbol": "PB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.65069,
+      "netPct": -0.033768
+    },
+    {
+      "date": "2013-07-29",
+      "symbol": "PB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.853016,
+      "netPct": 1.092791
+    },
+    {
+      "date": "2013-12-17",
+      "symbol": "PB0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.710414,
+      "netPct": 1.370823
+    },
+    {
+      "date": "2014-01-27",
+      "symbol": "PB0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.282454,
+      "netPct": -0.356328
+    },
+    {
+      "date": "2014-04-16",
+      "symbol": "PB0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.017531,
+      "netPct": -0.421124
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "PB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.976608,
+      "netPct": 1.742689
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "PF0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.06135,
+      "netPct": 0.596445
+    },
+    {
+      "date": "2023-02-23",
+      "symbol": "PG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 11.111111,
+      "netPct": -3.274082
+    },
+    {
+      "date": "2025-02-12",
+      "symbol": "PG0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.622298,
+      "netPct": 3.140137
+    },
+    {
+      "date": "2022-09-06",
+      "symbol": "PK0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.828855,
+      "netPct": -1.048857
+    },
+    {
+      "date": "2024-03-21",
+      "symbol": "PK0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.564211,
+      "netPct": -0.517094
+    },
+    {
+      "date": "2026-04-09",
+      "symbol": "PK0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.033292,
+      "netPct": 0.620312
+    },
+    {
+      "date": "2014-07-29",
+      "symbol": "PP0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.918837,
+      "netPct": -1.624307
+    },
+    {
+      "date": "2014-11-25",
+      "symbol": "PP0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -9.602717,
+      "netPct": -5.590774
+    },
+    {
+      "date": "2015-02-25",
+      "symbol": "PP0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 10.991695,
+      "netPct": -1.867346
+    },
+    {
+      "date": "2015-10-08",
+      "symbol": "PP0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.304643,
+      "netPct": 0.082249
+    },
+    {
+      "date": "2019-12-12",
+      "symbol": "PP0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.760836,
+      "netPct": -0.639009
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "PP0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.748225,
+      "netPct": 1.99124
+    },
+    {
+      "date": "2020-03-09",
+      "symbol": "PP0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.254724,
+      "netPct": -2.335751
+    },
+    {
+      "date": "2026-08-18",
+      "symbol": "PP0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.410125,
+      "netPct": 1.561526
+    },
+    {
+      "date": "2009-11-26",
+      "symbol": "RB0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 9.663357,
+      "netPct": 1.677703
+    },
+    {
+      "date": "2010-07-13",
+      "symbol": "RB0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.488968,
+      "netPct": -2.191951
+    },
+    {
+      "date": "2013-10-30",
+      "symbol": "RB0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.319977,
+      "netPct": -0.124945
+    },
+    {
+      "date": "2015-07-03",
+      "symbol": "RB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.308851,
+      "netPct": -5.221229
+    },
+    {
+      "date": "2017-03-23",
+      "symbol": "RB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.399413,
+      "netPct": 0.313387
+    },
+    {
+      "date": "2018-11-28",
+      "symbol": "RB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -9.751327,
+      "netPct": 5.092466
+    },
+    {
+      "date": "2019-04-01",
+      "symbol": "RB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.663651,
+      "netPct": 7.518774
+    },
+    {
+      "date": "2019-08-26",
+      "symbol": "RB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.671602,
+      "netPct": 1.268489
+    },
+    {
+      "date": "2019-12-06",
+      "symbol": "RB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.188285,
+      "netPct": 2.313028
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "RB0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.628571,
+      "netPct": 2.921586
+    },
+    {
+      "date": "2017-01-03",
+      "symbol": "RM0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.145581,
+      "netPct": -0.596547
+    },
+    {
+      "date": "2018-02-22",
+      "symbol": "RM0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.361345,
+      "netPct": -1.857165
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "RM0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.624888,
+      "netPct": 3.183896
+    },
+    {
+      "date": "2022-02-07",
+      "symbol": "RM0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.402721,
+      "netPct": 0.424186
+    },
+    {
+      "date": "2025-04-01",
+      "symbol": "RM0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.305652,
+      "netPct": -2.657177
+    },
+    {
+      "date": "2025-08-08",
+      "symbol": "RM0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -9.894122,
+      "netPct": 1.810752
+    },
+    {
+      "date": "2026-04-13",
+      "symbol": "RM0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.685408,
+      "netPct": 0.483427
+    },
+    {
+      "date": "2015-07-16",
+      "symbol": "RU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.439164,
+      "netPct": -0.032406
+    },
+    {
+      "date": "2015-11-24",
+      "symbol": "RU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.032708,
+      "netPct": 5.381713
+    },
+    {
+      "date": "2019-08-07",
+      "symbol": "RU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 9.228585,
+      "netPct": -0.41828
+    },
+    {
+      "date": "2020-03-09",
+      "symbol": "RU0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.825688,
+      "netPct": -1.879524
+    },
+    {
+      "date": "2021-08-10",
+      "symbol": "RU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.406755,
+      "netPct": -0.137092
+    },
+    {
+      "date": "2022-08-10",
+      "symbol": "RU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.261759,
+      "netPct": 0.316399
+    },
+    {
+      "date": "2023-08-08",
+      "symbol": "RU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.026756,
+      "netPct": 0.280195
+    },
+    {
+      "date": "2024-08-05",
+      "symbol": "RU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.689607,
+      "netPct": -2.806639
+    },
+    {
+      "date": "2025-08-04",
+      "symbol": "RU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.498952,
+      "netPct": -2.976597
+    },
+    {
+      "date": "2026-08-06",
+      "symbol": "RU0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.583756,
+      "netPct": -0.406795
+    },
+    {
+      "date": "2022-12-02",
+      "symbol": "SA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.364974,
+      "netPct": 1.939274
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "SC0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.088551,
+      "netPct": 0.356921
+    },
+    {
+      "date": "2015-07-01",
+      "symbol": "SF0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -13.737374,
+      "netPct": 1.855391
+    },
+    {
+      "date": "2016-09-20",
+      "symbol": "SF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.443641,
+      "netPct": -1.416002
+    },
+    {
+      "date": "2017-10-09",
+      "symbol": "SF0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.496393,
+      "netPct": 2.174898
+    },
+    {
+      "date": "2017-12-05",
+      "symbol": "SF0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 9.010185,
+      "netPct": -5.969281
+    },
+    {
+      "date": "2015-01-20",
+      "symbol": "SM0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.006494,
+      "netPct": -9.290779
+    },
+    {
+      "date": "2015-06-15",
+      "symbol": "SM0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.570199,
+      "netPct": 4.480459
+    },
+    {
+      "date": "2015-08-17",
+      "symbol": "SM0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.195635,
+      "netPct": 7.256284
+    },
+    {
+      "date": "2015-10-09",
+      "symbol": "SM0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.714286,
+      "netPct": -5.681574
+    },
+    {
+      "date": "2018-12-24",
+      "symbol": "SM0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -9.346029,
+      "netPct": 0.460726
+    },
+    {
+      "date": "2019-08-27",
+      "symbol": "SM0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.990455,
+      "netPct": 0.758335
+    },
+    {
+      "date": "2019-12-18",
+      "symbol": "SP0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.796572,
+      "netPct": -1.615254
+    },
+    {
+      "date": "2023-08-15",
+      "symbol": "SP0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.155648,
+      "netPct": -0.945593
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "SP0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.295389,
+      "netPct": 0.041317
+    },
+    {
+      "date": "2006-04-19",
+      "symbol": "SR0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.569721,
+      "netPct": 1.447356
+    },
+    {
+      "date": "2008-03-25",
+      "symbol": "SR0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 7.443283,
+      "netPct": 12.966342
+    },
+    {
+      "date": "2008-10-07",
+      "symbol": "SR0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.016529,
+      "netPct": 0.308007
+    },
+    {
+      "date": "2009-04-21",
+      "symbol": "SR0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.992639,
+      "netPct": -0.045834
+    },
+    {
+      "date": "2009-11-12",
+      "symbol": "SR0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.455981,
+      "netPct": -1.218225
+    },
+    {
+      "date": "2010-12-31",
+      "symbol": "SR0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.366653,
+      "netPct": -3.134067
+    },
+    {
+      "date": "2013-06-26",
+      "symbol": "SR0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.468208,
+      "netPct": -0.210056
+    },
+    {
+      "date": "2014-06-17",
+      "symbol": "SR0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.535247,
+      "netPct": -1.891125
+    },
+    {
+      "date": "2015-06-24",
+      "symbol": "SR0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.781549,
+      "netPct": -1.640027
+    },
+    {
+      "date": "2016-04-05",
+      "symbol": "SR0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.030303,
+      "netPct": -1.295577
+    },
+    {
+      "date": "2016-07-20",
+      "symbol": "SR0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.235175,
+      "netPct": 0.635807
+    },
+    {
+      "date": "2017-01-03",
+      "symbol": "SR0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.028714,
+      "netPct": -1.00361
+    },
+    {
+      "date": "2017-12-14",
+      "symbol": "SR0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.903816,
+      "netPct": 0.097588
+    },
+    {
+      "date": "2021-08-13",
+      "symbol": "SR0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.8815,
+      "netPct": 2.056246
+    },
+    {
+      "date": "2024-08-16",
+      "symbol": "SR0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.520241,
+      "netPct": -2.174332
+    },
+    {
+      "date": "2008-08-13",
+      "symbol": "TA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -8.131526,
+      "netPct": -1.379524
+    },
+    {
+      "date": "2008-10-13",
+      "symbol": "TA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -9.311495,
+      "netPct": -8.572024
+    },
+    {
+      "date": "2010-07-27",
+      "symbol": "TA0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.352617,
+      "netPct": -3.393506
+    },
+    {
+      "date": "2012-11-05",
+      "symbol": "TA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.239019,
+      "netPct": 0.143504
+    },
+    {
+      "date": "2013-07-09",
+      "symbol": "TA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.94402,
+      "netPct": 1.798421
+    },
+    {
+      "date": "2014-08-05",
+      "symbol": "TA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.978261,
+      "netPct": 2.049013
+    },
+    {
+      "date": "2015-02-24",
+      "symbol": "TA0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.03097,
+      "netPct": -5.695
+    },
+    {
+      "date": "2019-09-16",
+      "symbol": "TA0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.511573,
+      "netPct": 2.085009
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "TA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.797331,
+      "netPct": 4.462578
+    },
+    {
+      "date": "2020-03-09",
+      "symbol": "TA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.85301,
+      "netPct": 0.303333
+    },
+    {
+      "date": "2020-08-12",
+      "symbol": "TA0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.649891,
+      "netPct": 1.195156
+    },
+    {
+      "date": "2023-04-11",
+      "symbol": "TA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.512672,
+      "netPct": -0.705452
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "TA0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.247813,
+      "netPct": 0.807598
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "UR0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.555556,
+      "netPct": 3.797069
+    },
+    {
+      "date": "2020-04-10",
+      "symbol": "UR0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.026253,
+      "netPct": -2.713172
+    },
+    {
+      "date": "2025-12-15",
+      "symbol": "UR0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.184615,
+      "netPct": -1.261895
+    },
+    {
+      "date": "2026-03-09",
+      "symbol": "UR0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.284153,
+      "netPct": -3.05103
+    },
+    {
+      "date": "2010-03-29",
+      "symbol": "V0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.029062,
+      "netPct": 1.252418
+    },
+    {
+      "date": "2011-03-25",
+      "symbol": "V0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 5.049261,
+      "netPct": 4.145457
+    },
+    {
+      "date": "2011-07-18",
+      "symbol": "V0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.231487,
+      "netPct": 0.525593
+    },
+    {
+      "date": "2012-03-19",
+      "symbol": "V0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.008746,
+      "netPct": -0.07
+    },
+    {
+      "date": "2013-03-20",
+      "symbol": "V0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.550232,
+      "netPct": 0.903783
+    },
+    {
+      "date": "2013-12-04",
+      "symbol": "V0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.718354,
+      "netPct": 1.457884
+    },
+    {
+      "date": "2015-08-12",
+      "symbol": "V0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.297398,
+      "netPct": -0.932895
+    },
+    {
+      "date": "2016-03-07",
+      "symbol": "V0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.441683,
+      "netPct": 1.967037
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "V0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.418605,
+      "netPct": 1.642887
+    },
+    {
+      "date": "2020-03-09",
+      "symbol": "V0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -3.29053,
+      "netPct": 1.821447
+    },
+    {
+      "date": "2024-04-15",
+      "symbol": "V0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 2.537723,
+      "netPct": 0.518235
+    },
+    {
+      "date": "2024-12-23",
+      "symbol": "V0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.381276,
+      "netPct": 0.341369
+    },
+    {
+      "date": "2007-01-15",
+      "symbol": "Y0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.925746,
+      "netPct": 2.152222
+    },
+    {
+      "date": "2008-11-20",
+      "symbol": "Y0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.307159,
+      "netPct": 8.315965
+    },
+    {
+      "date": "2014-08-25",
+      "symbol": "Y0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.155887,
+      "netPct": -0.103267
+    },
+    {
+      "date": "2015-09-07",
+      "symbol": "Y0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 4.516611,
+      "netPct": -1.680487
+    },
+    {
+      "date": "2015-10-08",
+      "symbol": "Y0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 8.962963,
+      "netPct": -3.930294
+    },
+    {
+      "date": "2017-12-01",
+      "symbol": "Y0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.382303,
+      "netPct": 2.807936
+    },
+    {
+      "date": "2018-07-26",
+      "symbol": "Y0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 3.485839,
+      "netPct": -1.251376
+    },
+    {
+      "date": "2020-12-14",
+      "symbol": "Y0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.017103,
+      "netPct": 2.323617
+    },
+    {
+      "date": "2021-12-10",
+      "symbol": "Y0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -7.742926,
+      "netPct": -0.330911
+    },
+    {
+      "date": "2025-11-27",
+      "symbol": "Y0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -2.601227,
+      "netPct": 0.528355
+    },
+    {
+      "date": "2008-10-07",
+      "symbol": "ZN0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -6.035113,
+      "netPct": -6.176265
+    },
+    {
+      "date": "2009-10-09",
+      "symbol": "ZN0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.979778,
+      "netPct": -0.732043
+    },
+    {
+      "date": "2011-12-01",
+      "symbol": "ZN0",
+      "direction": -1,
+      "z": null,
+      "gapPct": 6.31405,
+      "netPct": 1.286039
+    },
+    {
+      "date": "2013-05-02",
+      "symbol": "ZN0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -4.001356,
+      "netPct": 1.320821
+    },
+    {
+      "date": "2020-02-03",
+      "symbol": "ZN0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.286344,
+      "netPct": 1.26018
+    },
+    {
+      "date": "2025-04-07",
+      "symbol": "ZN0",
+      "direction": 1,
+      "z": null,
+      "gapPct": -5.765493,
+      "netPct": 1.394624
+    }
+  ]
+}

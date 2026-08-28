@@ -1,0 +1,254 @@
+{
+  "schema": "futures-strategy-mechanism-hypothesis/1",
+  "id": "H-MECH-02",
+  "name": "焦炭/铁矿比价（高炉原料结构经济性替代）均值回归",
+  "family": "fundamental",
+  "status": "preregistered_probe",
+  "generatedAt": "2026-08-28T18:40:00Z",
+  "direction": "mechanism-hypothesis-generation",
+  "pricingSource": "self-model",
+  "analysisFilter": {
+    "finCoTUsage": "禁止（本假设不含 FinCoT 分析层）",
+    "noNumericPricing": true,
+    "probabilityConeUsage": "禁用"
+  },
+  "theory": {
+    "falsifiableProposition": {
+      "H0": "J0/I0 对数比价滚动 z 分位 |z|≥1.5 后 10 交易日的方向化两腿净收益 mean(net) ≤ 0（原料结构替代机制无回归优势）",
+      "H1": "mean(net) > 0：焦炭相对铁矿极端偏贵（z≥+1.5）→ 空 J 多 I；极端偏贱（z≤−1.5）→ 多 J 空 I；比值在 10 日内向 250 日中枢回归"
+    },
+    "mechanism": "中国高炉-转炉长流程炼钢是焦炭与铁矿的联合消费者：焦炭提供热能与还原剂、铁矿提供铁元素。钢厂在原料采购中存在有界的经济性替代——焦炭贵则提高入炉品位/增加喷吹（多矿少焦）、焦炭贱则降低品位/增加焦比（多焦少矿）；同时焦炭供给受环保限产与焦化产能周期强约束（中国特有），铁矿供给受海外矿山垄断定价约束，两者供给弹性错位使比价偏离后由需求端配比调整拉回。极端分位后回归是慢变量（配矿与运输时滞），10 日持有对应第一段回归。",
+    "preconditions": [
+      "J0 与 I0 均有 250 日以上历史（滚动锚可估计）",
+      "信号日非 GA-1 换月跳变日",
+      "|z| 未处于加速走扩段（F5 确认门）"
+    ],
+    "references": [
+      "行业实践：高炉原料结构/焦比/入炉品位调节",
+      "FS-05 价差回归结构（协整 OU 模板，但本假设为同板块原料替代，不使用其 ADF 断裂门）",
+      "FS-04 F4 焦化利润（本假设与 FS-04 的 RB-I-J 利润回归是不同模型：本假设只用 J/I 比值，不用 RB）"
+    ],
+    "distinctFrom": [
+      "FS-04（RB/I/J 钢厂利润回归）",
+      "FS-05（农产品协整价差）",
+      "EC-01（能化成本锚）"
+    ]
+  },
+  "marketModel": {
+    "stateVariables": [
+      "r_t = ln(P_J,t / P_I,t)（对数比价）",
+      "μ̂_250, σ̂_250（滚动 250 日对数比价均值/标准差，t−250..t−1 窗口）",
+      "z_t = (r_t − μ̂_250)/σ̂_250",
+      "s_t ∈ {+1, 0, −1}：z≤−1.5 → +1（多 J 空 I）；z≥+1.5 → −1（空 J 多 I）"
+    ],
+    "formulas": [
+      "F1: r_t = ln(P_J,t / P_I,t)",
+      "F2: μ̂_t = mean(r_{t−250..t−1})；σ̂_t = std(r_{t−250..t−1}, ddof=1)；z_t = (r_t − μ̂_t)/σ̂_t",
+      "F3: signal = +1 if z_t ≤ −1.5；= −1 if z_t ≥ +1.5；= 0 其他",
+      "F4: 两腿前向收益 R_t = s_t × [ ln(P_J,t+10 / P_J,open,t+1) − ln(P_I,t+10 / P_I,open,t+1) ]，净收益 net = R_t − 0.14%（双腿往返成本）",
+      "F5: 加速走扩确认门：|z_t| > |z_{t−1}| > |z_{t−2}| → 放弃该信号（等待企稳，FS-02 F3 同构）",
+      "F6: edge 衰减 = z→0 隐含的比价中枢；探针期以 10 日固定持有近似"
+    ],
+    "conditionalDistribution": "z_t 在 |z|≥1.5 后向 0 回归（回归概率与幅度为待证命题；探针不做正态假设）",
+    "confirmationZone": "F3 触发 ∧ F5 无加速走扩",
+    "invalidationEvent": "比价继续反向走扩 0.5σ̂（信号强化失败 = 理论失效点；验证阶段实现）",
+    "edgeDecay": "z→0（比价回归 250 日中枢）或 10 日持有到期"
+  },
+  "pricingModel": {
+    "principle": "全部定价由 marketModel F1–F6 导出（self-model）；无 FinCoT、无概率锥",
+    "stop": {
+      "rule": "验证阶段：入场后比价继续反向走扩 0.5σ̂ → 次日开盘双平；探针期固定 10 日",
+      "modelRef": "invalidationEvent",
+      "theoryRole": "理论失效点"
+    },
+    "target": {
+      "rule": "T+10 收盘双平（探针期）；验证阶段 z→0 先到先平",
+      "modelRef": "F6",
+      "theoryRole": "edge 衰减点"
+    },
+    "position": {
+      "rule": "两腿等名义金额各 1 单位；单事件组合风险 ≤1R；验证阶段前不加仓",
+      "modelRef": "F4",
+      "theoryRole": "比值多空结构，腿等名义以近似比值仓位"
+    }
+  },
+  "strategy": {
+    "direction": "z≤−1.5 → 多 J0/空 I0；z≥+1.5 → 空 J0/多 I0",
+    "entry": "T 日收盘确认 F3+F5 → T+1 两腿同步开盘",
+    "stop": "见 pricingModel.stop",
+    "target": "见 pricingModel.target",
+    "position": "见 pricingModel.position",
+    "holding": "10 交易日（探针期）",
+    "executionRules": [
+      "T+1 两腿同步开盘（t3 §0.2 通用口径）",
+      "信号日或执行日 ∈ GA-1 换月跳变日（≥9.5% 跳变）→ 放弃",
+      "asOf：T 日收盘冻结，无未来函数",
+      "政策窗口（ga7 black policy_window）分段报告，不在探针期剔除（升级门）",
+      "长假（≥3 日休市）前不开新仓（验证阶段执行）"
+    ]
+  },
+  "dataContract": {
+    "ref": "H-MECH-02",
+    "requiredGAs": [
+      "GA-1",
+      "GA-7"
+    ],
+    "asOfRules": [
+      "T 日收盘冻结，无未来函数",
+      "滚动锚只用 t−250..t−1（不含当日）",
+      "换月跳变日剔除（F5）"
+    ],
+    "inputs": "data/daily/J0.json、data/daily/I0.json（GA-1）；strategies/research/v2/falsification/data/ga1-roll-jumps.json；strategies/research/v2/falsification/data/ga7-policy-calendar-v0.json（black 政策窗口，仅分段报告）"
+  },
+  "falsification": {
+    "strategyLevel": {
+      "minTrades": 100,
+      "walkForward": "purged expanding（预注册，进入验证层后执行）",
+      "pfThreshold": 1.2,
+      "ci": "95% CI 不含 0",
+      "baselines": [
+        "always-long-spread",
+        "always-short-spread",
+        "random"
+      ]
+    },
+    "theoryLevel": {
+      "hypothesis": "原料结构替代使 J/I 比价极端分位后 10 日回归",
+      "test": "H-MECH-02 探针：mean(net) 95% bootstrap CI 下界 > 0 → 验证候选；上界 < 0 → discard；含 0 → screen_pending",
+      "killOn": "探针 discard 即弃置；进入库后按 §7 全套证伪"
+    },
+    "killRules": [
+      "探针 mean(net) CI 上界 < 0 → discard",
+      "进入验证层后政策窗口内表现转负 → suspended"
+    ]
+  },
+  "probe": {
+    "preregistered": true,
+    "registeredAt": "2026-08-28T18:40:00Z",
+    "protocolRef": "strategies/research/v2/falsification/24-preregistration-protocol.md",
+    "binding": "探针信号 = marketModel.F3 + F5 原式；前向收益 = F4 原式。禁止代理公式、禁止事后调阈值。",
+    "universe": [
+      "J0",
+      "I0"
+    ],
+    "sample": {
+      "calendar": "J0 交易日历与 I0 的交集",
+      "start": "2013-10-18（I0 数据起点）",
+      "end": "2026-08-27",
+      "warmup": 250,
+      "forwardHorizon": 10,
+      "cooldown": 10,
+      "minEvents": 100
+    },
+    "formulasImplemented": [
+      "F1",
+      "F2",
+      "F3",
+      "F4",
+      "F5"
+    ],
+    "costPerTradePct": 0.14,
+    "seed": 20260828,
+    "alphaAdj": 0.0167,
+    "primaryStatistic": {
+      "name": "meanNetPct",
+      "definition": "mean( net_t )，net_t = F4 − 0.14",
+      "test": "95% bootstrap percentile CI（B=10000，seed=20260828）"
+    },
+    "secondaryStatistics": [
+      {
+        "name": "hitRate",
+        "definition": "P(net > 0)",
+        "test": "单侧二项检验 H0: p=0.50，α_adj=0.0167",
+        "validityGate": "仅当 n 对 +3pp 差异的功效 ≥80% 时有效；否则标记 low_power_no_conclusion（24 协议 §2.2）"
+      },
+      {
+        "name": "policyWindowSplit",
+        "definition": "ga7 black policy_window（2016-2017/2021/2025）内/外分段 meanNetPct",
+        "use": "探索性分段，仅报告；promote 后须政策窗口内保真复跑"
+      },
+      {
+        "name": "baselineSpreadReturn",
+        "definition": "全样本 10 日两腿对数收益的均值（无信号）",
+        "use": "探索性对照，仅报告"
+      }
+    ],
+    "powerSpec": {
+      "meanMDE": "δ = 0.10% 净收益/事件（毛收益 0.24% = 成本 0.14% + 0.10%）",
+      "hitRateMDE": "+3pp（0.50 → 0.53）",
+      "powerLevel": 0.8,
+      "alpha": 0.0167,
+      "rule": "按注册公式与实现后 σ̂/n 报告功效；均值检验功效只报告不设 promote 门槛（探针非策略级主检验）；命中率检验功效 <80% 时不产生结论"
+    },
+    "exclusions": [
+      "信号日或执行日 ∈ ga1-roll-jumps（≥9.5% 跳变）",
+      "F5 加速走扩（信号放弃）",
+      "无 T+10 收盘或 T+1 开盘的样本"
+    ],
+    "decisionRules": {
+      "insufficient_sample": "n < 100",
+      "promote": "n ≥ 100 ∧ meanNetPct > 0 ∧ CI.lo > 0",
+      "discard": "n ≥ 100 ∧ CI.hi < 0",
+      "screen_pending": "其他（CI 含 0 或功效不足无法下结论）",
+      "note": "promote 只进入验证候选（waitlistScreening），不改变 strategy-library-v2 核心 manifest；须通过 23-fidelity-review.md F-A..F-H + §7 全流程才可入库"
+    },
+    "feasibilityPlanning": {
+      "computedAt": "2026-08-28",
+      "method": "仅统计触发事件数（未计算任何收益，注册前样本规划）",
+      "zGe1_5": 46,
+      "zLe1_5": 68,
+      "afterCooldownTotal": 114,
+      "outsidePolicyWindows": 74,
+      "gate100": "满足（全样本）"
+    },
+    "outputs": {
+      "result": "strategies/research/v2/falsification/mechanism/probe-results/H-MECH-02-probe.json",
+      "reproduce": "node strategies/research/v2/falsification/mechanism/mechanism-bound-probes.cjs --hypothesis H-MECH-02"
+    },
+    "preregistrationHash": "8d4d691f4a54ed889ee7e346ad18d307f34527be74f6fd4727f6845626d86d32"
+  },
+  "prerequisites": [
+    "GA-1",
+    "GA-7"
+  ],
+  "asOfContract": [
+    "F1",
+    "F2",
+    "F5",
+    "F8",
+    "F9"
+  ],
+  "parameters": [
+    {
+      "name": "z 阈值 ±1.5",
+      "initial": "1.5",
+      "source": "calibration（FS-02 同阈值）",
+      "freezeCondition": "通过验证层证伪测试后冻结"
+    },
+    {
+      "name": "滚动窗口 250 日",
+      "initial": "250",
+      "source": "repo-convention",
+      "freezeCondition": "同上"
+    },
+    {
+      "name": "持有 10 日",
+      "initial": "10",
+      "source": "industry-practice",
+      "freezeCondition": "同上"
+    }
+  ],
+  "crossModelRefs": [],
+  "crossDataInputs": [
+    "data/daily/J0.json",
+    "data/daily/I0.json",
+    "strategies/research/v2/falsification/data/ga1-roll-jumps.json",
+    "strategies/research/v2/falsification/data/ga7-policy-calendar-v0.json"
+  ],
+  "revisionLog": [
+    {
+      "when": "2026-08-28T18:40:00Z",
+      "what": "机制假设生成 + 绑定式廉价探针预注册（24 协议）"
+    }
+  ]
+}

@@ -48,3 +48,8 @@ logs/
 node_modules/
 .DS_Store
 Thumbs.db
+
+# ── GA-8 基差历史采集器可重建产物（ga8-basis-history-collector.py）──
+/strategies/research/v2/falsification/data/basis-history/fetches/
+/strategies/research/v2/falsification/data/basis-history/*.jsonl
+/strategies/research/v2/falsification/data/basis-history/backfill-*.log

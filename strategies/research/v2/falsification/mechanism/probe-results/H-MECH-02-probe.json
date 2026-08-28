@@ -1,0 +1,876 @@
+{
+  "schema": "futures-strategy-mechanism-probe-result/1",
+  "id": "H-MECH-02",
+  "name": "焦炭/铁矿比价（高炉原料结构经济性替代）均值回归",
+  "family": "fundamental",
+  "preregistrationHash": "8d4d691f4a54ed889ee7e346ad18d307f34527be74f6fd4727f6845626d86d32",
+  "runAt": "2026-08-28T19:25:51.042Z",
+  "runCommand": "node strategies/research/v2/falsification/mechanism/mechanism-bound-probes.cjs --hypothesis H-MECH-02",
+  "seed": 20260828,
+  "alphaAdj": 0.0167,
+  "decision": "screen_pending",
+  "primary": {
+    "meanNetPct": -0.776535,
+    "ci": {
+      "lo": -2.215307,
+      "hi": 0.684995,
+      "level": 0.95,
+      "B": 10000,
+      "seed": 20260828,
+      "method": "bootstrap-percentile"
+    },
+    "n": 102,
+    "sigmaPct": 7.466665
+  },
+  "secondary": {
+    "hitRate": {
+      "k": 44,
+      "n": 102,
+      "rate": 0.431373,
+      "pOneSided": 0.9314505971219004,
+      "alphaAdj": 0.0167,
+      "powerFor3pp": 0.063752,
+      "validityGate": "low_power_no_conclusion"
+    },
+    "policyWindowSplit": {
+      "inside": {
+        "n": 35,
+        "meanNetPct": -0.329619
+      },
+      "outside": {
+        "n": 67,
+        "meanNetPct": -1.009998
+      },
+      "note": "探索性分段；promote 后须政策窗口内保真复跑"
+    },
+    "baselineSpreadReturn": {
+      "n": 2632,
+      "meanNetPct": -0.022493,
+      "note": "全样本 10 日两腿对数收益 − 0.14（无信号对照，仅报告）"
+    }
+  },
+  "powerReport": {
+    "meanMdePct": 0.1,
+    "meanPowerAtMde": 0.011973,
+    "meanPowerRule": "报告用途；探针非策略级主检验（24 协议 §2.4 适用于策略级）",
+    "hitRatePowerFor3pp": 0.063752
+  },
+  "events": [
+    {
+      "date": "2016-02-05",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.697737,
+      "gapPct": null,
+      "netPct": -0.614477
+    },
+    {
+      "date": "2016-03-01",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.766763,
+      "gapPct": null,
+      "netPct": -4.317733
+    },
+    {
+      "date": "2016-03-15",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.063782,
+      "gapPct": null,
+      "netPct": 12.812314
+    },
+    {
+      "date": "2016-04-27",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.45799,
+      "gapPct": null,
+      "netPct": -1.590554
+    },
+    {
+      "date": "2016-05-12",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.324947,
+      "gapPct": null,
+      "netPct": 0.03215
+    },
+    {
+      "date": "2016-05-27",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.961251,
+      "gapPct": null,
+      "netPct": 3.499522
+    },
+    {
+      "date": "2016-08-08",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.542768,
+      "gapPct": null,
+      "netPct": -14.811292
+    },
+    {
+      "date": "2016-08-22",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.788547,
+      "gapPct": null,
+      "netPct": -6.776414
+    },
+    {
+      "date": "2016-09-06",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.752126,
+      "gapPct": null,
+      "netPct": 0.747509
+    },
+    {
+      "date": "2016-09-22",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.315916,
+      "gapPct": null,
+      "netPct": -11.431074
+    },
+    {
+      "date": "2016-10-14",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.60912,
+      "gapPct": null,
+      "netPct": -6.998165
+    },
+    {
+      "date": "2016-10-28",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.598912,
+      "gapPct": null,
+      "netPct": 2.387513
+    },
+    {
+      "date": "2016-11-11",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.062096,
+      "gapPct": null,
+      "netPct": -2.595898
+    },
+    {
+      "date": "2016-11-25",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.835093,
+      "gapPct": null,
+      "netPct": 18.441328
+    },
+    {
+      "date": "2017-04-10",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.504391,
+      "gapPct": null,
+      "netPct": 8.982358
+    },
+    {
+      "date": "2017-06-23",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.6407,
+      "gapPct": null,
+      "netPct": 1.053655
+    },
+    {
+      "date": "2017-07-10",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.593714,
+      "gapPct": null,
+      "netPct": 2.928559
+    },
+    {
+      "date": "2017-08-14",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.744516,
+      "gapPct": null,
+      "netPct": -8.376301
+    },
+    {
+      "date": "2017-08-29",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.086846,
+      "gapPct": null,
+      "netPct": -4.119921
+    },
+    {
+      "date": "2017-09-12",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.153429,
+      "gapPct": null,
+      "netPct": 4.737568
+    },
+    {
+      "date": "2017-09-26",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.627563,
+      "gapPct": null,
+      "netPct": 3.65422
+    },
+    {
+      "date": "2018-06-04",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.578997,
+      "gapPct": null,
+      "netPct": -4.738123
+    },
+    {
+      "date": "2018-06-19",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.267008,
+      "gapPct": null,
+      "netPct": 5.086123
+    },
+    {
+      "date": "2018-07-27",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.565647,
+      "gapPct": null,
+      "netPct": -6.368176
+    },
+    {
+      "date": "2018-08-10",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.163768,
+      "gapPct": null,
+      "netPct": -8.228943
+    },
+    {
+      "date": "2018-08-24",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.816366,
+      "gapPct": null,
+      "netPct": 9.247127
+    },
+    {
+      "date": "2018-09-10",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.613233,
+      "gapPct": null,
+      "netPct": 3.596011
+    },
+    {
+      "date": "2018-10-15",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.557347,
+      "gapPct": null,
+      "netPct": 9.699459
+    },
+    {
+      "date": "2019-01-04",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.575919,
+      "gapPct": null,
+      "netPct": 2.961795
+    },
+    {
+      "date": "2019-01-22",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.500002,
+      "gapPct": null,
+      "netPct": -15.073478
+    },
+    {
+      "date": "2019-02-12",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -3.146739,
+      "gapPct": null,
+      "netPct": 8.534764
+    },
+    {
+      "date": "2019-02-26",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.814,
+      "gapPct": null,
+      "netPct": -9.554931
+    },
+    {
+      "date": "2019-03-12",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.498338,
+      "gapPct": null,
+      "netPct": -1.334474
+    },
+    {
+      "date": "2019-03-26",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.230156,
+      "gapPct": null,
+      "netPct": -4.023156
+    },
+    {
+      "date": "2019-04-12",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.150905,
+      "gapPct": null,
+      "netPct": 3.994107
+    },
+    {
+      "date": "2019-05-06",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.661869,
+      "gapPct": null,
+      "netPct": -5.812261
+    },
+    {
+      "date": "2019-05-20",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.885046,
+      "gapPct": null,
+      "netPct": -3.960538
+    },
+    {
+      "date": "2019-06-03",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.874306,
+      "gapPct": null,
+      "netPct": -12.337322
+    },
+    {
+      "date": "2019-06-18",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.339607,
+      "gapPct": null,
+      "netPct": -10.914643
+    },
+    {
+      "date": "2019-07-04",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.193686,
+      "gapPct": null,
+      "netPct": -0.552646
+    },
+    {
+      "date": "2019-07-18",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.93943,
+      "gapPct": null,
+      "netPct": 12.287478
+    },
+    {
+      "date": "2020-06-01",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.782718,
+      "gapPct": null,
+      "netPct": 0.074071
+    },
+    {
+      "date": "2020-06-15",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.560859,
+      "gapPct": null,
+      "netPct": -0.480544
+    },
+    {
+      "date": "2020-07-03",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.619106,
+      "gapPct": null,
+      "netPct": -6.456872
+    },
+    {
+      "date": "2020-07-17",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.393921,
+      "gapPct": null,
+      "netPct": -0.62607
+    },
+    {
+      "date": "2020-07-31",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.365728,
+      "gapPct": null,
+      "netPct": 1.052542
+    },
+    {
+      "date": "2020-08-17",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.819804,
+      "gapPct": null,
+      "netPct": -1.824753
+    },
+    {
+      "date": "2020-08-31",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.900759,
+      "gapPct": null,
+      "netPct": 1.140643
+    },
+    {
+      "date": "2020-11-09",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.567176,
+      "gapPct": null,
+      "netPct": 7.834043
+    },
+    {
+      "date": "2021-02-23",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.611294,
+      "gapPct": null,
+      "netPct": -5.496061
+    },
+    {
+      "date": "2021-03-10",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.915025,
+      "gapPct": null,
+      "netPct": -8.148253
+    },
+    {
+      "date": "2021-03-25",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.61684,
+      "gapPct": null,
+      "netPct": 16.849835
+    },
+    {
+      "date": "2021-05-19",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.629227,
+      "gapPct": null,
+      "netPct": -0.256212
+    },
+    {
+      "date": "2021-07-12",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.508406,
+      "gapPct": null,
+      "netPct": 17.806969
+    },
+    {
+      "date": "2021-08-06",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 3.190961,
+      "gapPct": null,
+      "netPct": -9.289111
+    },
+    {
+      "date": "2021-08-20",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 3.160273,
+      "gapPct": null,
+      "netPct": -15.376006
+    },
+    {
+      "date": "2021-09-03",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 3.402637,
+      "gapPct": null,
+      "netPct": -18.543871
+    },
+    {
+      "date": "2021-09-17",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 3.449461,
+      "gapPct": null,
+      "netPct": 6.950355
+    },
+    {
+      "date": "2021-10-14",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.805781,
+      "gapPct": null,
+      "netPct": 10.914651
+    },
+    {
+      "date": "2021-10-28",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.894219,
+      "gapPct": null,
+      "netPct": -13.446915
+    },
+    {
+      "date": "2021-11-11",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.131071,
+      "gapPct": null,
+      "netPct": 17.035444
+    },
+    {
+      "date": "2022-08-26",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.522928,
+      "gapPct": null,
+      "netPct": -4.276705
+    },
+    {
+      "date": "2022-09-13",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.697221,
+      "gapPct": null,
+      "netPct": 7.640843
+    },
+    {
+      "date": "2022-12-05",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.584995,
+      "gapPct": null,
+      "netPct": -7.759226
+    },
+    {
+      "date": "2022-12-21",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.407707,
+      "gapPct": null,
+      "netPct": -6.816667
+    },
+    {
+      "date": "2023-01-05",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.742482,
+      "gapPct": null,
+      "netPct": 8.434634
+    },
+    {
+      "date": "2023-01-19",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.557094,
+      "gapPct": null,
+      "netPct": -4.486015
+    },
+    {
+      "date": "2023-02-09",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.811722,
+      "gapPct": null,
+      "netPct": -0.877277
+    },
+    {
+      "date": "2023-02-23",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.666805,
+      "gapPct": null,
+      "netPct": -2.246104
+    },
+    {
+      "date": "2023-03-10",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.691556,
+      "gapPct": null,
+      "netPct": -0.342616
+    },
+    {
+      "date": "2023-03-24",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.595457,
+      "gapPct": null,
+      "netPct": 1.231695
+    },
+    {
+      "date": "2023-04-14",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.713159,
+      "gapPct": null,
+      "netPct": -1.469865
+    },
+    {
+      "date": "2023-05-05",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.527622,
+      "gapPct": null,
+      "netPct": -5.263145
+    },
+    {
+      "date": "2023-05-23",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.650827,
+      "gapPct": null,
+      "netPct": -12.179777
+    },
+    {
+      "date": "2023-06-06",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.504512,
+      "gapPct": null,
+      "netPct": 1.059145
+    },
+    {
+      "date": "2023-06-20",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.084426,
+      "gapPct": null,
+      "netPct": -4.216827
+    },
+    {
+      "date": "2023-07-06",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.108004,
+      "gapPct": null,
+      "netPct": 6.010702
+    },
+    {
+      "date": "2023-07-20",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.500229,
+      "gapPct": null,
+      "netPct": 1.879204
+    },
+    {
+      "date": "2023-12-27",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.524616,
+      "gapPct": null,
+      "netPct": -4.853003
+    },
+    {
+      "date": "2024-01-11",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.854271,
+      "gapPct": null,
+      "netPct": 1.855279
+    },
+    {
+      "date": "2024-01-30",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.791834,
+      "gapPct": null,
+      "netPct": 7.368395
+    },
+    {
+      "date": "2024-04-10",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.500536,
+      "gapPct": null,
+      "netPct": 4.911589
+    },
+    {
+      "date": "2024-11-22",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.771288,
+      "gapPct": null,
+      "netPct": -9.125446
+    },
+    {
+      "date": "2024-12-06",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -3.466735,
+      "gapPct": null,
+      "netPct": 0.091653
+    },
+    {
+      "date": "2024-12-20",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.574261,
+      "gapPct": null,
+      "netPct": -1.466604
+    },
+    {
+      "date": "2025-01-06",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.062245,
+      "gapPct": null,
+      "netPct": -5.873817
+    },
+    {
+      "date": "2025-01-20",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.798499,
+      "gapPct": null,
+      "netPct": -2.987479
+    },
+    {
+      "date": "2025-02-11",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.746145,
+      "gapPct": null,
+      "netPct": -3.209666
+    },
+    {
+      "date": "2025-02-25",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.696018,
+      "gapPct": null,
+      "netPct": 1.976292
+    },
+    {
+      "date": "2025-03-12",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -2.02894,
+      "gapPct": null,
+      "netPct": -1.935038
+    },
+    {
+      "date": "2025-03-26",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.967653,
+      "gapPct": null,
+      "netPct": 5.742895
+    },
+    {
+      "date": "2025-05-09",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.576737,
+      "gapPct": null,
+      "netPct": -8.045949
+    },
+    {
+      "date": "2025-05-26",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.96505,
+      "gapPct": null,
+      "netPct": -0.6532
+    },
+    {
+      "date": "2025-06-10",
+      "symbol": "J0/I0",
+      "direction": 1,
+      "z": -1.79,
+      "gapPct": null,
+      "netPct": -0.085548
+    },
+    {
+      "date": "2026-02-05",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.608707,
+      "gapPct": null,
+      "netPct": 3.532279
+    },
+    {
+      "date": "2026-04-20",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.912962,
+      "gapPct": null,
+      "netPct": 2.110751
+    },
+    {
+      "date": "2026-05-25",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.078452,
+      "gapPct": null,
+      "netPct": -7.240365
+    },
+    {
+      "date": "2026-06-08",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 3.578851,
+      "gapPct": null,
+      "netPct": 2.334344
+    },
+    {
+      "date": "2026-06-23",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.572683,
+      "gapPct": null,
+      "netPct": -1.319767
+    },
+    {
+      "date": "2026-07-07",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.360557,
+      "gapPct": null,
+      "netPct": 6.9442
+    },
+    {
+      "date": "2026-07-27",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 1.506415,
+      "gapPct": null,
+      "netPct": -6.707726
+    },
+    {
+      "date": "2026-08-12",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.279562,
+      "gapPct": null,
+      "netPct": -8.759551
+    }
+  ]
+}

@@ -1,0 +1,207 @@
+{
+  "id": "M1",
+  "name": "DR007 流动性冲击（信用渠道 → 国内需求型板块）",
+  "family": "macro",
+  "sourceIds": [
+    "t1 §M1"
+  ],
+  "status": "suspended",
+  "evidenceGrade": "中-高",
+  "pricingSource": "self-model",
+  "analysisFilter": {
+    "finCoTUsage": "无任何 FinCoT odds 参与（H1）；方向门禁为模型自带的价格确认，不是 FinCoT 叙事",
+    "noNumericPricing": true,
+    "probabilityConeUsage": "none"
+  },
+  "theory": {
+    "falsifiableProposition": {
+      "H0": "DR007 的 5 日突变与黑色板块未来 1–2 周收益无关",
+      "H1": "资金利率急升（收紧冲击，Δ5d DR007 ≥ +0.5pp）后，国内需求型品种未来 10 日收益系统性为负；宽松冲击（≤ −0.5pp）后为正"
+    },
+    "mechanism": "信用渠道/流动性溢价：短期资金利率是央行政策姿态最高频观测，DR007 对政策利率的偏离冲击经融资成本与信用条件传导至地产-基建链需求预期。",
+    "preconditions": [
+      "信号与价格确认同向（破/站上 MA20/MA60）",
+      "国内需求型品种池"
+    ],
+    "references": [
+      "国内文献 + 实践（t1 §M1）"
+    ],
+    "source": "t1 §M1"
+  },
+  "prerequisites": [
+    "GA-4",
+    "GA-1",
+    "GA-2"
+  ],
+  "asOfContract": [
+    "F1",
+    "F2",
+    "F3",
+    "F8"
+  ],
+  "marketModel": {
+    "stateVariables": [
+      "s_t = Δ5d DR007_t（百分点，FDR007 定盘）",
+      "扩展态 g_t = DR007 − r* 为 needs-extension 版（P0 不用）"
+    ],
+    "formulas": [
+      "F1: s_t = Δ5d DR007_t（百分点）",
+      "F2: 条件模型（线性简化，参数滚动标定）：E[r_{i,t+1:t+10} | s_t] = α_i + β_i·s_t，预期 β_i < 0（i ∈ 黑色 + SA/FG 国内需求型能化）；入池门 β̂_i < 0（R8 队长终裁 2026-08-28：β̂_i ≥ 0 的品种不入池，方向与理论一致才交易）",
+      "F3: 方向门禁（模型自带确认区）：价格 close ≤ MA20 且 ≤ MA60 时才执行空头；多头对称。信号与价格确认同向才入场",
+      "F4: 冲击消化：|s_t| 回落 < 0.3pp（edge 衰减）；1.5×ATR5 反向 = 波动失效"
+    ],
+    "conditionalDistribution": "线性条件期望模型 E[r | s_t]（β_i 滚动标定，预期为负）",
+    "confirmationZone": "s_t ≥ +0.5pp 且价格破 MA20/MA60（空）；s_t ≤ −0.5pp 且价格站上 MA20/MA60（多）",
+    "invalidationEvent": "1.5×ATR5 反向（波动失效）；冲击消化 |s_t| < 0.3pp 为 edge 衰减点",
+    "edgeDecay": "冲击消化（|s_t| 回落 < 0.3pp）或 2.0×ATR5 目标位，先到先平（风险收益比固定 1:1.33）"
+  },
+  "pricingModel": {
+    "principle": "定价全部由本条目 marketModel.formulas 导出（H2）；无任何 FinCoT odds 参与",
+    "stop": {
+      "rule": "1.5×ATR5 反向",
+      "modelRef": "F4",
+      "theoryRole": "波动失效点"
+    },
+    "target": {
+      "rule": "2.0×ATR5 或持有至 |s_t| < 0.3pp（冲击消化）先到先平（风险收益比固定 1:1.33）",
+      "modelRef": "F4",
+      "theoryRole": "edge 衰减点（冲击消化）"
+    },
+    "position": {
+      "rule": "scale = clamp(σ_target/max(hv,0.05), 0.2, 1.0) × min(1, |s_t|/1.0)；σ_target 默认 0.15。已内置波动缩放，G2 对其不再重复套用（防双重缩放，t9 F-09）",
+      "modelRef": "F2/F4",
+      "theoryRole": "edge 强度（冲击幅度 × 波动缩放）"
+    },
+    "excluded": [
+      "FinCoT odds（X1）"
+    ]
+  },
+  "strategy": {
+    "direction": "s_t ≥ +0.5pp 且破 MA20/MA60 → 空 {黑色（RB0/HC0/J0 取 |β̂| 最强 1 个（β̂<0 入池门：仅方向与理论一致的品种入池，β̂≥0 不入池——R8 队长终裁 2026-08-28，修正 F2 预期 β_i<0 与 |β̂| 口径的库内矛盾））+ 建材（SA0/FG0 取 |β̂| 最强 1 个（β̂<0 入池门：仅方向与理论一致的品种入池，β̂≥0 不入池——R8 队长终裁 2026-08-28，修正 F2 预期 β_i<0 与 |β̂| 口径的库内矛盾））}；s_t ≤ −0.5pp 且站上 → 多；|s_t|<0.5pp 中性不开新仓。篮子豁免：篮子总风险合计 ≤1R、并发计数按 1 个仓位计；同板块 ≤1 由池内最强品种规则保证（t9 F-03）",
+    "entry": "信号日收盘确认（价格确认同向）→ T+1 开盘",
+    "stop": "见 pricingModel.stop",
+    "target": "见 pricingModel.target",
+    "position": "见 pricingModel.position",
+    "holding": "≤ 10 交易日（冲击窗口）",
+    "executionRules": [
+      "T+1 开盘执行（t3 §0.2 通用口径）",
+      "入场跳空 > 1×ATR5 放弃（t9 F-04）",
+      "信号与价格确认同向才入场（F3 门禁）",
+      "asOf：T 日收盘冻结，无未来函数",
+      "长假/隔周按组合层 Hard 项执行：长假（≥3 日休市）前保证金降至 20% 以下或平仓；周一跳空 > 0.5×ATR5 按条目失效/重估条款处理（t9 F-02）"
+    ]
+  },
+  "dataContract": {
+    "ref": "M1",
+    "refFile": "04-data-contracts.json",
+    "contractStatus": "available",
+    "requiredGAs": [
+      "GA-1",
+      "GA-2",
+      "GA-4"
+    ],
+    "asOfRules": [
+      "T 日收盘冻结",
+      "无未来函数",
+      "FDR007/FR007 拼接纪律（t7 修订建议 D）：walk-forward 只用 FDR007 段；FR007 段仅用于 2015–2017 粗标定且拼接点 ±20 交易日剔除"
+    ],
+    "inputs": "DR007（akshare repo_rate_hist FDR007；GA-4 按年分批回填：FDR007 2017-05-31+/FR007 2015+ 代理）；黑色/玻璃纯碱日线（data/daily，GA-1）；ATR5/HV（probability 派生，GA-2）"
+  },
+  "parameters": [
+    {
+      "name": "冲击阈值",
+      "initial": "±0.5pp（Δ5d DR007）",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t1 §M1",
+      "freezeCondition": "证伪测试通过后冻结"
+    },
+    {
+      "name": "消化阈值",
+      "initial": "|s_t| < 0.3pp",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t1 §M1",
+      "freezeCondition": "证伪测试通过后冻结"
+    },
+    {
+      "name": "止损",
+      "initial": "1.5×ATR5",
+      "source": "repo-convention",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "risk-framework stopK=1.5；t1 §M1",
+      "freezeCondition": "证伪测试通过后冻结"
+    },
+    {
+      "name": "目标",
+      "initial": "2.0×ATR5（风险收益比 1:1.33）",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t1 §M1",
+      "freezeCondition": "证伪测试通过后冻结"
+    },
+    {
+      "name": "σ_target",
+      "initial": "0.15",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t1 §M1/M6",
+      "freezeCondition": "组合级验证通过后冻结"
+    },
+    {
+      "name": "scale clamp",
+      "initial": "0.2–1.0；|s_t|/1.0 上限",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t1 §M1",
+      "freezeCondition": "证伪测试通过后冻结"
+    },
+    {
+      "name": "β_i（滚动标定）",
+      "initial": "品种级滚动标定，预期 < 0",
+      "source": "calibration",
+      "sourceClass": "calibration",
+      "sourceDoc": "t1 §M1 条件模型",
+      "freezeCondition": "walk-forward 门禁通过后冻结品种映射"
+    }
+  ],
+  "falsificationTests": {
+    "strategyLevel": {
+      "minTrades": 200,
+      "walkForward": "2019-01–2026-08 滚动 12 个月窗口，每窗口统计『冲击后 10 日方向命中率』",
+      "pfThreshold": 1.2,
+      "ci": "命中率 ≥ 55% 且单尾检验 p < 0.10；达标窗口占比 ≥ 60%（预注册口径，对齐 G3『walk-forward 多数年份为正』，t7 修订建议 E）",
+      "baselines": [
+        "always-long",
+        "always-short",
+        "random"
+      ],
+      "cost": "扣成本 0.07% 往返"
+    },
+    "theoryLevel": {
+      "hypothesis": "信用渠道传导 β_i < 0",
+      "test": "命中率门槛不达标 → 冻结该品种方向映射；全池 < 50% → 回炉 β 标定；结构性风险：2023 前后分段报告（国内利率与地产链脱钩 → β_i 可能衰减）",
+      "killOn": "全池连续 2 个滚动窗口命中率 < 50% → 策略整体停用"
+    },
+    "killRules": [
+      "连续 2 个滚动窗口命中率 < 50% → 冻结该品种方向映射",
+      "全池 < 50% → 策略整体停用并回炉 β 标定"
+    ]
+  },
+  "knownCounterEvidence": [
+    "2023 前后分段必须报告：国内利率与地产链脱钩（2023 后地产周期走平）可能使 β_i 衰减（t1 §M1）"
+  ],
+  "crossModelRefs": [],
+  "crossDataInputs": [
+    "data/daily/*.json",
+    "data/macro/*.json"
+  ],
+  "falsificationStatus": "suspended",
+  "statusNote": "t8 walk-forward 证伪（β̂<0 入池门 R8 队长终裁后重跑，seed=20260828）：n=7、meanR −0.053R、PF 0.345<1.2、95% CI 含 0、windowGate 达标占比 0%（窗内 1–5 笔）→ suspended（样本不足 + PF 门禁，非理论证伪）。全池方向命中 57.1%（7 笔）；pre2024 57.1%/post2024 无样本。symbol-freeze 语义（R7）已生效：本次未触发（symbolsToFreeze=∅）。β̂ 符号门使 25→7 笔（多数历史信号 β̂≥0 被门排除，佐证 R8 库内矛盾）。\n[实验完整性重分类 2026-08-28] β̂<0 门后 n=7，样本不足；需更长宏观历史与保真复跑。",
+  "evidenceTier": "not_evaluable",
+  "fidelityAudit": {
+    "status": "needs_rework",
+    "checkedAgainst": "23-fidelity-review.md",
+    "blockingForFalsification": true
+  }
+}

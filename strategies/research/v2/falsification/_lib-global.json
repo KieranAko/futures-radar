@@ -1,0 +1,219 @@
+{
+  "portfolioDiscipline": [
+    {
+      "rule": "单笔风险预算",
+      "parameter": "1R = 风险金额 = 止损距离×乘数×手数 ≤ 权益 1.0%",
+      "type": "Hard（risk-framework §1）"
+    },
+    {
+      "rule": "组合风险预算",
+      "parameter": "全部持仓风险合计 ≤ 权益 2.5%",
+      "type": "Hard"
+    },
+    {
+      "rule": "组合波动目标",
+      "parameter": "≤ 20% 年化",
+      "type": "Hard"
+    },
+    {
+      "rule": "并发持仓",
+      "parameter": "≤ 3；同板块 ≤ 1",
+      "type": "Hard"
+    },
+    {
+      "rule": "保证金",
+      "parameter": "占用 ≤ 33%；1 手保证金 > 20% 权益 → 观察不执行",
+      "type": "Hard"
+    },
+    {
+      "rule": "停板可执行性",
+      "parameter": "止损距离 ≤ 0.8×涨跌停幅度；现价距停板 < 1×ATR5 不开新仓；锁板只挂条件单",
+      "type": "Hard（t3 §0.3）"
+    },
+    {
+      "rule": "长假/隔周",
+      "parameter": "长假（≥3 日休市）前最后交易日收盘前保证金占用降至 20% 以下或平仓；周一开盘跳空 > 0.5×ATR5 按条目失效/重估条款处理，不追价",
+      "type": "Hard（risk-framework §6 / t3 §0.3；t9 F-02 提升为组合层 Hard 项）"
+    },
+    {
+      "rule": "回撤阶梯",
+      "parameter": "0–5% 正常；5–8% ×0.5；8–12% ×0.25 仅高 edge 档；≥12% 停止新开仓",
+      "type": "Hard"
+    },
+    {
+      "rule": "趋势族同向敞口合并",
+      "parameter": "TR-01 与 TR-03 同品种同方向持仓合计只占 1 份单笔风险预算（风险聚合，不是模型混用）",
+      "type": "策略库级"
+    },
+    {
+      "rule": "事件样本门禁",
+      "parameter": "TR-06 滚动 24 月事件 < 30 → 自动停用；M7 同规则（若未来入库）",
+      "type": "策略库级"
+    },
+    {
+      "rule": "事件日历联动暂停",
+      "parameter": "政策/贸易/储备事件生效期 → FS-04/FS-05/EC-01 按各自数据契约条款暂停新开仓（数据层前提开关）",
+      "type": "策略库级"
+    },
+    {
+      "rule": "M1 篮子豁免",
+      "parameter": "M1 信号篮子：黑色（RB0/HC0/J0）取 |β̂| 最强 1 个 + 建材（SA0/FG0）取 |β̂| 最强 1 个；篮子总风险合计 ≤1R、并发计数按 1 个仓位计（同板块 ≤1 由池内最强品种规则保证；t9 F-03 修订）",
+      "type": "策略库级"
+    },
+    {
+      "rule": "持有期优先级",
+      "parameter": "各策略模型持有期（2–40 日）为该条冻结口径；risk-framework maxHoldingDays=5 为通用缺省，冲突时以条目冻结口径为准，但不得突破 Hard 项",
+      "type": "裁定"
+    }
+  ],
+  "crossStrategyProhibitions": [
+    {
+      "id": "X1",
+      "item": "FinCoT 文本/分析层输出的价位与概率（thesis.odds/confirm/invalidation、Q4 确认文本、报告价位）进入止损/目标/仓位计算；概率锥进入止损或仓位、或进入目标但其 provenance 非 probability.json（cap-6）",
+      "source": "t1 §0.4 / t2 §0.3 / t3 §0.1 / cap-6",
+      "check": "MC-2 + MC-10"
+    },
+    {
+      "id": "X2",
+      "item": "跨条目借用模型参数：如 t1 M3 实际利率 β 不得用于 M5/M7（候补池条目参数同样不得流入任何核心条目）",
+      "source": "t1 §5.3",
+      "check": "MC-6"
+    },
+    {
+      "id": "X3",
+      "item": "EC-01 的 α̂/β̂/γ 不得借给 FS-05 或 M4 系其他用法；EC-01 是唯一经裁定的合并单元（D2），合并后 M4 与 FS-08 原条目不再作为独立条目存在",
+      "source": "D2",
+      "check": "MC-6 + manifest"
+    },
+    {
+      "id": "X4",
+      "item": "TR-03 的 θ（噪声回归速度）不得用于 TR-01 的 f(h)（动量衰减）；两策略 edge 定义不同",
+      "source": "t3 §0.1-5",
+      "check": "MC-6"
+    },
+    {
+      "id": "X5",
+      "item": "TR-05 式『移交他策略定价』机制在 v2 禁止：任何策略必须自带突破后/持仓期管理模型",
+      "source": "D4",
+      "check": "MC-1"
+    },
+    {
+      "id": "X6",
+      "item": "FS-07 原『与 FS-01 同向才全仓』条款删除；季节仓位只由季节模型自身 + G1/G2 决定",
+      "source": "D6",
+      "check": "MC-6"
+    },
+    {
+      "id": "X7",
+      "item": "月度象限模型（M10）与日频五锚点评分（M5/G1）是两个不同模型，不得互相替代标定",
+      "source": "t1 §5.3",
+      "check": "MC-6"
+    },
+    {
+      "id": "X8",
+      "item": "价差类策略不得引入本条目数据契约之外的数据作定价输入：如 EC-01 不引入库存/利润变量，FS-05 不引用单品种 FinCoT 方向拼接双腿结论",
+      "source": "t1 §5.3 / t2 §0.3",
+      "check": "MC-6"
+    },
+    {
+      "id": "X9",
+      "item": "公共数据层白名单外的数据不得作状态输入：白名单 = data/daily、data/macro 锚点、data/sector、event-calendar、probability 派生字段、数据契约中声明的采集源",
+      "source": "t4 §5",
+      "check": "MC-6"
+    },
+    {
+      "id": "X10",
+      "item": "治理层 G1/G2 只可缩放/否决，不得改变任何核心条目的方向/止损/目标数值",
+      "source": "t5 §4",
+      "check": "MC-1"
+    },
+    {
+      "id": "X11",
+      "item": "OI 衍生禁入（cap-1/H7）：任何以 OI 衍生量（会员持仓排名、OIΔ 等）为核心前提、定价输入或信号条件的策略不得入库或进入可执行集；FS-P1-02 保留 P1/rejected，待用户明确解禁；已入库条目的 OIΔ 条件默认禁用并以量价条件替代（TR-03/TR-06）",
+      "source": "cap-1",
+      "check": "MC-9"
+    }
+  ],
+  "machineChecks": {
+    "MC-1": {
+      "rule": "pricingSource == \"self-model\"，且止损/目标/仓位字段引用本条目 formulas[] 方程编号",
+      "status": "pass",
+      "evidence": "8 条策略 pricingSource 均为 self-model；每条 pricingModel 的 stop/target/position 均标注 modelRef 指向本条目公式编号"
+    },
+    "MC-2": {
+      "rule": "策略条目任何数值字段不得引用 FinCoT 文本/分析层输出的价位与概率（thesis.odds/confirm/invalidation、Q4 确认文本、报告价位）；FinCoT 仅允许出现在 analysisFilter（方向触发/否决/事件识别）字段",
+      "status": "pass",
+      "evidence": "8 条策略 analysisFilter.noNumericPricing=true；定价字段无 FinCoT 文本价位/概率引用（TR-06 Q1 仅作事件识别过滤器）"
+    },
+    "MC-3": {
+      "rule": "每个参数有 source ∈ {literature, industry-practice, repo-convention, calibration} 与非空 freezeCondition",
+      "status": "pass",
+      "evidence": "全部参数含 source/sourceClass/sourceDoc/freezeCondition 四字段"
+    },
+    "MC-4": {
+      "rule": "dataContract.ref 在 04-data-contracts.json strategies 中存在且 status=available",
+      "status": "pass",
+      "evidence": "ref 依次为 TR-01/TR-03/TR-06/FS-02/FS-04/FS-05/M1/FS-08，均为 available（04-data-contracts.json statusSummary.available）"
+    },
+    "MC-5": {
+      "rule": "falsificationTests.strategyLevel 阈值全部为数值；killRules[] 非空",
+      "status": "pass",
+      "evidence": "8 条 minTrades/pfThreshold/ci 均为数值；killRules 均非空"
+    },
+    "MC-6": {
+      "rule": "crossModelRefs 为空；crossDataInputs 只允许公共数据层白名单",
+      "status": "pass",
+      "evidence": "8 条 crossModelRefs=[]；crossDataInputs 仅含 data/daily、data/macro、event-calendar（X9 白名单内）"
+    },
+    "MC-7": {
+      "rule": "五段字段（theory/marketModel/strategy/dataContract/falsificationTests）全部存在且非空",
+      "status": "pass",
+      "evidence": "8 条五段完整（t12 验收复查）"
+    },
+    "MC-8": {
+      "rule": "每条 prerequisites[] 显式非空且仅引用 GA-id（或经 t5 批准的采集器/日历开关）；进入 in_validation 前必须全部完成（cap-3）",
+      "status": "pass",
+      "evidence": "8/8 prerequisites 非空且仅含 GA-id（TR-01:GA-1/2；TR-03:GA-1/2 [v1.2 补 GA-2：3d p68 锥管线]；TR-06:GA-1/2；FS-02:GA-1/6；FS-04:GA-1/7；FS-05:GA-1/7；M1:GA-4/1/2；EC-01:GA-1/7）"
+    },
+    "MC-9": {
+      "rule": "每条 asOfContract 非空且仅含 F1–F9 编号（cap-5）；任何条目定价/信号链不得出现 OI 衍生字段（cap-1/H7）",
+      "status": "pass",
+      "evidence": "8/8 asOfContract 非空且仅含 F1–F9 编号（TR-01/TR-03:F1/F2/F3/F5；TR-06:F1/F2/F3/F5/F6；FS-02:F1/F2/F3/F7；FS-04/FS-05/EC-01:F1/F2/F3/F8/F9；M1:F1/F2/F3/F8）；TR-03/TR-06 的 OIΔ 条件已按 H7 默认禁用并以量价条件替代（oiDerivativeStatus 字段声明），定价/信号链无 OI 衍生字段"
+    },
+    "MC-10": {
+      "rule": "任何引用概率锥的定价字段必须声明 provenance=probability.json（Yang-Zhang 定量管线）且仅出现在目标定价（edge 衰减边界，仅 p68/p95，与固定 R 倍数共同构成『先到者』，锥不单独定价）；锥值不得进入止损/仓位字段；禁止来自 reasoning-results/FinCoT 文本价位；回测中锥须按 T 日及以前数据 PIT 重算（cap-6，F8 延伸）",
+      "status": "pass",
+      "evidence": "TR-01/TR-03/TR-06 目标行标注 [cap-6：锥=Yang-Zhang 波动投影，provenance=probability.json，与固定 R 倍数构成『先到者』]；概率锥未进入任何 stop/position 字段；无 reasoning-results/FinCoT 文本价位引用；FS-02/04/05/M1/EC-01 无概率锥引用（probabilityConeUsage=none）"
+    }
+  },
+  "globalAsOfContract": {
+    "source": "t4 §5 未来函数审计 9 项纪律（cap-5 写入 schema）",
+    "items": {
+      "F1": "信号日 vs 执行日：T 日收盘评估 → T+1 开盘执行；跳空放弃条款逐条执行（TR 族 0.5–0.75×ATR5）",
+      "F2": "宏观锚点 stale/missing：US10Y T-1 滞后标 stale 并按 0.75 降权；USDCNH change5d=null 须 GA-5 修复；missing 计 0 并标注",
+      "F3": "月度数据发布滞后：社融/CPI/PMI 等必须按发布日 PIT 对齐，禁止月末即用（M8–M10 候补条目适用）",
+      "F4": "库存发布时点：EM 库存盘后发布，T 日收盘后评估合规；增量采集器留档入库时点（FS-01 候补条目适用）",
+      "F5": "换月拼接：必须 PIT（T 日时点活跃合约映射），禁止事后选合约；≥9.5% 跳变剔除；长历史保留 per-bar sources",
+      "F6": "FinCoT 文本回溯：回测只能用历史 run 产物；禁止用未来重跑文本回填历史（重跑=前视）",
+      "F7": "现货粘性：生意社挂牌价粘性/修订风险由 GA-6 质量门管理；历史回填必须 PIT 快照",
+      "F8": "滚动估计窗口：滚动 OLS/协整/ECM 只用 T 日及以前数据；冻结后样本外验证",
+      "F9": "事件日历 discipline：只允许 event.date ≤ 锚点日；禁止从价格反推事件"
+    },
+    "requirement": "每条策略条目在其 asOfContract[] 中声明对本契约各项的符合性（MC-9）；验证层按此契约逐项执行"
+  },
+  "validationGates": {
+    "G0": "数据前置（t4 全局动作）：GA-1 全历史回填 → GA-2 全品种 ATR5/HV/HV%ile 批量 → GA-3 板块序列重建 → GA-4 宏观锚点回填 → GA-5 USDCNH change5d 修复 → GA-6 现货粘性质量门（仅 FS-02）→ GA-7 政策日历 v0（年份级事件窗口标注；FS-04/FS-05/EC-01 冻结前置，t8 F-2/t7 B 新增）",
+    "G1": "条目数据契约满足（MC-4：status=available + 所需 GA 完成）",
+    "G2": "回测执行：purged expanding walk-forward（预注册口径）→ T 日收盘信号 / T+1 开盘执行 → 跳空放弃条款逐条执行 → 三基线对照 → 成本 0.07%/双腿 0.14% → 换月日剔除",
+    "G3": "策略级门禁：≥200 笔（事件类 ≥100）；PF ≥ 1.2；95% CI 不含 0；walk-forward 多数年份为正",
+    "G4": "理论级证伪测试（各条目 falsificationTests.theoryLevel 逐项执行；任何一条理论级证伪成立 → retired）",
+    "G5": "参数冻结（t5 §5.2）+ 冻结版本号写入 manifest",
+    "G6": "入库 → 持续监控（kill rules、事件日历、结构事件重评估）",
+    "batchOrder": [
+      "第一批（GA-1/GA-2/GA-4/GA-7 完成后）：TR-01、TR-03、FS-04、FS-05、M1、EC-01",
+      "第二批（+基差历史采集器 + GA-6）：FS-02",
+      "第三批（FinCoT 历史向前积累，限 RB0/M0/SC0 起步）：TR-06",
+      "治理层 G1/G2 与第一批并行验证"
+    ]
+  }
+}

@@ -598,12 +598,12 @@
         "data/daily/*.json"
       ],
       "falsificationStatus": "suspended",
-      "statusNote": "t8 walk-forward 证伪（seed=20260828，17/18/19 号报告）：n=1756、meanR +0.0095R、PF 1.034<1.2、95% CI [−0.025,0.044] 含 0 → suspended。理论级确认机制未证伪（确认 +0.0095R vs 无确认 −0.0158R），edge 强度不足以覆盖成本；保留 re_evaluation 路径（needs-clarify：N1 同品种并发 260/1756、N2 时间止损语义近似）。\n[实验完整性重分类 2026-08-28] adapter 保真度不足（EMA20 近似、加仓未实现、T2 取 2R 下界）；PF 1.034 接近门槛。证伪结论暂停，待保真复跑。",
+      "statusNote": "t8 walk-forward 证伪（seed=20260828，17/18/19 号报告）：n=1756、meanR +0.0095R、PF 1.034<1.2、95% CI [−0.025,0.044] 含 0 → suspended。理论级确认机制未证伪（确认 +0.0095R vs 无确认 −0.0158R），edge 强度不足以覆盖成本；保留 re_evaluation 路径（needs-clarify：N1 同品种并发 260/1756、N2 时间止损语义近似）。\n[实验完整性重分类 2026-08-28] adapter 保真度不足（EMA20 近似、加仓未实现、T2 取 2R 下界）；PF 1.034 接近门槛。证伪结论暂停，待保真复跑。\n[实验线关闭 2026-08-28] 实验线关闭：确认机制微弱存活，但当前模型不值得保真复跑；等待机制假设重生成。",
       "evidenceTier": "not_evaluable",
       "fidelityAudit": {
-        "status": "needs_rework",
-        "checkedAgainst": "23-fidelity-review.md",
-        "blockingForFalsification": true
+        "status": "closed_no_rerun",
+        "blockingForFalsification": false,
+        "reason": "实验线关闭：确认机制微弱存活，但当前模型不值得保真复跑；等待机制假设重生成。"
       }
     },
     {
@@ -1009,12 +1009,12 @@
         "data/daily/*.json"
       ],
       "falsificationStatus": "suspended",
-      "statusNote": "t8 walk-forward 证伪：2015–2026 事件 0 起（|r|≥max(2×ATR5,3%)∧量比≥2；Q1 驱动文本项历史不可评估 needs-clarify）→ 滚动 24 月<30 样本门禁触发（库 killRules）→ suspended。chase/delayed 理论测试 0 样本未执行。事件定义待重估。\n[实验完整性重分类 2026-08-28] 事件识别缺 FinCoT Q1 历史，价格量能代理 2015-2026 仅 1 起；不能判策略失败，须重建事件识别后复跑。",
+      "statusNote": "t8 walk-forward 证伪：2015–2026 事件 0 起（|r|≥max(2×ATR5,3%)∧量比≥2；Q1 驱动文本项历史不可评估 needs-clarify）→ 滚动 24 月<30 样本门禁触发（库 killRules）→ suspended。chase/delayed 理论测试 0 样本未执行。事件定义待重估。\n[实验完整性重分类 2026-08-28] 事件识别缺 FinCoT Q1 历史，价格量能代理 2015-2026 仅 1 起；不能判策略失败，须重建事件识别后复跑。\n[实验线关闭 2026-08-28] 实验线关闭：事件识别缺 FinCoT Q1 历史，短期不可解；等待事件识别理论重设计。",
       "evidenceTier": "not_evaluable",
       "fidelityAudit": {
-        "status": "needs_rework",
-        "checkedAgainst": "23-fidelity-review.md",
-        "blockingForFalsification": true
+        "status": "closed_no_rerun",
+        "blockingForFalsification": false,
+        "reason": "实验线关闭：事件识别缺 FinCoT Q1 历史，短期不可解；等待事件识别理论重设计。"
       }
     },
     {
@@ -1444,12 +1444,12 @@
         "event-calendar"
       ],
       "falsificationStatus": "suspended",
-      "statusNote": "t8 walk-forward 证伪：理论级 (b) 扣成本夏普 0.077<0.5 证伪；n=43<200；(a) 40 日回归 3 样本 inconclusive；(d) 政策窗口比较检验无样本未执行（前提开关 by-construction 安装）；F5 平稳性门（EG2 表统一后）暂停占比 56.7%>50% 触发 kill → suspended。\n[实验完整性重分类 2026-08-28] n=43 且 F5 门暂停占比 56.7% 触发 kill；样本与事件门设置影响大，须保真复跑。",
+      "statusNote": "t8 walk-forward 证伪：理论级 (b) 扣成本夏普 0.077<0.5 证伪；n=43<200；(a) 40 日回归 3 样本 inconclusive；(d) 政策窗口比较检验无样本未执行（前提开关 by-construction 安装）；F5 平稳性门（EG2 表统一后）暂停占比 56.7%>50% 触发 kill → suspended。\n[实验完整性重分类 2026-08-28] n=43 且 F5 门暂停占比 56.7% 触发 kill；样本与事件门设置影响大，须保真复跑。\n[实验线关闭 2026-08-28] 实验线关闭：样本与停板/事件门设置缺陷；不再复跑。",
       "evidenceTier": "not_evaluable",
       "fidelityAudit": {
-        "status": "needs_rework",
-        "checkedAgainst": "23-fidelity-review.md",
-        "blockingForFalsification": true
+        "status": "closed_no_rerun",
+        "blockingForFalsification": false,
+        "reason": "实验线关闭：样本与停板/事件门设置缺陷；不再复跑。"
       }
     },
     {
@@ -1664,12 +1664,12 @@
         "event-calendar"
       ],
       "falsificationStatus": "suspended",
-      "statusNote": "t8 walk-forward 证伪：理论级 (b) 回归命中 38.7%<55% 证伪；(a) 4/4 已评估对协整通过率<70% 全剔除（C0-CS0 未评估：预热不足+事件门）；2016 起被 GA-7 收抛储事件前提开关整窗暂停（事件粒度待队长裁定）；(c) M−RM 断裂门检验 vacuous（2019/2024 窗口内 0 交易）→ suspended。\n[实验完整性重分类 2026-08-28] GA-7 收抛储常态化整窗暂停使 2016+ 样本被截断，仅 2015；事件粒度未裁定，不能判策略失败。",
+      "statusNote": "t8 walk-forward 证伪：理论级 (b) 回归命中 38.7%<55% 证伪；(a) 4/4 已评估对协整通过率<70% 全剔除（C0-CS0 未评估：预热不足+事件门）；2016 起被 GA-7 收抛储事件前提开关整窗暂停（事件粒度待队长裁定）；(c) M−RM 断裂门检验 vacuous（2019/2024 窗口内 0 交易）→ suspended。\n[实验完整性重分类 2026-08-28] GA-7 收抛储常态化整窗暂停使 2016+ 样本被截断，仅 2015；事件粒度未裁定，不能判策略失败。\n[实验线关闭 2026-08-28] 实验线关闭：GA-7 事件粒度未裁定导致样本截断；不裁定前不复跑。",
       "evidenceTier": "not_evaluable",
       "fidelityAudit": {
-        "status": "needs_rework",
-        "checkedAgainst": "23-fidelity-review.md",
-        "blockingForFalsification": true
+        "status": "closed_no_rerun",
+        "blockingForFalsification": false,
+        "reason": "实验线关闭：GA-7 事件粒度未裁定导致样本截断；不裁定前不复跑。"
       }
     },
     {
@@ -1871,12 +1871,12 @@
         "data/macro/*.json"
       ],
       "falsificationStatus": "suspended",
-      "statusNote": "t8 walk-forward 证伪（β̂<0 入池门 R8 队长终裁后重跑，seed=20260828）：n=7、meanR −0.053R、PF 0.345<1.2、95% CI 含 0、windowGate 达标占比 0%（窗内 1–5 笔）→ suspended（样本不足 + PF 门禁，非理论证伪）。全池方向命中 57.1%（7 笔）；pre2024 57.1%/post2024 无样本。symbol-freeze 语义（R7）已生效：本次未触发（symbolsToFreeze=∅）。β̂ 符号门使 25→7 笔（多数历史信号 β̂≥0 被门排除，佐证 R8 库内矛盾）。\n[实验完整性重分类 2026-08-28] β̂<0 门后 n=7，样本不足；需更长宏观历史与保真复跑。",
-      "evidenceTier": "not_evaluable",
+      "statusNote": "t8 walk-forward 证伪（β̂<0 入池门 R8 队长终裁后重跑，seed=20260828）：n=7、meanR −0.053R、PF 0.345<1.2、95% CI 含 0、windowGate 达标占比 0%（窗内 1–5 笔）→ suspended（样本不足 + PF 门禁，非理论证伪）。全池方向命中 57.1%（7 笔）；pre2024 57.1%/post2024 无样本。symbol-freeze 语义（R7）已生效：本次未触发（symbolsToFreeze=∅）。β̂ 符号门使 25→7 笔（多数历史信号 β̂≥0 被门排除，佐证 R8 库内矛盾）。\n[实验完整性重分类 2026-08-28] β̂<0 门后 n=7，样本不足；需更长宏观历史与保真复跑。\n[实验线关闭 2026-08-28] 实验线关闭：β̂<0 门后 n=7，样本不足；等宏观历史延长后自动重新评估。",
+      "evidenceTier": "insufficient_sample",
       "fidelityAudit": {
-        "status": "needs_rework",
-        "checkedAgainst": "23-fidelity-review.md",
-        "blockingForFalsification": true
+        "status": "closed_no_rerun",
+        "blockingForFalsification": false,
+        "reason": "实验线关闭：β̂<0 门后 n=7，样本不足；等宏观历史延长后自动重新评估。"
       }
     },
     {
@@ -2323,6 +2323,11 @@
         "id": "wf-v9-integrity-reclassification",
         "fix": "V9 探针作废；核心策略按证据强度重分类为 falsified/not_evaluable/untested；adapter 保真度验收未通过前冻结证伪结论",
         "location": "strategies[].evidenceTier/fidelityAudit + experimentIntegrity"
+      },
+      {
+        "id": "wf-v9-close-old-line",
+        "fix": "关闭 TR-01/TR-06/FS-04/FS-05/M1 复跑；方向切换为机制假设生成 + 绑定探针 + FS-02 数据",
+        "location": "strategies[].evidenceTier/fidelityAudit + experimentIntegrity.direction"
       }
     ]
   },
@@ -2556,6 +2561,24 @@
     "preregistrationProtocol": "strategies/research/v2/falsification/24-preregistration-protocol.md",
     "voidedExperiments": [
       "22-v9-theory-source-probes.json"
-    ]
+    ],
+    "direction": "mechanism-hypothesis-generation",
+    "directionNote": "关闭旧策略线；下一阶段=机制假设生成 + 绑定式廉价探针 + FS-02 PIT 基差数据管线。",
+    "mechanismProbes": {
+      "round": 1,
+      "registeredAt": "2026-08-28",
+      "hypotheses": [
+        "strategies/research/v2/falsification/mechanism/H-MECH-01-macro-dual-anchor-precious.json",
+        "strategies/research/v2/falsification/mechanism/H-MECH-02-fundamental-j-i-substitution.json",
+        "strategies/research/v2/falsification/mechanism/H-MECH-03-trader-overnight-gap-reversal.json"
+      ],
+      "results": "strategies/research/v2/falsification/25-mechanism-bound-probes.md",
+      "decisions": {
+        "H-MECH-01": "screen_pending",
+        "H-MECH-02": "screen_pending",
+        "H-MECH-03": "screen_pending"
+      },
+      "note": "探针不改变核心 manifest；本轮无 promote/discard；下一轮假设须重新预注册（24 协议）。"
+    }
   }
 }

@@ -1,0 +1,298 @@
+{
+  "schema": "futures-strategy-mechanism-hypothesis/1",
+  "id": "H-MECH-03",
+  "name": "极端隔夜跳空后的短期反转（散户过度反应）",
+  "family": "trader",
+  "status": "preregistered_probe",
+  "generatedAt": "2026-08-28T18:40:00Z",
+  "direction": "mechanism-hypothesis-generation",
+  "pricingSource": "self-model",
+  "analysisFilter": {
+    "finCoTUsage": "禁止（本假设不含 FinCoT 分析层）",
+    "noNumericPricing": true,
+    "probabilityConeUsage": "禁用"
+  },
+  "theory": {
+    "falsifiableProposition": {
+      "H0": "极端隔夜跳空（|gap| ≥ max(2%, 2×ATR5 比率)）后 5 交易日的反向净收益 mean(net) ≤ 0（中国市场不存在散户过度反应导致的短期反转）",
+      "H1": "mean(net) > 0：向上极端跳空后 5 日净收益为负（反向做空为正收益）、向下极端跳空后 5 日净收益为正（反向做多为正收益）"
+    },
+    "mechanism": "中国商品期货散户成交占比高、T+0 与夜盘联动使隔夜信息集中在开盘竞价一次性释放：外盘/宏观/产业隔夜新闻造成极端跳空后，散户追涨杀跌在开盘与首日把价格推过均衡点，产业套保盘与做市商反向承接，随后 5 日内价格回补跳空的一部分。机制成立的前提是跳空由情绪而非基本面状态切换驱动；极端跳空（≥2×ATR5）放大了情绪分量占比。这是中国期货市场结构（散户主导 + 夜盘跳空 + 无做市商熔断缓冲）特有的行为机制，不是学术通用反转因子的简单复制。",
+    "preconditions": [
+      "ATR5 可估计（≥5 日历史）",
+      "信号日与执行日非换月跳变日",
+      "标的 ≥1000 根日线（流动性/历史充分性门）"
+    ],
+    "references": [
+      "行为金融：过度反应短期反转（Jegadeesh 1990）",
+      "中国市场散户主导结构研究",
+      "TR-06 事件冲击条目（本假设反向视角：无驱动识别、直接 fade 情绪分量）"
+    ],
+    "distinctFrom": [
+      "TR-06（事件日追入/确认式入场，方向相反）",
+      "TR-04 候补（极端偏离修复，要求 HV%ile 过滤 + FinCoT 历史，本假设无 FinCoT、无 HV 过滤）",
+      "TR-01（趋势延续）"
+    ]
+  },
+  "marketModel": {
+    "stateVariables": [
+      "gap_t = open_t / close_{t−1} − 1（隔夜跳空，比率域）",
+      "atrRatio_t = ATR5_t / close_{t−1}",
+      "s_t = −sign(gap_t)·1{|gap_t| ≥ max(0.02, 2×atrRatio_t)}（fade 方向）"
+    ],
+    "formulas": [
+      "F1: gap_t = open_t / close_{t−1} − 1",
+      "F2: atrRatio_t = ATR5_t / close_{t−1}；trigger_t = 1{|gap_t| ≥ max(0.02, 2×atrRatio_t)}",
+      "F3: s_t = −sign(gap_t)·trigger_t（跳空向上 → 空；向下 → 多）",
+      "F4: r_{t+5} = close_{t+5}/open_{t+1} − 1（T+1 开盘执行，5 日持有）",
+      "F5: net_t = s_t × r_{t+5} − 0.07（单腿往返成本）",
+      "F6: edge 衰减 = 5 日持有到期或跳空缺口回补 50%（验证阶段实现；探针期固定 5 日）"
+    ],
+    "conditionalDistribution": "E[r_{t+5} | trigger_t] 与 gap 方向相反（幅度为待证命题；探针不做正态假设）",
+    "confirmationZone": "F2 trigger 成立（T 日开盘即知，但按 F1 asOf 纪律信号在 T 日收盘后、T+1 开盘执行）",
+    "invalidationEvent": "T+1 开盘继续同向跳空 ≥ 1×atrRatio_t → 放弃该笔（情绪仍在释放，验证阶段实现）",
+    "edgeDecay": "5 日到期；验证阶段缺口回补 50% 先到先平"
+  },
+  "pricingModel": {
+    "principle": "全部定价由 marketModel F1–F6 导出（self-model）；无 FinCoT、无概率锥",
+    "stop": {
+      "rule": "探针期固定 5 日；验证阶段 T+1 同向续跳 ≥1×atrRatio 放弃、反向 2×ATR5 止损",
+      "modelRef": "invalidationEvent",
+      "theoryRole": "情绪释放未完/理论失效点"
+    },
+    "target": {
+      "rule": "T+5 收盘全平（探针期）",
+      "modelRef": "F6",
+      "theoryRole": "过度反应消化窗口"
+    },
+    "position": {
+      "rule": "每信号 1 单位；同品种 10 日冷却；验证阶段前不加仓",
+      "modelRef": "F3",
+      "theoryRole": "事件独立性"
+    }
+  },
+  "strategy": {
+    "direction": "向上极端跳空 → 空；向下极端跳空 → 多",
+    "entry": "T 日收盘确认 F2 → T+1 开盘执行",
+    "stop": "见 pricingModel.stop",
+    "target": "见 pricingModel.target",
+    "position": "见 pricingModel.position",
+    "holding": "5 交易日",
+    "executionRules": [
+      "T+1 开盘执行（t3 §0.2 通用口径）",
+      "信号日或执行日 ∈ GA-1 换月跳变日（≥9.5% 跳变）→ 放弃",
+      "asOf：T 日收盘冻结，无未来函数",
+      "长假（≥3 日休市）前不开新仓（验证阶段执行）"
+    ]
+  },
+  "dataContract": {
+    "ref": "H-MECH-03",
+    "requiredGAs": [
+      "GA-1",
+      "GA-2"
+    ],
+    "asOfRules": [
+      "ATR5 只用 ≤T 的数据（GA-2 序列与日线对齐）",
+      "T 日收盘冻结，无未来函数",
+      "换月跳变日剔除（F5）"
+    ],
+    "inputs": "data/daily/<SYMBOL>.json（GA-1，全 52 个 ≥1000 bars 品种）；strategies/research/v2/falsification/data/ga2-derived/<SYMBOL>.json（ATR5）；ga1-roll-jumps.json（换月剔除）"
+  },
+  "falsification": {
+    "strategyLevel": {
+      "minTrades": 200,
+      "walkForward": "purged expanding（预注册，进入验证层后执行）",
+      "pfThreshold": 1.2,
+      "ci": "95% CI 不含 0",
+      "baselines": [
+        "always-long",
+        "always-short",
+        "random"
+      ]
+    },
+    "theoryLevel": {
+      "hypothesis": "极端隔夜跳空后 5 日反向收益 > 成本",
+      "test": "H-MECH-03 探针：mean(net) 95% bootstrap CI 下界 > 0 → 验证候选；上界 < 0 → discard；含 0 → screen_pending",
+      "killOn": "探针 discard 即弃置；进入库后按 §7 全套证伪"
+    },
+    "killRules": [
+      "探针 mean(net) CI 上界 < 0 → discard",
+      "进入验证层后连续 2 个滚动窗口命中率 < 50% → suspended"
+    ]
+  },
+  "probe": {
+    "preregistered": true,
+    "registeredAt": "2026-08-28T18:40:00Z",
+    "protocolRef": "strategies/research/v2/falsification/24-preregistration-protocol.md",
+    "binding": "探针信号 = marketModel.F2 + F3 原式；前向收益 = F4 + F5 原式。禁止代理公式、禁止事后调阈值。",
+    "universe": [
+      "A0",
+      "AG0",
+      "AL0",
+      "AP0",
+      "AU0",
+      "B0",
+      "BC0",
+      "BU0",
+      "C0",
+      "CF0",
+      "CJ0",
+      "CS0",
+      "CU0",
+      "EB0",
+      "EG0",
+      "FG0",
+      "FU0",
+      "HC0",
+      "I0",
+      "J0",
+      "JD0",
+      "JM0",
+      "L0",
+      "LH0",
+      "LU0",
+      "M0",
+      "MA0",
+      "NI0",
+      "NR0",
+      "OI0",
+      "P0",
+      "PB0",
+      "PF0",
+      "PG0",
+      "PK0",
+      "PP0",
+      "RB0",
+      "RM0",
+      "RU0",
+      "SA0",
+      "SC0",
+      "SF0",
+      "SM0",
+      "SN0",
+      "SP0",
+      "SR0",
+      "SS0",
+      "TA0",
+      "UR0",
+      "V0",
+      "Y0",
+      "ZN0"
+    ],
+    "sample": {
+      "calendar": "各品种自身交易日历",
+      "start": "各品种第 61 根（ATR5 预热后）",
+      "end": "2026-08-27（各品种数据终点）",
+      "warmup": 60,
+      "forwardHorizon": 5,
+      "cooldownPerSymbol": 10,
+      "minEvents": 100,
+      "minBars": 1000
+    },
+    "formulasImplemented": [
+      "F1",
+      "F2",
+      "F3",
+      "F4",
+      "F5"
+    ],
+    "costPerTradePct": 0.07,
+    "seed": 20260828,
+    "alphaAdj": 0.0167,
+    "primaryStatistic": {
+      "name": "meanNetPct",
+      "definition": "mean( net_t )，net_t = F5",
+      "test": "95% bootstrap percentile CI（B=10000，seed=20260828）"
+    },
+    "secondaryStatistics": [
+      {
+        "name": "hitRate",
+        "definition": "P(net > 0)",
+        "test": "单侧二项检验 H0: p=0.50，α_adj=0.0167",
+        "validityGate": "仅当 n 对 +3pp 差异的功效 ≥80% 时有效；否则标记 low_power_no_conclusion（24 协议 §2.2）"
+      },
+      {
+        "name": "upVsDownGap",
+        "definition": "向上跳空事件与向下跳空事件分段 meanNetPct",
+        "use": "探索性分段，仅报告"
+      },
+      {
+        "name": "perSymbol",
+        "definition": "各品种事件数与 meanNetPct（仅报告，不判定）",
+        "use": "筛选候选品种池"
+      },
+      {
+        "name": "followDirectionControl",
+        "definition": "同事件集但方向取 +sign(gap)（追涨杀跌）的净收益",
+        "use": "探索性对照，仅报告"
+      }
+    ],
+    "powerSpec": {
+      "meanMDE": "δ = 0.10% 净收益/事件（毛收益 0.17% = 成本 0.07% + 0.10%）",
+      "hitRateMDE": "+3pp（0.50 → 0.53）",
+      "powerLevel": 0.8,
+      "alpha": 0.0167,
+      "rule": "按注册公式与实现后 σ̂/n 报告功效；均值检验功效只报告不设 promote 门槛（探针非策略级主检验）；命中率检验功效 <80% 时不产生结论"
+    },
+    "exclusions": [
+      "信号日或执行日 ∈ ga1-roll-jumps（≥9.5% 跳变）",
+      "ATR5 缺失（预热不足）",
+      "close_{t−1} ≤ 0（数据异常）",
+      "无 T+5 收盘或 T+1 开盘的样本"
+    ],
+    "decisionRules": {
+      "insufficient_sample": "n < 100",
+      "promote": "n ≥ 100 ∧ meanNetPct > 0 ∧ CI.lo > 0",
+      "discard": "n ≥ 100 ∧ CI.hi < 0",
+      "screen_pending": "其他（CI 含 0 或功效不足无法下结论）",
+      "note": "promote 只进入验证候选（waitlistScreening），不改变 strategy-library-v2 核心 manifest；须通过 23-fidelity-review.md F-A..F-H + §7 全流程才可入库"
+    },
+    "feasibilityPlanning": {
+      "computedAt": "2026-08-28",
+      "method": "仅统计触发事件数（未计算任何收益，注册前样本规划）",
+      "estimatedEvents": 697,
+      "gate100": "满足"
+    },
+    "outputs": {
+      "result": "strategies/research/v2/falsification/mechanism/probe-results/H-MECH-03-probe.json",
+      "reproduce": "node strategies/research/v2/falsification/mechanism/mechanism-bound-probes.cjs --hypothesis H-MECH-03"
+    },
+    "preregistrationHash": "5e5e64cf5847c76ef448e027c582b397d0c7ae1516add6b91a77ab16ac95c3d4"
+  },
+  "prerequisites": [
+    "GA-1",
+    "GA-2"
+  ],
+  "asOfContract": [
+    "F1",
+    "F2",
+    "F5",
+    "F8"
+  ],
+  "parameters": [
+    {
+      "name": "阈值 max(2%, 2×ATR5 比率)",
+      "initial": "0.02/2.0",
+      "source": "calibration（TR-06 事件阈值同族）",
+      "freezeCondition": "通过验证层证伪测试后冻结"
+    },
+    {
+      "name": "持有 5 日",
+      "initial": "5",
+      "source": "industry-practice",
+      "freezeCondition": "同上"
+    }
+  ],
+  "crossModelRefs": [],
+  "crossDataInputs": [
+    "data/daily/*.json",
+    "strategies/research/v2/falsification/data/ga2-derived/*.json",
+    "strategies/research/v2/falsification/data/ga1-roll-jumps.json"
+  ],
+  "revisionLog": [
+    {
+      "when": "2026-08-28T18:40:00Z",
+      "what": "机制假设生成 + 绑定式廉价探针预注册（24 协议）"
+    }
+  ]
+}

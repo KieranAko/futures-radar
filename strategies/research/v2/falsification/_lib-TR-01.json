@@ -1,0 +1,187 @@
+{
+  "id": "TR-01",
+  "name": "趋势延续（状态过滤版）",
+  "family": "trading-system",
+  "sourceIds": [
+    "t3 §1"
+  ],
+  "status": "suspended",
+  "evidenceGrade": "A-",
+  "pricingSource": "self-model",
+  "analysisFilter": {
+    "finCoTUsage": "分析层过滤 only（方向否决/降级观察）；不参与定价、不产生目标价、不产生仓位（t3 §0.1-3）",
+    "noNumericPricing": true,
+    "probabilityConeUsage": "target-only"
+  },
+  "theory": {
+    "falsifiableProposition": {
+      "H0": "突破 + 量能确认子样本与『无确认突破』子样本的扣成本收益无差异（信息确认机制无效）",
+      "H1": "在上升趋势状态 U 中 E[r_{t+h} | sign(r_{t−L,t})=+, s_t=U] > 0，且该优势随 h 增大而衰减（动量半衰期）"
+    },
+    "mechanism": "信息扩散缓慢（反应不足，价格逐步吸收基本面变化）+ 正反馈与资本再配置（趋势资金自我强化）+ 风险转移（套保盘让渡风险溢价）。三类机制仅在『状态 U 得到量仓确认』时最强。",
+    "preconditions": [
+      "状态 U 由对齐+斜率+量仓确认",
+      "无锁板/临近交割"
+    ],
+    "references": [
+      "Moskowitz-Ooi-Pedersen 2012",
+      "Economic Modelling 2023（中国 TSMOM）",
+      "SIMPLE-MOMENTUM-RESULTS.md（样本内 A− 级证据）"
+    ],
+    "source": "t3 §1.1"
+  },
+  "prerequisites": [
+    "GA-1",
+    "GA-2"
+  ],
+  "asOfContract": [
+    "F1",
+    "F2",
+    "F3",
+    "F5"
+  ],
+  "marketModel": {
+    "stateVariables": [
+      "s_t ∈ {U(up), D(down), C(chop)}：对齐 close_t > MA20_t 且 > MA60_t（空头镜像）",
+      "g_t = (EMA20_t − EMA20_{t−5})/(5·EMA20_{t−5})（斜率，%/日），g_t ≥ +0.3%/日 为 U 态",
+      "m_t = r_{t−20,t}（动量强度）"
+    ],
+    "formulas": [
+      "F1: U 态 = close>MA20>MA60 ∧ g_t ≥ +0.3%/日（空头镜像）",
+      "F2: r_{t+h} | s_t=U ~ N(μ_U·f(h), σ_t·√h)，f(h) 单调衰减、f(h)→0，半衰期 5–10 个交易日；μ_U ∝ m_t",
+      "F3: 失效事件 F_t = 收盘回破突破位 0.5×ATR5 ∨ (量比≥1.5 ∧ 收盘<MA20−0.5×ATR5)"
+    ],
+    "conditionalDistribution": "N(μ_U·f(h), σ_t·√h)，μ_U ∝ m_t",
+    "confirmationZone": "U 态 ∧ 收盘突破 20 日高/低 ∧ 量比 ≥ 1.2（信息进入市场的确认区）",
+    "invalidationEvent": "F_t（F3）出现 → s_t 转出 U，即理论失效点",
+    "edgeDecay": "f(h)→0：T1 2R 为半衰期前锁定；10 日未触及 T1 全平"
+  },
+  "pricingModel": {
+    "principle": "定价全部由本条目 marketModel.formulas 导出（H2）",
+    "stop": {
+      "rule": "min(入场价∓1.5×ATR5, 突破前 3 日极值∓0.25×ATR5) 取近；收盘触发 F_t → 次日开盘离场；连续 2 日量比 < 0.8（动能衰竭）→ 次日离场",
+      "modelRef": "F3",
+      "theoryRole": "理论失效点 F_t 的前置版"
+    },
+    "target": {
+      "rule": "T1 2R 平 50%；T2 3R 或 3d p95 上/下沿 [cap-6：锥=Yang-Zhang 波动投影，provenance=probability.json] 先到者；余仓 2×ATR5 移动止损；10 个交易日未触及 T1 → 全平",
+      "modelRef": "F2",
+      "theoryRole": "edge 半衰期前锁定（f(h) 衰减）/ f(h) 衰减至成本以下 / f(h)→0"
+    },
+    "position": {
+      "rule": "|g_t|∈[0.3%,0.6%)→0.5R；≥0.6%→1R（edge 强度档）；单笔风险 ≤ 权益 1%；浮盈 ≥1R 且再创 5 日新高/低 → +0.5 单位，最多 2 次；亏损仓绝不摊平。加仓后单品种总风险 ≤2R；组合风险 ≤2.5% 权益不变；加仓单止损同步上移（t9 F-11）",
+      "modelRef": "F2",
+      "theoryRole": "μ_U ∝ m_t 的 edge 强度分档；状态持续确认"
+    },
+    "excluded": [
+      "FinCoT odds/confirm/概率锥/报告价位（X1）"
+    ]
+  },
+  "strategy": {
+    "direction": "多空对称；空头距涨停 < 1×ATR5 禁开（逼仓）",
+    "entry": "U 态 ∧ 收盘突破 20 日高/低 ∧ 量比 ≥1.2 → T+1 开盘；跳空 > 0.5×ATR5 放弃",
+    "stop": "见 pricingModel.stop",
+    "target": "见 pricingModel.target",
+    "position": "见 pricingModel.position",
+    "holding": "2–10 交易日",
+    "executionRules": [
+      "T+1 开盘执行（t3 §0.2）",
+      "跳空 > 0.5×ATR5 放弃（t3 §0.3）",
+      "换月日（≥9.5% 跳变）不作入场日",
+      "长假前按 risk-framework §6（保证金降至 20% 以下或平仓）"
+    ]
+  },
+  "dataContract": {
+    "ref": "TR-01",
+    "refFile": "04-data-contracts.json",
+    "contractStatus": "available",
+    "requiredGAs": [
+      "GA-1",
+      "GA-2"
+    ],
+    "asOfRules": [
+      "T 日收盘评估",
+      "T+1 开盘执行（F1）",
+      "换月日 ≥9.5% 跳变剔除（F5）",
+      "长历史回填保留 per-bar sources（F5）"
+    ],
+    "inputs": "data/daily/<SYMBOL>.json（OHLCV+volume+turnover；库内派生 MA/ATR/量比；OI 字段不使用，H7）"
+  },
+  "parameters": [
+    {
+      "name": "MA20/MA60 对齐 + EMA20 斜率",
+      "initial": "20/60、EMA20",
+      "source": "repo-convention",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "库内口径（v1 EMA20 正向证据）",
+      "freezeCondition": "策略级证伪测试通过"
+    },
+    {
+      "name": "g_t 档位",
+      "initial": "0.3% / 0.6% 每日",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t3 §1.2",
+      "freezeCondition": "策略级证伪测试通过"
+    },
+    {
+      "name": "量比阈值",
+      "initial": "1.2 确认 / 1.5 失效 / 0.8 衰竭",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t3 §1.2",
+      "freezeCondition": "策略级证伪测试通过"
+    },
+    {
+      "name": "止损/跳空倍数",
+      "initial": "1.5×ATR5、0.25×ATR5、0.5×ATR5",
+      "source": "repo-convention",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "risk-framework stopK=1.5；t3 §1.3",
+      "freezeCondition": "策略级证伪测试通过"
+    },
+    {
+      "name": "R 档与目标",
+      "initial": "0.5R/1R；T1=2R、T2=3R；10 日",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t3 §1.3",
+      "freezeCondition": "策略级证伪测试通过"
+    }
+  ],
+  "falsificationTests": {
+    "strategyLevel": {
+      "minTrades": 200,
+      "walkForward": "purged expanding（预注册口径，t3 §0.5）",
+      "pfThreshold": 1.2,
+      "ci": "95% CI 不含 0",
+      "baselines": [
+        "always-long",
+        "always-short",
+        "random"
+      ],
+      "cost": "扣成本 0.07% 往返（按品种真实费率复核）"
+    },
+    "theoryLevel": {
+      "hypothesis": "信息确认机制有效",
+      "test": "『突破 + 量比 ≥1.2』子样本扣成本收益 ≤ 『无确认突破』子样本 → 信息确认机制无效，理论核心命题被证伪",
+      "killOn": "理论级证伪成立即 retired"
+    },
+    "killRules": [
+      "交易级 F_t 触发即离场（在规则内）",
+      "理论级证伪 → retired"
+    ]
+  },
+  "crossModelRefs": [],
+  "crossDataInputs": [
+    "data/daily/*.json"
+  ],
+  "falsificationStatus": "suspended",
+  "statusNote": "t8 walk-forward 证伪（seed=20260828，17/18/19 号报告）：n=1756、meanR +0.0095R、PF 1.034<1.2、95% CI [−0.025,0.044] 含 0 → suspended。理论级确认机制未证伪（确认 +0.0095R vs 无确认 −0.0158R），edge 强度不足以覆盖成本；保留 re_evaluation 路径（needs-clarify：N1 同品种并发 260/1756、N2 时间止损语义近似）。\n[实验完整性重分类 2026-08-28] adapter 保真度不足（EMA20 近似、加仓未实现、T2 取 2R 下界）；PF 1.034 接近门槛。证伪结论暂停，待保真复跑。",
+  "evidenceTier": "not_evaluable",
+  "fidelityAudit": {
+    "status": "needs_rework",
+    "checkedAgainst": "23-fidelity-review.md",
+    "blockingForFalsification": true
+  }
+}

@@ -1,0 +1,220 @@
+{
+  "id": "FS-05",
+  "name": "农产品压榨/替代价差回归（协整 OU）",
+  "family": "fundamental",
+  "sourceIds": [
+    "t2 §FS-05"
+  ],
+  "status": "suspended",
+  "evidenceGrade": "B",
+  "pricingSource": "self-model",
+  "analysisFilter": {
+    "finCoTUsage": "排除 only：价差回归不引用单品种 FinCoT 方向（两条 FinCoT 结论拼接 = 违反对称性原则）",
+    "noNumericPricing": true,
+    "probabilityConeUsage": "none"
+  },
+  "theory": {
+    "falsifiableProposition": {
+      "F1": "替代需求与压榨经济性使品种对价差存在长期均衡（协整）；偏离均衡后 20 日内回归，回归由『高估腿回落』与『低估腿回升』共同驱动",
+      "F2": "政策/贸易结构变化（进口禁令、反倾销、收抛储）造成价差中枢永久性迁移；迁移后旧中枢的回归信号失效——结构断裂必须先于交易被识别（断裂门是模型组成部分，不是事后解释）"
+    },
+    "mechanism": "压榨经济性与替代需求构成长期均衡；偏离后双驱动回归；结构事件造成中枢永久迁移。",
+    "preconditions": [
+      "结构断裂门通过",
+      "两腿距交割 > 20 日",
+      "政策日历该品种对贸易/储备事件未生效"
+    ],
+    "references": [
+      "Gatev-Goetzmann-Rouwenhorst 2006 (RFS)",
+      "Engle & Granger 1987 (Econometrica)"
+    ],
+    "source": "t2 §FS-05"
+  },
+  "prerequisites": [
+    "GA-1",
+    "GA-7"
+  ],
+  "asOfContract": [
+    "F1",
+    "F2",
+    "F3",
+    "F8",
+    "F9"
+  ],
+  "marketModel": {
+    "stateVariables": [
+      "协整残差 e_t、z_t = (e_t − μ̂_e)/σ̂_e",
+      "断裂门状态（60d 残差 ADF p、β̂ 漂移）"
+    ],
+    "formulas": [
+      "F1: 协整（Engle-Granger 两步）：P_1,t = α̂ + β̂·P_2,t + e_t，滚动 250d 估计，冻结后使用",
+      "F2: z_t = (e_t − μ̂_e)/σ̂_e；signal = +1 if z_t ≥ 2（空腿1/多腿2）；= −1 if z_t ≤ −2；= 0 其他",
+      "F3: 结构断裂门（模型自带）：最近 60d 残差 ADF p > 0.10 或 β̂ 变化 > 2σ̂_β → 该对停用（中枢迁移中）",
+      "F4: 目标：z→0 双边平（双腿目标价 = 各自价格 ± β̂/(1+β̂) × 半价差偏离）"
+    ],
+    "conditionalDistribution": "e_t 协整平稳；|z|≥2 后向 μ̂_e 回归（回归概率 > 55% 为待证命题）",
+    "confirmationZone": "T 日收盘 |z|≥2 + 断裂门通过 + 两腿距交割 > 20 日",
+    "invalidationEvent": "|z| 反向扩 0.5 或触 3σ̂（θ≈0 = 理论失效点）；单腿逼仓（近月持仓异常）→ 全平",
+    "edgeDecay": "z→0（价差回归 μ̂_e = e 的模型均衡值 = edge 耗尽点）"
+  },
+  "pricingModel": {
+    "principle": "定价全部由本条目 marketModel.formulas 导出（H2）",
+    "stop": {
+      "rule": "|z| 反向扩 0.5 或触 3σ̂；单腿逼仓（近月持仓异常）→ 全平",
+      "modelRef": "F2/F3",
+      "theoryRole": "理论失效点（θ≈0）"
+    },
+    "target": {
+      "rule": "z→0 双边平（双腿目标价 = 各自价格 ± β̂/(1+β̂) × 半价差偏离）",
+      "modelRef": "F4",
+      "theoryRole": "edge 耗尽点（价差回归 μ̂_e）"
+    },
+    "position": {
+      "rule": "|z|∈[2,2.5)→0.5R；≥2.5→1R（edge 强度档，待标定，t9 F-06）；G2 + risk-framework 1R 预算（R 按双腿价差计）；双腿成本 0.14%",
+      "modelRef": "F2",
+      "theoryRole": "edge 强度（|z| 分档）+ 通用风险预算"
+    },
+    "excluded": [
+      "单品种 FinCoT 方向拼接双腿结论（X8）"
+    ]
+  },
+  "strategy": {
+    "direction": "双腿回归，按 e 符号定多空（e>0: 腿1高估 → 空腿1/多腿2）",
+    "entry": "确认区触发（|z|≥2 + 断裂门 + 交割距离）→ T+1 两腿同步开盘",
+    "stop": "见 pricingModel.stop",
+    "target": "见 pricingModel.target",
+    "position": "见 pricingModel.position",
+    "holding": "z→0 双边平或 20 日时间退出（与 F1『20 日内回归』时窗一致），先到先平（t8 F-5 / t9 F-07）",
+    "executionRules": [
+      "T+1 两腿同步开盘（t3 §0.2 通用口径）",
+      "任一腿跳空 > 0.5×ATR5 放弃（保价差结构，t9 F-04）",
+      "两腿距交割 > 20 日",
+      "贸易/储备事件生效期暂停新开仓（前提开关，数据层输入非定价，t8 F-4 移至执行层）",
+      "双腿成本 0.14%",
+      "长假/隔周按组合层 Hard 项执行：长假（≥3 日休市）前保证金降至 20% 以下或平仓；周一跳空 > 0.5×ATR5 按条目失效/重估条款处理（t9 F-02）"
+    ]
+  },
+  "dataContract": {
+    "ref": "FS-05",
+    "refFile": "04-data-contracts.json",
+    "contractStatus": "available",
+    "requiredGAs": [
+      "GA-1",
+      "GA-7"
+    ],
+    "asOfRules": [
+      "T 日收盘评估",
+      "T+1 两腿同步执行",
+      "滚动 250d 估计只用 T 日及以前数据（F8）",
+      "事件日历 event.date ≤ 锚点日（F9）"
+    ],
+    "inputs": "data/daily/{M0,RM0,Y0,P0,OI0,C0,CS0}.json（现有 2y；GA-1 补至 ≥5 年后启用正式标定，初期降级运行）",
+    "pairs": [
+      "M−RM（蛋白替代）",
+      "Y−M（油粕比）",
+      "Y−P（豆棕价差，低置信）",
+      "OI−Y（菜豆油价差）",
+      "C−CS（玉米-淀粉加工价差）"
+    ]
+  },
+  "parameters": [
+    {
+      "name": "协整窗口",
+      "initial": "滚动 250d",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t2 §5.1",
+      "freezeCondition": "协整标定通过后冻结"
+    },
+    {
+      "name": "z 阈值",
+      "initial": "±2 入场 / 3σ̂ 止损",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t2 §5.1",
+      "freezeCondition": "证伪测试通过后冻结"
+    },
+    {
+      "name": "断裂门",
+      "initial": "60d 残差 ADF p > 0.10 或 β̂ 变化 > 2σ̂_β → 停用",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t2 §5.1",
+      "freezeCondition": "证伪测试 (c) 通过后冻结"
+    },
+    {
+      "name": "止损幅度",
+      "initial": "|z| 反向扩 0.5",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t2 §5.1",
+      "freezeCondition": "证伪测试通过后冻结"
+    },
+    {
+      "name": "标定样本要求",
+      "initial": "≥5 年（GA-1 后）",
+      "source": "repo-convention",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t2 §FS-05 数据依赖",
+      "freezeCondition": "GA-1 完成后正式标定启用"
+    },
+    {
+      "name": "时间止损",
+      "initial": "20 个交易日（与 F1『20 日内回归』时窗一致）",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t2 §FS-05（t8 审查 F-5 同步修正）/ t9 F-07",
+      "freezeCondition": "证伪测试通过后冻结"
+    },
+    {
+      "name": "edge 分档",
+      "initial": "|z|∈[2,2.5)→0.5R；≥2.5→1R",
+      "source": "industry-practice",
+      "sourceClass": "domain-knowledge",
+      "sourceDoc": "t9 F-06 建议（待标定初值）",
+      "freezeCondition": "证伪测试通过后冻结"
+    }
+  ],
+  "falsificationTests": {
+    "strategyLevel": {
+      "minTrades": 200,
+      "walkForward": "purged expanding（预注册口径）",
+      "pfThreshold": 1.2,
+      "ci": "95% CI 不含 0",
+      "baselines": [
+        "always-long",
+        "always-short",
+        "random"
+      ],
+      "cost": "双腿扣成本 0.14%"
+    },
+    "theoryLevel": {
+      "hypothesis": "F1 协整回归 + F2 结构断裂门有效性",
+      "test": "(a) 滚动协整通过率 < 70% 的品种对 → 剔除该对；(b) 组合扣成本（双腿 0.14%）夏普 < 0.5 或回归命中 < 55% → 停用；(c) M−RM 专项：2019 菜籽进口政策、2024-09-09 加拿大油菜籽反倾销立案调查（商务部 2024 年第 37 号）两段结构断裂若未被断裂门捕捉（该段出现 >2 次 3σ 止损）→ 断裂门参数修订，修订后仍不达标 → 该对永久停用",
+      "killOn": "(b) 触发 → suspended；(c) 修订后仍不达标 → 该对永久停用"
+    },
+    "killRules": [
+      "滚动协整通过率 < 70% → 剔除该品种对",
+      "组合夏普 < 0.5 或命中 < 55% → suspended",
+      "断裂门修订后仍不达标 → 该对永久停用"
+    ]
+  },
+  "knownCounterEvidence": [
+    "2019 M−RM 价差中枢永久上移（菜籽进口政策），均值回归策略该段大亏（t2 §FS-05）",
+    "2024-09-09 加拿大油菜籽反倾销立案调查（商务部 2024 年第 37 号）：M−RM 结构断裂事件，须被断裂门捕捉（t4 队长裁决：库原文曾记 2023 系错误，按 GA-7 政策日历实证日期修正）",
+    "Y−P 受印尼棕榈油出口政策频繁冲击，非平稳段多：列为低置信品种对，仅断裂门通过率连续 90 日 100% 时才允许交易（t2 §FS-05）"
+  ],
+  "crossModelRefs": [],
+  "crossDataInputs": [
+    "data/daily/*.json",
+    "event-calendar"
+  ],
+  "falsificationStatus": "suspended",
+  "statusNote": "t8 walk-forward 证伪：理论级 (b) 回归命中 38.7%<55% 证伪；(a) 4/4 已评估对协整通过率<70% 全剔除（C0-CS0 未评估：预热不足+事件门）；2016 起被 GA-7 收抛储事件前提开关整窗暂停（事件粒度待队长裁定）；(c) M−RM 断裂门检验 vacuous（2019/2024 窗口内 0 交易）→ suspended。\n[实验完整性重分类 2026-08-28] GA-7 收抛储常态化整窗暂停使 2016+ 样本被截断，仅 2015；事件粒度未裁定，不能判策略失败。",
+  "evidenceTier": "not_evaluable",
+  "fidelityAudit": {
+    "status": "needs_rework",
+    "checkedAgainst": "23-fidelity-review.md",
+    "blockingForFalsification": true
+  }
+}

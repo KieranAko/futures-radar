@@ -1,0 +1,245 @@
+{
+  "schema": "futures-strategy-mechanism-hypothesis/1",
+  "id": "H-MECH-01",
+  "name": "全球实际利率-美元双锚共振 → 沪金/沪银",
+  "family": "macro",
+  "status": "preregistered_probe",
+  "generatedAt": "2026-08-28T18:40:00Z",
+  "direction": "mechanism-hypothesis-generation",
+  "pricingSource": "self-model",
+  "analysisFilter": {
+    "finCoTUsage": "禁止（本假设不含 FinCoT 分析层）",
+    "noNumericPricing": true,
+    "probabilityConeUsage": "禁用"
+  },
+  "theory": {
+    "falsifiableProposition": {
+      "H0": "美债10Y名义利率与美元指数双锚同向共振事件后，沪金/沪银未来 10 交易日的方向化净收益 mean(net) ≤ 0（全球宏观定价机制在沪盘无方向优势）",
+      "H1": "双锚同向共振事件后 mean(net) > 0：利率+美元双紧 → 空 AU/AG；双松 → 多 AU/AG；且该优势在单锚事件（仅 US10Y 突变）中显著弱于双锚事件（候选策略的确认区是双锚，不是单锚）"
+    },
+    "mechanism": "贵金属是无息、美元计价的全球宏观资产。沪金/沪银跟随伦敦金/银定价（夜盘直接联动），人民币汇率提供局部加成。US10Y 5 日变化代理全球实际利率边际变化（短期通胀粘性高、变化慢）；DXY 5 日变化代理美元流动性/风险偏好。中国情境的特殊性是 2024-03~2025 央行购金、地缘避险等结构性冲击会造成单锚 β 不稳定（M3 候补池实测该段 β 翻正）；只有利率与美元双锚同向共振时，全球宏观定价机制才明确主导沪盘方向，结构性噪音被双锚确认区过滤。",
+    "preconditions": [
+      "双锚共振（F3），缺一不可",
+      "沪金/沪银标的可交易（有 T+1 开盘与 T+10 收盘数据）",
+      "信号日不是换月跳变日"
+    ],
+    "references": [
+      "Erb & Harvey 2013（黄金与实际利率/美元）",
+      "候补池 M3 单锚 β 不稳定证据（21-waitlist-screening.json）",
+      "M2 美元传导候补条目（USDCNH 口径，本假设用 DXY 直接锚，不重叠）"
+    ],
+    "distinctFrom": [
+      "M3（单 US10Y 锚）",
+      "M2（USDCNH 汇率传导商品 β）",
+      "M12（中美利差→汇率压力）"
+    ]
+  },
+  "marketModel": {
+    "stateVariables": [
+      "Δr5_t = US10Y_t − US10Y_{t−5}（百分点，5 交易日差分）",
+      "Δd5_t = (DXY_t − DXY_{t−5})/DXY_{t−5} × 100（%）",
+      "s_t ∈ {+1, 0, −1}（+1 双松→多；−1 双紧→空；0 不开）"
+    ],
+    "formulas": [
+      "F1: Δr5_t = US10Y_t − US10Y_{t−5}（pp）",
+      "F2: Δd5_t = (DXY_t − DXY_{t−5})/DXY_{t−5} × 100（%）",
+      "F3: TIGHT_t = 1{Δr5_t ≥ +0.15} ∧ 1{Δd5_t ≥ +0.30}；LOOSE_t = 1{Δr5_t ≤ −0.15} ∧ 1{Δd5_t ≤ −0.30}；s_t = −1·TIGHT_t + 1·LOOSE_t",
+      "F4: r_{i,t+10} = close_{i,t+10}/open_{i,t+1} − 1（T+1 开盘执行，10 日持有；i ∈ {AU0, AG0}）",
+      "F5: E[r_{i,t+10}·s_t | s_t ≠ 0] = μ + ε；H1 主张 μ > cost（0.07% 单腿往返）",
+      "F6: edge 衰减 = 冲击吸收：|Δr5_t| 回落至 0.10pp 以下 或 10 日持有到期，先到者"
+    ],
+    "conditionalDistribution": "r_{i,t+10}·s_t 在双锚共振条件下服从均值 μ 的分布（μ 待估；探针不假设正态）",
+    "confirmationZone": "F3 双锚共振（T 日收盘 US10Y/DXY 可观测）",
+    "invalidationEvent": "单锚反向冲突（Δr5 与 Δd5 符号相反）→ 不开仓，视为确认区未触发",
+    "edgeDecay": "F6：冲击吸收（|Δr5| 回落 < 0.10pp）或 10 日到期"
+  },
+  "pricingModel": {
+    "principle": "全部定价由 marketModel F1–F6 导出（self-model）；无 FinCoT、无概率锥",
+    "stop": {
+      "rule": "持有期固定 10 日；验证阶段再议 F6 冲击吸收提前离场",
+      "modelRef": "F6",
+      "theoryRole": "edge 衰减点"
+    },
+    "target": {
+      "rule": "T+10 收盘全平（探针期不做 2R 结构目标）",
+      "modelRef": "F4",
+      "theoryRole": "宏观冲击吸收窗口"
+    },
+    "position": {
+      "rule": "AU0/AG0 等权篮子（当日有数据者均权）；单事件 1 单位；验证阶段前不加仓",
+      "modelRef": "F5",
+      "theoryRole": "篮子分散单品种异质噪音"
+    }
+  },
+  "strategy": {
+    "direction": "双紧 → 空 AU0/AG0；双松 → 多 AU0/AG0；单锚或不共振 → 不开仓",
+    "entry": "T 日收盘确认 F3 → T+1 开盘执行（无跳空放弃条款：宏观篮子探针验证阶段补齐，F-E）",
+    "stop": "见 pricingModel.stop",
+    "target": "见 pricingModel.target",
+    "position": "见 pricingModel.position",
+    "holding": "10 交易日",
+    "executionRules": [
+      "T+1 开盘执行（t3 §0.2 通用口径）",
+      "信号日与执行日剔除 GA-1 换月跳变日（≥9.5% 跳变，F5）",
+      "asOf：T 日收盘冻结，无未来函数",
+      "长假（≥3 日休市）前不开新仓（验证阶段执行）"
+    ]
+  },
+  "dataContract": {
+    "ref": "H-MECH-01",
+    "requiredGAs": [
+      "GA-1",
+      "GA-4"
+    ],
+    "asOfRules": [
+      "US10Y/DXY 使用 ≤T 的最新值（PIT seriesAt）",
+      "T 日收盘冻结，无未来函数",
+      "AU0/AG0 信号日剔除换月跳变日"
+    ],
+    "inputs": "data/daily/AU0.json、data/daily/AG0.json（GA-1）；strategies/signal-backtest/recordings/v5/macro-history.json（US10Y/DXY，GA-4）；data/ga1-roll-jumps.json（换月剔除）"
+  },
+  "falsification": {
+    "strategyLevel": {
+      "minTrades": 100,
+      "walkForward": "purged expanding（预注册，进入验证层后执行）",
+      "pfThreshold": 1.2,
+      "ci": "95% CI 不含 0",
+      "baselines": [
+        "always-long AU/AG",
+        "always-short AU/AG",
+        "random"
+      ]
+    },
+    "theoryLevel": {
+      "hypothesis": "双锚共振后 10 日方向化净收益 > 0",
+      "test": "H-MECH-01 探针：mean(net) 95% bootstrap CI 下界 > 0 → 进入验证候选；上界 < 0 → discard；含 0 → screen_pending",
+      "killOn": "理论级探针 discard 即弃置；进入库后按 §7 全套证伪"
+    },
+    "killRules": [
+      "探针 mean(net) CI 上界 < 0 → discard",
+      "进入验证层后连续 2 个滚动窗口命中率 < 50% → suspended"
+    ]
+  },
+  "probe": {
+    "preregistered": true,
+    "registeredAt": "2026-08-28T18:40:00Z",
+    "protocolRef": "strategies/research/v2/falsification/24-preregistration-protocol.md",
+    "binding": "探针信号 = marketModel.F3 原式；前向收益 = F4 原式；方向 = F3 s_t。禁止代理公式、禁止事后调阈值。",
+    "universe": [
+      "AU0",
+      "AG0"
+    ],
+    "sample": {
+      "calendar": "AU0 交易日历（两品种共有时段）",
+      "start": "2008-01-09（AU0 数据起点）",
+      "end": "2026-08-27（数据终点）",
+      "warmupMacro": 5,
+      "forwardHorizon": 10,
+      "cooldown": 10,
+      "minEvents": 100
+    },
+    "formulasImplemented": [
+      "F1",
+      "F2",
+      "F3",
+      "F4",
+      "F5"
+    ],
+    "costPerTradePct": 0.07,
+    "seed": 20260828,
+    "alphaAdj": 0.0167,
+    "primaryStatistic": {
+      "name": "meanNetPct",
+      "definition": "mean( s_t × mean_i(r_{i,t+10}) − 0.07 )，i 为当日有数据的 AU0/AG0 均权",
+      "test": "95% bootstrap percentile CI（B=10000，seed=20260828）"
+    },
+    "secondaryStatistics": [
+      {
+        "name": "hitRate",
+        "definition": "P(net > 0)",
+        "test": "单侧二项检验 H0: p=0.50，α_adj=0.0167",
+        "validityGate": "仅当 n 对 +3pp 差异的功效 ≥80% 时有效；否则标记 low_power_no_conclusion（24 协议 §2.2）"
+      },
+      {
+        "name": "singleAnchorComparison",
+        "definition": "同一样本期仅 US10Y 阈值触发的方向化收益（单锚代理）与双锚对比",
+        "test": "Welch t 检验（α_adj=0.0167）",
+        "use": "探索性，仅报告，不参与 promote/discard 判定"
+      },
+      {
+        "name": "looseVsTight",
+        "definition": "双松事件与双紧事件方向化净收益分段报告",
+        "use": "探索性分段，不参与判定"
+      }
+    ],
+    "powerSpec": {
+      "meanMDE": "δ = 0.10% 净收益/事件（毛收益 0.17% = 成本 0.07% + 0.10%）",
+      "hitRateMDE": "+3pp（0.50 → 0.53）",
+      "powerLevel": 0.8,
+      "alpha": 0.0167,
+      "rule": "按注册公式与实现后 σ̂/n 报告功效；均值检验功效只报告不设 promote 门槛（探针非策略级主检验，24 协议 §2.4 适用于策略级）；命中率检验功效 <80% 时不产生结论"
+    },
+    "exclusions": [
+      "AU0/AG0 信号日 ∈ ga1-roll-jumps（≥9.5% 跳变）",
+      "无 T+10 收盘或 T+1 开盘的样本"
+    ],
+    "decisionRules": {
+      "insufficient_sample": "n < 100",
+      "promote": "n ≥ 100 ∧ meanNetPct > 0 ∧ CI.lo > 0",
+      "discard": "n ≥ 100 ∧ CI.hi < 0",
+      "screen_pending": "其他（CI 含 0 或功效不足无法下结论）",
+      "note": "promote 只进入验证候选（waitlistScreening），不改变 strategy-library-v2 核心 manifest；须通过 23-fidelity-review.md F-A..F-H + §7 全流程才可入库"
+    },
+    "feasibilityPlanning": {
+      "computedAt": "2026-08-28",
+      "method": "仅统计触发事件数（未计算任何收益，注册前样本规划）",
+      "dualTight": 245,
+      "dualLoose": 194,
+      "afterCooldownEstimated": 161,
+      "gate100": "满足"
+    },
+    "outputs": {
+      "result": "strategies/research/v2/falsification/mechanism/probe-results/H-MECH-01-probe.json",
+      "reproduce": "node strategies/research/v2/falsification/mechanism/mechanism-bound-probes.cjs --hypothesis H-MECH-01"
+    },
+    "preregistrationHash": "4f5b1b11956cfda589bf6c848e2953e808a37f868d147389543c5e3871ce0a43"
+  },
+  "prerequisites": [
+    "GA-1",
+    "GA-4"
+  ],
+  "asOfContract": [
+    "F1",
+    "F2",
+    "F5",
+    "F8",
+    "F9"
+  ],
+  "parameters": [
+    {
+      "name": "双紧阈值 Δr5≥+0.15 / Δd5≥+0.30",
+      "initial": "0.15/0.30",
+      "source": "industry-practice",
+      "freezeCondition": "通过验证层证伪测试后冻结"
+    },
+    {
+      "name": "持有 10 日",
+      "initial": "10",
+      "source": "industry-practice",
+      "freezeCondition": "同上"
+    }
+  ],
+  "crossModelRefs": [],
+  "crossDataInputs": [
+    "data/daily/AU0.json",
+    "data/daily/AG0.json",
+    "strategies/signal-backtest/recordings/v5/macro-history.json",
+    "strategies/research/v2/falsification/data/ga1-roll-jumps.json"
+  ],
+  "revisionLog": [
+    {
+      "when": "2026-08-28T18:40:00Z",
+      "what": "机制假设生成 + 绑定式廉价探针预注册（24 协议）"
+    }
+  ]
+}

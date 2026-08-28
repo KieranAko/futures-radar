@@ -1,0 +1,34 @@
+{
+  "schema": "futures-strategy-mechanism-probe-summary/1",
+  "generatedAt": "2026-08-28T19:25:51.305Z",
+  "protocolRef": "strategies/research/v2/falsification/24-preregistration-protocol.md",
+  "results": {
+    "H-MECH-01": {
+      "name": "全球实际利率-美元双锚共振 → 沪金/沪银",
+      "family": "macro",
+      "decision": "screen_pending",
+      "n": 160,
+      "meanNetPct": 0.273943,
+      "ciLo": -0.261061,
+      "ciHi": 0.811669
+    },
+    "H-MECH-02": {
+      "name": "焦炭/铁矿比价（高炉原料结构经济性替代）均值回归",
+      "family": "fundamental",
+      "decision": "screen_pending",
+      "n": 102,
+      "meanNetPct": -0.776535,
+      "ciLo": -2.215307,
+      "ciHi": 0.684995
+    },
+    "H-MECH-03": {
+      "name": "极端隔夜跳空后的短期反转（散户过度反应）",
+      "family": "trader",
+      "decision": "screen_pending",
+      "n": 541,
+      "meanNetPct": 0.024044,
+      "ciLo": -0.251601,
+      "ciHi": 0.29663
+    }
+  }
+}

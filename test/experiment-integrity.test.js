@@ -15,11 +15,19 @@ describe('V9 experiment integrity reclassification', () => {
     const count = {};
     for (const s of j.strategies) {
       count[s.evidenceTier] = (count[s.evidenceTier] || 0) + 1;
-      assert.equal(s.fidelityAudit.blockingForFalsification, true, s.id);
+      assert.ok(s.fidelityAudit && typeof s.fidelityAudit.blockingForFalsification === 'boolean', s.id);
+      if (s.fidelityAudit.status === 'closed_no_rerun') {
+        // 实验线关闭：不产生新证伪结论，也不需要保真复跑
+        assert.equal(s.fidelityAudit.blockingForFalsification, false, s.id);
+      } else if (s.fidelityAudit.status === 'needs_rework') {
+        // 保真度前置未过：继续阻塞新 retired/suspended 结论
+        assert.equal(s.fidelityAudit.blockingForFalsification, true, s.id);
+      }
     }
     assert.equal(count.falsified, 2);
-    assert.equal(count.not_evaluable, 5);
+    assert.equal(count.not_evaluable, 4);
     assert.equal(count.untested, 1);
+    assert.equal(count.insufficient_sample, 1);
     assert.equal(j.experimentIntegrity.rule.length > 0, true);
   });
 
