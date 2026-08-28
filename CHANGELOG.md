@@ -8,6 +8,7 @@
 - **v5 三臂结果（样本仍小）**：A 纯价格 76 信号→11 执行→10 成交→方向正确率 60.00%、平均 +0.40%；B +上下文 44→7→6→50.00%、-0.13%；C +FinCoT 48→5→4→25.00%、-0.99%。消融：B-A -10pp/-0.53%、C-B -25pp/-0.86%、C-A -35pp/-1.39%。C 臂 4 笔成交全部 aligned；fresh 3 笔 33.33% vs reused 1 笔 0%。样本不足以定论，但 v5 显示 FinCoT 在试点窗口内没有提升方向质量，只降低触发率
 - **版本对齐**：VERSION.md / package.json / SKILL.md / README.md / pipeline banner 统一为 0.1.13；新增 `npm run signal:backtest:v5`
 - 新增 signal-backtest-v5 测试 8 条（bundle 重建/无泄漏/变化检测/A-B-C 计划与 FinCoT 硬约束/v5 artifact）；全量测试 614 → 622（110 → 114 套件）
+- **C 臂逐笔归因（未重跑回测）**：`output/v5-c-arm-attribution.md`——4 笔成交（1 胜 3 负）逐笔核对计划/FinCoT/上下文/实际 bars；结论：Q6 风控文本未结构化、Q4 确认位与触发价脱节、target1 系统性不可达、缺失效/保本/移动退出、冲击后 breakout 追单。给出下一轮改造优先级（riskExecution / exitManagement / target1≤2×ATR5 / shock 禁 breakout / reused FinCoT 需重映射 Q4）
 
 ## 0.1.12（2026-08-28）
 
