@@ -95,8 +95,22 @@ function sectorDriver(symbol, row, fin) {
 }
 
 function probability(symbol, date, atr5, close) {
+  const realPath = path.join(V7, 'probability', `${symbol}-${date}.json`);
+  if (fs.existsSync(realPath)) {
+    const real = JSON.parse(fs.readFileSync(realPath, 'utf8'));
+    const cone = real.cone || {};
+    return {
+      meta: { runId: 'v7-adapter', calculatedAt: null, stage: 'v7-real-hv-cone', estimatorUsed: { [symbol]: 'yang_zhang' } },
+      probabilities: [{
+        symbol, seriesSource: `main-continuous:${symbol}`, close,
+        hv: real.hv,
+        cone,
+        atrComparison: { hv95Band3d: cone['3d']?.p95 || [close - 2 * atr5, close + 2 * atr5], atr5 }
+      }]
+    };
+  }
   return {
-    meta: { runId: 'v7-adapter', calculatedAt: null, stage: 'v7', estimatorUsed: { [symbol]: 'atr-proxy' } },
+    meta: { runId: 'v7-adapter', calculatedAt: null, stage: 'v7-fallback', estimatorUsed: { [symbol]: 'atr-proxy' } },
     probabilities: [{
       symbol, seriesSource: `main-continuous:${symbol}`, close,
       hv: { annual: 0.2, periodDays: 20, percentile90d: 50, degraded: false },
@@ -132,7 +146,9 @@ function reportModel(symbol, row, fin, atr5, close) {
         trendOrImpulse: { assessment: fin.q.q2_trend.text || '' },
         odds: { bias: fin.direction === 'bullish' ? 'bullish' : fin.direction === 'bearish' ? 'bearish' : 'neutral', reasoning: fin.q.q3_odds.text || '' },
         confirmations: { signals: [`${fin.blueprintId}:${fin.q.q4_confirmation.type}@${fin.q.q4_confirmation.level}`] },
-        invalidations: { conditions: [fin.q.q5_invalidation.reason || ''] },
+        invalidations: { conditions: [fin.q.q5_invalidation.levelType === 'ma20_relative'
+          ? `MA20（约${fin.q.q5_invalidation.level}）${fin.q.q5_invalidation.reason || 'Q5 失效'}`
+          : `${fin.q.q5_invalidation.reason || 'Q5 失效'}（Q5 结构位 ${fin.q.q5_invalidation.level}）`] },
         risks: { items: [fin.q.q6_risk.text || ''] },
         finalDirection: fin.direction,
         finalConfidence: fin.confidence
@@ -153,7 +169,9 @@ function analysis(symbol, fin) {
       q2_trendOrImpulse: { judgment: fin.regime, volumeConviction: fin.q.q2_trend.text || '' },
       q3_odds: { bias: fin.direction, reasoning: fin.q.q3_odds.text || '', opposing: (fin.q.q3_odds.opposingRefs || []).join(',') },
       q4_confirmations: { signals: [`${fin.q.q4_confirmation.type}@${fin.q.q4_confirmation.level}`] },
-      q5_invalidations: { conditions: [fin.q.q5_invalidation.reason || ''] },
+      q5_invalidations: { conditions: [fin.q.q5_invalidation.levelType === 'ma20_relative'
+        ? `MA20（约${fin.q.q5_invalidation.level}）${fin.q.q5_invalidation.reason || 'Q5 失效'}`
+        : `${fin.q.q5_invalidation.reason || 'Q5 失效'}（Q5 结构位 ${fin.q.q5_invalidation.level}）`] },
       q6_risks: { items: [fin.q.q6_risk.text || ''], limitDistance: '4%' }
     }]
   };

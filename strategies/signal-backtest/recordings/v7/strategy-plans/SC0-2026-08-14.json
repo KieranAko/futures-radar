@@ -9,7 +9,7 @@
     "equityCny": 100000,
     "marginRate": 0.08,
     "generatedAt": "2026-08-14T00:00:00.000Z",
-    "inputsSha": "e6dac9f0022a8f88ae77c47326a1e84170e72dec6649c2b1de0bb9078216b936"
+    "inputsSha": "f6b1cb821096ae70a9888fdeef04ef559dfd85625447d23844fd6e064ff4ec17"
   },
   "plans": [
     {
@@ -26,7 +26,7 @@
           "BP-TREND:pullback@545.8"
         ],
         "invalidationConditions": [
-          "收盘跌破 p.SC0.m20 下方则多头失效"
+          "MA20（约545.8）收盘跌破 p.SC0.m20 下方则多头失效"
         ]
       },
       "matchedStrategies": [
@@ -61,9 +61,9 @@
         "execution": "T+1 开盘；跳空 >0.5×ATR5 放弃"
       },
       "stop": {
-        "stopPrice": 538.4,
-        "stopDistancePts": 17.8,
-        "basis": "min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)；止损受 0.8×涨跌停幅度约束"
+        "stopPrice": 545.8,
+        "stopDistancePts": 10.4,
+        "basis": "min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)；结构位（Q5 MA20≈545.8）比 ATR 止损更近，采用结构位"
       },
       "targets": {
         "t1": "2R（平 50%）",
@@ -78,33 +78,33 @@
         "riskPerTradePct": 0.01,
         "confidenceScale": 1,
         "stopK": 2,
-        "stopDistancePts": 17.8,
-        "stopPrice": 538.4,
-        "structuralStop": null,
-        "unitRiskCny": 17798.4,
+        "stopDistancePts": 10.4,
+        "stopPrice": 545.8,
+        "structuralStop": 545.8,
+        "unitRiskCny": 10400,
         "lots": 0,
         "marginPerLotCny": 44496,
         "marginUtilizationPct": 0,
         "volContributionPctAnnual": 0,
-        "tailGapPct3d": -5.58,
+        "tailGapPct3d": -10.52,
         "stressRiskCny": 0,
         "eventRiskNote": "—",
         "maxHoldingDays": 5
       },
       "executionStatus": "watch",
       "statusReasons": [
-        "风险预算不足（medium 约需 177.9 万权益才到 1 手）",
-        "尾部 3d p95 反向 -5.6% ≥ 涨跌停 4%（连续停板警示）"
+        "风险预算不足（medium 约需 104 万权益才到 1 手）",
+        "尾部 3d p95 反向 -10.5% ≥ 涨跌停 4%（连续停板警示）"
       ],
       "invalidation": {
         "hard": [
-          "收盘跌破 p.SC0.m20 下方则多头失效"
+          "MA20（约545.8）收盘跌破 p.SC0.m20 下方则多头失效"
         ],
         "timeStop": "T+5 无确认无失效则市价退出",
         "supersededByNextRun": true
       },
       "notes": [
-        "止损受 0.8×涨跌停幅度约束"
+        "结构位（Q5 MA20≈545.8）比 ATR 止损更近，采用结构位"
       ],
       "disclaimer": "⚠️ 免责声明：本板块策略为分析工具输出，仅为方向增强与执行参考，不构成投资建议，不执行真实交易。所有参数（手数/止损/目标）均为按示例权益的确定性风险计算演示，不含任何收益承诺或预期收益；历史文献与样本内回测结论不代表未来表现。保证金与涨跌停以交易所当日公告为准。报告结论（方向/置信度）是第一依据，本板块不得反向修改。"
     }

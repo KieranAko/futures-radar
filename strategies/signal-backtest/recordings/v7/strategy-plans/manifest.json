@@ -1,6 +1,6 @@
 {
   "schema": "futures-radar-v7-strategy-plan-manifest/1",
-  "generatedAt": "2026-08-28T05:18:00.837Z",
+  "generatedAt": "2026-08-28T05:32:15.408Z",
   "symbols": [
     {
       "symbol": "RB0",
@@ -160,7 +160,7 @@
             "MS-02",
             "MS-07"
           ],
-          "executionStatus": "executable",
+          "executionStatus": "skip",
           "playbookId": "PB-08"
         },
         {
@@ -191,7 +191,7 @@
           "matchedStrategies": [
             "MS-02"
           ],
-          "executionStatus": "executable",
+          "executionStatus": "skip",
           "playbookId": "PB-08"
         },
         {

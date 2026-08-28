@@ -9,7 +9,7 @@
     "equityCny": 100000,
     "marginRate": 0.08,
     "generatedAt": "2026-07-24T00:00:00.000Z",
-    "inputsSha": "df197e6c252bb113556b09deef348d8952cce82142f6409b70193dcb66afda8b"
+    "inputsSha": "38ba991e4f03bbea3594c05563302fb84fd23712560d85fba70d50b75ed0fbac"
   },
   "plans": [
     {
@@ -26,7 +26,7 @@
           "BP-TREND:breakout@3225"
         ],
         "invalidationConditions": [
-          "收盘跌破 m20 则多头趋势失效"
+          "收盘跌破 m20 则多头趋势失效（Q5 结构位 3057.7）"
         ]
       },
       "matchedStrategies": [
@@ -93,7 +93,7 @@
         "marginPerLotCny": 2580,
         "marginUtilizationPct": 0,
         "volContributionPctAnnual": 0,
-        "tailGapPct3d": -2.5,
+        "tailGapPct3d": -2.86,
         "stressRiskCny": 0,
         "eventRiskNote": "—",
         "maxHoldingDays": 5
@@ -104,7 +104,7 @@
       ],
       "invalidation": {
         "hard": [
-          "收盘跌破 m20 则多头趋势失效"
+          "收盘跌破 m20 则多头趋势失效（Q5 结构位 3057.7）"
         ],
         "timeStop": "T+5 无确认无失效则市价退出",
         "supersededByNextRun": true

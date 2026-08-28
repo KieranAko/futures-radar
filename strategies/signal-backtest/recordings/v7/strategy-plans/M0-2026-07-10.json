@@ -9,7 +9,7 @@
     "equityCny": 100000,
     "marginRate": 0.08,
     "generatedAt": "2026-07-10T00:00:00.000Z",
-    "inputsSha": "2cef6f2c3ee455eb2103f6900e993558d93141ce459cea8cb27aed946f074625"
+    "inputsSha": "d663b36a46a96135389246c6fd7caf079f22b224833a2fbb07a3b2dca021bbee"
   },
   "plans": [
     {
@@ -26,7 +26,7 @@
           "BP-TREND:pullback@2976.4"
         ],
         "invalidationConditions": [
-          "收盘跌破 m20 则多头趋势失效"
+          "收盘跌破 m20 则多头趋势失效（Q5 结构位 2976.4）"
         ]
       },
       "matchedStrategies": [
@@ -57,7 +57,7 @@
       "playbook": {
         "playbookId": "PB-08",
         "gateStatus": "pending",
-        "gateNote": "divergencePct=0<20；价格未触及 3d p68 下沿（—）±0.25×ATR5 → 触发 pending",
+        "gateNote": "divergencePct=0<20；价格未触及 3d p68 下沿（3012.9）±0.25×ATR5 → 触发 pending；PB-08 放弃条款：锥形止损距离 78.7 > 1.5×T1 预期（54.9）→ 当日放弃，转执行触发=Q4 确认信号",
         "executionConvention": "T+1 开盘；跳空 >0.5×ATR5 放弃；多头距跌停 <1×ATR5 禁开（Q6 口径）"
       },
       "entry": {
@@ -73,12 +73,12 @@
         "basis": "min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)"
       },
       "targets": {
-        "t1": "3d p68 上沿 —（平 50%）",
-        "t2": "3d p95 上沿 —",
+        "t1": "3d p68 上沿 3085.6（平 50%）",
+        "t2": "3d p95 上沿 3121.1",
         "basis": "概率锥区间"
       },
       "position": {
-        "lots": 1,
+        "lots": 0,
         "lotsBasis": "min(风险预算 1 手, 波动率目标 1 手, 保证金 13 手)"
       },
       "riskAssessment": {
@@ -89,22 +89,23 @@
         "stopPrice": 2983,
         "structuralStop": null,
         "unitRiskCny": 660,
-        "lots": 1,
+        "lots": 0,
         "marginPerLotCny": 2439,
-        "marginUtilizationPct": 2.44,
-        "volContributionPctAnnual": 6.1,
-        "tailGapPct3d": -1.62,
-        "stressRiskCny": 1220,
+        "marginUtilizationPct": 0,
+        "volContributionPctAnnual": 0,
+        "tailGapPct3d": -2.31,
+        "stressRiskCny": 0,
         "eventRiskNote": "—",
         "maxHoldingDays": 5
       },
-      "executionStatus": "executable",
+      "executionStatus": "skip",
       "statusReasons": [
-        "全部 hard 校验与警示规则通过"
+        "风险回报比不足（<1.5）",
+        "PB-08 放弃条款：锥形止损距离 78.7 > 1.5×T1 预期（54.9）→ 当日放弃，转执行触发=Q4 确认信号"
       ],
       "invalidation": {
         "hard": [
-          "收盘跌破 m20 则多头趋势失效"
+          "收盘跌破 m20 则多头趋势失效（Q5 结构位 2976.4）"
         ],
         "timeStop": "T+5 无确认无失效则市价退出",
         "supersededByNextRun": true

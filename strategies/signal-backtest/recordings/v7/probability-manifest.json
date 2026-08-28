@@ -1,0 +1,171 @@
+{
+  "schema": "futures-radar-v7-probability-manifest/1",
+  "generatedAt": "2026-08-28T05:31:17.899Z",
+  "symbols": [
+    {
+      "symbol": "RB0",
+      "rows": [
+        {
+          "symbol": "RB0",
+          "date": "2026-06-11",
+          "path": "probability\\RB0-2026-06-11.json"
+        },
+        {
+          "symbol": "RB0",
+          "date": "2026-06-18",
+          "path": "probability\\RB0-2026-06-18.json"
+        },
+        {
+          "symbol": "RB0",
+          "date": "2026-06-26",
+          "path": "probability\\RB0-2026-06-26.json"
+        },
+        {
+          "symbol": "RB0",
+          "date": "2026-07-03",
+          "path": "probability\\RB0-2026-07-03.json"
+        },
+        {
+          "symbol": "RB0",
+          "date": "2026-07-10",
+          "path": "probability\\RB0-2026-07-10.json"
+        },
+        {
+          "symbol": "RB0",
+          "date": "2026-07-17",
+          "path": "probability\\RB0-2026-07-17.json"
+        },
+        {
+          "symbol": "RB0",
+          "date": "2026-07-24",
+          "path": "probability\\RB0-2026-07-24.json"
+        },
+        {
+          "symbol": "RB0",
+          "date": "2026-07-31",
+          "path": "probability\\RB0-2026-07-31.json"
+        },
+        {
+          "symbol": "RB0",
+          "date": "2026-08-07",
+          "path": "probability\\RB0-2026-08-07.json"
+        },
+        {
+          "symbol": "RB0",
+          "date": "2026-08-14",
+          "path": "probability\\RB0-2026-08-14.json"
+        }
+      ]
+    },
+    {
+      "symbol": "M0",
+      "rows": [
+        {
+          "symbol": "M0",
+          "date": "2026-06-11",
+          "path": "probability\\M0-2026-06-11.json"
+        },
+        {
+          "symbol": "M0",
+          "date": "2026-06-18",
+          "path": "probability\\M0-2026-06-18.json"
+        },
+        {
+          "symbol": "M0",
+          "date": "2026-06-26",
+          "path": "probability\\M0-2026-06-26.json"
+        },
+        {
+          "symbol": "M0",
+          "date": "2026-07-03",
+          "path": "probability\\M0-2026-07-03.json"
+        },
+        {
+          "symbol": "M0",
+          "date": "2026-07-10",
+          "path": "probability\\M0-2026-07-10.json"
+        },
+        {
+          "symbol": "M0",
+          "date": "2026-07-17",
+          "path": "probability\\M0-2026-07-17.json"
+        },
+        {
+          "symbol": "M0",
+          "date": "2026-07-24",
+          "path": "probability\\M0-2026-07-24.json"
+        },
+        {
+          "symbol": "M0",
+          "date": "2026-07-31",
+          "path": "probability\\M0-2026-07-31.json"
+        },
+        {
+          "symbol": "M0",
+          "date": "2026-08-07",
+          "path": "probability\\M0-2026-08-07.json"
+        },
+        {
+          "symbol": "M0",
+          "date": "2026-08-14",
+          "path": "probability\\M0-2026-08-14.json"
+        }
+      ]
+    },
+    {
+      "symbol": "SC0",
+      "rows": [
+        {
+          "symbol": "SC0",
+          "date": "2026-06-11",
+          "path": "probability\\SC0-2026-06-11.json"
+        },
+        {
+          "symbol": "SC0",
+          "date": "2026-06-18",
+          "path": "probability\\SC0-2026-06-18.json"
+        },
+        {
+          "symbol": "SC0",
+          "date": "2026-06-26",
+          "path": "probability\\SC0-2026-06-26.json"
+        },
+        {
+          "symbol": "SC0",
+          "date": "2026-07-03",
+          "path": "probability\\SC0-2026-07-03.json"
+        },
+        {
+          "symbol": "SC0",
+          "date": "2026-07-10",
+          "path": "probability\\SC0-2026-07-10.json"
+        },
+        {
+          "symbol": "SC0",
+          "date": "2026-07-17",
+          "path": "probability\\SC0-2026-07-17.json"
+        },
+        {
+          "symbol": "SC0",
+          "date": "2026-07-24",
+          "path": "probability\\SC0-2026-07-24.json"
+        },
+        {
+          "symbol": "SC0",
+          "date": "2026-07-31",
+          "path": "probability\\SC0-2026-07-31.json"
+        },
+        {
+          "symbol": "SC0",
+          "date": "2026-08-07",
+          "path": "probability\\SC0-2026-08-07.json"
+        },
+        {
+          "symbol": "SC0",
+          "date": "2026-08-14",
+          "path": "probability\\SC0-2026-08-14.json"
+        }
+      ]
+    }
+  ]
+}

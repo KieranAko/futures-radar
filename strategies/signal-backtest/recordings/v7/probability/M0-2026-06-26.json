@@ -1,0 +1,35 @@
+{
+  "schema": "futures-radar-v7-probability/1",
+  "symbol": "M0",
+  "date": "2026-06-26",
+  "close": 2974,
+  "hv": {
+    "annual": 0.1042,
+    "periodDays": 20,
+    "percentile90d": 50,
+    "degraded": false,
+    "correctionCount": 0
+  },
+  "cone": {
+    "3d": {
+      "p68": [
+        2939.7,
+        3008.7
+      ],
+      "p95": [
+        2907.1,
+        3042.4
+      ]
+    },
+    "5d": {
+      "p68": [
+        2929.8,
+        3018.9
+      ],
+      "p95": [
+        2888,
+        3062.6
+      ]
+    }
+  }
+}

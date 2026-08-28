@@ -9,7 +9,7 @@
     "equityCny": 100000,
     "marginRate": 0.08,
     "generatedAt": "2026-08-07T00:00:00.000Z",
-    "inputsSha": "5bb763f02e2e74cafa55b043dbc0e053447157e6d57dd9a64bd6b51ca3387e4d"
+    "inputsSha": "3d1e1b6b6f192869f3b1045a82e0b4d5d2db475a810d43e743ddab8a1dbd8216"
   },
   "plans": [
     {
@@ -26,7 +26,7 @@
           "BP-RANGE:pullback@3055.5"
         ],
         "invalidationConditions": [
-          "收盘跌破区间下沿（当前收盘）则 range_fade 证伪。"
+          "收盘跌破区间下沿（当前收盘）则 range_fade 证伪。（Q5 结构位 3008）"
         ]
       },
       "matchedStrategies": [
@@ -57,7 +57,7 @@
       "playbook": {
         "playbookId": "PB-08",
         "gateStatus": "pending",
-        "gateNote": "divergencePct=0<20；价格未触及 3d p68 下沿（—）±0.25×ATR5 → 触发 pending",
+        "gateNote": "divergencePct=0<20；价格未触及 3d p68 下沿（2975.9）±0.25×ATR5 → 触发 pending；PB-08 放弃条款：锥形止损距离 70.3 > 1.5×T1 预期（48.8）→ 当日放弃，转执行触发=Q4 确认信号",
         "executionConvention": "T+1 开盘；跳空 >0.5×ATR5 放弃；多头距跌停 <1×ATR5 禁开（Q6 口径）"
       },
       "entry": {
@@ -73,8 +73,8 @@
         "basis": "min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)"
       },
       "targets": {
-        "t1": "3d p68 上沿 —（平 50%）",
-        "t2": "3d p95 上沿 —",
+        "t1": "3d p68 上沿 3040.5（平 50%）",
+        "t2": "3d p95 上沿 3071.9",
         "basis": "概率锥区间"
       },
       "position": {
@@ -93,18 +93,19 @@
         "marginPerLotCny": 2406,
         "marginUtilizationPct": 0,
         "volContributionPctAnnual": 0,
-        "tailGapPct3d": -1.53,
+        "tailGapPct3d": -2.08,
         "stressRiskCny": 0,
         "eventRiskNote": "—",
         "maxHoldingDays": 5
       },
       "executionStatus": "watch",
       "statusReasons": [
-        "报告置信度为 low：只观察不持仓"
+        "报告置信度为 low：只观察不持仓",
+        "PB-08 放弃条款：锥形止损距离 70.3 > 1.5×T1 预期（48.8）→ 当日放弃，转执行触发=Q4 确认信号"
       ],
       "invalidation": {
         "hard": [
-          "收盘跌破区间下沿（当前收盘）则 range_fade 证伪。"
+          "收盘跌破区间下沿（当前收盘）则 range_fade 证伪。（Q5 结构位 3008）"
         ],
         "timeStop": "T+5 无确认无失效则市价退出",
         "supersededByNextRun": true

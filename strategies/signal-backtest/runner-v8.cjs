@@ -194,7 +194,7 @@ function main() {
       engine: 'production-strategy-plan execution',
       costPerTradeR: 0.25,
       inSample: true,
-      note: 'FinCoT 只做分析；策略计划由生产 strategy-matcher 产出；执行只读 plan 字段。target 为概率锥/R 口径代理；固定按首目标平仓。'
+      note: 'FinCoT 只做分析；策略计划由生产 strategy-matcher 产出，定价来源=FinCoT q4/q5 结构位 + 真实 Yang-Zhang 概率锥；执行只读 plan 字段。'
     },
     aggregate: agg,
     perSymbol: bySymbol,

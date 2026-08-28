@@ -9,7 +9,7 @@
     "equityCny": 100000,
     "marginRate": 0.08,
     "generatedAt": "2026-06-26T00:00:00.000Z",
-    "inputsSha": "93cfff030d02d712de14723de57f1cd6e1882d42443f71561f0e36fdd8b842f0"
+    "inputsSha": "37f6ab44f7f583c1611526b5f768a8c155b6dcd802949b0ba8d04360f0a6cfca"
   },
   "plans": [
     {
@@ -26,7 +26,7 @@
           "BP-SHOCK:pullback@3150.8"
         ],
         "invalidationConditions": [
-          "（继承，按当前 m20 重投影）"
+          "MA20（约3150.8）（继承，按当前 m20 重投影）"
         ]
       },
       "matchedStrategies": [
@@ -80,13 +80,13 @@
         "stopK": 1.5,
         "stopDistancePts": 36,
         "stopPrice": 3129,
-        "structuralStop": null,
+        "structuralStop": 3150.8,
         "unitRiskCny": 360,
         "lots": 1,
         "marginPerLotCny": 2474,
         "marginUtilizationPct": 2.47,
         "volContributionPctAnnual": 6.19,
-        "tailGapPct3d": -1.16,
+        "tailGapPct3d": -1.83,
         "stressRiskCny": 1237,
         "eventRiskNote": "—",
         "maxHoldingDays": 5
@@ -97,7 +97,7 @@
       ],
       "invalidation": {
         "hard": [
-          "（继承，按当前 m20 重投影）"
+          "MA20（约3150.8）（继承，按当前 m20 重投影）"
         ],
         "timeStop": "T+5 无确认无失效则市价退出",
         "supersededByNextRun": true

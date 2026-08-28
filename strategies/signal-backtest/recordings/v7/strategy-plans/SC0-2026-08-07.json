@@ -9,7 +9,7 @@
     "equityCny": 100000,
     "marginRate": 0.08,
     "generatedAt": "2026-08-07T00:00:00.000Z",
-    "inputsSha": "18ac713411ab29eef40473fab5009be1ed827c64ac5e217b4cb40a042e5b8336"
+    "inputsSha": "121280e0561ab54975b11174bc239401070f2220d51db94eacf98c36d7e2f897"
   },
   "plans": [
     {
@@ -26,7 +26,7 @@
           "BP-RANGE:stall@535.2"
         ],
         "invalidationConditions": [
-          "收盘收复 p.SC0.m20 上方则空头结构削弱，观望解除后重新评估"
+          "MA20（约535.2）收盘收复 p.SC0.m20 上方则空头结构削弱，观望解除后重新评估"
         ]
       },
       "matchedStrategies": [
@@ -61,9 +61,9 @@
         "execution": "T+1 开盘；跳空 >0.75×ATR5 放弃"
       },
       "stop": {
-        "stopPrice": 548.4,
-        "stopDistancePts": 17,
-        "basis": "min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)；止损受 0.8×涨跌停幅度约束"
+        "stopPrice": 535.2,
+        "stopDistancePts": 3.8,
+        "basis": "min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)；结构位（Q5 MA20≈535.2）比 ATR 止损更近，采用结构位"
       },
       "targets": {
         "t1": "前高/前低 或 3d p68 沿（先到者，平 50%）",
@@ -78,15 +78,15 @@
         "riskPerTradePct": 0.01,
         "confidenceScale": 0,
         "stopK": 1.5,
-        "stopDistancePts": 17,
-        "stopPrice": 548.4,
-        "structuralStop": null,
-        "unitRiskCny": 17004.8,
+        "stopDistancePts": 3.8,
+        "stopPrice": 535.2,
+        "structuralStop": 535.2,
+        "unitRiskCny": 3800,
         "lots": 0,
         "marginPerLotCny": 42512,
         "marginUtilizationPct": 0,
         "volContributionPctAnnual": 0,
-        "tailGapPct3d": -7.61,
+        "tailGapPct3d": -10.78,
         "stressRiskCny": 0,
         "eventRiskNote": "—",
         "maxHoldingDays": 5
@@ -97,13 +97,13 @@
       ],
       "invalidation": {
         "hard": [
-          "收盘收复 p.SC0.m20 上方则空头结构削弱，观望解除后重新评估"
+          "MA20（约535.2）收盘收复 p.SC0.m20 上方则空头结构削弱，观望解除后重新评估"
         ],
         "timeStop": "T+5 无确认无失效则市价退出",
         "supersededByNextRun": true
       },
       "notes": [
-        "止损受 0.8×涨跌停幅度约束"
+        "结构位（Q5 MA20≈535.2）比 ATR 止损更近，采用结构位"
       ],
       "disclaimer": "⚠️ 免责声明：本板块策略为分析工具输出，仅为方向增强与执行参考，不构成投资建议，不执行真实交易。所有参数（手数/止损/目标）均为按示例权益的确定性风险计算演示，不含任何收益承诺或预期收益；历史文献与样本内回测结论不代表未来表现。保证金与涨跌停以交易所当日公告为准。报告结论（方向/置信度）是第一依据，本板块不得反向修改。"
     }

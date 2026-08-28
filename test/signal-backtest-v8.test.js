@@ -18,10 +18,10 @@ describe('V8 production strategy-plan execution', () => {
     const j = JSON.parse(fs.readFileSync(path.join(OUTPUT, 'signal-quality-baseline-v8.json'), 'utf8'));
     assert.equal(j.schema, 'futures-radar-signal-backtest/8');
     assert.equal(j.aggregate.plans, 30);
-    assert.equal(j.aggregate.executable, 12);
+    assert.equal(j.aggregate.executable, 10);
     assert.equal(j.aggregate.verifiedCount, 2);
-    assert.equal(j.aggregate.gapSkip, 7);
-    assert.equal(j.aggregate.triggerMiss, 3);
+    assert.equal(j.aggregate.gapSkip, 6);
+    assert.equal(j.aggregate.triggerMiss, 2);
     for (const s of j.signals) {
       assert.ok(s.matchedStrategies.length >= 1);
       if (s.executionStatus === 'executable') assert.match(s.triggerTiming, /T\+1/);
@@ -44,6 +44,19 @@ describe('V8 production strategy-plan execution', () => {
         assert.notEqual(res.status, 'not_executable');
       }
     }
-    assert.equal(executable, 12);
+    assert.equal(executable, 10);
+  });
+
+  it('plan pricing now carries FinCoT/real-cone sources', () => {
+    const files = fs.readdirSync(PLAN_DIR).filter(f => f.endsWith('.json') && f !== 'manifest.json');
+    let conePriced = 0; let q5Sourced = 0;
+    for (const f of files) {
+      const plan = JSON.parse(fs.readFileSync(path.join(PLAN_DIR, f), 'utf8'));
+      const p = plan.plans[0];
+      if (/p68|p95/.test(p.targets?.t1 || '')) conePriced++;
+      if (/Q5|MA20/.test(p.stop?.basis || '') || /Q5|MA20/.test(p.invalidation?.hard?.[0] || '')) q5Sourced++;
+    }
+    assert.ok(conePriced > 0, 'some plans must price targets from the real probability cone');
+    assert.ok(q5Sourced > 0, 'some plans must record Q5 structural stop source');
   });
 });

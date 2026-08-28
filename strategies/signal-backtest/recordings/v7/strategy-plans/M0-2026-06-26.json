@@ -9,7 +9,7 @@
     "equityCny": 100000,
     "marginRate": 0.08,
     "generatedAt": "2026-06-26T00:00:00.000Z",
-    "inputsSha": "670b2c3d042f9045a54c1d8714956c4b86b1e81ef83d976261680fd5cd1f6a81"
+    "inputsSha": "56ada2d04d70de7d7d8b6b45150e4b655da796479fa0eb52e2c2093ecd318057"
   },
   "plans": [
     {
@@ -26,7 +26,7 @@
           "BP-BREAK:breakout@2973.2"
         ],
         "invalidationConditions": [
-          "收盘跌回 m20 下方则突破失败"
+          "收盘跌回 m20 下方则突破失败（Q5 结构位 2947.1）"
         ]
       },
       "matchedStrategies": [
@@ -50,7 +50,7 @@
       "playbook": {
         "playbookId": "PB-08",
         "gateStatus": "pending",
-        "gateNote": "divergencePct=0<20；价格未触及 3d p68 下沿（—）±0.25×ATR5 → 触发 pending",
+        "gateNote": "divergencePct=0<20；价格未触及 3d p68 下沿（2939.7）±0.25×ATR5 → 触发 pending；PB-08 放弃条款：锥形止损距离 73.7 > 1.5×T1 预期（52.0）→ 当日放弃，转执行触发=Q4 确认信号",
         "executionConvention": "T+1 开盘；跳空 >0.5×ATR5 放弃；多头距跌停 <1×ATR5 禁开（Q6 口径）"
       },
       "entry": {
@@ -66,8 +66,8 @@
         "basis": "min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)"
       },
       "targets": {
-        "t1": "3d p68 上沿 —（平 50%）",
-        "t2": "3d p95 上沿 —",
+        "t1": "3d p68 上沿 3008.7（平 50%）",
+        "t2": "3d p95 上沿 3042.4",
         "basis": "概率锥区间"
       },
       "position": {
@@ -86,18 +86,19 @@
         "marginPerLotCny": 2379,
         "marginUtilizationPct": 0,
         "volContributionPctAnnual": 0,
-        "tailGapPct3d": -1.37,
+        "tailGapPct3d": -2.25,
         "stressRiskCny": 0,
         "eventRiskNote": "—",
         "maxHoldingDays": 5
       },
       "executionStatus": "watch",
       "statusReasons": [
-        "报告置信度为 low：只观察不持仓"
+        "报告置信度为 low：只观察不持仓",
+        "PB-08 放弃条款：锥形止损距离 73.7 > 1.5×T1 预期（52.0）→ 当日放弃，转执行触发=Q4 确认信号"
       ],
       "invalidation": {
         "hard": [
-          "收盘跌回 m20 下方则突破失败"
+          "收盘跌回 m20 下方则突破失败（Q5 结构位 2947.1）"
         ],
         "timeStop": "T+5 无确认无失效则市价退出",
         "supersededByNextRun": true

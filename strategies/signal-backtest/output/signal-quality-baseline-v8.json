@@ -1,7 +1,7 @@
 {
   "schema": "futures-radar-signal-backtest/8",
   "meta": {
-    "generatedAt": "2026-08-28T05:21:55.287Z",
+    "generatedAt": "2026-08-28T05:32:32.412Z",
     "universe": [
       "RB0",
       "M0",
@@ -11,15 +11,15 @@
     "engine": "production-strategy-plan execution",
     "costPerTradeR": 0.25,
     "inSample": true,
-    "note": "FinCoT 只做分析；策略计划由生产 strategy-matcher 产出；执行只读 plan 字段。target 为概率锥/R 口径代理；固定按首目标平仓。"
+    "note": "FinCoT 只做分析；策略计划由生产 strategy-matcher 产出，定价来源=FinCoT q4/q5 结构位 + 真实 Yang-Zhang 概率锥；执行只读 plan 字段。"
   },
   "aggregate": {
     "plans": 30,
-    "executable": 12,
-    "signals": 12,
+    "executable": 10,
+    "signals": 10,
     "verifiedCount": 2,
-    "triggerMiss": 3,
-    "gapSkip": 7,
+    "triggerMiss": 2,
+    "gapSkip": 6,
     "stopRate": 50,
     "target1Rate": 50,
     "directionCorrectRate": 50,
@@ -42,11 +42,11 @@
     },
     "M0": {
       "plans": 10,
-      "executable": 5,
-      "signals": 5,
+      "executable": 3,
+      "signals": 3,
       "verifiedCount": 1,
-      "triggerMiss": 2,
-      "gapSkip": 2,
+      "triggerMiss": 1,
+      "gapSkip": 1,
       "stopRate": 100,
       "target1Rate": 0,
       "directionCorrectRate": 0,
@@ -178,23 +178,13 @@
         "MS-07"
       ],
       "playbookId": "PB-08",
-      "executionStatus": "executable",
+      "executionStatus": "skip",
       "triggerLevel": 2976.4,
       "stopPrice": 2983,
       "triggerTiming": "T+1 开盘执行",
       "maxHoldingDays": 5,
-      "lots": 1,
-      "status": "gap_skip",
-      "entryDate": "2026-07-13",
-      "entryPrice": 3055,
-      "gap": 78.6,
-      "gapMul": 0.5,
-      "atr5": 33,
-      "targets": {
-        "t1": 3098.5,
-        "t2": 3115,
-        "basis": "3d p68 上沿 —（平 50%） | 3d p95 上沿 —"
-      }
+      "lots": 0,
+      "status": "not_executable"
     },
     {
       "symbol": "M0",
@@ -243,20 +233,13 @@
         "MS-02"
       ],
       "playbookId": "PB-08",
-      "executionStatus": "executable",
+      "executionStatus": "skip",
       "triggerLevel": 3071,
       "stopPrice": 3141.5,
       "triggerTiming": "T+1 开盘执行",
       "maxHoldingDays": 5,
-      "lots": 1,
-      "status": "trigger_miss",
-      "triggerVerifyDate": "2026-08-03",
-      "targets": {
-        "t1": 3000.5,
-        "t2": 2977,
-        "basis": "3d p68 下沿 —（平 50%） | 3d p95 下沿 —"
-      },
-      "atr5": 47
+      "lots": 0,
+      "status": "not_executable"
     },
     {
       "symbol": "M0",
@@ -416,7 +399,7 @@
       "playbookId": "PB-03",
       "executionStatus": "executable",
       "triggerLevel": 3107.7,
-      "stopPrice": 3122.4,
+      "stopPrice": 3107.7,
       "triggerTiming": "T+1 开盘执行",
       "maxHoldingDays": 5,
       "lots": 1,
@@ -427,7 +410,7 @@
       "gapMul": 0.75,
       "atr5": 23.6,
       "targets": {
-        "t1": 3078.2999999999993,
+        "t1": 3107.7,
         "t2": 3051.6,
         "basis": "前高/前低 或 3d p68 沿（先到者，平 50%） | 2R–3R（余仓 1×ATR5 移动止损）"
       }
@@ -552,7 +535,7 @@
       "targets": {
         "t1": 3054.9,
         "t2": 3068.2,
-        "basis": "3d p68 上沿 —（平 50%） | 3d p95 上沿 —"
+        "basis": "3d p68 上沿 3047.7（平 50%） | 3d p95 上沿 3079.4"
       },
       "atr5": 26.6
     },
@@ -640,7 +623,7 @@
       "playbookId": "PB-01",
       "executionStatus": "watch",
       "triggerLevel": 479.5,
-      "stopPrice": 486.28,
+      "stopPrice": 479.5,
       "triggerTiming": "T+1 开盘执行",
       "maxHoldingDays": 5,
       "lots": 0,
@@ -714,7 +697,7 @@
       "playbookId": "PB-03",
       "executionStatus": "watch",
       "triggerLevel": 535.2,
-      "stopPrice": 548.4,
+      "stopPrice": 535.2,
       "triggerTiming": "无执行时点（观察）",
       "maxHoldingDays": 5,
       "lots": 0,
@@ -732,7 +715,7 @@
       "playbookId": "PB-01",
       "executionStatus": "watch",
       "triggerLevel": 545.8,
-      "stopPrice": 538.4,
+      "stopPrice": 545.8,
       "triggerTiming": "T+1 开盘执行",
       "maxHoldingDays": 5,
       "lots": 0,

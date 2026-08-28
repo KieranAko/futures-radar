@@ -9,7 +9,7 @@
     "equityCny": 100000,
     "marginRate": 0.08,
     "generatedAt": "2026-07-31T00:00:00.000Z",
-    "inputsSha": "132bf22be6e5ad5053eaa33482113ee17fc709ca3479b653ff3105f8147fd71a"
+    "inputsSha": "863a0ef1850fc37a5a81571fbc8dd62d6e3e09a70086d9e7f70e0cbec7cf1fba"
   },
   "plans": [
     {
@@ -26,7 +26,7 @@
           "BP-SHOCK:pullback@3077.7"
         ],
         "invalidationConditions": [
-          "反弹站回 m20 上方则冲击空头证伪。"
+          "反弹站回 m20 上方则冲击空头证伪。（Q5 结构位 3077.7）"
         ]
       },
       "matchedStrategies": [
@@ -86,7 +86,7 @@
         "marginPerLotCny": 2403,
         "marginUtilizationPct": 2.4,
         "volContributionPctAnnual": 6.01,
-        "tailGapPct3d": -1.45,
+        "tailGapPct3d": -2.02,
         "stressRiskCny": 1202,
         "eventRiskNote": "—",
         "maxHoldingDays": 5
@@ -97,7 +97,7 @@
       ],
       "invalidation": {
         "hard": [
-          "反弹站回 m20 上方则冲击空头证伪。"
+          "反弹站回 m20 上方则冲击空头证伪。（Q5 结构位 3077.7）"
         ],
         "timeStop": "T+5 无确认无失效则市价退出",
         "supersededByNextRun": true

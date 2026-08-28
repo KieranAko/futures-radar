@@ -1,0 +1,35 @@
+{
+  "schema": "futures-radar-v7-probability/1",
+  "symbol": "RB0",
+  "date": "2026-07-24",
+  "close": 3076,
+  "hv": {
+    "annual": 0.0887,
+    "periodDays": 20,
+    "percentile90d": 50,
+    "degraded": false,
+    "correctionCount": 0
+  },
+  "cone": {
+    "3d": {
+      "p68": [
+        3045.8,
+        3106.5
+      ],
+      "p95": [
+        3017,
+        3136.1
+      ]
+    },
+    "5d": {
+      "p68": [
+        3037,
+        3115.5
+      ],
+      "p95": [
+        3000.1,
+        3153.8
+      ]
+    }
+  }
+}

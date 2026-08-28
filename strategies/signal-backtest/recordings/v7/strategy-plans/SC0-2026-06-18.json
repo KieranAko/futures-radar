@@ -9,7 +9,7 @@
     "equityCny": 100000,
     "marginRate": 0.08,
     "generatedAt": "2026-06-18T00:00:00.000Z",
-    "inputsSha": "c1a2777c4b4763260d78693620dfec52c796ee25153972af9955678e76e50edf"
+    "inputsSha": "0bdc7fae7a3eeb9d4e89914aa5890801fe70300cb5fe7a2a50788cce37ccaa16"
   },
   "plans": [
     {
@@ -26,7 +26,7 @@
           "BP-SHOCK:pullback@580.5"
         ],
         "invalidationConditions": [
-          "收盘站上 p.SC0.m20 上方则冲击空头失效"
+          "MA20（约580.5）收盘站上 p.SC0.m20 上方则冲击空头失效"
         ]
       },
       "matchedStrategies": [
@@ -80,13 +80,13 @@
         "stopK": 2,
         "stopDistancePts": 16.27,
         "stopPrice": 524.77,
-        "structuralStop": null,
+        "structuralStop": 580.5,
         "unitRiskCny": 16272,
         "lots": 0,
         "marginPerLotCny": 40680,
         "marginUtilizationPct": 0,
         "volContributionPctAnnual": 0,
-        "tailGapPct3d": -8.37,
+        "tailGapPct3d": -9.73,
         "stressRiskCny": 0,
         "eventRiskNote": "—",
         "maxHoldingDays": 5
@@ -94,11 +94,11 @@
       "executionStatus": "watch",
       "statusReasons": [
         "风险预算不足（medium 约需 162.7 万权益才到 1 手）",
-        "尾部 3d p95 反向 -8.4% ≥ 涨跌停 4%（连续停板警示）"
+        "尾部 3d p95 反向 -9.7% ≥ 涨跌停 4%（连续停板警示）"
       ],
       "invalidation": {
         "hard": [
-          "收盘站上 p.SC0.m20 上方则冲击空头失效"
+          "MA20（约580.5）收盘站上 p.SC0.m20 上方则冲击空头失效"
         ],
         "timeStop": "T+5 无确认无失效则市价退出",
         "supersededByNextRun": true
