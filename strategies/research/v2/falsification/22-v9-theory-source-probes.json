@@ -1,0 +1,92 @@
+{
+  "schema": "futures-strategy-v9-theory-source-probes/1",
+  "generatedAt": "2026-08-28T18:13:27.013Z",
+  "preregisteredCriteria": "n>=200, hitRate>=55%, mean>0.10%, 95% CI lower>0（5日对齐收益，成本0.07%未扣）",
+  "arms": {
+    "A_academic": {
+      "probes": 2,
+      "pass": 0,
+      "results": [
+        {
+          "name": "A1-TR02-压缩突破",
+          "n": 8186,
+          "hitRate": 50.67,
+          "meanPct": 0.1435,
+          "ci": [
+            0.0711,
+            0.216
+          ],
+          "pass": false
+        },
+        {
+          "name": "A2-M3-利率→贵金属",
+          "n": 2758,
+          "hitRate": 53.01,
+          "meanPct": 0.2128,
+          "ci": [
+            0.0551,
+            0.3704
+          ],
+          "pass": false
+        }
+      ]
+    },
+    "B_mechanism": {
+      "probes": 2,
+      "pass": 0,
+      "results": [
+        {
+          "name": "B1-政策窗口延续",
+          "n": 46,
+          "hitRate": 52.17,
+          "meanPct": 0.6929,
+          "ci": [
+            -0.5753,
+            1.9611
+          ],
+          "pass": false
+        },
+        {
+          "name": "B2-换月周漂移",
+          "n": 447,
+          "hitRate": 48.32,
+          "meanPct": 0.2052,
+          "ci": [
+            -0.7398,
+            1.1502
+          ],
+          "pass": false
+        }
+      ]
+    },
+    "C_microstructure": {
+      "probes": 2,
+      "pass": 0,
+      "results": [
+        {
+          "name": "C1-隔夜跳空反向",
+          "n": 3276,
+          "hitRate": 51.16,
+          "meanPct": 9.3872,
+          "ci": [
+            -7.3885,
+            26.163
+          ],
+          "pass": false
+        },
+        {
+          "name": "C2-放量极端反向",
+          "n": 255,
+          "hitRate": 55.29,
+          "meanPct": 0.0065,
+          "ci": [
+            -0.4343,
+            0.4473
+          ],
+          "pass": false
+        }
+      ]
+    }
+  },
+  "conclusionHint": "本轮三来源均无探针通过；V10 应停止按现有来源扩充，转向机制访谈/新数据"
+}
