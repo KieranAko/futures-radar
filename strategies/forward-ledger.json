@@ -1,0 +1,82 @@
+{
+  "schema": "futures-radar-forward-ledger/1",
+  "runs": {
+    "20260828-0610-auto": {
+      "signalDate": "2026-08-28",
+      "verifiedAt": "2026-08-28T22:34:32.278Z",
+      "summary": {
+        "plans": 3,
+        "verified": 0,
+        "notExecutable": 2,
+        "triggerMiss": 0,
+        "pendingData": 1,
+        "gapSkip": 0,
+        "directionCorrectRate": null,
+        "avgNetPnlPct": null
+      },
+      "rows": [
+        {
+          "symbol": "M0",
+          "executionStatus": "executable",
+          "status": "pending_data",
+          "netPnlPct": null,
+          "exitType": null
+        },
+        {
+          "symbol": "RM0",
+          "executionStatus": "watch",
+          "status": "not_executable",
+          "netPnlPct": null,
+          "exitType": null
+        },
+        {
+          "symbol": "AU0",
+          "executionStatus": "watch",
+          "status": "not_executable",
+          "netPnlPct": null,
+          "exitType": null
+        }
+      ]
+    },
+    "20260827-2159-auto": {
+      "signalDate": "20260827",
+      "verifiedAt": "2026-08-28T22:34:32.278Z",
+      "summary": {
+        "plans": 3,
+        "verified": 0,
+        "notExecutable": 2,
+        "triggerMiss": 0,
+        "pendingData": 1,
+        "gapSkip": 0,
+        "directionCorrectRate": null,
+        "avgNetPnlPct": null
+      },
+      "rows": [
+        {
+          "symbol": "RM0",
+          "executionStatus": "executable",
+          "status": "triggered_pending_entry",
+          "netPnlPct": null,
+          "exitType": null
+        },
+        {
+          "symbol": "AP0",
+          "executionStatus": "watch",
+          "status": "not_executable",
+          "netPnlPct": null,
+          "exitType": null
+        },
+        {
+          "symbol": "MA0",
+          "executionStatus": "watch",
+          "status": "not_executable",
+          "netPnlPct": null,
+          "exitType": null
+        }
+      ]
+    }
+  },
+  "updatedAt": "2026-08-28T22:34:32.278Z",
+  "latestRun": "20260828-0610-auto",
+  "previousRun": "20260827-2159-auto"
+}

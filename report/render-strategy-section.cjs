@@ -11,6 +11,9 @@
 
 'use strict';
 
+const { inferFamily, trustRating } = require('../strategies/lib/family-infer.cjs');
+const symbolsConfig = require('../config/symbols.json');
+
 // ── 格式化（沿用 render-markdown.cjs 口径：价格 1 位小数、百分比 1-2 位、金额整数） ──
 function fmt(x, d) {
   if (x === null || x === undefined || Number.isNaN(Number(x))) return '—';
@@ -51,41 +54,21 @@ function evidenceUrls(strategyId, library) {
 }
 
 // ── 章节渲染 ──────────────────────────────────────────────────
-// 可信度（三层合成，生产侧固定：状态匹配 unknown、实现保真 high[matcher 确定性]）
-// 族级证据分数：validated=3；g1 且有正向前瞻=2；g1/instance_gate_failed=1；其余=0。
-function familyScore(family, familyEvidence) {
-  const f = familyEvidence && familyEvidence.families && familyEvidence.families[family];
-  if (!f) return 0;
-  if (f.level === 'validated') return 3;
-  if (f.level === 'g1' && (f.previews || []).length) return 2;
-  if (f.level === 'g1' || f.level === 'instance_gate_failed') return 1;
-  return 0;
-}
-
-function inferFamilyFromPlan(p) {
-  const text = [
-    (p.matchedStrategies || []).map((m) => `${m.strategyId} ${m.name || ''}`).join(' '),
-    (p.supportingEvidence || []).map((s) => `${s.strategyId} ${s.name || ''}`).join(' '),
+// 可信度：共享实现 strategies/lib/family-infer.cjs（v2 驱动优先分类，04-R1）
+function planFamilyText(p) {
+  // 主策略名称为族分类主依据（与 Q1 驱动叙事同源）；辅助证据只展示、不参与分类
+  return [
+    (p.matchedStrategies || []).slice(0, 1).map((m) => `${m.strategyId} ${m.name || ''}`).join(' '),
     p.playbook?.playbookId || '',
   ].join(' ');
-  if (/基差|贴水|升水|展期|期限结构|carry/i.test(text)) return 'carry';
-  if (/趋势|动量|突破|均线|momentum|trend/i.test(text)) return 'momentum';
-  if (/价差|利润|回归|均值|协整|value/i.test(text)) return 'value';
-  if (/事件|政策|冲击|event|shock|供给冲击/i.test(text)) return 'event';
-  return 'none';
 }
 
-function trustRating(family, familyEvidence) {
-  const fs = familyScore(family, familyEvidence);
-  const match = 1; // 生产侧无机制识别输入 → unknown
-  const fidelity = 2; // 生产 matcher 确定性实现 → high
-  if (fs >= 3 && match === 2 && fidelity === 2) return { grade: 'A', why: '族级证据已验证 + 状态匹配 + 保真' };
-  if (fs >= 2 && match >= 1 && fidelity >= 1) return { grade: 'B', why: '族级证据较强（状态匹配 unknown）' };
-  if (fs >= 1) return { grade: 'C', why: '族级证据不足（该族历史验证未达标）' };
-  return { grade: 'D', why: '无族级证据' };
+function planTrust(p, familyEvidence) {
+  // 生产侧固定：状态匹配 unknown（无机制识别输入）、实现保真 high（matcher 确定性）
+  return trustRating({ family: inferFamily(planFamilyText(p)), familyEvidence, match: 1, fidelity: 2 });
 }
 
-function renderStrategySection(plan, library, feedback = null, familyEvidence = null) {
+function renderStrategySection(plan, library, feedback = null, familyEvidence = null, forwardLedger = null) {
   const lines = [];
   lines.push('## 五、交易策略板块（执行参考）');
   lines.push('');
@@ -95,6 +78,14 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
     const recorded = feedback.meta.recorded == null ? '—' : feedback.meta.recorded;
     const verified = feedback.meta.verified == null ? 0 : feedback.meta.verified;
     lines.push(`> 证伪反馈机制：本期冻结 ${recorded} 个可执行计划；本次验证往期计划 ${verified} 个。`);
+  }
+  // 前向账本滚动（01-L7：今天的报告引用往期计划的验证状态）
+  if (forwardLedger && forwardLedger.previousRun && forwardLedger.previousRun !== plan.meta.runId) {
+    const prev = forwardLedger.runs[forwardLedger.previousRun];
+    if (prev) {
+      const detail = (prev.rows || []).map((r) => `${r.symbol}:${r.status}${r.netPnlPct != null ? `(${r.netPnlPct}%)` : ''}`).join('；');
+      lines.push(`> 前向验证（上期 ${forwardLedger.previousRun}）：计划 ${prev.summary.plans} 条，已完成 ${prev.summary.verified}，待数据 ${prev.summary.pendingData}，未触发 ${prev.summary.triggerMiss}；${detail || '无明细'}`);
+    }
   }
   // 族级证据状态（实验线 promote 的负面结论，不改变方向/置信度，只提示证据充分程度）
   if (familyEvidence && familyEvidence.families) {
@@ -114,11 +105,23 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
   lines.push('|------|---------|------|--------|-------------|------|--------|');
   for (const p of plan.plans) {
     const primary = p.matchedStrategies[0];
-    const t = trustRating(inferFamilyFromPlan(p), familyEvidence);
+    const t = planTrust(p, familyEvidence);
     lines.push(`| ${p.symbol} ${p.name} | ${p.contract || '—'} | ${directionLabel(p.reportBaseline.direction)} | ${confidenceLabel(p.reportBaseline.confidence)} | ${primary.strategyId} + ${p.playbook.playbookId} | ${statusBadge(p.executionStatus)} | ${t.grade} |`);
   }
   lines.push('');
   lines.push('> 可信度 = 族级证据 × 状态匹配 × 实现保真（实验线三层合成）；不是胜率/收益预期，只表示证据充分程度。');
+  // 板块集中度提示（03-S1/S6：组合风险是设计出来的；报告只提示，不替人决定）
+  const sectorCount = {};
+  for (const p of plan.plans) {
+    const cfgSym = Object.values(symbolsConfig.symbols || {}).find((v) => v && v.symbol === p.symbol);
+    const sector = cfgSym?.sector || 'unknown';
+    sectorCount[sector] = sectorCount[sector] || [];
+    sectorCount[sector].push(p.symbol);
+  }
+  const concentrated = Object.entries(sectorCount).filter(([, syms]) => syms.length >= 2);
+  if (concentrated.length) {
+    lines.push(`> 板块集中度提示：${concentrated.map(([sec, syms]) => `${sec} ${syms.join('/')} 同板块`).join('；')}——若同时执行，同板块风险不分散。`);
+  }
   lines.push('');
 
   // 每品种小节：只保留可执行关键信息
@@ -132,7 +135,7 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
     lines.push('');
     lines.push(`- **报告基准**: ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信；主策略 ${primary.strategyId} ${primary.name}；执行模板 ${p.playbook.playbookId}`);
     {
-      const t = trustRating(inferFamilyFromPlan(p), familyEvidence);
+      const t = planTrust(p, familyEvidence);
       lines.push(`- **实验线可信度**: ${t.grade}（${t.why}）`);
     }
     lines.push(`- **入场机会点**: ${p.entry.trigger}（触发价 ${triggerLevel}）`);

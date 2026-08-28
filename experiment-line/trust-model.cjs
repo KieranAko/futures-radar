@@ -14,29 +14,14 @@ const ROOT = path.resolve(__dirname, '..');
 const EL = __dirname;
 const familyEvidence = require(path.join(EL, 'evidence', 'family-evidence.json'));
 const candidate = require(path.join(EL, 'candidates', 'report-trust-model.json'));
+const { inferFamily, familyScore: familyScoreBase, trustRating: trustRatingBase } = require(path.join(ROOT, 'strategies', 'lib', 'family-infer.cjs'));
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
 function familyScore(family) {
-  const f = familyEvidence.families[family];
-  if (!f) return 0;
-  const positive = (f.previews || []).some((p) => p.status === 'preview_not_preregistered' || p.status === 'preview_preregistered');
-  if (f.level === 'validated') return 3;
-  if (f.level === 'g1' && positive) return 2;
-  if (f.level === 'instance_gate_failed') return 1;
-  if (f.level === 'g1' && !positive) return 1;
-  return 0;
-}
-
-function inferFamily(thesisText) {
-  const t = String(thesisText || '');
-  if (/基差|贴水|升水|展期|期限结构|carry/i.test(t)) return 'carry';
-  if (/趋势|动量|突破|均线|momentum|trend/i.test(t)) return 'momentum';
-  if (/价差|利润|回归|均值|协整|value/i.test(t)) return 'value';
-  if (/事件|政策|冲击|event|shock/i.test(t)) return 'event';
-  return 'none';
+  return familyScoreBase(family, familyEvidence);
 }
 
 function stateMatchScore(family, registry) {
@@ -81,6 +66,7 @@ function main() {
   for (const opp of reportModel.opportunities || []) {
     const thesisText = [
       opp.thesis?.driver?.primary,
+      opp.thesis?.driver?.secondary,
       opp.thesis?.trendOrImpulse?.assessment,
       opp.thesis?.odds?.reasoning,
     ].join(' ');
@@ -93,7 +79,7 @@ function main() {
     rows.push({
       symbol: opp.symbol,
       family,
-      familyInference: 'keyword-rule-v1（待 analyze 机制识别 candidate 替换）',
+      familyInference: 'driver-first-v2（strategies/lib/family-infer.cjs；驱动机制优先，04-R1）',
       familyLevel: familyInfo.level,
       familyConclusion: familyInfo.conclusion,
       scores: { familyEvidence: fsScore, stateMatch: match, fidelity },

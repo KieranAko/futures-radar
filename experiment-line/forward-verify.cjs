@@ -187,8 +187,25 @@ function main() {
   const outDir = path.join(EL, 'results', 'forward');
   fs.mkdirSync(outDir, { recursive: true });
   writeJson(path.join(outDir, `${runId}.json`), out);
+
+  // 前向账本（strategies/forward-ledger.json）：报告环节 stable 输入，随每次验证滚动
+  const ledgerFile = path.join(ROOT, 'strategies', 'forward-ledger.json');
+  const ledger = fs.existsSync(ledgerFile) ? readJson(ledgerFile) : { schema: 'futures-radar-forward-ledger/1', runs: {} };
+  ledger.updatedAt = new Date().toISOString();
+  ledger.runs[runId] = {
+    signalDate,
+    verifiedAt: new Date().toISOString(),
+    summary: out.summary,
+    rows: out.rows.map((r) => ({ symbol: r.symbol, executionStatus: r.executionStatus, status: r.status, netPnlPct: r.netPnlPct ?? null, exitType: r.exitType ?? null })),
+  };
+  const ids = Object.keys(ledger.runs).sort();
+  ledger.latestRun = ids[ids.length - 1];
+  ledger.previousRun = ids.length >= 2 ? ids[ids.length - 2] : null;
+  writeJson(ledgerFile, ledger);
+
   console.log(`forward rows: ${rows.length}; verified=${out.summary.verified} pending=${out.summary.pendingData} miss=${out.summary.triggerMiss}`);
   for (const r of rows) console.log(`  ${r.symbol}: ${r.status}${r.netPnlPct != null ? ` net=${r.netPnlPct}%` : ''}`);
+  console.log(`ledger: ${ledgerFile} (previousRun=${ledger.previousRun || '-'})`);
   return out;
 }
 

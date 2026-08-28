@@ -12,7 +12,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const EL = __dirname;
-const { inferFamily } = require(path.join(EL, 'trust-model.cjs'));
+const { inferFamily } = require(path.join(EL, '..', 'strategies', 'lib', 'family-infer.cjs'));
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -37,6 +37,7 @@ function main(runIdArg) {
   for (const opp of reportModel.opportunities || []) {
     const text = [
       opp.thesis?.driver?.primary,
+      opp.thesis?.driver?.secondary,
       opp.thesis?.trendOrImpulse?.assessment,
       opp.thesis?.odds?.reasoning,
     ].join(' ');
