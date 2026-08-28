@@ -117,6 +117,37 @@ describe('experiment-line v6 (full mirror of production)', () => {
     assert.equal(g2.maxDrawdown([1, -2, 3, -1]), -2);
   });
 
+  it('forward verifier applies T+1 semantics with frozen plan parameters', () => {
+    const { verifyPlan } = require(path.join(EL, 'forward-verify.cjs'));
+    const dates = ['2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28', '2026-08-29'];
+    const daily = {
+      dates,
+      open: [100, 101, 102, 103, 104],
+      high: [102, 103, 104, 105, 106],
+      low: [99, 100, 101, 102, 103],
+      close: [101, 102, 103, 104, 105],
+    };
+    const base = {
+      symbol: 'X0',
+      reportBaseline: { direction: 'bullish', confidence: 'medium' },
+      matchedStrategies: [{ strategyId: 'MS-01' }],
+      playbook: { playbookId: 'PB-03' },
+      executionStatus: 'executable',
+      entry: { triggerLevel: 102.5, triggerTiming: 'T+1 开盘执行', execution: 'T+1 开盘；跳空 >0.5×ATR5 放弃' },
+      stop: { stopPrice: 99 },
+      riskAssessment: { maxHoldingDays: 3 },
+      position: { lots: 1 },
+      invalidation: { hard: ['收盘跌破 m20'] },
+    };
+    // T+1 open 103 > trigger 102.5 → fill at 103; 目标 2R=107? risk=4 → T1=111，持有期内 high=106 未达，收盘退出
+    const r = verifyPlan(base, daily, '2026-08-27');
+    assert.equal(r.status, 'verified');
+    assert.equal(r.entryDate, '2026-08-28');
+    // watch 状态 → not_executable
+    const watch = { ...base, executionStatus: 'watch' };
+    assert.equal(verifyPlan(watch, daily, '2026-08-27').status, 'not_executable');
+  });
+
   it('g1 register validates required mechanism fields and rejects missing theoryRef', () => {
     const tmp = path.join(EL, 'registry-src', '_tmp-g1-test.json');
     const bad = { id: 'TMP-01', name: 'x', family: 'carry' };

@@ -3,6 +3,16 @@
 > v6 架构 L3 证据账本的第一个实例。每条记录：机制 → G1 判决 → 观察 → 去向。
 > 记录只增不改；G1 原始结果见 `experiment-line/results/g1/<id>-result.json`（可重建）。
 
+## 前向记录（G4）
+
+### 2026-08-29：第一条前向记录建立（生产 run 20260827-2159-auto）
+
+- `experiment-line/results/forward/20260827-2159-auto.json`；
+- 执行语义：V8 T+1 语义，参数全部来自冻结 strategy-plan；
+- 状态：RM0（executable，T+1 收盘确认）→ **triggered_pending_entry**（08-28 收盘已触发，等待 08-29 T+2 开盘入场数据）；AP0/MA0 watch → not_executable；
+- 前向记录计数：**0 → 1**。后续每个生产 run 都按此路径追加。
+
+---
 ## 2026-08-29
 
 ### TH-CARRY-01（carry：基差对称极端回归，20 日持有）— G1 timeout 退役
