@@ -183,6 +183,15 @@ describe('experiment-line v6 (full mirror of production)', () => {
     assert.deepEqual(asm.validateGrounding(['a'], { a: { b: 1 } }), []);
   });
 
+  it('analyze-v2 replay consistency precheck meets direction target', () => {
+    const p = path.join(EL, 'results', 'analyze-v2-replay-consistency.json');
+    if (!fs.existsSync(p)) return;
+    const c = JSON.parse(fs.readFileSync(p, 'utf8'));
+    assert.equal(c.summary.compared, 6);
+    assert.ok(c.summary.directionAgreementPct >= c.summary.targetDirectionPct, `direction agreement ${c.summary.directionAgreementPct}%`);
+    assert.equal(c.summary.directionMatches, 6);
+  });
+
   it('g1 register validates required mechanism fields and rejects missing theoryRef', () => {
     const tmp = path.join(EL, 'registry-src', '_tmp-g1-test.json');
     const bad = { id: 'TMP-01', name: 'x', family: 'carry' };

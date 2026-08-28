@@ -141,10 +141,10 @@ function main() {
     }
   }
 
-  // 昨日结论卡（增量上下文 O5）：上一生产 run 的同品种 analysis
+  // 昨日结论卡（增量上下文 O5）：仅当目标 run 严格晚于上一生产 run 时注入（防未来信息）
   const prevAnalysis = {};
   const prevRunDir = path.join(ROOT, 'output', 'runs', '20260827-2159-auto');
-  if (fs.existsSync(path.join(prevRunDir, 'analysis.json'))) {
+  if (signalDate > '2026-08-27' && fs.existsSync(path.join(prevRunDir, 'analysis.json'))) {
     const prev = readJson(path.join(prevRunDir, 'analysis.json'));
     for (const a of prev.analyses || []) {
       prevAnalysis[a.symbol] = { runId: prev.meta.runId, direction: a.direction, confidence: a.confidence, q1_driver: a.q1_driver, q5_invalidation: a.q5_invalidation };
