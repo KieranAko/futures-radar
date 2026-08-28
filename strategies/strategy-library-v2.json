@@ -2272,5 +2272,222 @@
         "sourceDocs": "18-review.md（t9）、19-final-falsification-report.md（t10）、17-falsification-results.md（t10 修订版）"
       }
     ]
+  },
+  "waitlistScreening": {
+    "schema": "futures-strategy-waitlist-screening/1",
+    "generatedAt": "2026-08-28T17:46:27.127Z",
+    "note": "仅用于筛选/扩充决策；不改变核心 manifest 与任何策略状态；代理测试不替代证伪。",
+    "ranked": [
+      {
+        "id": "M3",
+        "name": "美债实际利率→贵金属",
+        "status": "available",
+        "promise": 9,
+        "dataScore": 3,
+        "theoryScore": 2,
+        "gap": "2024-03~2025 央行购金段 β 翻正（其证伪条款要求该段标记失效）；FRED DFII10 复活为扩展",
+        "upgrade": "分段失效标记验证 + DFII10 扩展评估 → 申请"
+      },
+      {
+        "id": "FS-07",
+        "name": "季节性窗口",
+        "status": "available（GA-1 后）",
+        "promise": 8,
+        "dataScore": 3,
+        "theoryScore": 2,
+        "gap": "D6：删除跨条目仓位联动 + bootstrap 显著月 ≥3 品种",
+        "upgrade": "改写后按 §7 → 申请"
+      },
+      {
+        "id": "TR-02",
+        "name": "压缩→扩张突破",
+        "status": "available",
+        "promise": 8,
+        "dataScore": 3,
+        "theoryScore": 1,
+        "gap": "证据 C 未回测；与 TR-01 确认逻辑重叠（D4）",
+        "upgrade": "先跑理论级证伪（压缩态 vs 非压缩态）→ 申请"
+      },
+      {
+        "id": "TR-05",
+        "name": "区间+移交",
+        "status": "available",
+        "promise": 8,
+        "dataScore": 3,
+        "theoryScore": 2,
+        "gap": "D4：移交机制在 v2 禁止；A 模式默认停用",
+        "upgrade": "重设计自带突破后管理模型 → 申请"
+      },
+      {
+        "id": "M7",
+        "name": "美债事件冲击",
+        "status": "available",
+        "promise": 7,
+        "dataScore": 3,
+        "theoryScore": 1,
+        "gap": "事件样本稀疏（低-中证据）；样本 <30 自停门禁",
+        "upgrade": "GA-4 → 事件研究 p<0.10 且 ≥55% → 申请"
+      },
+      {
+        "id": "M8",
+        "name": "LPR/社融信用脉冲",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "月度采集器 + 发布日 PIT 对齐",
+        "upgrade": "契约 M8 upgradePath → 申请"
+      },
+      {
+        "id": "M9",
+        "name": "CPI/PPI 再通胀",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "同上（与 M10 共用采集器）",
+        "upgrade": "契约 M9 → 申请"
+      },
+      {
+        "id": "M10",
+        "name": "投资时钟象限",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "同上；与 G1 是不同模型（X7）",
+        "upgrade": "契约 M10 → 申请"
+      },
+      {
+        "id": "M11",
+        "name": "政策事件驱动",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "人工日历 ≥20 起测 / ≥40 启用",
+        "upgrade": "与 FS-09 共用日历 → 申请"
+      },
+      {
+        "id": "M12",
+        "name": "中美利差→汇率压力",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "macro-probe 加 CN10Y 锚点（同表已实测）",
+        "upgrade": "契约 M12 → 申请"
+      },
+      {
+        "id": "M13",
+        "name": "QVIX 波指过滤",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "**口径已修正（cap-4 采信 t4）**：QVIX 实测 2015-02-09 起 2800 行（11 年+），t1 的\"历史不足 3 年\"顾虑不成立；缺采集器",
+        "upgrade": "契约 M13 → 与 G1 相同 walk-forward 门槛 → 申请为 G 层组件"
+      },
+      {
+        "id": "FS-01",
+        "name": "库存分位+拐点",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "**口径已修正（cap-4 采信 t4）**：futures_inventory_em 实测仅 72 行≈3 个月（API 层确认），需增量采集 8-10 月；郑商所官方仓单加速通道",
+        "upgrade": "契约 FS-01 upgradePath → 申请"
+      },
+      {
+        "id": "FS-03",
+        "name": "月差/展期",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "月差序列构建器 + PIT 换月拼接 + 流动性门",
+        "upgrade": "契约 FS-03 → 申请"
+      },
+      {
+        "id": "FS-06",
+        "name": "库存×基差象限",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "继承 FS-01 缺口 + GA-3；显式联合模型（AND 门）已合规",
+        "upgrade": "FS-01 就绪后 → 申请"
+      },
+      {
+        "id": "FS-09",
+        "name": "政策事件驱动",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "人工日历 YAML 硬前置 ≥20 样本",
+        "upgrade": "与 M11 共用 → 申请"
+      },
+      {
+        "id": "FS-P1-04",
+        "name": "SC 库存/裂解",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "INE 官网爬虫（found-but-expensive）；SC 基差 no-source",
+        "upgrade": "数据源落地 → 评估"
+      },
+      {
+        "id": "TR-04",
+        "name": "极端偏离修复",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "GA-2/GA-3 + FinCoT 历史回溯（F6 限制）",
+        "upgrade": "契约 TR-04 → HV%ile≤60 子样本验证通过 → 申请"
+      },
+      {
+        "id": "TR-07",
+        "name": "跨期价差回归",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "价差序列构建器 + PIT 拼接纪律（与 FS-03 共用月差库）",
+        "upgrade": "契约 TR-07 → 申请"
+      },
+      {
+        "id": "TR-08",
+        "name": "跨品种相对强弱",
+        "status": "needs-extension",
+        "promise": 4,
+        "dataScore": 1,
+        "theoryScore": 2,
+        "gap": "GA-1（≥500 bars）+ GA-3",
+        "upgrade": "契约 TR-08 → 申请"
+      },
+      {
+        "id": "M2",
+        "name": "美元/人民币汇率传导",
+        "status": "needs-extension（GA-5 修复后可测）",
+        "promise": 3,
+        "dataScore": 1,
+        "theoryScore": 1,
+        "gap": "双线性 β 模型薄；2020-2021/2022 分段门禁未验",
+        "upgrade": "GA-5 → β 符号一致性 ≥70% 窗口 + 分段报告通过 → 申请"
+      },
+      {
+        "id": "FS-P1-02",
+        "name": "会员持仓蜘蛛网",
+        "status": "rejected（cap-1）",
+        "promise": 2,
+        "dataScore": 0,
+        "theoryScore": 2,
+        "gap": "**队长已裁定 OI 纪律维持不放开（cap-1/H7）**：OI 衍生类策略不得进入可执行策略集；数据侧 ready ≠ 策略侧允许",
+        "upgrade": "待用户未来明确解禁后重新评估（仍须完整五段 + §7 全流程）"
+      }
+    ]
   }
 }

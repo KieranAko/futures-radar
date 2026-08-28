@@ -1,0 +1,654 @@
+{
+  "schema": "futures-strategy-waitlist-screening/1",
+  "generatedAt": "2026-08-28T17:46:27.127Z",
+  "total": 21,
+  "ranked": [
+    {
+      "id": "M3",
+      "name": "美债实际利率→贵金属",
+      "status": "available",
+      "gap": "2024-03~2025 央行购金段 β 翻正（其证伪条款要求该段标记失效）；FRED DFII10 复活为扩展",
+      "upgrade": "分段失效标记验证 + DFII10 扩展评估 → 申请",
+      "dataScore": 3,
+      "theoryScore": 2,
+      "proxy": {
+        "AU0": {
+          "n": 1630,
+          "negBetaPct": 52.2,
+          "alignedPct": 52.2,
+          "meanAligned10dPct": 0.2407
+        },
+        "AG0": {
+          "n": 1128,
+          "negBetaPct": 54.2,
+          "alignedPct": 54.2,
+          "meanAligned10dPct": 0.1724
+        }
+      },
+      "promise": 9
+    },
+    {
+      "id": "FS-07",
+      "name": "季节性窗口",
+      "status": "available（GA-1 后）",
+      "gap": "D6：删除跨条目仓位联动 + bootstrap 显著月 ≥3 品种",
+      "upgrade": "改写后按 §7 → 申请",
+      "dataScore": 3,
+      "theoryScore": 2,
+      "proxy": {
+        "seasonality": [
+          {
+            "month": 1,
+            "n": 13700,
+            "meanPct": -0.0068
+          },
+          {
+            "month": 2,
+            "n": 11743,
+            "meanPct": -0.0218
+          },
+          {
+            "month": 3,
+            "n": 15767,
+            "meanPct": 0.1285
+          },
+          {
+            "month": 4,
+            "n": 14584,
+            "meanPct": -0.1092
+          },
+          {
+            "month": 5,
+            "n": 14488,
+            "meanPct": 1.8579
+          },
+          {
+            "month": 6,
+            "n": 14985,
+            "meanPct": 0.0592
+          },
+          {
+            "month": 7,
+            "n": 16563,
+            "meanPct": -0.0554
+          },
+          {
+            "month": 8,
+            "n": 16066,
+            "meanPct": -0.0595
+          },
+          {
+            "month": 9,
+            "n": 14174,
+            "meanPct": -0.0075
+          },
+          {
+            "month": 10,
+            "n": 11853,
+            "meanPct": 0.0762
+          },
+          {
+            "month": 11,
+            "n": 14948,
+            "meanPct": -0.0253
+          },
+          {
+            "month": 12,
+            "n": 15545,
+            "meanPct": 0.0107
+          }
+        ]
+      },
+      "promise": 8
+    },
+    {
+      "id": "TR-02",
+      "name": "压缩→扩张突破",
+      "status": "available",
+      "gap": "证据 C 未回测；与 TR-01 确认逻辑重叠（D4）",
+      "upgrade": "先跑理论级证伪（压缩态 vs 非压缩态）→ 申请",
+      "dataScore": 3,
+      "theoryScore": 1,
+      "proxy": {
+        "A0": {
+          "n": 256,
+          "expanded": 256,
+          "meanFwdPct": -0.0622
+        },
+        "AG0": {
+          "n": 216,
+          "expanded": 216,
+          "meanFwdPct": 0.5404
+        },
+        "AL0": {
+          "n": 291,
+          "expanded": 291,
+          "meanFwdPct": 1.0282
+        },
+        "AO0": {
+          "n": 22,
+          "expanded": 22,
+          "meanFwdPct": 2.1368
+        },
+        "AP0": {
+          "n": 88,
+          "expanded": 88,
+          "meanFwdPct": -1.9418
+        },
+        "AU0": {
+          "n": 279,
+          "expanded": 279,
+          "meanFwdPct": 0.6456
+        },
+        "B0": {
+          "n": 332,
+          "expanded": 332,
+          "meanFwdPct": -0.2016
+        },
+        "BC0": {
+          "n": 63,
+          "expanded": 63,
+          "meanFwdPct": 0.5153
+        },
+        "BR0": {
+          "n": 27,
+          "expanded": 27,
+          "meanFwdPct": 2.4493
+        },
+        "BU0": {
+          "n": 127,
+          "expanded": 127,
+          "meanFwdPct": 0.361
+        },
+        "C0": {
+          "n": 274,
+          "expanded": 274,
+          "meanFwdPct": 0.2881
+        },
+        "CF0": {
+          "n": 287,
+          "expanded": 287,
+          "meanFwdPct": 0.59
+        },
+        "CJ0": {
+          "n": 77,
+          "expanded": 77,
+          "meanFwdPct": 0.3037
+        },
+        "CS0": {
+          "n": 96,
+          "expanded": 96,
+          "meanFwdPct": -291.6848
+        },
+        "CU0": {
+          "n": 267,
+          "expanded": 267,
+          "meanFwdPct": 1.2922
+        },
+        "EB0": {
+          "n": 29,
+          "expanded": 29,
+          "meanFwdPct": 0.101
+        },
+        "EC0": {
+          "n": 31,
+          "expanded": 31,
+          "meanFwdPct": 0.1189
+        },
+        "EG0": {
+          "n": 52,
+          "expanded": 52,
+          "meanFwdPct": 1.6675
+        },
+        "FG0": {
+          "n": 147,
+          "expanded": 147,
+          "meanFwdPct": -0.0791
+        },
+        "FU0": {
+          "n": 273,
+          "expanded": 273,
+          "meanFwdPct": 0.1392
+        },
+        "HC0": {
+          "n": 128,
+          "expanded": 128,
+          "meanFwdPct": 0.7802
+        },
+        "I0": {
+          "n": 107,
+          "expanded": 107,
+          "meanFwdPct": 2.4531
+        },
+        "J0": {
+          "n": 137,
+          "expanded": 137,
+          "meanFwdPct": 1.2287
+        },
+        "JD0": {
+          "n": 117,
+          "expanded": 117,
+          "meanFwdPct": -1.9555
+        },
+        "JM0": {
+          "n": 114,
+          "expanded": 114,
+          "meanFwdPct": 0.0139
+        },
+        "L0": {
+          "n": 174,
+          "expanded": 174,
+          "meanFwdPct": 1.4853
+        },
+        "LC0": {
+          "n": 22,
+          "expanded": 22,
+          "meanFwdPct": -0.5637
+        },
+        "LH0": {
+          "n": 77,
+          "expanded": 77,
+          "meanFwdPct": -2.8331
+        },
+        "LU0": {
+          "n": 37,
+          "expanded": 37,
+          "meanFwdPct": -0.096
+        },
+        "M0": {
+          "n": 262,
+          "expanded": 262,
+          "meanFwdPct": 0.3304
+        },
+        "MA0": {
+          "n": 86,
+          "expanded": 86,
+          "meanFwdPct": 1.7538
+        },
+        "NI0": {
+          "n": 103,
+          "expanded": 103,
+          "meanFwdPct": 1.7926
+        },
+        "NR0": {
+          "n": 59,
+          "expanded": 59,
+          "meanFwdPct": 2.0955
+        },
+        "OI0": {
+          "n": 226,
+          "expanded": 226,
+          "meanFwdPct": 0.9765
+        },
+        "P0": {
+          "n": 165,
+          "expanded": 165,
+          "meanFwdPct": 0.8542
+        },
+        "PB0": {
+          "n": 201,
+          "expanded": 201,
+          "meanFwdPct": 0.5214
+        },
+        "PF0": {
+          "n": 30,
+          "expanded": 30,
+          "meanFwdPct": 0.8584
+        },
+        "PG0": {
+          "n": 47,
+          "expanded": 47,
+          "meanFwdPct": -0.3926
+        },
+        "PK0": {
+          "n": 64,
+          "expanded": 64,
+          "meanFwdPct": -0.6585
+        },
+        "PP0": {
+          "n": 103,
+          "expanded": 103,
+          "meanFwdPct": 1.1502
+        },
+        "PX0": {
+          "n": 24,
+          "expanded": 24,
+          "meanFwdPct": 0.1229
+        },
+        "RB0": {
+          "n": 181,
+          "expanded": 181,
+          "meanFwdPct": 0.6335
+        },
+        "RM0": {
+          "n": 123,
+          "expanded": 123,
+          "meanFwdPct": 0.5175
+        },
+        "RU0": {
+          "n": 245,
+          "expanded": 245,
+          "meanFwdPct": 1.553
+        },
+        "SA0": {
+          "n": 60,
+          "expanded": 60,
+          "meanFwdPct": 2.7482
+        },
+        "SC0": {
+          "n": 73,
+          "expanded": 73,
+          "meanFwdPct": 0.4048
+        },
+        "SF0": {
+          "n": 153,
+          "expanded": 153,
+          "meanFwdPct": 1.0131
+        },
+        "SH0": {
+          "n": 28,
+          "expanded": 28,
+          "meanFwdPct": 1.2615
+        },
+        "SI0": {
+          "n": 42,
+          "expanded": 42,
+          "meanFwdPct": 0.1228
+        },
+        "SM0": {
+          "n": 121,
+          "expanded": 121,
+          "meanFwdPct": 0.2241
+        },
+        "SN0": {
+          "n": 127,
+          "expanded": 127,
+          "meanFwdPct": 1.7942
+        },
+        "SP0": {
+          "n": 83,
+          "expanded": 83,
+          "meanFwdPct": -1.12
+        },
+        "SR0": {
+          "n": 198,
+          "expanded": 198,
+          "meanFwdPct": -0.0261
+        },
+        "SS0": {
+          "n": 50,
+          "expanded": 50,
+          "meanFwdPct": 0.5888
+        },
+        "TA0": {
+          "n": 192,
+          "expanded": 192,
+          "meanFwdPct": 1.2403
+        },
+        "UR0": {
+          "n": 53,
+          "expanded": 53,
+          "meanFwdPct": -0.295
+        },
+        "V0": {
+          "n": 172,
+          "expanded": 172,
+          "meanFwdPct": 0.6865
+        },
+        "Y0": {
+          "n": 197,
+          "expanded": 197,
+          "meanFwdPct": 0.8752
+        },
+        "ZN0": {
+          "n": 178,
+          "expanded": 178,
+          "meanFwdPct": 0.8679
+        }
+      },
+      "promise": 8
+    },
+    {
+      "id": "TR-05",
+      "name": "区间+移交",
+      "status": "available",
+      "gap": "D4：移交机制在 v2 禁止；A 模式默认停用",
+      "upgrade": "重设计自带突破后管理模型 → 申请",
+      "dataScore": 3,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 8
+    },
+    {
+      "id": "M7",
+      "name": "美债事件冲击",
+      "status": "available",
+      "gap": "事件样本稀疏（低-中证据）；样本 <30 自停门禁",
+      "upgrade": "GA-4 → 事件研究 p<0.10 且 ≥55% → 申请",
+      "dataScore": 3,
+      "theoryScore": 1,
+      "proxy": null,
+      "promise": 7
+    },
+    {
+      "id": "M8",
+      "name": "LPR/社融信用脉冲",
+      "status": "needs-extension",
+      "gap": "月度采集器 + 发布日 PIT 对齐",
+      "upgrade": "契约 M8 upgradePath → 申请",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "M9",
+      "name": "CPI/PPI 再通胀",
+      "status": "needs-extension",
+      "gap": "同上（与 M10 共用采集器）",
+      "upgrade": "契约 M9 → 申请",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "M10",
+      "name": "投资时钟象限",
+      "status": "needs-extension",
+      "gap": "同上；与 G1 是不同模型（X7）",
+      "upgrade": "契约 M10 → 申请",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "M11",
+      "name": "政策事件驱动",
+      "status": "needs-extension",
+      "gap": "人工日历 ≥20 起测 / ≥40 启用",
+      "upgrade": "与 FS-09 共用日历 → 申请",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "M12",
+      "name": "中美利差→汇率压力",
+      "status": "needs-extension",
+      "gap": "macro-probe 加 CN10Y 锚点（同表已实测）",
+      "upgrade": "契约 M12 → 申请",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "M13",
+      "name": "QVIX 波指过滤",
+      "status": "needs-extension",
+      "gap": "**口径已修正（cap-4 采信 t4）**：QVIX 实测 2015-02-09 起 2800 行（11 年+），t1 的\"历史不足 3 年\"顾虑不成立；缺采集器",
+      "upgrade": "契约 M13 → 与 G1 相同 walk-forward 门槛 → 申请为 G 层组件",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "FS-01",
+      "name": "库存分位+拐点",
+      "status": "needs-extension",
+      "gap": "**口径已修正（cap-4 采信 t4）**：futures_inventory_em 实测仅 72 行≈3 个月（API 层确认），需增量采集 8-10 月；郑商所官方仓单加速通道",
+      "upgrade": "契约 FS-01 upgradePath → 申请",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "FS-03",
+      "name": "月差/展期",
+      "status": "needs-extension",
+      "gap": "月差序列构建器 + PIT 换月拼接 + 流动性门",
+      "upgrade": "契约 FS-03 → 申请",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "FS-06",
+      "name": "库存×基差象限",
+      "status": "needs-extension",
+      "gap": "继承 FS-01 缺口 + GA-3；显式联合模型（AND 门）已合规",
+      "upgrade": "FS-01 就绪后 → 申请",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "FS-09",
+      "name": "政策事件驱动",
+      "status": "needs-extension",
+      "gap": "人工日历 YAML 硬前置 ≥20 样本",
+      "upgrade": "与 M11 共用 → 申请",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "FS-P1-04",
+      "name": "SC 库存/裂解",
+      "status": "needs-extension",
+      "gap": "INE 官网爬虫（found-but-expensive）；SC 基差 no-source",
+      "upgrade": "数据源落地 → 评估",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "TR-04",
+      "name": "极端偏离修复",
+      "status": "needs-extension",
+      "gap": "GA-2/GA-3 + FinCoT 历史回溯（F6 限制）",
+      "upgrade": "契约 TR-04 → HV%ile≤60 子样本验证通过 → 申请",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "TR-07",
+      "name": "跨期价差回归",
+      "status": "needs-extension",
+      "gap": "价差序列构建器 + PIT 拼接纪律（与 FS-03 共用月差库）",
+      "upgrade": "契约 TR-07 → 申请",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "TR-08",
+      "name": "跨品种相对强弱",
+      "status": "needs-extension",
+      "gap": "GA-1（≥500 bars）+ GA-3",
+      "upgrade": "契约 TR-08 → 申请",
+      "dataScore": 1,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 4
+    },
+    {
+      "id": "M2",
+      "name": "美元/人民币汇率传导",
+      "status": "needs-extension（GA-5 修复后可测）",
+      "gap": "双线性 β 模型薄；2020-2021/2022 分段门禁未验",
+      "upgrade": "GA-5 → β 符号一致性 ≥70% 窗口 + 分段报告通过 → 申请",
+      "dataScore": 1,
+      "theoryScore": 1,
+      "proxy": {
+        "CU0": {
+          "n": 1463,
+          "negBetaPct": 48.9,
+          "alignedPct": 48.9,
+          "meanAligned10dPct": -0.0548
+        },
+        "AL0": {
+          "n": 1463,
+          "negBetaPct": 50.6,
+          "alignedPct": 50.6,
+          "meanAligned10dPct": 0.1028
+        },
+        "ZN0": {
+          "n": 1463,
+          "negBetaPct": 49.6,
+          "alignedPct": 49.6,
+          "meanAligned10dPct": -0.0021
+        },
+        "M0": {
+          "n": 1463,
+          "negBetaPct": 45.9,
+          "alignedPct": 45.9,
+          "meanAligned10dPct": -0.1942
+        },
+        "RM0": {
+          "n": 1459,
+          "negBetaPct": 47.2,
+          "alignedPct": 47.2,
+          "meanAligned10dPct": -0.0646
+        },
+        "P0": {
+          "n": 1461,
+          "negBetaPct": 50.2,
+          "alignedPct": 50.2,
+          "meanAligned10dPct": 0.1174
+        },
+        "Y0": {
+          "n": 1463,
+          "negBetaPct": 49,
+          "alignedPct": 49,
+          "meanAligned10dPct": -0.06
+        }
+      },
+      "promise": 3
+    },
+    {
+      "id": "FS-P1-02",
+      "name": "会员持仓蜘蛛网",
+      "status": "rejected（cap-1）",
+      "gap": "**队长已裁定 OI 纪律维持不放开（cap-1/H7）**：OI 衍生类策略不得进入可执行策略集；数据侧 ready ≠ 策略侧允许",
+      "upgrade": "待用户未来明确解禁后重新评估（仍须完整五段 + §7 全流程）",
+      "dataScore": 0,
+      "theoryScore": 2,
+      "proxy": null,
+      "promise": 2
+    }
+  ],
+  "note": "只用于筛选/扩充决策；不改变库状态；代理测试不替代证伪。"
+}
