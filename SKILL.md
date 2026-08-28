@@ -1,7 +1,7 @@
 ---
 name: futures-radar
 description: 期货短期机会分析 + 离线模型回测——每日扫描~60个国内期货主力合约，波动率排名→Top 3深挖→4章短报告；research/backtest/ 支持 deterministic 与 LLM replay 回测
-version: 0.1.18
+version: 0.1.19
 ---
 
 # futures-radar
@@ -17,7 +17,7 @@ version: 0.1.18
 - **数据文件库**：`data/` + `data-store/`（每日行情/ledger/合约bars/宏观快照/板块序列，维护命令见 `data/README.md`）
 - **交易策略板块**：`node strategies/build-strategy-plan.cjs --runId <runId>` 生成 `strategy-plan.json`；报告渲染自动附「五、交易策略板块（执行参考）」章节（缺失时跳过，四章不变）。策略为方向增强/执行参考：不构成投资建议、无收益承诺、不使用新增持仓数据（见 `strategies/README.md`）
 - **证伪反馈机制**：`build-strategy-plan.cjs` 自动把 executable 计划冻结到 `data/strategy-feedback/ledger/`，并在下次运行用锚定合约序列验证 T+1 触发、止损/目标/时间离场并输出归因 codes；报告策略板块回显往期证伪结果
-- **信号质量回测**：固定 RB0/M0/SC0、2 年历史（500 交易日）+ 每 5 交易日 LLM 锚点，确定性规则延续生成信号，T+1 收盘确认/T+2 开盘执行/止损/目标/时间退出验证。v1/v2 基线（`runner.cjs` → `signal-quality-baseline.md/json`、`signal-quality-baseline-2y.md/json`）冻结保留；v3（`runner-v3.cjs` → `signal-quality-baseline-v3.md/json`）不做参数选优，改为证伪 LLM 定性判断（regime/edge/triggerType/qualityFlags/thesis），并与纯量化 MA20 对照臂比较；v4（`runner-v4.cjs` → `signal-quality-baseline-v4.md/json`）为最近 10 锚点×3 品种试点：宏观/板块/事件日历上下文 + 完整六问 FinCoT → 报告式操作策略 → 严格执行；v5（`runner-v5.cjs` → `signal-quality-baseline-v5.md/json`）为 20 锚点×3 品种高效版：紧凑 bundle + 变化检测按需重跑 FinCoT + C 臂强制消费 FinCoT；v6（`runner-v6.cjs` → `signal-quality-baseline-v6.md/json`）为五道安全闸初版；v6.1（`runner-v6-1.cjs` → `signal-quality-baseline-v6-1.md/json`）为硬约束修正版；v7（`runner-v7.cjs` → `signal-quality-baseline-v7.md/json`）以 FinCoT 论文（arXiv:2506.16123）为推理根基：5 个领域蓝图 + thinking/output/selfCheck + 安全执行，10 锚点试点；v7 适配器（`adapters/strategy-plan-adapter.cjs`）把 FinCoT 分析包装成生产 run 形状，原样调用 `strategy-matcher` 产出 30 份 `strategy-plan.json`；v8 执行引擎（`runner-v8.cjs`）只读 strategy-plan 字段执行（T+1 开盘/T+1 收盘两种语义、跳空放弃、止损/目标/失效/时间退出）——FinCoT 只做分析，策略库适配策略，执行层按策略执行
+- **信号质量回测**：固定 RB0/M0/SC0、2 年历史（500 交易日）+ 每 5 交易日 LLM 锚点，确定性规则延续生成信号，T+1 收盘确认/T+2 开盘执行/止损/目标/时间退出验证。v1/v2 基线（`runner.cjs` → `signal-quality-baseline.md/json`、`signal-quality-baseline-2y.md/json`）冻结保留；v3（`runner-v3.cjs` → `signal-quality-baseline-v3.md/json`）不做参数选优，改为证伪 LLM 定性判断（regime/edge/triggerType/qualityFlags/thesis），并与纯量化 MA20 对照臂比较；v4（`runner-v4.cjs` → `signal-quality-baseline-v4.md/json`）为最近 10 锚点×3 品种试点：宏观/板块/事件日历上下文 + 完整六问 FinCoT → 报告式操作策略 → 严格执行；v5（`runner-v5.cjs` → `signal-quality-baseline-v5.md/json`）为 20 锚点×3 品种高效版：紧凑 bundle + 变化检测按需重跑 FinCoT + C 臂强制消费 FinCoT；v6（`runner-v6.cjs` → `signal-quality-baseline-v6.md/json`）为五道安全闸初版；v6.1（`runner-v6-1.cjs` → `signal-quality-baseline-v6-1.md/json`）为硬约束修正版；v7（`runner-v7.cjs` → `signal-quality-baseline-v7.md/json`）以 FinCoT 论文（arXiv:2506.16123）为推理根基：5 个领域蓝图 + thinking/output/selfCheck + 安全执行，10 锚点试点；v7 适配器（`adapters/strategy-plan-adapter.cjs`）把 FinCoT 分析包装成生产 run 形状，原样调用 `strategy-matcher` 产出 30 份 `strategy-plan.json`；v8 执行引擎（`runner-v8.cjs`）只读 strategy-plan 字段执行；v8.1 增加定价层（`pricing-layer-v8.cjs`：F1 触发价 2×ATR 带、F2 q4 类型一致、F3 range/transition 禁 breakout、F5 breakout 必须有结构目标、F4 目标距离审计）+ `runner-v8-1.cjs` 只执行定价层放行计划——FinCoT 只做分析，策略库适配策略，执行层按策略执行
 
 ## 触发条件
 

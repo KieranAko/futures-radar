@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.19（2026-08-28）
+
+- **V8.1 定价层（F1-F5 落地）**：新增 `pricing-layer-v8.cjs`——对 30 份生产 strategy-plan 做确定性定价审计：F1 触发价须在锚点日 ±2×ATR 可执行带；F2 q4 类型与 triggerSource 类型一致；F3 range/transition 禁止 breakout；F5 breakout 必须有结构目标（前高/前低），不得用概率锥代理兜底；F4 记录目标距离 ATR（只报告不降级）。`runner-v8-1.cjs` 只执行 `effectiveExecutionStatus=executable` 的计划
+- **定价层结果**：30 计划原始 executable 12 → 放行 **6**（降级 6：F1 触发价超带 4、F3+F5 各 2）；被降级计划携带结构化原因与审计字段（f1BandAtr/structuralTarget/target1Atr/stopBasis）
+- **V8.1 执行**：6 个放行计划 → 2 成交（方向正确率 50%，毛 -0.01%/净 -0.35%）；跳空放弃从 v8 的 7 降到 3、trigger_miss 从 3 降到 1——定价层主要过滤的是脱离实际的开盘触发价
+- **版本对齐**：VERSION.md / package.json / SKILL.md / README.md / pipeline banner 统一为 0.1.19；新增 `npm run signal:backtest:v8-1`
+- 新增 signal-backtest-v8-1 测试 2 条（定价层审计字段/降级原因/v8-1 放行口径）；全量测试 636 → 638（121 → 122 套件）
+
 ## 0.1.18（2026-08-28）
 
 - **V8 生产 strategy-plan 执行引擎**：新增 `runner-v8.cjs`——只读 `recordings/v7/strategy-plans/*.json` 的生产计划字段执行，完成“FinCoT 分析 → 策略库适配 → 按策略执行”闭环。支持 `T+1 开盘执行`（PB-03/PB-08）与 `T+1 收盘确认`（PB-07）两种 triggerTiming；按 plan 的 trigger/stop/targets/invalidation/maxHoldingDays 执行，跳空阈值按 execution 文本（0.5/0.75×ATR5），目标从概率锥/R 口径代理解析
