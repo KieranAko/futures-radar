@@ -1,0 +1,2247 @@
+{
+  "library": {
+    "name": "futures-strategy-library",
+    "version": "2.0.0-draft",
+    "stage": "t6 初稿（designed 状态，参数待标定）",
+    "compiledAt": "2026-08-28",
+    "compiledBy": "strategy-librarian (t6)",
+    "repoRoot": "futures-radar",
+    "schema": "futures-strategy-entry-v2/1",
+    "designDoc": "strategies/research/v2/05-strategy-library-design.md",
+    "designDocVersion": "v1.2（2026-08-28，并入队长裁定 cap-1..cap-6）",
+    "dataContractFile": "strategies/research/v2/04-data-contracts.json",
+    "sourceDocs": [
+      "strategies/research/v2/01-macro-theories.md (t1)",
+      "strategies/research/v2/02-fundamental-theories.md (t2)",
+      "strategies/research/v2/03-trading-theories.md (t3)",
+      "strategies/research/v2/04-data-audit.md + 04-data-contracts.json (t4)"
+    ],
+    "disclaimer": "本文件为策略库 v2 研究初稿，不构成投资建议。全部参数均为待标定初值（非冻结值），无任何回测收益数字被编造；GA-1..GA-6 数据前置动作完成前，任何条目不得宣称可用。所有字段与阈值逐字溯源 t1/t2/t3/t5 原文。"
+  },
+  "globalConstraints": {
+    "GC-1": {
+      "id": "GC-1",
+      "name": "FinCoT 只做分析层、不参与定价（全局约束）",
+      "constraint": "FinCoT 文本/分析层输出的价位与概率（thesis.odds/confirm/invalidation、Q4 确认文本、报告价位）禁止进入任何止损/目标/仓位计算；confidenceScale 由策略自身 edge 强度档驱动，FinCoT confidence 不进入定价与仓位（D11）。cap-6 例外：probability.json 的 Yang-Zhang 定量概率锥（3d/5d，定量管线，非 FinCoT 产出）允许作为目标定价的波动投影边界（仅 p68/p95，且与固定 R 倍数共同构成『先到者』，锥不单独定价），禁止用于止损与仓位；provenance 必须为 probability.json，禁止来自 reasoning-results/FinCoT 文本价位；回测中锥按 T 日及以前数据 PIT 重算（F8 延伸）",
+      "scope": "全部核心策略条目 + 治理层 + 组合层",
+      "machineCheck": "MC-2",
+      "source": "t1 §0.4 / t2 §0.3 / t3 §0.1 + 队长批复 D11"
+    }
+  },
+  "globalAsOfContract": {
+    "source": "t4 §5 未来函数审计 9 项纪律（cap-5 写入 schema）",
+    "items": {
+      "F1": "信号日 vs 执行日：T 日收盘评估 → T+1 开盘执行；跳空放弃条款逐条执行（TR 族 0.5–0.75×ATR5）",
+      "F2": "宏观锚点 stale/missing：US10Y T-1 滞后标 stale 并按 0.75 降权；USDCNH change5d=null 须 GA-5 修复；missing 计 0 并标注",
+      "F3": "月度数据发布滞后：社融/CPI/PMI 等必须按发布日 PIT 对齐，禁止月末即用（M8–M10 候补条目适用）",
+      "F4": "库存发布时点：EM 库存盘后发布，T 日收盘后评估合规；增量采集器留档入库时点（FS-01 候补条目适用）",
+      "F5": "换月拼接：必须 PIT（T 日时点活跃合约映射），禁止事后选合约；≥9.5% 跳变剔除；长历史保留 per-bar sources",
+      "F6": "FinCoT 文本回溯：回测只能用历史 run 产物；禁止用未来重跑文本回填历史（重跑=前视）",
+      "F7": "现货粘性：生意社挂牌价粘性/修订风险由 GA-6 质量门管理；历史回填必须 PIT 快照",
+      "F8": "滚动估计窗口：滚动 OLS/协整/ECM 只用 T 日及以前数据；冻结后样本外验证",
+      "F9": "事件日历 discipline：只允许 event.date ≤ 锚点日；禁止从价格反推事件"
+    },
+    "requirement": "每条策略条目在其 asOfContract[] 中声明对本契约各项的符合性（MC-9）；验证层按此契约逐项执行"
+  },
+  "manifest": {
+    "coreStrategyIds": [
+      "TR-01",
+      "TR-03",
+      "TR-06",
+      "FS-02",
+      "FS-04",
+      "FS-05",
+      "M1",
+      "EC-01"
+    ],
+    "coreStrategyCount": 8,
+    "families": {
+      "trading-system": [
+        "TR-01",
+        "TR-03",
+        "TR-06"
+      ],
+      "fundamental": [
+        "FS-02",
+        "FS-04",
+        "FS-05"
+      ],
+      "macro": [
+        "M1"
+      ],
+      "cost-transmission": [
+        "EC-01"
+      ]
+    },
+    "governanceComponents": [
+      "G1",
+      "G2"
+    ],
+    "allEntriesStatus": "designed",
+    "statusMachine": {
+      "states": [
+        "designed",
+        "in_validation",
+        "validated",
+        "frozen",
+        "live",
+        "suspended",
+        "re_evaluation",
+        "retired"
+      ],
+      "transitions": [
+        "designed → in_validation：数据契约满足（GA 前置完成）、回测与证伪测试执行中",
+        "in_validation → validated：证伪测试全部通过，参数冻结并写入冻结版本号",
+        "validated → frozen：入库执行",
+        "frozen → suspended：停用规则触发（连续窗口失效/样本不足自停/理论级证伪）——停止新开仓，存量按失效退出",
+        "suspended → re_evaluation：结构事件（交割规则/政策/工艺/定价机制切换）重评估",
+        "re_evaluation → validated/frozen：重跑断裂门与证伪测试通过后恢复",
+        "suspended → retired：连续失效或停用规则触发",
+        "in_validation/validated → retired：证伪测试失败"
+      ],
+      "note": "修改任何冻结参数 → 新 ID 新条目，回到 designed 重新走全流程（t5 §5.2）"
+    },
+    "decisions": {
+      "D1": "核心 8 条：TR-01、TR-03、TR-06（交易系统）；FS-02、FS-04、FS-05（基本面）；M1、EC-01（宏观/成本）。全部 available（t4），定价模型互不重叠。",
+      "D2": "M4 ⊕ FS-08 合并为 EC-01：绑定模型取 FS-08 ECM（γ<0 显著性门）；保留 M4 池资格过滤（β̂≥0.2 且 R²≥0.3）作模型资格测试；保留 M4 仓位折价 0.75；其余定价全按 FS-08。合并后 M4 与 FS-08 原条目不再作为独立条目存在（X3）。",
+      "D3": "M5/M6 定位为治理层 G1/G2，不计入核心 8 条（无方向、无自身定价）。",
+      "D4": "TR-02、TR-05 不入选核心：TR-02 入候补池；TR-05『移交他策略定价』机制在 v2 禁止（X5），候补路径只保留自模型定价的 B 模式（队长批复）。",
+      "D5": "M2、M3、M7 入候补池，保留完整升级路径。",
+      "D6": "FS-07 入库前提：(i) bootstrap 显著月覆盖 ≥3 品种；(ii) 删除原『与 FS-01 同向才全仓』条款（跨条目定价混用，违反 H3），改为模型内部 MA20 过滤 + 窗口前 20 日透支跳过；或待 FS-01 就绪后以显式联合模型引入。队长批复：必须先删除跨条目条款，确认删除后才可入库。",
+      "D7": "TR-06 FinCoT Q1 历史仅 RB0/M0/SC0（F6 禁止用未来重跑文本回填历史）：历史 walk-forward 限此 3 品种，全品种验证靠向前积累。",
+      "D8": "t4 的 8 项『数据侧复活』证据不自动入库：复活证据只解除『数据不可得』理由，仍需完整五段 + 证伪测试才可申请入库。",
+      "D9": "D9 终裁（队长批复）：FS-P1-02 会员持仓/OI 衍生策略不进入 v2 可执行集合；库内 status=rejected_by_policy（reason=OI 纪律），保留完整条目作为 P1 候补池，数据契约照录但 executable=false；OI 纪律维持至用户明确解禁。",
+      "D10": "X-04 CFTC/EIA：数据侧复活，但『与内盘无直接定价契约』的剔除理由仍成立（无模型可证伪命题）→ 维持不入库。",
+      "D11": "confidenceScale 修订：仓位缩放一律由策略自身 edge 强度档 + G1/G2 治理层执行；FinCoT confidence 只可作方向否决/降级观察（与 H1 对齐）。"
+    },
+    "captainApproval": {
+      "approvedAt": "2026-08-28（t6 编纂前最终批复）",
+      "decisionsApproved": "D1–D11 全部批准",
+      "rulingDetails": {
+        "D2": "EC-01 = M4 ⊕ FS-08 合并成立（已执行：绑定 FS-08 ECM，保留 M4 池资格过滤与 0.75 折价）",
+        "D4": "v2 禁止 TR-05『移交他策略定价』；TR-05 候补路径只保留自模型定价的 B 模式",
+        "D6": "FS-07 必须先删除『与 FS-01 同向才全仓』跨条目条款，确认删除后才可入库",
+        "D9": "终裁：FS-P1-02 会员持仓/OI 衍生策略不进入 v2 可执行集合；status=rejected_by_policy（reason=OI 纪律）；保留完整条目作为 P1 候补池，数据契约照录但 executable=false；OI 纪律维持至用户明确解禁",
+        "D11": "confidenceScale 由策略自身 edge 强度档驱动；FinCoT confidence 不进入定价与仓位"
+      },
+      "coreStrategyNote": "8 条核心策略全部按 available 进入 v2；每条 prerequisites 必须引用 GA-1/GA-2 等全局前置动作",
+      "machineReadabilityNote": "MC-1..7 机器硬校验（machineChecks）与 X1–X10 禁止混用清单（crossStrategyProhibitions）为库内机读字段；GC-1 为 FinCoT 全局约束字段",
+      "v11Sync": "已按 05-strategy-library-design.md v1.1 编纂：cap-1..cap-5（capRulings）、H7/X11（OI 衍生禁入）、MC-8/MC-9、asOfContract[] F1–F9、TR-03/TR-06 OIΔ 默认禁用替代、FS-P1-02 候补池 rejected（cap-1）"
+    },
+    "capRulings": {
+      "cap-1": "OI 纪律维持原状，不放开：FS-P1-02 会员持仓排名/OI 衍生类策略继续不得进入可执行策略集；数据侧 ready 不代表策略侧允许。『OI 衍生禁入』写为库级硬约束 H7；该策略保留 P1/rejected 留档，待用户未来明确解禁后重新评估。落位：H7、X11、D9、TR-03/TR-06（OIΔ 条件默认禁用并以量价条件替代）、waitlist。",
+      "cap-2": "t4 探索复活项采纳：TIPS breakeven（FRED DFII10）、CBOE VIX（FRED VIXCLS）、LME 外盘（futures_foreign_hist）、人民币金溢价（XAU×USDCNH 隐含）按 found-efficient-source 记录，作为 P1 扩展策略的数据基础（M3 扩展 / G1 交叉验证锚 / M2 沪伦比扩展 / 观察项）；仍需数据接入与质量门，不得直接升 P0。落位：waitlist.revivalAdoptions。",
+      "cap-3": "GA-1..GA-6 全局前置动作是『落地门槛』：available 策略进入可执行集合前必须满足 GA-1（全历史回填）/GA-2（派生字段全品种批量）；每条 P0 策略显式标注 prerequisites=GA-id，不允许隐式假设数据已就绪。落位：各条目 prerequisites、MC-8。",
+      "cap-4": "上游声明修正直接采信：probability.json 仅 KEEP 品种、futures_inventory_em 仅 3 个月历史、QVIX 2015-02-09 起 11 年可用——修正相关条目口径后再进入库。落位：governance.G2、waitlist（M13/FS-01 口径修正）。",
+      "cap-5": "未来函数审计 9 项纪律（t4 §5 F1–F9）写进库 schema：T+1 执行、换月 PIT、月度发布日对齐、FinCoT 历史禁未来重跑等，作为 strategy-library-v2 的全局契约字段。落位：globalAsOfContract F1–F9、各条目 asOfContract、MC-9。",
+      "cap-6": "概率锥口径（t9 F-01 裁定，architect 确认）：H1 禁止对象修正为 FinCoT 文本/分析层输出的价位与概率（thesis.odds/confirm/invalidation、Q4 确认文本、报告价位）；probability.json 的 Yang-Zhang 定量概率锥（3d/5d，定量管线计算，非 FinCoT 产出）属策略自身市场模型的波动率投影，仅允许用于目标定价（edge 衰减边界，如 3d p95/p68 上/下沿），禁止用于止损与仓位；锥值必须 provenance=probability.json，回测按 T 日及以前数据 PIT 重算（F8 延伸）。落位：H1、MC-2/MC-10、X1、TR-01/03/06 目标行、TR-03 prerequisites GA-2。"
+    },
+    "hardConstraints": {
+      "H1": "FinCoT 只做分析层：FinCoT 文本/分析层输出的价位与概率（thesis.odds/confirm/invalidation、Q4 确认文本、报告价位）禁止进入任何止损/目标/仓位计算。cap-6 例外：probability.json 的 Yang-Zhang 定量概率锥（3d/5d，由原始 OHLC 经定量管线计算，非 FinCoT 产出）允许作为目标定价的波动投影边界（仅 p68/p95，且与固定 R 倍数共同构成『先到者』，锥不单独定价），禁止用于止损与仓位；锥值必须 provenance=probability.json，禁止来自 reasoning-results/FinCoT 文本价位。",
+      "H2": "定价自模型导出：止损=理论失效点；目标=edge 衰减点；仓位=edge 强度；定价字段必须引用本条目市场模型方程。",
+      "H3": "理论/模型/定价不可跨条目混用：需要联合信息时必须以显式联合模型成为新条目；公共数据层可作状态输入，不构成模型混用。",
+      "H4": "数据契约绑定：每条目 dataContract.ref 必须指向 04-data-contracts.json 条目键；needs-extension 条目不得以 available 身份入库。",
+      "H5": "参数纪律：来源四类（literature/industry-practice/repo-convention/calibration）；初值待标定；证伪测试通过后冻结；改冻结参数 = 新策略新 ID。",
+      "H6": "风险框架外层不变：risk-framework.md Hard 项（单笔 1% 风险、组合风险 ≤2.5%、组合波动目标 ≤20%、停板可执行性、回撤阶梯、保证金 ≤33% 等）为全库外层硬约束；唯一修订见 D11。",
+      "H7": "OI 衍生禁入（cap-1）：会员持仓排名/OI 衍生类策略不得进入可执行策略集；FS-P1-02 保留 P1/rejected 留档，待用户未来明确解禁后重新评估；已入库条目的 OIΔ 条件默认禁用并以量价条件替代（TR-03/TR-06）。"
+    },
+    "freezeDiscipline": {
+      "initial": "全部阈值/倍数/窗口均为待标定初值，任何入库条目必须先跑完验证流程",
+      "calibrationOnlyHistory": "滚动估计窗口只用信号日 T 及以前数据（F8）；禁止按样本内结果调参",
+      "freeze": "策略级证伪测试通过 + 理论级证伪未触发 → 参数冻结，写入冻结版本号与冻结日期",
+      "modifyEqualsNewStrategy": "任何冻结参数改动 → 新条目新 ID，从 designed 重新走全流程",
+      "structuralReevaluation": "交割规则/政策/工艺/定价机制切换 → re_evaluation，重跑断裂门与证伪测试",
+      "resumeFromSuspension": "suspended 条目复活 = 重新标定 + 全部门禁重跑，不接受小幅修参直接恢复"
+    }
+  },
+  "governance": {
+    "G1": {
+      "id": "G1",
+      "name": "风险偏好 regime 过滤器（五锚点评分）",
+      "source": "t1 §M5",
+      "role": "组合级过滤：只缩放/否决，不产生方向、不产生止损/目标/仓位数值（X10）",
+      "stateVariables": [
+        "R_t = Σ_{k=1..5} 1(条件_k)：① DXY.change5d < 0；② US10Y.change5d < +0.20pp；③ USDCNH.change5d < 0；④ DR007 < 2.0% 且 change5d < +0.5pp；⑤ SC0.change5d > −1%"
+      ],
+      "rules": [
+        "R ≥ 3 → 顺周期多头候选满仓执行、空头候选半仓",
+        "R ≤ 1 → 禁止多头新仓、空头正常",
+        "1.5 < R < 3 → 所有信号半仓",
+        "极端预警：US10Y.change5d ≥ +0.25pp 或 DXY.change5d ≥ +1% 单锚触发 → 全部 regime 依赖仓位提前降半"
+      ],
+      "dataContract": {
+        "ref": "M5",
+        "status": "available",
+        "requiredGAs": [
+          "GA-4",
+          "GA-5"
+        ],
+        "note": "stale 锚点计 0.75、missing 计 0"
+      },
+      "falsificationTests": {
+        "strategyLevel": {
+          "test": "walk-forward 6 个月窗口：R≥3 期顺周期多头命中率 vs 同池无过滤基线必须提升 ≥ 5pp（R≤1 期同理）",
+          "killRule": "连续 2 窗口无提升 → 停用过滤（退化回无过滤原样执行）"
+        },
+        "anchorLevel": {
+          "test": "锚点相关性 24 月滚动符号翻转 → 剔除该锚重标定",
+          "killRule": "不得沿用旧阈值"
+        }
+      }
+    },
+    "G2": {
+      "id": "G2",
+      "name": "波动率目标 overlay",
+      "source": "t1 §M6（与 risk-framework §2 同源）",
+      "role": "组合级仓位缩放：只缩放/否决，不产生方向、不产生止损/目标数值（X10）",
+      "stateVariables": [
+        "σ_i,t = hv.annual（20 日 Yang-Zhang 年化）",
+        "scale_i = clamp(σ_target/max(σ_i,t, 0.05), 0.2, 1.0)，σ_target 默认 0.15",
+        "divergence.pct、volPercentile（probability 派生）"
+      ],
+      "rules": [
+        "divergence.pct < 10% → 全 scale",
+        "10–20% → ×0.75",
+        ">20% 或 hv.degraded → ×0.5；『止损改 ATR5 口径』仅适用于以 ATR5 计价的条目（TR-01/TR-03/TR-06/M1）；以 σ̂/σ̂_e 计价的条目（FS-02/FS-05/EC-01）当日禁开新仓，不改变其止损口径（t9 F-05 修订：G2 不得改变止损数值，X10）",
+        "volPercentile ≥ 85 → 减半且仅高 edge 档可执行",
+        "volPercentile ≥ 95 → scale ≤ 0.5",
+        "risk-framework 同口径：单仓波动贡献目标 10%（5%–15%）、组合波动目标 ≤20% Hard"
+      ],
+      "dataContract": {
+        "ref": "M6",
+        "status": "available",
+        "requiredGAs": [
+          "GA-2"
+        ],
+        "note": "GA-2 全品种批量运行前置；口径修正（cap-4）：probability.json 每 run 仅覆盖 KEEP 品种 1–3 个，全品种 hv/volPercentile 依赖 GA-2 批量 runner，未运行前 G2 只对已有品种生效"
+      },
+      "falsificationTests": {
+        "strategyLevel": {
+          "test": "同一底层信号『固定仓位 vs scale 缩放』两臂对比 24 个月",
+          "killRule": "缩放臂夏普不优于固定臂 → 退回固定仓位（保留 volPercentile≥95 硬减仓门禁）"
+        }
+      }
+    }
+  },
+  "portfolioDiscipline": [
+    {
+      "rule": "单笔风险预算",
+      "parameter": "1R = 风险金额 = 止损距离×乘数×手数 ≤ 权益 1.0%",
+      "type": "Hard（risk-framework §1）"
+    },
+    {
+      "rule": "组合风险预算",
+      "parameter": "全部持仓风险合计 ≤ 权益 2.5%",
+      "type": "Hard"
+    },
+    {
+      "rule": "组合波动目标",
+      "parameter": "≤ 20% 年化",
+      "type": "Hard"
+    },
+    {
+      "rule": "并发持仓",
+      "parameter": "≤ 3；同板块 ≤ 1",
+      "type": "Hard"
+    },
+    {
+      "rule": "保证金",
+      "parameter": "占用 ≤ 33%；1 手保证金 > 20% 权益 → 观察不执行",
+      "type": "Hard"
+    },
+    {
+      "rule": "停板可执行性",
+      "parameter": "止损距离 ≤ 0.8×涨跌停幅度；现价距停板 < 1×ATR5 不开新仓；锁板只挂条件单",
+      "type": "Hard（t3 §0.3）"
+    },
+    {
+      "rule": "长假/隔周",
+      "parameter": "长假（≥3 日休市）前最后交易日收盘前保证金占用降至 20% 以下或平仓；周一开盘跳空 > 0.5×ATR5 按条目失效/重估条款处理，不追价",
+      "type": "Hard（risk-framework §6 / t3 §0.3；t9 F-02 提升为组合层 Hard 项）"
+    },
+    {
+      "rule": "回撤阶梯",
+      "parameter": "0–5% 正常；5–8% ×0.5；8–12% ×0.25 仅高 edge 档；≥12% 停止新开仓",
+      "type": "Hard"
+    },
+    {
+      "rule": "趋势族同向敞口合并",
+      "parameter": "TR-01 与 TR-03 同品种同方向持仓合计只占 1 份单笔风险预算（风险聚合，不是模型混用）",
+      "type": "策略库级"
+    },
+    {
+      "rule": "事件样本门禁",
+      "parameter": "TR-06 滚动 24 月事件 < 30 → 自动停用；M7 同规则（若未来入库）",
+      "type": "策略库级"
+    },
+    {
+      "rule": "事件日历联动暂停",
+      "parameter": "政策/贸易/储备事件生效期 → FS-04/FS-05/EC-01 按各自数据契约条款暂停新开仓（数据层前提开关）",
+      "type": "策略库级"
+    },
+    {
+      "rule": "M1 篮子豁免",
+      "parameter": "M1 信号篮子：黑色（RB0/HC0/J0）取 |β̂| 最强 1 个 + 建材（SA0/FG0）取 |β̂| 最强 1 个；篮子总风险合计 ≤1R、并发计数按 1 个仓位计（同板块 ≤1 由池内最强品种规则保证；t9 F-03 修订）",
+      "type": "策略库级"
+    },
+    {
+      "rule": "持有期优先级",
+      "parameter": "各策略模型持有期（2–40 日）为该条冻结口径；risk-framework maxHoldingDays=5 为通用缺省，冲突时以条目冻结口径为准，但不得突破 Hard 项",
+      "type": "裁定"
+    }
+  ],
+  "crossStrategyProhibitions": [
+    {
+      "id": "X1",
+      "item": "FinCoT 文本/分析层输出的价位与概率（thesis.odds/confirm/invalidation、Q4 确认文本、报告价位）进入止损/目标/仓位计算；概率锥进入止损或仓位、或进入目标但其 provenance 非 probability.json（cap-6）",
+      "source": "t1 §0.4 / t2 §0.3 / t3 §0.1 / cap-6",
+      "check": "MC-2 + MC-10"
+    },
+    {
+      "id": "X2",
+      "item": "跨条目借用模型参数：如 t1 M3 实际利率 β 不得用于 M5/M7（候补池条目参数同样不得流入任何核心条目）",
+      "source": "t1 §5.3",
+      "check": "MC-6"
+    },
+    {
+      "id": "X3",
+      "item": "EC-01 的 α̂/β̂/γ 不得借给 FS-05 或 M4 系其他用法；EC-01 是唯一经裁定的合并单元（D2），合并后 M4 与 FS-08 原条目不再作为独立条目存在",
+      "source": "D2",
+      "check": "MC-6 + manifest"
+    },
+    {
+      "id": "X4",
+      "item": "TR-03 的 θ（噪声回归速度）不得用于 TR-01 的 f(h)（动量衰减）；两策略 edge 定义不同",
+      "source": "t3 §0.1-5",
+      "check": "MC-6"
+    },
+    {
+      "id": "X5",
+      "item": "TR-05 式『移交他策略定价』机制在 v2 禁止：任何策略必须自带突破后/持仓期管理模型",
+      "source": "D4",
+      "check": "MC-1"
+    },
+    {
+      "id": "X6",
+      "item": "FS-07 原『与 FS-01 同向才全仓』条款删除；季节仓位只由季节模型自身 + G1/G2 决定",
+      "source": "D6",
+      "check": "MC-6"
+    },
+    {
+      "id": "X7",
+      "item": "月度象限模型（M10）与日频五锚点评分（M5/G1）是两个不同模型，不得互相替代标定",
+      "source": "t1 §5.3",
+      "check": "MC-6"
+    },
+    {
+      "id": "X8",
+      "item": "价差类策略不得引入本条目数据契约之外的数据作定价输入：如 EC-01 不引入库存/利润变量，FS-05 不引用单品种 FinCoT 方向拼接双腿结论",
+      "source": "t1 §5.3 / t2 §0.3",
+      "check": "MC-6"
+    },
+    {
+      "id": "X9",
+      "item": "公共数据层白名单外的数据不得作状态输入：白名单 = data/daily、data/macro 锚点、data/sector、event-calendar、probability 派生字段、数据契约中声明的采集源",
+      "source": "t4 §5",
+      "check": "MC-6"
+    },
+    {
+      "id": "X10",
+      "item": "治理层 G1/G2 只可缩放/否决，不得改变任何核心条目的方向/止损/目标数值",
+      "source": "t5 §4",
+      "check": "MC-1"
+    },
+    {
+      "id": "X11",
+      "item": "OI 衍生禁入（cap-1/H7）：任何以 OI 衍生量（会员持仓排名、OIΔ 等）为核心前提、定价输入或信号条件的策略不得入库或进入可执行集；FS-P1-02 保留 P1/rejected，待用户明确解禁；已入库条目的 OIΔ 条件默认禁用并以量价条件替代（TR-03/TR-06）",
+      "source": "cap-1",
+      "check": "MC-9"
+    }
+  ],
+  "allowedCrossInteractions": [
+    "公共数据层读取（X9 白名单内）",
+    "治理层过滤/缩放（G1/G2）",
+    "组合层风险聚合（趋势族合并敞口）",
+    "事件日历作为模型前提开关（FS-04/FS-05/EC-01 数据契约条款）",
+    "FinCoT 方向候选触发/否决/事件识别（H1）",
+    "probability.json Yang-Zhang 定量概率锥作为目标定价的波动率投影（仅 edge 衰减边界，cap-6）"
+  ],
+  "machineChecks": {
+    "MC-1": {
+      "rule": "pricingSource == \"self-model\"，且止损/目标/仓位字段引用本条目 formulas[] 方程编号",
+      "status": "pass",
+      "evidence": "8 条策略 pricingSource 均为 self-model；每条 pricingModel 的 stop/target/position 均标注 modelRef 指向本条目公式编号"
+    },
+    "MC-2": {
+      "rule": "策略条目任何数值字段不得引用 FinCoT 文本/分析层输出的价位与概率（thesis.odds/confirm/invalidation、Q4 确认文本、报告价位）；FinCoT 仅允许出现在 analysisFilter（方向触发/否决/事件识别）字段",
+      "status": "pass",
+      "evidence": "8 条策略 analysisFilter.noNumericPricing=true；定价字段无 FinCoT 文本价位/概率引用（TR-06 Q1 仅作事件识别过滤器）"
+    },
+    "MC-3": {
+      "rule": "每个参数有 source ∈ {literature, industry-practice, repo-convention, calibration} 与非空 freezeCondition",
+      "status": "pass",
+      "evidence": "全部参数含 source/sourceClass/sourceDoc/freezeCondition 四字段"
+    },
+    "MC-4": {
+      "rule": "dataContract.ref 在 04-data-contracts.json strategies 中存在且 status=available",
+      "status": "pass",
+      "evidence": "ref 依次为 TR-01/TR-03/TR-06/FS-02/FS-04/FS-05/M1/FS-08，均为 available（04-data-contracts.json statusSummary.available）"
+    },
+    "MC-5": {
+      "rule": "falsificationTests.strategyLevel 阈值全部为数值；killRules[] 非空",
+      "status": "pass",
+      "evidence": "8 条 minTrades/pfThreshold/ci 均为数值；killRules 均非空"
+    },
+    "MC-6": {
+      "rule": "crossModelRefs 为空；crossDataInputs 只允许公共数据层白名单",
+      "status": "pass",
+      "evidence": "8 条 crossModelRefs=[]；crossDataInputs 仅含 data/daily、data/macro、event-calendar（X9 白名单内）"
+    },
+    "MC-7": {
+      "rule": "五段字段（theory/marketModel/strategy/dataContract/falsificationTests）全部存在且非空",
+      "status": "pass",
+      "evidence": "8 条五段完整（t12 验收复查）"
+    },
+    "MC-8": {
+      "rule": "每条 prerequisites[] 显式非空且仅引用 GA-id（或经 t5 批准的采集器/日历开关）；进入 in_validation 前必须全部完成（cap-3）",
+      "status": "pass",
+      "evidence": "8/8 prerequisites 非空且仅含 GA-id（TR-01:GA-1/2；TR-03:GA-1/2 [v1.2 补 GA-2：3d p68 锥管线]；TR-06:GA-1/2；FS-02:GA-1/6；FS-04:GA-1/7；FS-05:GA-1/7；M1:GA-4/1/2；EC-01:GA-1/7）"
+    },
+    "MC-9": {
+      "rule": "每条 asOfContract 非空且仅含 F1–F9 编号（cap-5）；任何条目定价/信号链不得出现 OI 衍生字段（cap-1/H7）",
+      "status": "pass",
+      "evidence": "8/8 asOfContract 非空且仅含 F1–F9 编号（TR-01/TR-03:F1/F2/F3/F5；TR-06:F1/F2/F3/F5/F6；FS-02:F1/F2/F3/F7；FS-04/FS-05/EC-01:F1/F2/F3/F8/F9；M1:F1/F2/F3/F8）；TR-03/TR-06 的 OIΔ 条件已按 H7 默认禁用并以量价条件替代（oiDerivativeStatus 字段声明），定价/信号链无 OI 衍生字段"
+    },
+    "MC-10": {
+      "rule": "任何引用概率锥的定价字段必须声明 provenance=probability.json（Yang-Zhang 定量管线）且仅出现在目标定价（edge 衰减边界，仅 p68/p95，与固定 R 倍数共同构成『先到者』，锥不单独定价）；锥值不得进入止损/仓位字段；禁止来自 reasoning-results/FinCoT 文本价位；回测中锥须按 T 日及以前数据 PIT 重算（cap-6，F8 延伸）",
+      "status": "pass",
+      "evidence": "TR-01/TR-03/TR-06 目标行标注 [cap-6：锥=Yang-Zhang 波动投影，provenance=probability.json，与固定 R 倍数构成『先到者』]；概率锥未进入任何 stop/position 字段；无 reasoning-results/FinCoT 文本价位引用；FS-02/04/05/M1/EC-01 无概率锥引用（probabilityConeUsage=none）"
+    }
+  },
+  "strategies": [
+    {
+      "id": "TR-01",
+      "name": "趋势延续（状态过滤版）",
+      "family": "trading-system",
+      "sourceIds": [
+        "t3 §1"
+      ],
+      "status": "designed",
+      "evidenceGrade": "A-",
+      "pricingSource": "self-model",
+      "analysisFilter": {
+        "finCoTUsage": "分析层过滤 only（方向否决/降级观察）；不参与定价、不产生目标价、不产生仓位（t3 §0.1-3）",
+        "noNumericPricing": true,
+        "probabilityConeUsage": "target-only"
+      },
+      "theory": {
+        "falsifiableProposition": {
+          "H0": "突破 + 量能确认子样本与『无确认突破』子样本的扣成本收益无差异（信息确认机制无效）",
+          "H1": "在上升趋势状态 U 中 E[r_{t+h} | sign(r_{t−L,t})=+, s_t=U] > 0，且该优势随 h 增大而衰减（动量半衰期）"
+        },
+        "mechanism": "信息扩散缓慢（反应不足，价格逐步吸收基本面变化）+ 正反馈与资本再配置（趋势资金自我强化）+ 风险转移（套保盘让渡风险溢价）。三类机制仅在『状态 U 得到量仓确认』时最强。",
+        "preconditions": [
+          "状态 U 由对齐+斜率+量仓确认",
+          "无锁板/临近交割"
+        ],
+        "references": [
+          "Moskowitz-Ooi-Pedersen 2012",
+          "Economic Modelling 2023（中国 TSMOM）",
+          "SIMPLE-MOMENTUM-RESULTS.md（样本内 A− 级证据）"
+        ],
+        "source": "t3 §1.1"
+      },
+      "prerequisites": [
+        "GA-1",
+        "GA-2"
+      ],
+      "asOfContract": [
+        "F1",
+        "F2",
+        "F3",
+        "F5"
+      ],
+      "marketModel": {
+        "stateVariables": [
+          "s_t ∈ {U(up), D(down), C(chop)}：对齐 close_t > MA20_t 且 > MA60_t（空头镜像）",
+          "g_t = (EMA20_t − EMA20_{t−5})/(5·EMA20_{t−5})（斜率，%/日），g_t ≥ +0.3%/日 为 U 态",
+          "m_t = r_{t−20,t}（动量强度）"
+        ],
+        "formulas": [
+          "F1: U 态 = close>MA20>MA60 ∧ g_t ≥ +0.3%/日（空头镜像）",
+          "F2: r_{t+h} | s_t=U ~ N(μ_U·f(h), σ_t·√h)，f(h) 单调衰减、f(h)→0，半衰期 5–10 个交易日；μ_U ∝ m_t",
+          "F3: 失效事件 F_t = 收盘回破突破位 0.5×ATR5 ∨ (量比≥1.5 ∧ 收盘<MA20−0.5×ATR5)"
+        ],
+        "conditionalDistribution": "N(μ_U·f(h), σ_t·√h)，μ_U ∝ m_t",
+        "confirmationZone": "U 态 ∧ 收盘突破 20 日高/低 ∧ 量比 ≥ 1.2（信息进入市场的确认区）",
+        "invalidationEvent": "F_t（F3）出现 → s_t 转出 U，即理论失效点",
+        "edgeDecay": "f(h)→0：T1 2R 为半衰期前锁定；10 日未触及 T1 全平"
+      },
+      "pricingModel": {
+        "principle": "定价全部由本条目 marketModel.formulas 导出（H2）",
+        "stop": {
+          "rule": "min(入场价∓1.5×ATR5, 突破前 3 日极值∓0.25×ATR5) 取近；收盘触发 F_t → 次日开盘离场；连续 2 日量比 < 0.8（动能衰竭）→ 次日离场",
+          "modelRef": "F3",
+          "theoryRole": "理论失效点 F_t 的前置版"
+        },
+        "target": {
+          "rule": "T1 2R 平 50%；T2 3R 或 3d p95 上/下沿 [cap-6：锥=Yang-Zhang 波动投影，provenance=probability.json] 先到者；余仓 2×ATR5 移动止损；10 个交易日未触及 T1 → 全平",
+          "modelRef": "F2",
+          "theoryRole": "edge 半衰期前锁定（f(h) 衰减）/ f(h) 衰减至成本以下 / f(h)→0"
+        },
+        "position": {
+          "rule": "|g_t|∈[0.3%,0.6%)→0.5R；≥0.6%→1R（edge 强度档）；单笔风险 ≤ 权益 1%；浮盈 ≥1R 且再创 5 日新高/低 → +0.5 单位，最多 2 次；亏损仓绝不摊平。加仓后单品种总风险 ≤2R；组合风险 ≤2.5% 权益不变；加仓单止损同步上移（t9 F-11）",
+          "modelRef": "F2",
+          "theoryRole": "μ_U ∝ m_t 的 edge 强度分档；状态持续确认"
+        },
+        "excluded": [
+          "FinCoT odds/confirm/概率锥/报告价位（X1）"
+        ]
+      },
+      "strategy": {
+        "direction": "多空对称；空头距涨停 < 1×ATR5 禁开（逼仓）",
+        "entry": "U 态 ∧ 收盘突破 20 日高/低 ∧ 量比 ≥1.2 → T+1 开盘；跳空 > 0.5×ATR5 放弃",
+        "stop": "见 pricingModel.stop",
+        "target": "见 pricingModel.target",
+        "position": "见 pricingModel.position",
+        "holding": "2–10 交易日",
+        "executionRules": [
+          "T+1 开盘执行（t3 §0.2）",
+          "跳空 > 0.5×ATR5 放弃（t3 §0.3）",
+          "换月日（≥9.5% 跳变）不作入场日",
+          "长假前按 risk-framework §6（保证金降至 20% 以下或平仓）"
+        ]
+      },
+      "dataContract": {
+        "ref": "TR-01",
+        "refFile": "04-data-contracts.json",
+        "contractStatus": "available",
+        "requiredGAs": [
+          "GA-1",
+          "GA-2"
+        ],
+        "asOfRules": [
+          "T 日收盘评估",
+          "T+1 开盘执行（F1）",
+          "换月日 ≥9.5% 跳变剔除（F5）",
+          "长历史回填保留 per-bar sources（F5）"
+        ],
+        "inputs": "data/daily/<SYMBOL>.json（OHLCV+volume+turnover；库内派生 MA/ATR/量比；OI 字段不使用，H7）"
+      },
+      "parameters": [
+        {
+          "name": "MA20/MA60 对齐 + EMA20 斜率",
+          "initial": "20/60、EMA20",
+          "source": "repo-convention",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "库内口径（v1 EMA20 正向证据）",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "g_t 档位",
+          "initial": "0.3% / 0.6% 每日",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §1.2",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "量比阈值",
+          "initial": "1.2 确认 / 1.5 失效 / 0.8 衰竭",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §1.2",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "止损/跳空倍数",
+          "initial": "1.5×ATR5、0.25×ATR5、0.5×ATR5",
+          "source": "repo-convention",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "risk-framework stopK=1.5；t3 §1.3",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "R 档与目标",
+          "initial": "0.5R/1R；T1=2R、T2=3R；10 日",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §1.3",
+          "freezeCondition": "策略级证伪测试通过"
+        }
+      ],
+      "falsificationTests": {
+        "strategyLevel": {
+          "minTrades": 200,
+          "walkForward": "purged expanding（预注册口径，t3 §0.5）",
+          "pfThreshold": 1.2,
+          "ci": "95% CI 不含 0",
+          "baselines": [
+            "always-long",
+            "always-short",
+            "random"
+          ],
+          "cost": "扣成本 0.07% 往返（按品种真实费率复核）"
+        },
+        "theoryLevel": {
+          "hypothesis": "信息确认机制有效",
+          "test": "『突破 + 量比 ≥1.2』子样本扣成本收益 ≤ 『无确认突破』子样本 → 信息确认机制无效，理论核心命题被证伪",
+          "killOn": "理论级证伪成立即 retired"
+        },
+        "killRules": [
+          "交易级 F_t 触发即离场（在规则内）",
+          "理论级证伪 → retired"
+        ]
+      },
+      "crossModelRefs": [],
+      "crossDataInputs": [
+        "data/daily/*.json"
+      ]
+    },
+    {
+      "id": "TR-03",
+      "name": "趋势回踩续势（趋势 + OU 噪声分解）",
+      "family": "trading-system",
+      "sourceIds": [
+        "t3 §3"
+      ],
+      "status": "designed",
+      "evidenceGrade": "B",
+      "pricingSource": "self-model",
+      "analysisFilter": {
+        "finCoTUsage": "分析层过滤 only；不参与定价、不产生目标价、不产生仓位（t3 §0.1-3）",
+        "noNumericPricing": true,
+        "probabilityConeUsage": "target-only"
+      },
+      "theory": {
+        "falsifiableProposition": {
+          "H0": "『回踩 + 反转确认』子样本与『回踩无确认』子样本收益无差异（噪声耗尽确认无效）",
+          "H1": "U 态中价格回踩至 MA20 带（噪声分量 x_t 显著为负）后出现反转确认 K 线时 E[r_{t+h}] > 0，优势来自噪声回归项 θ·|x_t|，随 x_t→0 耗尽"
+        },
+        "mechanism": "趋势由基本面/资金流驱动（慢变量 c_t），短期偏离由流动性冲击造成（快变量 x_t、均值回归）；回踩 = 趋势跟随者成本最优区，确认 K = 噪声耗尽、趋势恢复支配。edge 主要由 θ·|x_t| 贡献 → 止损距离必须 ≤1.5R，否则噪声 edge 覆盖不了成本。",
+        "preconditions": [
+          "U 态（本条独立计算）",
+          "回踩为缩量噪声而非趋势反转"
+        ],
+        "references": [
+          "Edwards & Magee（趋势线回踩）",
+          "Raschke & Connors (1996) \"Holy Grail\" 形态"
+        ],
+        "source": "t3 §3.1"
+      },
+      "prerequisites": [
+        "GA-1",
+        "GA-2"
+      ],
+      "asOfContract": [
+        "F1",
+        "F2",
+        "F3",
+        "F5"
+      ],
+      "oiDerivativeStatus": {
+        "h7Applies": true,
+        "defaultDisabled": "OIΔ ±2% 方向条件（t3 §3.3 原设计）",
+        "replacement": "逼仓保护改由『空头距涨停 < 1×ATR5 禁开』承担（risk-framework Hard）",
+        "restoreCondition": "待用户明确解禁 OI 纪律后按 t3 原设计恢复（cap-1/H7）",
+        "note": "定价/信号链不含任何 OI 衍生字段（MC-9）"
+      },
+      "marketModel": {
+        "stateVariables": [
+          "p_t = c_t + x_t：c_t 趋势分量（U 态下带漂移 μ_c 的随机游走）；x_t OU 噪声",
+          "回踩深度 |x_t|/ATR5"
+        ],
+        "formulas": [
+          "F1: dx_t = −θ·x_t dt + σ·dW_t，E[x_{t+h}|x_t] = x_t·e^{−θh}",
+          "F2: 回踩条件（多）：low_t ≤ MA20_t + 0.25×ATR5（触及带）；反转确认：close_t > high_{t−1}；量比 0.8–1.5（缩量回踩 = 噪声而非趋势反转）→ 模型确认区",
+          "F3: 失效事件 F_t（本条独立计算，t9 F-10 删除跨条目措辞）：放量（≥1.5）跌破 MA20 − 0.5×ATR5 = 趋势分量 c_t 下移的证伪事件 = 理论失效点",
+          "F4: E[r_{t+1} | 回踩∧确认] = μ_c + θ·|x_t|·e^{−θ} − 成本"
+        ],
+        "conditionalDistribution": "p_t 分解为趋势漂移 μ_c 与 OU 噪声；条件期望见 F4",
+        "confirmationZone": "U 态 ∧ 触及 MA20±0.25×ATR5 带 ∧ 反转确认 K（close_t > high_{t−1}，量比 0.8–1.5）",
+        "invalidationEvent": "F_t（F3）出现 → c_t 下移 = 理论失效点",
+        "edgeDecay": "x_t→0：T1 为噪声 edge 耗尽点（前波段高/低或 3d p68）；θ 衰减：8 日未触及 T1 → 全平"
+      },
+      "pricingModel": {
+        "principle": "定价全部由本条目 marketModel.formulas 导出（H2）；edge = θ·|x_t| 有限 → 止损距离上限 1.5R（噪声 edge 定价）",
+        "stop": {
+          "rule": "回踩极值∓0.25×ATR5；止损距离 > 1.5R → 放弃该笔；收盘 < MA20−0.5×ATR5 且量比 ≥1.5 → 次日开盘离场",
+          "modelRef": "F3/F4",
+          "theoryRole": "理论失效点（c_t 下移）+ 噪声 edge 覆盖成本约束"
+        },
+        "target": {
+          "rule": "T1 前期波段高/低点或 3d p68 上/下沿 [cap-6：锥=Yang-Zhang 波动投影，provenance=probability.json] 先到者，平 50%；T2 2R–3R；余仓 1×ATR5 移动止损；8 个交易日未触及 T1 → 全平",
+          "modelRef": "F1/F4",
+          "theoryRole": "T1 = x_t→0（edge 耗尽）；T2 = 趋势漂移 μ_c 部分；时间止损 = θ 衰减"
+        },
+        "position": {
+          "rule": "|x_t|/ATR5 ∈ [0.5,1)→0.5R；≥1→1R（edge 强度档）；突破 T1 且量比 ≥1.2 → +0.5 单位（止损上移 1×ATR5），最多 1 次",
+          "modelRef": "F4",
+          "theoryRole": "θ·|x_t| 强度分档；状态升级确认"
+        },
+        "excluded": [
+          "FinCoT odds/confirm/概率锥/报告价位（X1）"
+        ]
+      },
+      "strategy": {
+        "direction": "多空对称；空头距涨停 < 1×ATR5 禁开（逼仓保护，risk-framework Hard）；[H7] OIΔ ±2% 条件默认禁用，待用户明确解禁后按 t3 原设计恢复",
+        "entry": "U 态 ∧ 触及 MA20±0.25×ATR5 带 ∧ 反转确认 K → T+1 开盘；跳空 > 0.75×ATR5 放弃（跳空越过入场带 = 噪声已释放、edge 消失）",
+        "stop": "见 pricingModel.stop",
+        "target": "见 pricingModel.target",
+        "position": "见 pricingModel.position",
+        "holding": "≤ 8 交易日（T1 未触及全平）",
+        "executionRules": [
+          "T+1 开盘执行（t3 §0.2）",
+          "跳空 > 0.75×ATR5 放弃（t3 §0.3）",
+          "空头距涨停 < 1×ATR5 禁开（逼仓保护，risk-framework Hard；[H7] 替代原 OIΔ 条件）",
+          "止损距离 > 1.5R → 放弃该笔",
+          "长假/隔周按组合层 Hard 项执行：长假（≥3 日休市）前保证金降至 20% 以下或平仓；周一跳空 > 0.5×ATR5 按条目失效/重估条款处理（t9 F-02）"
+        ]
+      },
+      "dataContract": {
+        "ref": "TR-03",
+        "refFile": "04-data-contracts.json",
+        "contractStatus": "available",
+        "requiredGAs": [
+          "GA-1"
+        ],
+        "asOfRules": [
+          "T 日收盘评估",
+          "T+1 开盘执行"
+        ],
+        "inputs": "data/daily/<SYMBOL>.json（MA20 带/量比库内派生；OIΔ 字段禁用，H7）+ probability.json 3d 锥（cap-6，仅目标定价）"
+      },
+      "parameters": [
+        {
+          "name": "MA20 回踩带",
+          "initial": "0.25×ATR5",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §3.3",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "量比区间",
+          "initial": "0.8–1.5（确认）/ 1.5（失效）",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §3.3",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "止损距离",
+          "initial": "0.25×ATR5；距离门 ≤1.5R",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §3.3",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "跳空阈值",
+          "initial": "0.75×ATR5",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §3.3",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "时间止损",
+          "initial": "8 个交易日",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §3.3",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "R 档",
+          "initial": "0.5R / 1R",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §3.3",
+          "freezeCondition": "策略级证伪测试通过"
+        }
+      ],
+      "falsificationTests": {
+        "strategyLevel": {
+          "minTrades": 200,
+          "walkForward": "purged expanding（预注册口径，t3 §0.5）",
+          "pfThreshold": 1.2,
+          "ci": "95% CI 不含 0",
+          "baselines": [
+            "always-long",
+            "always-short",
+            "random"
+          ],
+          "cost": "扣成本 0.07% 往返（按品种真实费率复核）"
+        },
+        "theoryLevel": {
+          "hypothesis": "噪声耗尽确认有效（θ 定价正确）",
+          "test": "①『回踩 + 反转确认』子样本收益 ≤ 『回踩无确认』子样本 → 噪声耗尽确认无效，retired；② 止损距离 > 1.5R 的子样本 PF < 1 → 噪声 edge 定价错误，收紧距离门槛后重验，仍不达标 retired",
+          "killOn": "任一理论级证伪成立即 retired"
+        },
+        "killRules": [
+          "F_t 离场（在规则内）",
+          "连续 2 个滚动窗口命中率 < 50% → suspended"
+        ]
+      },
+      "crossModelRefs": [],
+      "crossDataInputs": [
+        "data/daily/*.json"
+      ]
+    },
+    {
+      "id": "TR-06",
+      "name": "事件冲击确认（冲击分解：持久信息 vs 瞬时情绪）",
+      "family": "trading-system",
+      "sourceIds": [
+        "t3 §6"
+      ],
+      "status": "designed",
+      "evidenceGrade": "B",
+      "pricingSource": "self-model",
+      "analysisFilter": {
+        "finCoTUsage": "event-identification-only：事件判定 D 中的 Q1 驱动文本（FinCoT 分析层）仅作事件识别过滤器（H1 允许），不进入定价",
+        "noNumericPricing": true,
+        "probabilityConeUsage": "target-only"
+      },
+      "theory": {
+        "falsifiableProposition": {
+          "H0": "事件日当日追入与『确认式/回踩式延迟入场』的样本外收益差 < 0.5R（等待确认无增益）",
+          "H1": "事件日 D（|r_D| ≥ max(2×ATR5, 3%) ∧ 量比 ≥ 2 ∧ 存在可识别驱动）后，冲击分解为持久信息分量 A·e^{−λk} 与瞬时情绪分量 S·e^{−γk}（γ ≫ λ）；『确认式/回踩式』入场对持久分量的捕获优于当日追入，优势 ≥ 0.5R"
+        },
+        "mechanism": "信息处理需要时间（Hong & Stein 1999：反应不足 → 事件后漂移；过度反应 → 情绪回吐）；不同冲击持续性不同（Kilian 2009：供给冲击持续、需求冲击易反转）→ 『等确认』是模型内在要求。",
+        "preconditions": [
+          "事件判定 D 三条件同时成立",
+          "存在可识别驱动（Q1 文本）"
+        ],
+        "references": [
+          "Hong & Stein 1999",
+          "Kilian 2009"
+        ],
+        "source": "t3 §6.1"
+      },
+      "prerequisites": [
+        "GA-1",
+        "GA-2"
+      ],
+      "asOfContract": [
+        "F1",
+        "F2",
+        "F3",
+        "F5",
+        "F6"
+      ],
+      "oiDerivativeStatus": {
+        "h7Applies": true,
+        "defaultDisabled": "OIΔ ≥ +2% 确认条件、『多头 OIΔ 转负』失效条件、OIΔ 维持同向加仓条件（t3 §6.3 原设计）",
+        "replacement": "确认/加仓改用量比持续 ≥ 1.2；失效仅保留收盘回到事件前 5 日区间（A=0）；空头距涨停 < 1×ATR5 禁开",
+        "restoreCondition": "待用户明确解禁 OI 纪律后按 t3 原设计恢复（cap-1/H7）",
+        "note": "定价/信号链不含任何 OI 衍生字段（MC-9）"
+      },
+      "marketModel": {
+        "stateVariables": [
+          "r_D（事件日收益）、量比_D（事件判定 ≥2 / 确认持续 ≥1.2 [H7 替代原 OIΔ 状态变量]）",
+          "事件区间（high_D/low_D 与事件前 5 日区间）"
+        ],
+        "formulas": [
+          "F1: 事件判定 D = 1{|r_D| ≥ max(2×ATR5, 3%)} × 1{量比_D ≥ 2} × 1{Q1 存在可识别驱动}",
+          "F2: 冲击分解 r_{D+k} = A·e^{−λk} + S·e^{−γk} + ε，γ ≫ λ",
+          "F3: 持久分量确认（多）= 确认区：close_{D+1..D+2} > high_D ∧ 量比持续 ≥ 1.2（资金进场代理；[H7] 原 OIΔ ≥ +2% 条件默认禁用，待解禁恢复 t3 原设计）；回踩变体：回撤 ≤ 事件区间 50% ∧ 连续 2 日收盘站稳事件区间中点上方（S 已释放、A 未衰减）",
+          "F4: 失效 = 理论失效点：收盘回到事件前 5 日区间内（A=0，事件影响消退）；[H7]『多头 OIΔ 转负』失效条件默认禁用"
+        ],
+        "conditionalDistribution": "冲击后收益按双指数衰减分解（持久分量 λ 慢、情绪分量 γ 快）",
+        "confirmationZone": "F3（确认式：close_{D+1..D+2} > high_D ∧ 量比持续 ≥ 1.2 [H7]；回踩式：回撤 ≤ 50% ∧ 2 日站稳中点上方）",
+        "invalidationEvent": "F4（A=0，收盘回到事件前 5 日区间）",
+        "edgeDecay": "持久分量 A·e^{−λk} 衰减：T1 3d p95；时间止损 8 日"
+      },
+      "pricingModel": {
+        "principle": "定价全部由本条目 marketModel.formulas 导出（H2）；止损=理论失效点（A=0）；目标=edge 衰减（λ 部分）",
+        "stop": {
+          "rule": "确认式：low_D − 0.25×ATR5；回踩式：事件区间中点 − 0.25×ATR5；收盘回到事件前 5 日区间 → 次日离场",
+          "modelRef": "F4",
+          "theoryRole": "理论失效点（A=0，事件影响消退）"
+        },
+        "target": {
+          "rule": "T1 3d p95 上/下沿 [cap-6：锥=Yang-Zhang 波动投影，provenance=probability.json] 平 50%；T2 2×事件区间投影或 3R 先到者；8 日未触及 T1 → 全平",
+          "modelRef": "F2",
+          "theoryRole": "edge 衰减点（持久分量 λ 衰减）"
+        },
+        "position": {
+          "rule": "|r_D|/ATR5 ∈ [2,3) → 0.5R；≥3 → 1R（分档边界参数化，待标定，t9 F-12）；浮盈 ≥1R 且量比维持 ≥ 1.2 [H7 替代] → +0.5 单位，最多 1 次",
+          "modelRef": "F2",
+          "theoryRole": "edge 强度（冲击幅度分档）"
+        },
+        "excluded": [
+          "FinCoT odds/confirm/概率锥/报告价位（X1）；Q1 文本仅作事件识别"
+        ]
+      },
+      "strategy": {
+        "direction": "多空对称；空头距涨停 < 1×ATR5 禁开；[H7] OIΔ 确认/失效条件默认禁用，以量比 ≥1.2 持续 + 收盘回到事件前 5 日区间为模型确认/失效点（待解禁后恢复 t3 原设计）",
+        "entry": "确认式 (a)：D 后 T+1/T+2 收盘 > high_D ∧ 量比持续 ≥ 1.2 [H7 替代原 OIΔ≥+2% 条件] → 次日开盘；回踩式 (b)：回撤 ≤ 50% 区间 ∧ 2 日站稳中点上方 → 第 3 日开盘",
+        "stop": "见 pricingModel.stop",
+        "target": "见 pricingModel.target",
+        "position": "见 pricingModel.position",
+        "holding": "2–8 日",
+        "executionRules": [
+          "开盘入场；跳空 > 0.75×ATR5 放弃（两种变体同）",
+          "空头距涨停 < 1×ATR5 禁开",
+          "事件日封停板 → 次日跳空超阈值自然放弃或按锁板规则（组合层停板可执行性 Hard；t9 F-12）",
+          "T+1 口径与换月剔除同 t3 §0.2/§0.3",
+          "长假/隔周按组合层 Hard 项执行：长假（≥3 日休市）前保证金降至 20% 以下或平仓；周一跳空 > 0.5×ATR5 按条目失效/重估条款处理（t9 F-02）"
+        ]
+      },
+      "dataContract": {
+        "ref": "TR-06",
+        "refFile": "04-data-contracts.json",
+        "contractStatus": "available",
+        "requiredGAs": [
+          "GA-1",
+          "GA-2"
+        ],
+        "asOfRules": [
+          "T 日收盘评估",
+          "次日开盘执行",
+          "FinCoT Q1 历史仅 RB0/M0/SC0（D7/F6：禁止用未来重跑文本回填历史）"
+        ],
+        "inputs": "data/daily（事件判定+量比库内派生；OIΔ 字段禁用，H7）+ FinCoT Q1（分析层事件识别过滤）",
+        "validationScopeNote": "历史 walk-forward 限 RB0/M0/SC0 3 品种，全品种验证靠向前积累（D7）"
+      },
+      "parameters": [
+        {
+          "name": "事件判定阈值",
+          "initial": "|r_D| ≥ max(2×ATR5, 3%)",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §6.3",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "量比阈值",
+          "initial": "事件判定 2；确认/加仓持续 ≥1.2 [H7 替代原 OIΔ 条件]",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §6.3 + v1.1 §3.3（H7 替代）",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "回撤变体幅度",
+          "initial": "≤ 事件区间 50%",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §6.3",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "时间止损",
+          "initial": "8 日",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §6.3",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "R 档",
+          "initial": "0.5–1R",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §6.3",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "R 分档边界",
+          "initial": "|r_D|/ATR5 ∈ [2,3) → 0.5R；≥3 → 1R",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §6.3 + t9 F-12",
+          "freezeCondition": "策略级证伪测试通过"
+        },
+        {
+          "name": "跳空阈值",
+          "initial": "0.75×ATR5",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §6.3",
+          "freezeCondition": "策略级证伪测试通过"
+        }
+      ],
+      "falsificationTests": {
+        "strategyLevel": {
+          "minTrades": 100,
+          "walkForward": "purged expanding（预注册口径，t3 §0.5）",
+          "pfThreshold": 1.2,
+          "ci": "95% CI 不含 0",
+          "baselines": [
+            "always-long",
+            "always-short",
+            "random"
+          ],
+          "cost": "扣成本 0.07% 往返（按品种真实费率复核）",
+          "note": "事件样本天然稀疏，minTrades 降为 100"
+        },
+        "theoryLevel": {
+          "hypothesis": "冲击分解模型 λ/γ 区分有效（『确认等待』有增益）",
+          "test": "事件日当日追入 vs 本策略延迟入场的样本外收益差 < 0.5R → 『确认等待』无增益，冲击分解模型的 λ/γ 区分被证伪",
+          "killOn": "理论级证伪成立即 retired"
+        },
+        "killRules": [
+          "收盘回到事件前 5 日区间 → 次日离场",
+          "滚动 24 个月事件样本 < 30 → 自动停用（样本充分性门禁）"
+        ]
+      },
+      "crossModelRefs": [],
+      "crossDataInputs": [
+        "data/daily/*.json"
+      ]
+    },
+    {
+      "id": "FS-02",
+      "name": "基差分位回归（现货–期货收敛）",
+      "family": "fundamental",
+      "sourceIds": [
+        "t2 §FS-02"
+      ],
+      "status": "designed",
+      "evidenceGrade": "B",
+      "pricingSource": "self-model",
+      "analysisFilter": {
+        "finCoTUsage": "观察 only：FinCoT 方向冲突 → 观察；禁止引用 FinCoT 文本价位/概率（thesis.odds/confirm、报告目标价，H1）；本条目标价仅由 F_target 模型方程导出（不引用概率锥）",
+        "noNumericPricing": true,
+        "probabilityConeUsage": "none"
+      },
+      "theory": {
+        "falsifiableProposition": {
+          "F1_H0": "基差率 br = (S−F)/S 非平稳回归序列；处于极端分位（|z|≥1.5）后 20 日内基差向 180 日中枢回归概率 ≤ 0.5",
+          "F1_H1": "回归概率显著 > 0.5（Theory of Storage：基差 = 便利收益 − 持有成本，Kaldor 1939 / Working 1949；Fama & French 1987 基差对期货收益有预测力）",
+          "F2": "期货深度贴水（z≤−1.5）时收敛以『期货向现货靠拢』为主 → 期货端做多收益为正；深度升水（z≥+1.5）→ 期货端做空；收敛方向不对称性本身纳入证伪检验"
+        },
+        "mechanism": "仓储理论：基差 = 便利收益 − 持有成本；极端分位后现货-期货价差向中枢回归，收敛由期货腿承担（现货不可交易）。",
+        "preconditions": [
+          "现货质量门通过（30 日零变动占比 ≤ 40%）",
+          "距交割月 ≥ 20 交易日",
+          "|z| 未处于加速走扩段"
+        ],
+        "references": [
+          "Kaldor 1939 (RES)",
+          "Working 1949",
+          "Fama & French 1987 (J. of Business)",
+          "Boons & Prado 2019 Basis-Momentum (JF)"
+        ],
+        "source": "t2 §FS-02"
+      },
+      "prerequisites": [
+        "GA-1",
+        "GA-6"
+      ],
+      "asOfContract": [
+        "F1",
+        "F2",
+        "F3",
+        "F7"
+      ],
+      "marketModel": {
+        "stateVariables": [
+          "br_t = (S_t − F_t)/S_t（akshare dom_basis_rate 主力口径）",
+          "μ̂, b̂_hi, b̂_lo = 180 日主力基差 平均/最高/最低（futures_spot_price_previous 直接提供）",
+          "σ̂ = (b̂_hi − b̂_lo)/4",
+          "z_t = (br_t − μ̂)/σ̂"
+        ],
+        "formulas": [
+          "F1: br_t = (S_t − F_t)/S_t（akshare dom_basis_rate，主力口径，无量纲比率域）",
+          "F2: 比率域统计量（t8 F-1 口径修正）：启动锚 μ̂ = b̂_mean/S_t；σ̂ = (b̂_hi − b̂_lo)/(4×S_t)（180 日绝对带转比率域）；z_t = (br_t − μ̂)/σ̂；正式口径 = 基差历史库积累 ≥180 日后改用 dom_basis_rate 序列直接估计 μ̂/σ̂",
+          "F3: signal = +1 if z_t ≤ −1.5；= −1 if z_t ≥ +1.5；= 0 其他",
+          "F4: F_target = S_t × (1 − μ̂)（比率域 μ̂；基差回归 180 日中枢时对应的期货价 = edge 衰减点）"
+        ],
+        "conditionalDistribution": "z_t 在 |z|≥1.5 后向 0 回归（回归概率 > 0.5 为待证命题）",
+        "confirmationZone": "T 日收盘 br 触发 + 现货质量门通过 + |z| 未处于加速走扩段（连续 3 日 |z| 递增 → 等待企稳）",
+        "invalidationEvent": "br 继续反向走扩 0.5σ̂（信号强化失败 = 理论失效点）；逼仓保护：距交割月 < 20 交易日不交易",
+        "edgeDecay": "基差归零隐含价 F4 达到或 20 日时间退出（回归半衰期）"
+      },
+      "pricingModel": {
+        "principle": "定价全部由本条目 marketModel.formulas 导出（H2）",
+        "stop": {
+          "rule": "① br 反向走扩 0.5σ̂（比率域 z）；② 1.5×ATR5 反向（基于期货腿入场价）。先到先平；br 止损的现货取值以 T 日盘后快照为准（t9 F-08）",
+          "modelRef": "F2",
+          "theoryRole": "理论失效点（信号强化失败）+ 波动失效"
+        },
+        "target": {
+          "rule": "F_target = S_t × (1 − μ̂)，S_t 取触发日现货价，μ̂ 为比率域；达到或 20 日时间退出，先到先平",
+          "modelRef": "F4",
+          "theoryRole": "edge 衰减点（基差回归中枢的隐含期货价）"
+        },
+        "position": {
+          "rule": "|z|∈[1.5,2.5)→0.5R；≥2.5→1R（edge 强度档，待标定，t9 F-06）；G2 波动率 overlay 缩放 + risk-framework 1R 预算",
+          "modelRef": "F2",
+          "theoryRole": "edge 强度（|z| 分档）+ 通用风险预算"
+        },
+        "excluded": [
+          "FinCoT 文本价位/概率（thesis.odds/confirm、报告目标价，X1）；概率锥（本条不引用，目标价仅由 F_target 导出，cap-6）"
+        ]
+      },
+      "strategy": {
+        "direction": "z≤−1.5 → 多期货腿；z≥+1.5 → 空期货腿（现货不可交易，不做现货腿）",
+        "entry": "确认区触发（br 触发 + 质量门 + 无加速走扩）→ T+1 开盘",
+        "stop": "见 pricingModel.stop",
+        "target": "见 pricingModel.target",
+        "position": "见 pricingModel.position",
+        "holding": "≤ 20 交易日",
+        "executionRules": [
+          "T+1 开盘执行（t3 §0.2 通用口径）",
+          "入场跳空 > 1×ATR5 放弃（t9 F-04）",
+          "距交割月 < 20 交易日不交易（换月至次主力）",
+          "现货粘性质量门：30 日零变动占比 > 40% 的品种剔除出可交易集（GA-6）",
+          "长假/隔周按组合层 Hard 项执行：长假（≥3 日休市）前保证金降至 20% 以下或平仓；周一跳空 > 0.5×ATR5 按条目失效/重估条款处理（t9 F-02）"
+        ]
+      },
+      "dataContract": {
+        "ref": "FS-02",
+        "refFile": "04-data-contracts.json",
+        "contractStatus": "available",
+        "requiredGAs": [
+          "GA-1",
+          "GA-6"
+        ],
+        "asOfRules": [
+          "查询日快照；历史回填须 PIT 拉取（F7，禁止用今日数据回填历史）",
+          "180 日带为源端 as-of 计算",
+          "现货挂牌价粘性/修订风险由质量门管理"
+        ],
+        "inputs": "futures_spot_price_daily（2011+ 基差历史，采集器须存 dom_basis_rate 比率序列，PIT，t8 F-1）+ futures_spot_price_previous（180 日分布锚，绝对带转比率域）；期货腿 data/daily",
+        "preconditionsNote": "基差历史批量采集器（PIT 拉取）+ GA-6 现货粘性质量门"
+      },
+      "parameters": [
+        {
+          "name": "z 触发阈值",
+          "initial": "±1.5",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §FS-02（阈值待验证）",
+          "freezeCondition": "证伪测试 (a)(c) 通过后冻结"
+        },
+        {
+          "name": "σ̂ 估计式",
+          "initial": "启动锚 (b̂_hi − b̂_lo)/(4×S_t)；≥180 日后 dom_basis_rate 序列直接估计（比率域，t8 F-1）",
+          "source": "calibration",
+          "sourceClass": "calibration",
+          "sourceDoc": "t2 §FS-02（t8 审查 F-1 修正版）",
+          "freezeCondition": "随 180 日带逐日重估，证伪测试通过后冻结口径"
+        },
+        {
+          "name": "edge 分档",
+          "initial": "|z|∈[1.5,2.5)→0.5R；≥2.5→1R",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t9 F-06 建议（待标定初值）",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "止损幅度",
+          "initial": "br 反向走扩 0.5σ̂",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §FS-02",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "持有期",
+          "initial": "20 日",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §FS-02",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "现货质量门",
+          "initial": "30 日零变动占比 > 40% 剔除",
+          "source": "repo-convention",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §FS-02 数据依赖 + GA-6",
+          "freezeCondition": "GA-6 逐品种审计完成后冻结可交易集"
+        },
+        {
+          "name": "交割距离",
+          "initial": "≥ 20 交易日",
+          "source": "repo-convention",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t3 §0.3（交易所规则通用口径）",
+          "freezeCondition": "入库时按交易所规则复核"
+        }
+      ],
+      "falsificationTests": {
+        "strategyLevel": {
+          "minTrades": 200,
+          "walkForward": "purged expanding（预注册口径）",
+          "pfThreshold": 1.2,
+          "ci": "95% CI 不含 0",
+          "baselines": [
+            "always-long",
+            "always-short",
+            "random"
+          ],
+          "cost": "扣成本 0.07% 往返"
+        },
+        "theoryLevel": {
+          "hypothesis": "F1 基差均值回归 + F2 收敛方向不对称性",
+          "test": "(a) z 触发后 20 日『基差向 μ̂ 收敛』命中率 < 55% → 证伪 F1；(b) 触发后 20 日期货端收益（扣 0.07% 成本）组合夏普 < 0.5 → 停用；(c) F2 不对称性检验：深贴水端与深升水端收益符号不对称性不显著 → 双侧规则改为对称（模型修订，不改变证伪门槛）",
+          "killOn": "(a) 证伪 F1 → retired；(b) 触发 → suspended"
+        },
+        "killRules": [
+          "命中率 < 55% → 证伪 F1 → retired",
+          "组合夏普 < 0.5 → suspended"
+        ]
+      },
+      "knownCounterEvidence": [
+        "2022 伦镍逼仓、2024 氧化铝逼仓：基差极端但继续走扩，止损必须硬执行（t2 §FS-02）",
+        "生意社现货与真实成交价偏离的品种（部分化工品挂牌价长期不动）即使通过质量门也需降权（t2 §FS-02）"
+      ],
+      "crossModelRefs": [],
+      "crossDataInputs": [
+        "data/daily/*.json"
+      ]
+    },
+    {
+      "id": "FS-04",
+      "name": "黑色产业链利润分位（利润→开工→供需再平衡）",
+      "family": "fundamental",
+      "sourceIds": [
+        "t2 §FS-04"
+      ],
+      "status": "designed",
+      "evidenceGrade": "B",
+      "pricingSource": "self-model",
+      "analysisFilter": {
+        "finCoTUsage": "排除 only：报告驱动文本中『钢厂亏损/减产』表述不构成入场依据；入场仅由 z 阈值触发",
+        "noNumericPricing": true,
+        "probabilityConeUsage": "none"
+      },
+      "theory": {
+        "falsifiableProposition": {
+          "F1": "钢厂利润代理 z-score 极端亏损（z≤−2）后，未来 40 日利润向中枢回归，且回归主要由产品端（RB）弹性驱动（减产→成材供给收缩→成材价格修复），而非原料端同步下行",
+          "F2": "利润极端高（z≥+2）后，复产/提产→成材供给释放→利润与成材价格回落",
+          "precondition": "利润→开工传导链未被政策打断（政策日历作模型前提开关，是数据输入不是定价输入）"
+        },
+        "mechanism": "利润极端 → 开工率调整 → 供需再平衡 → 利润回归中枢；回归主要由成材端（产品弹性）承担。",
+        "preconditions": [
+          "政策日历『粗钢产量调控/能耗双控』事件未生效",
+          "RB close ≥ MA20（多侧确认）"
+        ],
+        "references": [
+          "Pindyck 2001 (Energy Journal)",
+          "国投期货螺矿比套利案例（v1 链接）"
+        ],
+        "source": "t2 §FS-04"
+      },
+      "prerequisites": [
+        "GA-1",
+        "GA-7"
+      ],
+      "asOfContract": [
+        "F1",
+        "F2",
+        "F3",
+        "F8",
+        "F9"
+      ],
+      "marketModel": {
+        "stateVariables": [
+          "π_t = P_RB,t − (β̂1·P_I,t + β̂2·P_J,t)（钢厂利润代理，残差形式）",
+          "z_t = (π_t − μ̂_250)/σ̂_250",
+          "焦化利润 πJ_t = P_J,t − 1.33×P_JM,t（同构模型，方向对称）"
+        ],
+        "formulas": [
+          "F1: OLS 标定 P_RB = α + β1·P_I + β2·P_J（样本内 2016–2026 日频），π = 残差；先验权重 (1.6, 0.5)（行业通行口径）仅作初始值，标定后冻结参数",
+          "F2: z_t = (π_t − μ̂_250)/σ̂_250；signal = +1 if z_t ≤ −2；= −1 if z_t ≥ +2；= 0 其他",
+          "F3: P_RB,target = P_RB,t − z_t × σ̂_250（残差向均值回归对应的成材价 = edge 衰减点）",
+          "F4: 焦化利润 πJ_t = P_J,t − 1.33×P_JM,t（同构模型）",
+          "F5: 平稳性门（t8 F-3 修订新增）：滚动 250d 残差 ADF p > 0.05 → 该品种组停用（重估窗口）——RB/I/J 体系不协整时 z 分位失真"
+        ],
+        "conditionalDistribution": "π 残差在 |z|≥2 后向 0 回归（回归概率 > 55% 为待证命题）",
+        "confirmationZone": "T 日收盘触发（z≤−2 或 z≥+2）+ RB close ≥ MA20（多侧确认）",
+        "invalidationEvent": "z 反向扩 0.5（回归失败 = 理论失效点）或 RB 1.5×ATR5 波动失效；或 250d 残差 ADF p > 0.05（F5 平稳性门）",
+        "edgeDecay": "P_RB,target（残差归零隐含价）达到或 40 日时间退出"
+      },
+      "pricingModel": {
+        "principle": "定价全部由本条目 marketModel.formulas 导出（H2）",
+        "stop": {
+          "rule": "① z 反向扩 0.5；② RB 1.5×ATR5。先到先平",
+          "modelRef": "F2",
+          "theoryRole": "理论失效点（回归失败）+ 波动失效"
+        },
+        "target": {
+          "rule": "P_RB,target = P_RB,t − z_t × σ̂_250；40 日时间退出",
+          "modelRef": "F3",
+          "theoryRole": "edge 衰减点（残差归零隐含价）"
+        },
+        "position": {
+          "rule": "|z|∈[2,3)→0.5R；≥3→1R（edge 强度档，待标定，t9 F-06）；G2 波动率 overlay + risk-framework 1R 预算；双腿变体（RB 多/(β̂1·I+β̂2·J) 空）启用时按组合风险预算另行核算（t9 F-06 备注）",
+          "modelRef": "F2",
+          "theoryRole": "edge 强度（|z| 分档）+ 通用风险预算"
+        },
+        "excluded": [
+          "FinCoT 文本表述作为入场依据（X1）"
+        ]
+      },
+      "strategy": {
+        "direction": "z≤−2 → 多 RB（容量允许时 RB 多/(β̂1·I+β̂2·J) 空组合）；z≥+2 → 空 RB；焦化对称",
+        "entry": "确认区触发（z 阈值 + MA20 确认）→ T+1 开盘",
+        "stop": "见 pricingModel.stop",
+        "target": "见 pricingModel.target",
+        "position": "见 pricingModel.position",
+        "holding": "≤ 40 交易日",
+        "executionRules": [
+          "T+1 开盘执行（t3 §0.2 通用口径）",
+          "入场跳空 > 1×ATR5 放弃（t9 F-04）",
+          "政策日历『粗钢产量调控/能耗双控』事件生效期暂停新开仓（前提开关，数据层输入非定价，t8 F-4 移至执行层）",
+          "距交割月 ≥ 20 交易日（t3 §0.3 通用口径）",
+          "长假/隔周按组合层 Hard 项执行：长假（≥3 日休市）前保证金降至 20% 以下或平仓；周一跳空 > 0.5×ATR5 按条目失效/重估条款处理（t9 F-02）"
+        ]
+      },
+      "dataContract": {
+        "ref": "FS-04",
+        "refFile": "04-data-contracts.json",
+        "contractStatus": "available",
+        "requiredGAs": [
+          "GA-1",
+          "GA-7"
+        ],
+        "asOfRules": [
+          "T 日收盘评估",
+          "T+1 开盘执行",
+          "滚动 OLS 只用 T 日及以前数据（F8）",
+          "事件日历 event.date ≤ 锚点日（F9）"
+        ],
+        "inputs": "data/daily/{RB0,I0,J0,JM0,HC0}.json（纯价格数据，RB0 已有 500 行）；政策日历（人工维护 YAML，FS-09 共用模板，作前提开关；为冻结前必装组件，其证伪测试 (d) 裁定）",
+        "caveat": "真实钢厂利润（含现货成本）依赖 Mysteel → 剔除，只用价格代理并如实声明口径（t2 §FS-04 / t4 FS-04）"
+      },
+      "parameters": [
+        {
+          "name": "先验权重",
+          "initial": "(1.6, 0.5)；焦化 1.33",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §5.1（行业通行口径）",
+          "freezeCondition": "OLS 标定后替换冻结"
+        },
+        {
+          "name": "β̂1/β̂2（OLS 标定）",
+          "initial": "2016–2026 日频滚动 OLS",
+          "source": "calibration",
+          "sourceClass": "calibration",
+          "sourceDoc": "t2 §FS-04 市场模型",
+          "freezeCondition": "标定窗口满足（GA-1 后 ≥3 年）且证伪测试通过后冻结"
+        },
+        {
+          "name": "z 阈值",
+          "initial": "±2",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §5.1",
+          "freezeCondition": "证伪测试 (a) 通过后冻结"
+        },
+        {
+          "name": "统计窗口",
+          "initial": "250d（μ̂/σ̂）",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §5.1",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "止损幅度",
+          "initial": "z 反向扩 0.5；RB 1.5×ATR5",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §5.1",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "持有期",
+          "initial": "40 日",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §5.1",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "平稳性门",
+          "initial": "250d 残差 ADF p > 0.05 → 该品种组停用",
+          "source": "calibration",
+          "sourceClass": "calibration",
+          "sourceDoc": "t8 F-3（与 FS-05/EC-01 协整门同构）",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "edge 分档",
+          "initial": "|z|∈[2,3)→0.5R；≥3→1R",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t9 F-06 建议（待标定初值）",
+          "freezeCondition": "证伪测试通过后冻结"
+        }
+      ],
+      "falsificationTests": {
+        "strategyLevel": {
+          "minTrades": 200,
+          "walkForward": "purged expanding（预注册口径）",
+          "pfThreshold": 1.2,
+          "ci": "95% CI 不含 0",
+          "baselines": [
+            "always-long",
+            "always-short",
+            "random"
+          ],
+          "cost": "扣成本 0.07% 往返"
+        },
+        "theoryLevel": {
+          "hypothesis": "F1/F2 利润均值回归 + 产品端弹性驱动 + 政策前提",
+          "test": "(a) z 极端后 40 日 π 回归（|π_40 − μ̂| < |π_0 − μ̂|/2）概率 ≤ 55% → 证伪 F1/F2；(b) 多 RB 单边策略扣成本夏普 < 0.5 → 停用；(c) 归因检验：回归由原料腿驱动（RB 亏损而 I/J 上涨）的样本占比 > 40% → 单边改双腿结构；(d) 政策窗口（2016–2017 供给侧、2021 粗钢压减、2025 粗钢产量调控）表现显著劣于全样本 → 政策过滤层为必装组件",
+          "killOn": "(a) 证伪 F1/F2 → retired；(b) 触发 → suspended"
+        },
+        "killRules": [
+          "40 日回归概率 ≤ 55% → 证伪 F1/F2 → retired",
+          "扣成本夏普 < 0.5 → suspended",
+          "250d 残差 ADF p > 0.05 → 该品种组停用（重估窗口，t8 F-3）"
+        ]
+      },
+      "knownCounterEvidence": [
+        "2021H2 焦煤暴涨：利润深亏 6+ 月不修复（供给刚性+政策），均值回归时滞风险（t2 §FS-04）",
+        "2014–2015 需求坍塌：成本随矿价同步下移，『成本支撑』失效——『利润分位 ≠ 时间反转信号』必须写入策略库（t2 §FS-04）"
+      ],
+      "crossModelRefs": [],
+      "crossDataInputs": [
+        "data/daily/*.json",
+        "event-calendar"
+      ]
+    },
+    {
+      "id": "FS-05",
+      "name": "农产品压榨/替代价差回归（协整 OU）",
+      "family": "fundamental",
+      "sourceIds": [
+        "t2 §FS-05"
+      ],
+      "status": "designed",
+      "evidenceGrade": "B",
+      "pricingSource": "self-model",
+      "analysisFilter": {
+        "finCoTUsage": "排除 only：价差回归不引用单品种 FinCoT 方向（两条 FinCoT 结论拼接 = 违反对称性原则）",
+        "noNumericPricing": true,
+        "probabilityConeUsage": "none"
+      },
+      "theory": {
+        "falsifiableProposition": {
+          "F1": "替代需求与压榨经济性使品种对价差存在长期均衡（协整）；偏离均衡后 20 日内回归，回归由『高估腿回落』与『低估腿回升』共同驱动",
+          "F2": "政策/贸易结构变化（进口禁令、反倾销、收抛储）造成价差中枢永久性迁移；迁移后旧中枢的回归信号失效——结构断裂必须先于交易被识别（断裂门是模型组成部分，不是事后解释）"
+        },
+        "mechanism": "压榨经济性与替代需求构成长期均衡；偏离后双驱动回归；结构事件造成中枢永久迁移。",
+        "preconditions": [
+          "结构断裂门通过",
+          "两腿距交割 > 20 日",
+          "政策日历该品种对贸易/储备事件未生效"
+        ],
+        "references": [
+          "Gatev-Goetzmann-Rouwenhorst 2006 (RFS)",
+          "Engle & Granger 1987 (Econometrica)"
+        ],
+        "source": "t2 §FS-05"
+      },
+      "prerequisites": [
+        "GA-1",
+        "GA-7"
+      ],
+      "asOfContract": [
+        "F1",
+        "F2",
+        "F3",
+        "F8",
+        "F9"
+      ],
+      "marketModel": {
+        "stateVariables": [
+          "协整残差 e_t、z_t = (e_t − μ̂_e)/σ̂_e",
+          "断裂门状态（60d 残差 ADF p、β̂ 漂移）"
+        ],
+        "formulas": [
+          "F1: 协整（Engle-Granger 两步）：P_1,t = α̂ + β̂·P_2,t + e_t，滚动 250d 估计，冻结后使用",
+          "F2: z_t = (e_t − μ̂_e)/σ̂_e；signal = +1 if z_t ≥ 2（空腿1/多腿2）；= −1 if z_t ≤ −2；= 0 其他",
+          "F3: 结构断裂门（模型自带）：最近 60d 残差 ADF p > 0.10 或 β̂ 变化 > 2σ̂_β → 该对停用（中枢迁移中）",
+          "F4: 目标：z→0 双边平（双腿目标价 = 各自价格 ± β̂/(1+β̂) × 半价差偏离）"
+        ],
+        "conditionalDistribution": "e_t 协整平稳；|z|≥2 后向 μ̂_e 回归（回归概率 > 55% 为待证命题）",
+        "confirmationZone": "T 日收盘 |z|≥2 + 断裂门通过 + 两腿距交割 > 20 日",
+        "invalidationEvent": "|z| 反向扩 0.5 或触 3σ̂（θ≈0 = 理论失效点）；单腿逼仓（近月持仓异常）→ 全平",
+        "edgeDecay": "z→0（价差回归 μ̂_e = e 的模型均衡值 = edge 耗尽点）"
+      },
+      "pricingModel": {
+        "principle": "定价全部由本条目 marketModel.formulas 导出（H2）",
+        "stop": {
+          "rule": "|z| 反向扩 0.5 或触 3σ̂；单腿逼仓（近月持仓异常）→ 全平",
+          "modelRef": "F2/F3",
+          "theoryRole": "理论失效点（θ≈0）"
+        },
+        "target": {
+          "rule": "z→0 双边平（双腿目标价 = 各自价格 ± β̂/(1+β̂) × 半价差偏离）",
+          "modelRef": "F4",
+          "theoryRole": "edge 耗尽点（价差回归 μ̂_e）"
+        },
+        "position": {
+          "rule": "|z|∈[2,2.5)→0.5R；≥2.5→1R（edge 强度档，待标定，t9 F-06）；G2 + risk-framework 1R 预算（R 按双腿价差计）；双腿成本 0.14%",
+          "modelRef": "F2",
+          "theoryRole": "edge 强度（|z| 分档）+ 通用风险预算"
+        },
+        "excluded": [
+          "单品种 FinCoT 方向拼接双腿结论（X8）"
+        ]
+      },
+      "strategy": {
+        "direction": "双腿回归，按 e 符号定多空（e>0: 腿1高估 → 空腿1/多腿2）",
+        "entry": "确认区触发（|z|≥2 + 断裂门 + 交割距离）→ T+1 两腿同步开盘",
+        "stop": "见 pricingModel.stop",
+        "target": "见 pricingModel.target",
+        "position": "见 pricingModel.position",
+        "holding": "z→0 双边平或 20 日时间退出（与 F1『20 日内回归』时窗一致），先到先平（t8 F-5 / t9 F-07）",
+        "executionRules": [
+          "T+1 两腿同步开盘（t3 §0.2 通用口径）",
+          "任一腿跳空 > 0.5×ATR5 放弃（保价差结构，t9 F-04）",
+          "两腿距交割 > 20 日",
+          "贸易/储备事件生效期暂停新开仓（前提开关，数据层输入非定价，t8 F-4 移至执行层）",
+          "双腿成本 0.14%",
+          "长假/隔周按组合层 Hard 项执行：长假（≥3 日休市）前保证金降至 20% 以下或平仓；周一跳空 > 0.5×ATR5 按条目失效/重估条款处理（t9 F-02）"
+        ]
+      },
+      "dataContract": {
+        "ref": "FS-05",
+        "refFile": "04-data-contracts.json",
+        "contractStatus": "available",
+        "requiredGAs": [
+          "GA-1",
+          "GA-7"
+        ],
+        "asOfRules": [
+          "T 日收盘评估",
+          "T+1 两腿同步执行",
+          "滚动 250d 估计只用 T 日及以前数据（F8）",
+          "事件日历 event.date ≤ 锚点日（F9）"
+        ],
+        "inputs": "data/daily/{M0,RM0,Y0,P0,OI0,C0,CS0}.json（现有 2y；GA-1 补至 ≥5 年后启用正式标定，初期降级运行）",
+        "pairs": [
+          "M−RM（蛋白替代）",
+          "Y−M（油粕比）",
+          "Y−P（豆棕价差，低置信）",
+          "OI−Y（菜豆油价差）",
+          "C−CS（玉米-淀粉加工价差）"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "协整窗口",
+          "initial": "滚动 250d",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §5.1",
+          "freezeCondition": "协整标定通过后冻结"
+        },
+        {
+          "name": "z 阈值",
+          "initial": "±2 入场 / 3σ̂ 止损",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §5.1",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "断裂门",
+          "initial": "60d 残差 ADF p > 0.10 或 β̂ 变化 > 2σ̂_β → 停用",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §5.1",
+          "freezeCondition": "证伪测试 (c) 通过后冻结"
+        },
+        {
+          "name": "止损幅度",
+          "initial": "|z| 反向扩 0.5",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §5.1",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "标定样本要求",
+          "initial": "≥5 年（GA-1 后）",
+          "source": "repo-convention",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §FS-05 数据依赖",
+          "freezeCondition": "GA-1 完成后正式标定启用"
+        },
+        {
+          "name": "时间止损",
+          "initial": "20 个交易日（与 F1『20 日内回归』时窗一致）",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §FS-05（t8 审查 F-5 同步修正）/ t9 F-07",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "edge 分档",
+          "initial": "|z|∈[2,2.5)→0.5R；≥2.5→1R",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t9 F-06 建议（待标定初值）",
+          "freezeCondition": "证伪测试通过后冻结"
+        }
+      ],
+      "falsificationTests": {
+        "strategyLevel": {
+          "minTrades": 200,
+          "walkForward": "purged expanding（预注册口径）",
+          "pfThreshold": 1.2,
+          "ci": "95% CI 不含 0",
+          "baselines": [
+            "always-long",
+            "always-short",
+            "random"
+          ],
+          "cost": "双腿扣成本 0.14%"
+        },
+        "theoryLevel": {
+          "hypothesis": "F1 协整回归 + F2 结构断裂门有效性",
+          "test": "(a) 滚动协整通过率 < 70% 的品种对 → 剔除该对；(b) 组合扣成本（双腿 0.14%）夏普 < 0.5 或回归命中 < 55% → 停用；(c) M−RM 专项：2019 菜籽进口政策、2023 反倾销两段结构断裂若未被断裂门捕捉（该段出现 >2 次 3σ 止损）→ 断裂门参数修订，修订后仍不达标 → 该对永久停用",
+          "killOn": "(b) 触发 → suspended；(c) 修订后仍不达标 → 该对永久停用"
+        },
+        "killRules": [
+          "滚动协整通过率 < 70% → 剔除该品种对",
+          "组合夏普 < 0.5 或命中 < 55% → suspended",
+          "断裂门修订后仍不达标 → 该对永久停用"
+        ]
+      },
+      "knownCounterEvidence": [
+        "2019 M−RM 价差中枢永久上移（菜籽进口政策），均值回归策略该段大亏（t2 §FS-05）",
+        "Y−P 受印尼棕榈油出口政策频繁冲击，非平稳段多：列为低置信品种对，仅断裂门通过率连续 90 日 100% 时才允许交易（t2 §FS-05）"
+      ],
+      "crossModelRefs": [],
+      "crossDataInputs": [
+        "data/daily/*.json",
+        "event-calendar"
+      ]
+    },
+    {
+      "id": "M1",
+      "name": "DR007 流动性冲击（信用渠道 → 国内需求型板块）",
+      "family": "macro",
+      "sourceIds": [
+        "t1 §M1"
+      ],
+      "status": "designed",
+      "evidenceGrade": "中-高",
+      "pricingSource": "self-model",
+      "analysisFilter": {
+        "finCoTUsage": "无任何 FinCoT odds 参与（H1）；方向门禁为模型自带的价格确认，不是 FinCoT 叙事",
+        "noNumericPricing": true,
+        "probabilityConeUsage": "none"
+      },
+      "theory": {
+        "falsifiableProposition": {
+          "H0": "DR007 的 5 日突变与黑色板块未来 1–2 周收益无关",
+          "H1": "资金利率急升（收紧冲击，Δ5d DR007 ≥ +0.5pp）后，国内需求型品种未来 10 日收益系统性为负；宽松冲击（≤ −0.5pp）后为正"
+        },
+        "mechanism": "信用渠道/流动性溢价：短期资金利率是央行政策姿态最高频观测，DR007 对政策利率的偏离冲击经融资成本与信用条件传导至地产-基建链需求预期。",
+        "preconditions": [
+          "信号与价格确认同向（破/站上 MA20/MA60）",
+          "国内需求型品种池"
+        ],
+        "references": [
+          "国内文献 + 实践（t1 §M1）"
+        ],
+        "source": "t1 §M1"
+      },
+      "prerequisites": [
+        "GA-4",
+        "GA-1",
+        "GA-2"
+      ],
+      "asOfContract": [
+        "F1",
+        "F2",
+        "F3",
+        "F8"
+      ],
+      "marketModel": {
+        "stateVariables": [
+          "s_t = Δ5d DR007_t（百分点，FDR007 定盘）",
+          "扩展态 g_t = DR007 − r* 为 needs-extension 版（P0 不用）"
+        ],
+        "formulas": [
+          "F1: s_t = Δ5d DR007_t（百分点）",
+          "F2: 条件模型（线性简化，参数滚动标定）：E[r_{i,t+1:t+10} | s_t] = α_i + β_i·s_t，预期 β_i < 0（i ∈ 黑色 + SA/FG 国内需求型能化）",
+          "F3: 方向门禁（模型自带确认区）：价格 close ≤ MA20 且 ≤ MA60 时才执行空头；多头对称。信号与价格确认同向才入场",
+          "F4: 冲击消化：|s_t| 回落 < 0.3pp（edge 衰减）；1.5×ATR5 反向 = 波动失效"
+        ],
+        "conditionalDistribution": "线性条件期望模型 E[r | s_t]（β_i 滚动标定，预期为负）",
+        "confirmationZone": "s_t ≥ +0.5pp 且价格破 MA20/MA60（空）；s_t ≤ −0.5pp 且价格站上 MA20/MA60（多）",
+        "invalidationEvent": "1.5×ATR5 反向（波动失效）；冲击消化 |s_t| < 0.3pp 为 edge 衰减点",
+        "edgeDecay": "冲击消化（|s_t| 回落 < 0.3pp）或 2.0×ATR5 目标位，先到先平（风险收益比固定 1:1.33）"
+      },
+      "pricingModel": {
+        "principle": "定价全部由本条目 marketModel.formulas 导出（H2）；无任何 FinCoT odds 参与",
+        "stop": {
+          "rule": "1.5×ATR5 反向",
+          "modelRef": "F4",
+          "theoryRole": "波动失效点"
+        },
+        "target": {
+          "rule": "2.0×ATR5 或持有至 |s_t| < 0.3pp（冲击消化）先到先平（风险收益比固定 1:1.33）",
+          "modelRef": "F4",
+          "theoryRole": "edge 衰减点（冲击消化）"
+        },
+        "position": {
+          "rule": "scale = clamp(σ_target/max(hv,0.05), 0.2, 1.0) × min(1, |s_t|/1.0)；σ_target 默认 0.15。已内置波动缩放，G2 对其不再重复套用（防双重缩放，t9 F-09）",
+          "modelRef": "F2/F4",
+          "theoryRole": "edge 强度（冲击幅度 × 波动缩放）"
+        },
+        "excluded": [
+          "FinCoT odds（X1）"
+        ]
+      },
+      "strategy": {
+        "direction": "s_t ≥ +0.5pp 且破 MA20/MA60 → 空 {黑色（RB0/HC0/J0 取 |β̂| 最强 1 个）+ 建材（SA0/FG0 取 |β̂| 最强 1 个）}；s_t ≤ −0.5pp 且站上 → 多；|s_t|<0.5pp 中性不开新仓。篮子豁免：篮子总风险合计 ≤1R、并发计数按 1 个仓位计；同板块 ≤1 由池内最强品种规则保证（t9 F-03）",
+        "entry": "信号日收盘确认（价格确认同向）→ T+1 开盘",
+        "stop": "见 pricingModel.stop",
+        "target": "见 pricingModel.target",
+        "position": "见 pricingModel.position",
+        "holding": "≤ 10 交易日（冲击窗口）",
+        "executionRules": [
+          "T+1 开盘执行（t3 §0.2 通用口径）",
+          "入场跳空 > 1×ATR5 放弃（t9 F-04）",
+          "信号与价格确认同向才入场（F3 门禁）",
+          "asOf：T 日收盘冻结，无未来函数",
+          "长假/隔周按组合层 Hard 项执行：长假（≥3 日休市）前保证金降至 20% 以下或平仓；周一跳空 > 0.5×ATR5 按条目失效/重估条款处理（t9 F-02）"
+        ]
+      },
+      "dataContract": {
+        "ref": "M1",
+        "refFile": "04-data-contracts.json",
+        "contractStatus": "available",
+        "requiredGAs": [
+          "GA-1",
+          "GA-2",
+          "GA-4"
+        ],
+        "asOfRules": [
+          "T 日收盘冻结",
+          "无未来函数",
+          "FDR007/FR007 拼接纪律（t7 修订建议 D）：walk-forward 只用 FDR007 段；FR007 段仅用于 2015–2017 粗标定且拼接点 ±20 交易日剔除"
+        ],
+        "inputs": "DR007（akshare repo_rate_hist FDR007；GA-4 按年分批回填：FDR007 2017-05-31+/FR007 2015+ 代理）；黑色/玻璃纯碱日线（data/daily，GA-1）；ATR5/HV（probability 派生，GA-2）"
+      },
+      "parameters": [
+        {
+          "name": "冲击阈值",
+          "initial": "±0.5pp（Δ5d DR007）",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t1 §M1",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "消化阈值",
+          "initial": "|s_t| < 0.3pp",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t1 §M1",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "止损",
+          "initial": "1.5×ATR5",
+          "source": "repo-convention",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "risk-framework stopK=1.5；t1 §M1",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "目标",
+          "initial": "2.0×ATR5（风险收益比 1:1.33）",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t1 §M1",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "σ_target",
+          "initial": "0.15",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t1 §M1/M6",
+          "freezeCondition": "组合级验证通过后冻结"
+        },
+        {
+          "name": "scale clamp",
+          "initial": "0.2–1.0；|s_t|/1.0 上限",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t1 §M1",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "β_i（滚动标定）",
+          "initial": "品种级滚动标定，预期 < 0",
+          "source": "calibration",
+          "sourceClass": "calibration",
+          "sourceDoc": "t1 §M1 条件模型",
+          "freezeCondition": "walk-forward 门禁通过后冻结品种映射"
+        }
+      ],
+      "falsificationTests": {
+        "strategyLevel": {
+          "minTrades": 200,
+          "walkForward": "2019-01–2026-08 滚动 12 个月窗口，每窗口统计『冲击后 10 日方向命中率』",
+          "pfThreshold": 1.2,
+          "ci": "命中率 ≥ 55% 且单尾检验 p < 0.10；达标窗口占比 ≥ 60%（预注册口径，对齐 G3『walk-forward 多数年份为正』，t7 修订建议 E）",
+          "baselines": [
+            "always-long",
+            "always-short",
+            "random"
+          ],
+          "cost": "扣成本 0.07% 往返"
+        },
+        "theoryLevel": {
+          "hypothesis": "信用渠道传导 β_i < 0",
+          "test": "命中率门槛不达标 → 冻结该品种方向映射；全池 < 50% → 回炉 β 标定；结构性风险：2023 前后分段报告（国内利率与地产链脱钩 → β_i 可能衰减）",
+          "killOn": "全池连续 2 个滚动窗口命中率 < 50% → 策略整体停用"
+        },
+        "killRules": [
+          "连续 2 个滚动窗口命中率 < 50% → 冻结该品种方向映射",
+          "全池 < 50% → 策略整体停用并回炉 β 标定"
+        ]
+      },
+      "knownCounterEvidence": [
+        "2023 前后分段必须报告：国内利率与地产链脱钩（2023 后地产周期走平）可能使 β_i 衰减（t1 §M1）"
+      ],
+      "crossModelRefs": [],
+      "crossDataInputs": [
+        "data/daily/*.json",
+        "data/macro/*.json"
+      ]
+    },
+    {
+      "id": "EC-01",
+      "name": "能化成本传导误差修正（M4 ⊕ FS-08 合并条目）",
+      "family": "cost-transmission",
+      "sourceIds": [
+        "t1 §M4",
+        "t2 §FS-08"
+      ],
+      "mergeDecision": "D2",
+      "status": "designed",
+      "evidenceGrade": "C",
+      "pricingSource": "self-model",
+      "analysisFilter": {
+        "finCoTUsage": "排除 only：定价仅由 ECM 方程导出",
+        "noNumericPricing": true,
+        "probabilityConeUsage": "none"
+      },
+      "theory": {
+        "falsifiableProposition": {
+          "F1": "原油是油化工品种的成本锚，产品价与 SC 价存在协整；短期偏离通过产品端以误差修正机制回归（ECM 修正系数 γ 显著 < 0）",
+          "F2": "产品端偏离成本锚的 z-score |z|≥2 后，20 日内产品价格向成本锚回归；回归由产品端承担（SC 端受外盘主导，不构成可交易的回归腿——t4 确认 SC 无库存/基差数据，产品腿单边结构是正确取舍）"
+        },
+        "mechanism": "原油成本锚 → 产品价围绕成本+正常加工利润波动；偏离后利润驱动开工调整 → 产品端误差修正回归。",
+        "preconditions": [
+          "γ < 0 且 p < 0.05（ECM 启用前提）",
+          "池资格：β̂ ≥ 0.2 且 R² ≥ 0.3",
+          "产品 close ≥ MA20（多侧）"
+        ],
+        "references": [
+          "Engle & Granger 1987（同 FS-05）",
+          "裂解价差文献（v1 CS-04 链接）"
+        ],
+        "source": "t1 §M4 ⊕ t2 §FS-08（D2 合并裁定）"
+      },
+      "prerequisites": [
+        "GA-1",
+        "GA-7"
+      ],
+      "asOfContract": [
+        "F1",
+        "F2",
+        "F3",
+        "F8",
+        "F9"
+      ],
+      "marketModel": {
+        "stateVariables": [
+          "协整残差 e_t、z_t = (e_t − μ̂_e)/σ̂_e",
+          "ECM 修正系数 γ（滚动 250d 估计）"
+        ],
+        "formulas": [
+          "F1: 协整：P_prod,t = α̂ + β̂·P_SC,t + e_t（滚动 250d，冻结参数）",
+          "F2: ECM：ΔP_prod,t = γ·e_{t−1} + Σ β_j·ΔP_SC,t−j + ε_t；γ < 0 且 p < 0.05 为启用前提（模型级可证伪门）",
+          "F3: 模型资格测试（M4 对数口径独立运行，t7 修订项 A）：log P_prod ~ log P_SC 滚动 250d OLS，β̂ ≥ 0.2 且 R² ≥ 0.3，否则该品种剔除出池（阈值来源 t1 §M4 对数口径）；绑定 ECM 为水平口径（t2 §FS-08），两口径不混用（H3/X3）",
+          "F4: 信号：z_t = (e_t − μ̂_e)/σ̂_e；−1 if z_t ≥ +2（产品高估 → 空产品）；+1 if z_t ≤ −2（产品低估 → 多产品）",
+          "F5: P_target = α̂ + β̂·P_SC,t + μ̂_e（误差归零的模型导出产品目标价 = edge 衰减点）"
+        ],
+        "conditionalDistribution": "e_t 协整平稳；ECM 修正系数 γ<0（启用前提）；|z|≥2 后向 μ̂_e 回归",
+        "confirmationZone": "T 日收盘 |z|≥2 + γ 显著性门通过 + 产品 close ≥ MA20（多侧）",
+        "invalidationEvent": "e 反向扩 0.5σ̂_e（回归失败 = 理论失效点）或产品 1.5×ATR5",
+        "edgeDecay": "P_target（误差归零产品目标价）达到或 20 日时间退出"
+      },
+      "pricingModel": {
+        "principle": "定价全部由本条目 marketModel.formulas 导出（H2）；绑定模型取 FS-08 ECM（D2）",
+        "stop": {
+          "rule": "① e 反向扩 0.5σ̂_e；② 产品 1.5×ATR5。先到先平。M4 的 |z|≥3σ_z 止损随对数口径一并废弃（绑定模型切换 D2），EC-01 止损统一为上述两条，防双口径止损混用（t7 修订项 C）",
+          "modelRef": "F1/F4",
+          "theoryRole": "理论失效点（回归失败）+ 波动失效"
+        },
+        "target": {
+          "rule": "P_target = α̂ + β̂·P_SC,t + μ̂_e；20 日时间退出",
+          "modelRef": "F5",
+          "theoryRole": "edge 衰减点（误差归零产品目标价）"
+        },
+        "position": {
+          "rule": "通用风险预算 × 0.75（回归策略折价，σ 估计误差折价；来源 M4，待标定）",
+          "modelRef": "F2（ECM 估计误差折价）",
+          "theoryRole": "edge 强度折价"
+        },
+        "overnightGuard": {
+          "rule": "SC 夜盘与外盘跳空 → 产品次日开盘跳空 > 1×ATR5 的交易日不新开仓；已持仓位跳空反向按止损硬执行",
+          "modelRef": "执行纪律（t2 §FS-08）",
+          "theoryRole": "执行纪律"
+        },
+        "excluded": [
+          "FinCoT 数值输出（X1）；库存/利润变量（X8）"
+        ]
+      },
+      "strategy": {
+        "direction": "只做产品腿（不裸做 SC 腿：无库存/基差数据 + 原油波动受外盘主导，与模型回归假设不符）",
+        "entry": "确认区触发（|z|≥2 + γ 门 + MA20）→ T+1 开盘",
+        "stop": "见 pricingModel.stop",
+        "target": "见 pricingModel.target",
+        "position": "见 pricingModel.position",
+        "holding": "≤ 20 交易日",
+        "executionRules": [
+          "T+1 开盘执行（t3 §0.2 通用口径）",
+          "隔夜跳空 > 1×ATR5 不新开仓；已持仓跳空反向按止损硬执行",
+          "2020 负油价/2022 俄乌供给冲击期与 FS-09 事件日历联动暂停",
+          "MA 不入集（煤化工成本锚是煤而非油，保持模型内一致性）",
+          "长假/隔周按组合层 Hard 项执行：长假（≥3 日休市）前保证金降至 20% 以下或平仓；周一跳空 > 0.5×ATR5 按条目失效/重估条款处理（t9 F-02）"
+        ]
+      },
+      "dataContract": {
+        "ref": "FS-08",
+        "refFile": "04-data-contracts.json",
+        "contractStatus": "available",
+        "requiredGAs": [
+          "GA-1",
+          "GA-7"
+        ],
+        "asOfRules": [
+          "T 日收盘评估",
+          "T+1 开盘执行",
+          "滚动 OLS/ECM 只用 T 日及以前数据（F8 合规）",
+          "事件日历 event.date ≤ 锚点日（F9）"
+        ],
+        "activationGate": "GA-7 政策日历 v0（2020 负油价/2022 俄乌类供给冲击公告日最小集）未建成期间，EC-01 只允许 paper 验证、禁止 live 开仓（t7 修订项 B）",
+        "inputs": "data/daily/{SC0,TA0,EG0,PP0,L0,EB0,BU0,FU0,PG0,PX0}.json（SC0 已有 500 bars）；标定需 ≥750 日（GA-1 后）",
+        "mergeNote": "M4 的池资格过滤（β̂≥0.2 且 R²≥0.3）并入本条作模型资格测试（t4 契约已在审计中说明）；M4 与 FS-08 原条目不再作为独立条目存在（D2/X3）"
+      },
+      "parameters": [
+        {
+          "name": "协整窗口",
+          "initial": "滚动 250d",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §FS-08",
+          "freezeCondition": "协整/ECM 标定通过后冻结"
+        },
+        {
+          "name": "z 阈值",
+          "initial": "±2",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t1 §M4 / t2 §FS-08",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "γ 显著性门",
+          "initial": "γ < 0 且 p < 0.05（250d 滚动 ECM）",
+          "source": "calibration",
+          "sourceClass": "calibration",
+          "sourceDoc": "t2 §FS-08",
+          "freezeCondition": "每滚动窗口重估；证伪测试通过后冻结口径"
+        },
+        {
+          "name": "止损幅度",
+          "initial": "e 反向扩 0.5σ̂_e；产品 1.5×ATR5",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §FS-08",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "持有期",
+          "initial": "20 日",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §FS-08",
+          "freezeCondition": "证伪测试通过后冻结"
+        },
+        {
+          "name": "池资格",
+          "initial": "β̂ ≥ 0.2 且 R² ≥ 0.3，否则剔除出池",
+          "source": "calibration",
+          "sourceClass": "calibration",
+          "sourceDoc": "t1 §M4（防伪绑定）",
+          "freezeCondition": "标定后冻结池名单"
+        },
+        {
+          "name": "标定样本",
+          "initial": "≥750 日",
+          "source": "repo-convention",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t2 §FS-08 数据依赖",
+          "freezeCondition": "GA-1 完成后满足"
+        },
+        {
+          "name": "仓位折价",
+          "initial": "×0.75",
+          "source": "industry-practice",
+          "sourceClass": "domain-knowledge",
+          "sourceDoc": "t1 §M4（回归策略折扣，σ_z 估计误差折价）",
+          "freezeCondition": "证伪测试通过后冻结"
+        }
+      ],
+      "falsificationTests": {
+        "strategyLevel": {
+          "minTrades": 200,
+          "walkForward": "purged expanding（预注册口径）",
+          "pfThreshold": 1.2,
+          "ci": "95% CI 不含 0",
+          "baselines": [
+            "always-long",
+            "always-short",
+            "random"
+          ],
+          "cost": "扣成本 0.07% 往返"
+        },
+        "theoryLevel": {
+          "hypothesis": "F1 协整 + 误差修正（γ<0）+ F2 产品端回归",
+          "test": "(a) 残差 ADF p > 0.05（无协整）或 γ ≥ 0（无误差修正）→ 该品种对证伪；(b) 策略扣成本夏普 < 0.5 → 停用；(c) 隔夜跳空亏损占策略总亏损 > 30% → 增加隔夜过滤（半仓/仅日内评估），修订后仍 > 30% → 停用；结构性失效：2020 负油价（条款溯源：t5 设计文档 §EC-01，t8 F-6）、2022 俄乌供给冲击期样本单列报告，不参与参数估计；该期必须与 FS-09 事件日历联动暂停",
+          "killOn": "(a) 该品种对证伪 → 剔除出池；(b) 触发 → suspended；(c) 修订后仍不达标 → 停用"
+        },
+        "killRules": [
+          "无协整（ADF p>0.05）或 γ≥0 → 该品种对证伪剔除",
+          "扣成本夏普 < 0.5 → suspended",
+          "隔夜跳空亏损占比修订后仍 > 30% → 停用"
+        ]
+      },
+      "knownCounterEvidence": [
+        "2022 俄乌段 SC 暴涨而化工品跟涨滞后、幅度不足（ECM 长时偏离，z 极端持续数周），该期必须与 FS-09 事件日历联动暂停（t2 §FS-08）"
+      ],
+      "crossModelRefs": [],
+      "crossDataInputs": [
+        "data/daily/*.json",
+        "event-calendar"
+      ]
+    }
+  ],
+  "waitlist": {
+    "note": "候补池 22 条（M2/M3/M7/M8/M9/M10/M11/M12/M13、FS-01/FS-03/FS-06/FS-07/FS-09/FS-P1-01..05、TR-02/TR-04/TR-05/TR-07/TR-08）不入核心 manifest，逐条缺口与升级路径见设计文档 §8。t4 复活证据 8 项不自动入库（D8）。口径修正（cap-4）：M13 QVIX 实测 2015-02-09 起 2800 行（11 年+）、FS-01 futures_inventory_em 仅 72 行≈3 个月（API 层确认）——按修正口径再进入库。",
+    "ref": "strategies/research/v2/05-strategy-library-design.md §8（v1.1）",
+    "captainRulingsApplied": [
+      "TR-05（D4 批复）：v2 禁止『移交他策略定价』；候补路径只保留自模型定价的 B 模式，A 模式停用",
+      "FS-07（D6 批复）：必须先删除『与 FS-01 同向才全仓』跨条目条款，确认删除后才可申请入库",
+      "FS-P1-02（cap-1/H7）：候补池改标 rejected（cap-1），不得编入任何可执行条目，见 entries[0]",
+      "复活 4 项（cap-2）：DFII10/VIXCLS/LME 外盘/人民币金溢价只作 P1 扩展数据基础标注，不升 P0，见 revivalAdoptions",
+      "口径修正（cap-4）：M13/FS-01/G2 按 t4 实测修正后进入库"
+    ],
+    "revivalAdoptions": [
+      {
+        "item": "FRED DFII10（TIPS breakeven）",
+        "verdict": "found-efficient-source",
+        "role": "P1 扩展数据基础：M3 实际利率扩展",
+        "promotionBlocked": "仍需数据接入与质量门完成后才可用于标定/验证，不得直接升 P0（cap-2/D8）"
+      },
+      {
+        "item": "FRED VIXCLS / CBOE CSV",
+        "verdict": "found-efficient-source",
+        "role": "P1 扩展数据基础：G1 交叉验证锚",
+        "promotionBlocked": "同上（cap-2/D8）"
+      },
+      {
+        "item": "LME 外盘 futures_foreign_hist",
+        "verdict": "found-efficient-source",
+        "role": "P1 扩展数据基础：M2 沪伦比扩展",
+        "promotionBlocked": "同上（cap-2/D8）"
+      },
+      {
+        "item": "人民币金溢价（XAU×USDCNH 隐含）",
+        "verdict": "found-efficient-source",
+        "role": "P1 扩展数据基础：观察项（需 oz→g 换算与期现口径声明）",
+        "promotionBlocked": "同上（cap-2/D8）"
+      }
+    ],
+    "entries": [
+      {
+        "id": "FS-P1-02",
+        "name": "会员持仓蜘蛛网（OI 衍生策略）",
+        "sourceIds": [
+          "t2 §3 P1"
+        ],
+        "pool": "P1/rejected 留档",
+        "status": "rejected_by_policy",
+        "poolMark": "rejected（cap-1，v1.1 §8 候补池口径）",
+        "reason": "OI 纪律（队长 D9 终裁 + cap-1/H7）：OI 纪律维持原状、不放开——会员持仓排名/OI 衍生类策略不得进入可执行策略集；数据侧 ready 不代表策略侧允许",
+        "executable": false,
+        "reassessment": "待用户未来明确解禁后重新评估（仍须完整五段 + §7 全流程；不得编入任何可执行条目）",
+        "dataContract": {
+          "ref": "FS-P1-02",
+          "refFile": "04-data-contracts.json",
+          "contractStatus": "needs-extension",
+          "transcribed": {
+            "field": "会员持仓排名（vol_top5/long_open_interest_top5/short_open_interest_top5 等 27 列）",
+            "source": "akshare get_rank_sum_daily（SR-20）",
+            "frequency": "daily（盘后）",
+            "history": "2000+；实测 2026-08-25..27 可用",
+            "asOf": "每日盘后拉取",
+            "gap": "数据侧就绪（found-efficient-source）；阻塞 = 仓库 OI 纪律裁定（队长 D9 终裁 + cap-1/H7 维持不放开）",
+            "lookaheadRisk": "无（盘后数据）",
+            "alternativeSources": [
+              "交易所官网持仓排名（czce/dce/shfe，爬虫/下载，found-but-expensive）"
+            ]
+          }
+        },
+        "upgradePath": "用户明确解禁 OI 纪律后：数据契约转 available + 完整五段 + §7 全流程证伪测试通过，方可申请入库（executable 由 false 转 true 必须经队长裁定）"
+      }
+    ]
+  },
+  "validationGates": {
+    "G0": "数据前置（t4 全局动作）：GA-1 全历史回填 → GA-2 全品种 ATR5/HV/HV%ile 批量 → GA-3 板块序列重建 → GA-4 宏观锚点回填 → GA-5 USDCNH change5d 修复 → GA-6 现货粘性质量门（仅 FS-02）→ GA-7 政策日历 v0（年份级事件窗口标注；FS-04/FS-05/EC-01 冻结前置，t8 F-2/t7 B 新增）",
+    "G1": "条目数据契约满足（MC-4：status=available + 所需 GA 完成）",
+    "G2": "回测执行：purged expanding walk-forward（预注册口径）→ T 日收盘信号 / T+1 开盘执行 → 跳空放弃条款逐条执行 → 三基线对照 → 成本 0.07%/双腿 0.14% → 换月日剔除",
+    "G3": "策略级门禁：≥200 笔（事件类 ≥100）；PF ≥ 1.2；95% CI 不含 0；walk-forward 多数年份为正",
+    "G4": "理论级证伪测试（各条目 falsificationTests.theoryLevel 逐项执行；任何一条理论级证伪成立 → retired）",
+    "G5": "参数冻结（t5 §5.2）+ 冻结版本号写入 manifest",
+    "G6": "入库 → 持续监控（kill rules、事件日历、结构事件重评估）",
+    "batchOrder": [
+      "第一批（GA-1/GA-2/GA-4/GA-7 完成后）：TR-01、TR-03、FS-04、FS-05、M1、EC-01",
+      "第二批（+基差历史采集器 + GA-6）：FS-02",
+      "第三批（FinCoT 历史向前积累，限 RB0/M0/SC0 起步）：TR-06",
+      "治理层 G1/G2 与第一批并行验证"
+    ]
+  },
+  "revisionLog": {
+    "revision": "t10（合并 t7/t8/t9 findings + cap-5/cap-6）",
+    "date": "2026-08-28",
+    "items": [
+      {
+        "id": "t9-F-01/cap-6",
+        "fix": "H1/GC-1 修订：锥仅 p68/p95、与固定 R 倍数构成『先到者』、不单独定价；MC-10 增『禁止 reasoning-results/FinCoT 文本价位』；TR-01/03/06 目标行 [cap-6]",
+        "location": "manifest.hardConstraints.H1、globalConstraints.GC-1、machineChecks.MC-10、TR 族 target"
+      },
+      {
+        "id": "t9-F-02",
+        "fix": "长假/隔周提升为 portfolioDiscipline Hard 项；8 条 executionRules 全部引用",
+        "location": "portfolioDiscipline、各条目 executionRules"
+      },
+      {
+        "id": "t9-F-03",
+        "fix": "M1 篮子规则：同板块取 |β̂| 最强 1 个 + 篮子豁免（总风险 ≤1R、按 1 仓位计）",
+        "location": "M1.strategy.direction、portfolioDiscipline M1 篮子豁免"
+      },
+      {
+        "id": "t9-F-04",
+        "fix": "FS-02/FS-04/M1 补入场跳空 >1×ATR5 放弃；FS-05 任一腿跳空 >0.5×ATR5 放弃",
+        "location": "各条目 executionRules"
+      },
+      {
+        "id": "t9-F-05",
+        "fix": "G2『止损改 ATR5 口径』限定于 ATR5 计价条目（TR-01/03/06/M1）；σ̂ 计价条目当日禁开新仓",
+        "location": "governance.G2.rules"
+      },
+      {
+        "id": "t9-F-06",
+        "fix": "FS-02/FS-04/FS-05 补 |z| edge 强度档（0.5R/1R 待标定）",
+        "location": "各条目 pricingModel.position + parameters"
+      },
+      {
+        "id": "t9-F-07",
+        "fix": "FS-05 时间止损 20 日（与 F1 时窗一致，合并 t8 F-5）",
+        "location": "FS-05.strategy.holding、parameters"
+      },
+      {
+        "id": "t9-F-08",
+        "fix": "FS-02 止损序列明确：1.5×ATR5 基于期货腿入场价；br 止损现货取 T 日盘后快照",
+        "location": "FS-02.pricingModel.stop"
+      },
+      {
+        "id": "t9-F-09",
+        "fix": "M1 声明已内置波动缩放、G2 不重复套用",
+        "location": "M1.pricingModel.position"
+      },
+      {
+        "id": "t9-F-10",
+        "fix": "TR-03 F3 删除『同 TR-01 定义』措辞",
+        "location": "TR-03.marketModel.formulas F3"
+      },
+      {
+        "id": "t9-F-11",
+        "fix": "TR-01 加仓后总风险 ≤2R、组合风险 ≤2.5% 不变、加仓单止损同步上移",
+        "location": "TR-01.pricingModel.position"
+      },
+      {
+        "id": "t9-F-12",
+        "fix": "TR-06 仓位分档边界参数化（|r_D|/ATR5 [2,3)/≥3）；事件日封停板条款",
+        "location": "TR-06.pricingModel.position、parameters、executionRules"
+      },
+      {
+        "id": "t8-F-1",
+        "fix": "FS-02 比率域改写：μ̂=b̂_mean/S_t、σ̂=(b̂_hi−b̂_lo)/(4×S_t) 启动锚；≥180 日后 dom_basis_rate 序列估计；采集器存比率序列",
+        "location": "FS-02.marketModel.formulas F2/F4、parameters、dataContract.inputs"
+      },
+      {
+        "id": "t8-F-2/t7-B",
+        "fix": "新增 GA-7 政策日历 v0；FS-04/FS-05/FS-08 契约补 event-calendar 依赖；三条目 prerequisites/requiredGAs 加 GA-7；batchOrder 第一批前置补 GA-7；EC-01 降级条款（日历未建成仅 paper 验证）",
+        "location": "04-data-contracts.json、validationGates、FS-04/FS-05/EC-01 dataContract"
+      },
+      {
+        "id": "t8-F-3",
+        "fix": "FS-04 新增 F5 平稳性门（250d 残差 ADF p>0.05 → 停用）",
+        "location": "FS-04.marketModel.formulas F5、invalidationEvent、killRules、parameters"
+      },
+      {
+        "id": "t8-F-4",
+        "fix": "FS-04 policyGate / FS-05 eventGate 移出 pricingModel 至 executionRules",
+        "location": "FS-04/FS-05 pricingModel、executionRules"
+      },
+      {
+        "id": "t8-F-5",
+        "fix": "FS-05 holding 改 20 日时间退出",
+        "location": "FS-05.strategy.holding"
+      },
+      {
+        "id": "t8-F-6",
+        "fix": "EC-01『2020 负油价』条款补 sourceDoc 标注（t5 设计文档 §EC-01）",
+        "location": "EC-01.falsificationTests.theoryLevel.test"
+      },
+      {
+        "id": "t7-A",
+        "fix": "EC-01 池资格测试声明 M4 对数口径独立运行（log OLS β̂≥0.2 且 R²≥0.3），绑定 ECM 水平口径，两口径不混用",
+        "location": "EC-01.marketModel.formulas F3"
+      },
+      {
+        "id": "t7-C",
+        "fix": "M4 的 3σ 止损废弃说明（绑定模型切换 D2）",
+        "location": "EC-01.pricingModel.stop"
+      },
+      {
+        "id": "t7-D",
+        "fix": "M1 FDR007/FR007 拼接纪律（walk-forward 只用 FDR007 段；FR007 段仅 2015–2017 粗标定且拼接点 ±20 交易日剔除）",
+        "location": "M1.dataContract.asOfRules"
+      },
+      {
+        "id": "t7-E",
+        "fix": "M1 通过门槛对齐 G3：达标窗口占比 ≥60%（预注册口径）",
+        "location": "M1.falsificationTests.strategyLevel.ci"
+      }
+    ]
+  }
+}

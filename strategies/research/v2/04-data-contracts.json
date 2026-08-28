@@ -1,0 +1,2059 @@
+{
+  "schema": "futures-strategy-data-contracts/1",
+  "auditedAt": "2026-08-28",
+  "auditor": "data-auditor (t4)",
+  "environment": {
+    "akshareVersion": "1.18.81",
+    "python": "3.14",
+    "networkVerified": true,
+    "repoRoot": "futures-radar",
+    "auditScope": "全部候选策略（t1 宏观 13+6、t2 基本面 9+5+5、t3 交易系统 8+9）"
+  },
+  "statusTaxonomy": {
+    "available": "数据源已接入仓库或经实测可经仓库既有工具直接回填/派生，无新增外部依赖",
+    "needs-extension": "数据源实测存在但未接入管道，或需新增采集器/序列构建器/人工维护集，写明缺什么与获取路径",
+    "rejected": "所需字段不可获取，或无合规免费代理，维持剔除留档"
+  },
+  "explorationTaxonomy": {
+    "found-efficient-source": "找到高效、合法、可稳定获取的数据源，写明接入方式",
+    "found-but-expensive": "找到合法来源但接入/维护成本高（付费/人工/爬虫工程），写明成本与取舍",
+    "no-source": "免费合规层无可落地来源，明确不可落地"
+  },
+  "globalActions": [
+    {
+      "id": "GA-1",
+      "name": "主力连续全历史回填",
+      "detail": "data/daily 仅 RB0/M0/SC0 有 500 bars（2024-08 起），其余 56 个活跃品种 61 bars（2026-06-03 起）。实测 ak.futures_main_sina 深度：RB0 2009-03+（4231 行）、I0 2013-10+（3128 行）、TA0 2006-12+（4785 行）、M0 2005-01+（5270 行），持仓量列全历史非空。工具 research/backtest/full-history-collector.cjs 已存在（尚未运行，research/backtest/data/ 不存在）。动作：运行 full-history-collector（注意 sina 限流 ~80 请求/小时，collector 已含退避）。"
+    },
+    {
+      "id": "GA-2",
+      "name": "全品种 ATR5/HV/HV%ile/概率锥批量计算",
+      "detail": "probability.json 每 run 仅覆盖 KEEP 候选（实测最新 run 3 个品种：EC0/RM0/B0）。M1/M2/M3/M6 的 ATR5/HV 仓位定价与 TR-02/TR-04 的 HV%ile 门槛需要全品种派生字段。probability/ 下 hv-estimators.js、stage-4-5.cjs 已具备计算能力。动作：新增全品种批量 runner（对 data/daily 全量运行，写入派生字段文件）。无新外部数据依赖。"
+    },
+    {
+      "id": "GA-3",
+      "name": "板块广度/leaders/laggards 历史重建",
+      "detail": "data/sector/*.json 仅 1 行（2026-08-27）；recordings/v5/sector-history.json 为 2025-11 起 47 品种。TR-04（板块广度≥30%）、FS-06（advanceRatio 过滤）、TR-08（leaders/laggards 确认）回测需要板块序列。板块序列由成员日线聚合（sector-aggregator.cjs），可用 GA-1 回填后的日线重建。动作：sector-aggregator 历史批量重算。"
+    },
+    {
+      "id": "GA-4",
+      "name": "宏观锚点历史回填",
+      "detail": "macro-history recordings：DXY 1985-11+、USDCNH 2014-11+ 已深；US10Y 与 DR007 记录仅 2026-02+。实测可回填：bond_zh_us_rate 全量 9330 行（2002 年起，同表含 CN10Y/US10Y）；repo_rate_hist 单次查询窗口 ≤1 年（超窗 KeyError frValueMap），需按年分批 12 次调用拼接；FDR007 自 2017-05-31 起、FR007 自 2015 起（2015-2017-05 可用 FR007 代理）。动作：按年分批回填并写回 recordings。"
+    },
+    {
+      "id": "GA-5",
+      "name": "USDCNH change5d 缺失修复",
+      "detail": "2026-08-27 宏观快照中 USDCNH.value 正常但 change5d=null（M2/M5 直接消费该字段）。修复：macro-probe 从 USDCNH 历史序列计算 change5d，失败时按 stale 规则标注降权。"
+    },
+    {
+      "id": "GA-6",
+      "name": "生意社现货粘性质量门逐品种审计",
+      "detail": "t2 手递：30 日零变动占比 >40% 的品种剔除出 FS-02 可交易集。动作：对 futures_spot_price_daily 覆盖品种逐品种计算粘性，产出可交易集名单。现货挂牌价存在粘性/修订风险，回测时须用 PIT（point-in-time）拉取快照，不得用今日数据回填历史。"
+    },
+    {
+      "id": "GA-7",
+      "name": "政策日历 v0（事件前提最小集）",
+      "detail": "t10 修订新增（t8 F-2 / t7 修订项 B）：人工维护 YAML 最小集，至少覆盖三类已知事件窗口的年份级留档——黑色：2016–2017 供给侧、2021 粗钢压减、2025 粗钢产量调控；农产品：2019 菜籽进口政策、2023 反倾销、收抛储；能化：2020 负油价、2022 俄乌供给冲击。用途=FS-04/FS-05/EC-01 的前提开关与证伪（FS-04 (d) 政策窗口检验、EC-01 结构性失效段单列与联动暂停）所需的窗口标注；完整事件集仍走 FS-09/M11 路线（≥20/≥40 样本）。asOf 纪律：event.date ≤ 锚点日（F9）。未完成期间 FS-04/FS-05/EC-01 不得进入 in_validation（EC-01 附加：只允许 paper 验证、禁止 live 开仓）。"
+    }
+  ],
+  "sourceRegistry": [
+    {
+      "id": "SR-01",
+      "source": "akshare futures_main_sina",
+      "kind": "主力连续日线",
+      "url": "sina 期货接口（akshare 封装）",
+      "frequency": "daily",
+      "history": "品种相关 2005-2026+（RB0 2009+、TA0 2006+、M0 2005+）",
+      "fields": "open/high/low/close/volume/持仓量/动态结算价",
+      "stability": "限流 ~80 req/h，退避可解",
+      "verdict": "found-efficient-source",
+      "note": "GA-1 主路径"
+    },
+    {
+      "id": "SR-02",
+      "source": "akshare futures_zh_daily_sina",
+      "kind": "指定合约日线",
+      "url": "sina（akshare 封装）",
+      "frequency": "daily",
+      "history": "合约上市起（实测 RB2610 213 行，2025-10-16 起）",
+      "fields": "OHLC/volume/hold/settle",
+      "stability": "同 sina 限流；仓库 collector/futures-term-structure.py 已含退避",
+      "verdict": "found-efficient-source",
+      "note": "FS-03/TR-07 两腿数据源"
+    },
+    {
+      "id": "SR-03",
+      "source": "akshare futures_inventory_em",
+      "kind": "东财交易所库存",
+      "url": "data.eastmoney.com/ifdata/kcsj.html",
+      "frequency": "daily",
+      "history": "实测仅 72 行 ≈ 3 个月（2026-05-19 起），API 层 count=72 与 pageSize 无关",
+      "fields": "日期/库存/增减（74 品种映射）",
+      "stability": "稳定；需增量积累",
+      "verdict": "found-efficient-source",
+      "note": "FS-01 主路径：新增增量采集器，≥250 日进入完整标定"
+    },
+    {
+      "id": "SR-04",
+      "source": "akshare futures_warehouse_receipt_czce",
+      "kind": "郑商所官方仓单日报",
+      "url": "czce.com.cn（akshare 封装）",
+      "frequency": "daily（单日接口）",
+      "history": "逐日回拉可积累（实测 2026-07-01 返回 SR/CF/CY/RM/OI 等品种仓库级仓单+当日增减）",
+      "fields": "仓库编号/品牌/仓单数量/当日增减/有效预报",
+      "stability": "实测可用；需重试封装",
+      "verdict": "found-efficient-source",
+      "note": "FS-01 郑商所品种官方加速通道（逐日回拉+品种级聚合）"
+    },
+    {
+      "id": "SR-05",
+      "source": "akshare futures_shfe_warehouse_receipt / shfe.com.cn",
+      "kind": "上期所官方仓单/库存",
+      "url": "www.shfe.com.cn/data/tradedata/future/dailydata/*dailystock.dat",
+      "frequency": "daily",
+      "history": "官网文件按日留存，可逐日回拉；周度库存多年留存",
+      "fields": "仓单/库存",
+      "stability": "实测当前环境 SSL 被拒（本机网络层）；官网直爬需自建+维护",
+      "verdict": "found-but-expensive",
+      "note": "FS-01 黑色/有色官方通道；成本=爬虫工程+官网改版维护"
+    },
+    {
+      "id": "SR-06",
+      "source": "akshare futures_warehouse_receipt_dce / dce.com.cn",
+      "kind": "大商所官方仓单日报",
+      "url": "dce.com.cn",
+      "frequency": "daily",
+      "history": "逐日回拉",
+      "fields": "仓单数量/增减",
+      "stability": "实测 JSONDecodeError（接口失效或官网调整）；直爬需自建",
+      "verdict": "found-but-expensive",
+      "note": "FS-01 农产品官方通道；成本=爬虫工程+维护"
+    },
+    {
+      "id": "SR-07",
+      "source": "akshare futures_gfex_warehouse_receipt / gfex.com.cn",
+      "kind": "广期所官方仓单",
+      "url": "gfex.com.cn",
+      "frequency": "daily",
+      "history": "2024-01 起（SI/LC/PS）",
+      "fields": "仓单",
+      "stability": "接口存在（未实测）",
+      "verdict": "found-but-expensive",
+      "note": "FS-01 新能源品种通道（待实测）"
+    },
+    {
+      "id": "SR-08",
+      "source": "INE 官网",
+      "kind": "上海国际能源交易中心原油仓单日报",
+      "url": "ine.com.cn",
+      "frequency": "daily",
+      "history": "SC 上市 2018-03 起",
+      "fields": "原油保税仓单",
+      "stability": "官网发布，无 akshare 接口，需自建爬虫",
+      "verdict": "found-but-expensive",
+      "note": "FS-P1-04 SC 库存唯一官方免费通道"
+    },
+    {
+      "id": "SR-09",
+      "source": "akshare macro_euro_lme_stock",
+      "kind": "LME 周度库存",
+      "url": "lme.com（akshare 封装）",
+      "frequency": "weekly",
+      "history": "实测 2718 行（镍/铝/锌/铅/锡/铜等，约 2000 年至今）",
+      "fields": "库存/注册仓单/注销仓单",
+      "stability": "实测可用",
+      "verdict": "found-efficient-source",
+      "note": "有色品种库存交叉验证/外盘视角"
+    },
+    {
+      "id": "SR-10",
+      "source": "akshare futures_foreign_hist",
+      "kind": "sina 外盘商品日线",
+      "url": "sina 全球期货（akshare 封装）",
+      "frequency": "daily",
+      "history": "CAD/AHD/NID/SND/PBD/ZSD（LME 铜铝镍锡铅锌 2016-08+ 各 2538 行）；XAU（伦敦金 2006+ 5186 行）；GC/SI/HG（COMEX 2016+）；CL（NYMEX 原油 1996+ 7691 行）",
+      "fields": "OHLC/volume/position",
+      "stability": "实测可用（30 个外盘符号）",
+      "verdict": "found-efficient-source",
+      "note": "复活：M2 沪伦比扩展、M3 人民币金溢价观察（XAU×USDCNH vs AU0 隐含溢价，需 oz→g 单位换算与期货/现货口径声明）"
+    },
+    {
+      "id": "SR-11",
+      "source": "FRED API",
+      "kind": "圣路易斯联储经济数据",
+      "url": "fred.stlouisfed.org（免费注册 API key，JSON/CSV）",
+      "frequency": "daily",
+      "history": "DFII10（10Y 盈亏平衡通胀，2003+）、VIXCLS（CBOE VIX，1990+）、DGS10（美债 10Y）",
+      "fields": "series value",
+      "stability": "官方 API 稳定",
+      "verdict": "found-efficient-source",
+      "note": "复活 t1 剔除项：TIPS breakeven（M3 实际利率扩展）、CBOE VIX（M5 锚点候选）。接入=注册 key+每日拉取"
+    },
+    {
+      "id": "SR-12",
+      "source": "CBOE 官网",
+      "kind": "VIX 历史 CSV",
+      "url": "cboe.com 数据页",
+      "frequency": "daily",
+      "history": "1990+",
+      "fields": "VIX close",
+      "stability": "官方免费下载",
+      "verdict": "found-efficient-source",
+      "note": "SR-11 的备选源"
+    },
+    {
+      "id": "SR-13",
+      "source": "akshare index_option_50etf_qvix",
+      "kind": "中国 50ETF 波指",
+      "url": "上证所 50ETF 期权波动率指数（akshare 封装）",
+      "frequency": "daily",
+      "history": "实测 2800 行，2015-02-09 至今（11 年+）",
+      "fields": "open/high/low/close",
+      "stability": "实测可用",
+      "verdict": "found-efficient-source",
+      "note": "M13 升 P0 的数据顾虑（不足 3 年）不成立"
+    },
+    {
+      "id": "SR-14",
+      "source": "akshare bond_zh_us_rate",
+      "kind": "中美国债收益率同表",
+      "url": "（akshare 封装）",
+      "frequency": "daily",
+      "history": "实测全量 9330 行（2002+），同表 CN10Y/US10Y",
+      "fields": "中国/美国 2/5/10/30 年收益率",
+      "stability": "实测可用；US10Y 有 T-1 滞后（快照已标 stale 并内置 0.75 降权规则）",
+      "verdict": "found-efficient-source",
+      "note": "M12 仅需管道扩展（同表 CN10Y 已存在）"
+    },
+    {
+      "id": "SR-15",
+      "source": "akshare repo_rate_hist",
+      "kind": "DR/FR 回购定盘利率",
+      "url": "chinamoney.com.cn（中国外汇交易中心）",
+      "frequency": "daily",
+      "history": "FDR007 2017-05-31+、FR007 2015+；单次查询窗口 ≤1 年（按年分批 12 次拼接）",
+      "fields": "FR001/FR007/FR014/FDR001/FDR007/FDR014",
+      "stability": "实测可用；超窗报 KeyError frValueMap",
+      "verdict": "found-efficient-source",
+      "note": "GA-4 回填程序已实测验证"
+    },
+    {
+      "id": "SR-16",
+      "source": "akshare futures_spot_price_daily / _previous",
+      "kind": "生意社现货价+基差",
+      "url": "（akshare 封装，生意社）",
+      "frequency": "daily",
+      "history": "2011 起（spot_price_daily）；_previous 54 品种含 180 日基差最高/最低/平均分布锚",
+      "fields": "spot_price/near_basis/dom_basis/near_basis_rate/dom_basis_rate/dominant_contract",
+      "stability": "实测可用（start_day/end_day + 合约代码 vars_list）",
+      "verdict": "found-efficient-source",
+      "note": "FS-02 主源；现货挂牌价粘性需 GA-6 质量门"
+    },
+    {
+      "id": "SR-17",
+      "source": "国家统计局",
+      "kind": "CPI/PPI/PMI/GDP/工业增加值/社融等月度数据",
+      "url": "stats.gov.cn（akshare macro_china_* 同源）",
+      "frequency": "monthly/quarterly",
+      "history": "CPI 1996+、PPI 2006+、PMI 2008+、社融 2015+、M2 2000s、GDP 2006+、工业增加值 1990+、出口 1982+（实测均可用）",
+      "fields": "按接口",
+      "stability": "稳定；发布滞后 1-2 月（如 cpi_monthly 尾行 2025-09 今值 NaN、社融最新 2026-04）→ 必须按发布日 PIT 对齐",
+      "verdict": "found-efficient-source",
+      "note": "M8/M9/M10 数据侧全部就绪，仅差管道扩展"
+    },
+    {
+      "id": "SR-18",
+      "source": "中国人民银行",
+      "kind": "公开市场业务交易公告（OMO/7 天逆回购利率）",
+      "url": "pbc.gov.cn（2013+）",
+      "frequency": "事件型/日频",
+      "history": "2013 年起公告留档",
+      "fields": "操作类型/期限/利率/金额",
+      "stability": "官方稳定；无结构化接口",
+      "verdict": "found-but-expensive",
+      "note": "M1 r* 扩展与 OMO 净投放：合法免费但需人工/半自动解析公告，成本=维护人力"
+    },
+    {
+      "id": "SR-19",
+      "source": "发改委/商务部/海关/交易所公告",
+      "kind": "政策事件日历",
+      "url": "ndrc.gov.cn / mofcom.gov.cn / customs.gov.cn / 各交易所",
+      "frequency": "事件型",
+      "history": "官网留档",
+      "fields": "日期/品种/分类/URL",
+      "stability": "官方稳定；无结构化政策库",
+      "verdict": "found-but-expensive",
+      "note": "M11/FS-09：人工维护 YAML（≥20 事件样本），免费合规但人工成本；无免费结构化替代 → 不可降级为 no-source，亦非 found-efficient-source"
+    },
+    {
+      "id": "SR-20",
+      "source": "akshare get_rank_sum_daily",
+      "kind": "会员持仓排名",
+      "url": "（akshare 封装，2000+）",
+      "frequency": "daily（盘后）",
+      "history": "实测 2026-08-25..27 可用",
+      "fields": "vol_top5/long_open_interest_top5/short_open_interest_top5 等 27 列",
+      "stability": "实测可用",
+      "verdict": "found-efficient-source",
+      "note": "FS-P1-02 数据侧就绪；阻塞=仓库 OI 纪律未启用（需队长裁定）"
+    },
+    {
+      "id": "SR-21",
+      "source": "Mysteel/钢联/隆众",
+      "kind": "社会库存/开工率/真实利润/现货成本",
+      "url": "mysteel.com / longzhong（付费）",
+      "frequency": "daily/weekly",
+      "history": "多年",
+      "fields": "按产品",
+      "stability": "商业源稳定",
+      "verdict": "found-but-expensive",
+      "note": "X-02/FS-P1-01/FS-P1-03：合规付费源，成本=订阅费；免费层无替代（钢之家部分免费周度可作观察）"
+    },
+    {
+      "id": "SR-22",
+      "source": "CFTC COT / EIA",
+      "kind": "美盘持仓与原油库存周报",
+      "url": "cftc.gov（1986+） / eia.gov",
+      "frequency": "weekly",
+      "history": "多年官方免费",
+      "fields": "持仓分类/库存",
+      "stability": "官方稳定",
+      "verdict": "found-efficient-source",
+      "note": "X-04 数据侧已解决（官方免费）；但 t2 剔除理由含'与内盘无直接定价契约'——数据可得性不构成障碍，策略适配由 t5 决策"
+    },
+    {
+      "id": "SR-23",
+      "source": "NOAA GSOD/NCEI",
+      "kind": "全球气象站日频数据",
+      "url": "ncei.noaa.gov（1929+ 免费）",
+      "frequency": "daily",
+      "history": "1929+",
+      "fields": "温度/降水",
+      "stability": "官方稳定",
+      "verdict": "found-but-expensive",
+      "note": "X-03：数据存在但站点映射+质控工程量与数据纪律扩张大；ECMWF 付费 → 维持剔除"
+    },
+    {
+      "id": "SR-24",
+      "source": "上海航运交易所",
+      "kind": "SCFI 集运指数",
+      "url": "sse.net.cn",
+      "frequency": "weekly",
+      "history": "2009+ 周频",
+      "fields": "SCFI 综合/分航线",
+      "stability": "官方发布",
+      "verdict": "found-but-expensive",
+      "note": "FS-P1-05：周频爬虫+与 EC 期货映射验证；装载率无免费源 → no-source"
+    },
+    {
+      "id": "SR-25",
+      "source": "农业农村部",
+      "kind": "生猪/鸡蛋存栏-出栏",
+      "url": "moa.gov.cn",
+      "frequency": "monthly",
+      "history": "多年",
+      "fields": "存栏/出栏量",
+      "stability": "官方稳定",
+      "verdict": "found-but-expensive",
+      "note": "X-05：低频滞后 1-2 月，与日频期货不匹配 → 维持剔除"
+    },
+    {
+      "id": "SR-26",
+      "source": "天勤量化 TqSdk",
+      "kind": "分钟级/tick 历史",
+      "url": "tqsdk.com（信易科技，免费注册）",
+      "frequency": "分钟/tick",
+      "history": "多年分钟级",
+      "fields": "OHLCV/OI",
+      "stability": "商业服务",
+      "verdict": "found-efficient-source",
+      "note": "t3 剔除'日内高频'：数据侧可得（TqSdk 免费层），但仓库口径不采集日内（§0.4）→ 口径决定维持剔除，非数据不可得"
+    },
+    {
+      "id": "SR-27",
+      "source": "结构化舆情库",
+      "kind": "期货舆情历史",
+      "url": "微博/百度指数/新闻 API",
+      "frequency": "—",
+      "history": "无免费稳定结构化历史",
+      "fields": "—",
+      "stability": "—",
+      "verdict": "no-source",
+      "note": "t3 剔除'情绪打分/舆情择时'：免费合规层无结构化历史舆情源，维持剔除"
+    }
+  ],
+  "strategies": {
+    "M1": {
+      "name": "DR007 流动性冲击",
+      "doc": "01-macro-theories.md",
+      "status": "available",
+      "rationale": "DR007 快照+macro-history 已接入；回填程序实测可行（SR-15 按年分批，FDR007 2017-05-31+/FR007 2015+）；黑色/玻璃纯碱日线在 data/daily（61-500 bars），GA-1 回填后满足 2019+ walk-forward",
+      "dependencies": [
+        {
+          "field": "DR007.change5d",
+          "source": "akshare repo_rate_hist (FDR007)",
+          "path": "data/macro/*.json + recordings/*/macro-history.json",
+          "frequency": "daily",
+          "history": "记录 2026-02+；源 2017-05-31+（FDR007）/2015+（FR007 代理）",
+          "asOf": "T 日收盘冻结",
+          "gap": "GA-4 按年分批回填",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "黑色/SA/FG 日线 OHLCV",
+          "source": "data/daily + futures_main_sina 回填",
+          "path": "data/daily/{RB0,HC0,I0,J0,SA0,FG0}.json",
+          "frequency": "daily",
+          "history": "61 bars（2026-06-03+）；源 2009+",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "ATR5/HV",
+          "source": "probability 派生（Yang-Zhang）",
+          "path": "probability/ 计算",
+          "frequency": "daily",
+          "history": "派生即时可得",
+          "asOf": "T 日收盘",
+          "gap": "GA-2 全品种批量",
+          "lookaheadRisk": "无（20 日窗口只用历史 bar）"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "7 天逆回购政策利率 r*（扩展状态 g_t=DR007−r*）",
+          "candidates": [
+            {
+              "source": "中国人民银行公开市场业务交易公告",
+              "url": "pbc.gov.cn（2013+）",
+              "method": "人工/半自动解析公告利率",
+              "frequency": "事件型→日频序列",
+              "history": "2013+",
+              "stability": "官方稳定，无结构化接口",
+              "cost": "维护人力",
+              "compliance": "官方公开",
+              "verdict": "found-but-expensive"
+            }
+          ],
+          "decision": "P0 用 s_t 版本无需 r*；扩展项接受人工维护"
+        }
+      ],
+      "auditNotes": [
+        "阈值 0.5pp/0.3pp 待标定冻结",
+        "2023 前后分段报告已内置"
+      ]
+    },
+    "M2": {
+      "name": "美元/人民币汇率传导",
+      "doc": "01-macro-theories.md",
+      "status": "available",
+      "rationale": "DXY（sina DINIW 1985+）/USDCNH（sina 2014+）已接入且历史深；有色/油粕日线在库；GA-5 修复 USDCNH.change5d=null",
+      "dependencies": [
+        {
+          "field": "DXY.change5d",
+          "source": "sina DINIW",
+          "path": "data/macro/*.json",
+          "frequency": "daily",
+          "history": "1985-11+",
+          "asOf": "T 日",
+          "gap": "无",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "USDCNH.change5d",
+          "source": "sina USDCNH",
+          "path": "data/macro/*.json",
+          "frequency": "daily",
+          "history": "2014-11+",
+          "asOf": "T 日",
+          "gap": "GA-5（2026-08-27 快照 change5d=null）",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "有色/油粕日线",
+          "source": "data/daily + GA-1",
+          "path": "data/daily/{CU0,AL0,ZN0,PB0,NI0,SN0,M0,Y0,P0,RM0,OI0}.json",
+          "frequency": "daily",
+          "history": "61 bars；源 2005+",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "沪伦比/内外价差扩展（LME 外盘历史）——t1 原标 rejected",
+          "candidates": [
+            {
+              "source": "akshare futures_foreign_hist（sina 外盘）",
+              "url": "sina 全球期货：CAD/AHD/NID/SND/PBD/ZSD",
+              "method": "直接调用，按日缓存",
+              "frequency": "daily",
+              "history": "LME 铜铝镍锡铅锌 2016-08+（各 2538 行）",
+              "stability": "实测可用",
+              "cost": "低（akshare 免费）",
+              "compliance": "公开行情",
+              "verdict": "found-efficient-source"
+            }
+          ],
+          "decision": "复活为 P1 扩展项：接入后沪伦比日频序列可建"
+        }
+      ],
+      "auditNotes": [
+        "β 符号一致性 ≥70% 窗口门禁已内置",
+        "f_t 阈值 ±0.3% 待标定"
+      ]
+    },
+    "M3": {
+      "name": "美债实际利率→贵金属",
+      "doc": "01-macro-theories.md",
+      "status": "available",
+      "rationale": "US10Y 已接入（stale T-1 规则内置降权 0.75）；bond_zh_us_rate 全量 2002+ 可回填；AU0/AG0 在库",
+      "dependencies": [
+        {
+          "field": "US10Y.change5d",
+          "source": "akshare bond_zh_us_rate",
+          "path": "data/macro/*.json",
+          "frequency": "daily",
+          "history": "记录 2026-02+；源 2002+",
+          "asOf": "T-1（stale，0.75 降权）",
+          "gap": "GA-4",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "AU0/AG0 日线",
+          "source": "data/daily + GA-1",
+          "path": "data/daily/{AU0,AG0}.json",
+          "frequency": "daily",
+          "history": "61 bars；源 2008+",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "实际利率=US10Y−通胀预期（TIPS breakeven）——t1 原标 rejected",
+          "candidates": [
+            {
+              "source": "FRED API DFII10",
+              "url": "fred.stlouisfed.org/series/DFII10（免费 key）",
+              "method": "注册 key，每日 JSON 拉取",
+              "frequency": "daily",
+              "history": "2003+",
+              "stability": "官方稳定",
+              "cost": "低（免费注册）",
+              "compliance": "官方公开",
+              "verdict": "found-efficient-source"
+            },
+            {
+              "source": "PPI 环比代理",
+              "url": "akshare macro_china_ppi（2006+ 月频）",
+              "method": "月频前向填充",
+              "frequency": "monthly",
+              "history": "2006+",
+              "stability": "实测可用",
+              "cost": "低",
+              "compliance": "官方",
+              "verdict": "found-efficient-source"
+            }
+          ],
+          "decision": "复活为 needs-extension 扩展项（t1 决策是否纳入 M3 模型）"
+        }
+      ],
+      "auditNotes": [
+        "2024-03~2025 央行购金段必须标记失效（已内置）"
+      ]
+    },
+    "M4": {
+      "name": "原油成本传导与能化价差回归",
+      "doc": "01-macro-theories.md",
+      "status": "available",
+      "rationale": "纯价格链模型；SC0 500 bars 在库，能化品种 GA-1 回填后满足 250 日滚动 OLS",
+      "dependencies": [
+        {
+          "field": "SC0/能化日线",
+          "source": "data/daily + GA-1",
+          "path": "data/daily/{SC0,FU0,LU0,BU0,TA0,PX0,EG0,PP0,L0,V0,EB0}.json",
+          "frequency": "daily",
+          "history": "SC0 500 bars；其余 61 bars；源 2006+",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无（滚动 OLS 只用 T 日及以前）"
+        }
+      ],
+      "exploration": [],
+      "auditNotes": [
+        "β̂<0.2 或 R²<0.3 品种剔除出池（防伪绑定）",
+        "2020 负油价/2022 俄乌段样本单列"
+      ]
+    },
+    "M5": {
+      "name": "Risk-On/Off 五锚点评分",
+      "doc": "01-macro-theories.md",
+      "status": "available",
+      "rationale": "5 锚点全部已接入；stale/missing 处理规则已内置；GA-5 修复 USDCNH change5d；GA-4 回填 US10Y/DR007",
+      "dependencies": [
+        {
+          "field": "五锚点 change5d",
+          "source": "宏观快照+macro-history",
+          "path": "data/macro/*.json",
+          "frequency": "daily",
+          "history": "DXY 1985+/USDCNH 2014+/US10Y 源 2002+/DR007 源 2017-05+",
+          "asOf": "T 日；US10Y T-1 降权 0.75；missing 计 0",
+          "gap": "GA-4/GA-5",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "CBOE VIX 替代锚——t1 原标 rejected",
+          "candidates": [
+            {
+              "source": "FRED VIXCLS",
+              "url": "fred.stlouisfed.org/series/VIXCLS（免费 key）",
+              "method": "每日拉取",
+              "frequency": "daily",
+              "history": "1990+",
+              "stability": "官方稳定",
+              "cost": "低",
+              "compliance": "官方公开",
+              "verdict": "found-efficient-source"
+            },
+            {
+              "source": "CBOE 官网 CSV",
+              "url": "cboe.com",
+              "method": "下载 CSV",
+              "frequency": "daily",
+              "history": "1990+",
+              "stability": "官方",
+              "cost": "低",
+              "compliance": "公开",
+              "verdict": "found-efficient-source"
+            }
+          ],
+          "decision": "复活为锚点候选（M13 QVIX 升 P0 后优先用境内波指，VIX 作交叉验证）"
+        }
+      ],
+      "auditNotes": [
+        "过滤器角色，不产生定价（已内置）",
+        "锚点相关性漂移 24 月滚动监测"
+      ]
+    },
+    "M6": {
+      "name": "波动率目标 overlay",
+      "doc": "01-macro-theories.md",
+      "status": "available",
+      "rationale": "hv/volPercentile/divergence 派生字段计算能力在库（probability/），需 GA-2 全品种批量运行；无外部数据依赖",
+      "dependencies": [
+        {
+          "field": "hv.annual/volPercentile/divergence",
+          "source": "probability 派生（Yang-Zhang 20d）",
+          "path": "probability/stage-4-5.cjs 输出",
+          "frequency": "daily",
+          "history": "派生即时可得",
+          "asOf": "T 日收盘",
+          "gap": "GA-2（当前每 run 仅 KEEP 品种 1-3 个）",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [],
+      "auditNotes": [
+        "σ_target=0.15 默认值待组合级验证",
+        "divergence>20% 时 scale×0.5 门禁已内置"
+      ]
+    },
+    "M7": {
+      "name": "美债利率事件冲击",
+      "doc": "01-macro-theories.md",
+      "status": "available",
+      "rationale": "US10Y 日频已接入；事件日历 v5（2026-03~08）已在 recordings；样本<30 自动停用门禁已内置",
+      "dependencies": [
+        {
+          "field": "US10Y 单日变化",
+          "source": "akshare bond_zh_us_rate",
+          "path": "data/macro/*.json",
+          "frequency": "daily",
+          "history": "源 2002+",
+          "asOf": "T-1 stale 规则",
+          "gap": "GA-4",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "工业品日线+ATR5",
+          "source": "data/daily + GA-1/GA-2",
+          "path": "data/daily/*.json",
+          "frequency": "daily",
+          "history": "61 bars；源 2005+",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [],
+      "auditNotes": [
+        "事件样本不足 30 自动停用（已内置）",
+        "≥0.25pp 极端事件只观察不交易"
+      ]
+    },
+    "M8": {
+      "name": "LPR/社融信用脉冲",
+      "doc": "01-macro-theories.md",
+      "status": "needs-extension",
+      "rationale": "三接口实测全部可用且历史深（LPR 1991+、社融 2015+、M2 2000s）；缺管道采集器与月度 PIT 对齐",
+      "dependencies": [
+        {
+          "field": "LPR1Y/5Y",
+          "source": "akshare macro_china_lpr",
+          "path": "待建",
+          "frequency": "monthly",
+          "history": "1991+（1575 行）",
+          "asOf": "发布日 PIT 对齐",
+          "gap": "新增采集器",
+          "lookaheadRisk": "无（月度发布滞后须按发布日对齐）"
+        },
+        {
+          "field": "社融增量",
+          "source": "akshare macro_china_shrzgm",
+          "path": "待建",
+          "frequency": "monthly",
+          "history": "2015+（136 行）",
+          "asOf": "发布日（最新 2026-04，滞后约 4 月）",
+          "gap": "新增采集器",
+          "lookaheadRisk": "注意滞后"
+        },
+        {
+          "field": "M1/M2",
+          "source": "akshare macro_china_money_supply",
+          "path": "待建",
+          "frequency": "monthly",
+          "history": "2000s+（223 行）",
+          "asOf": "发布日",
+          "gap": "新增采集器",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "同源族外官方源",
+          "candidates": [
+            {
+              "source": "中国人民银行/国家统计局",
+              "url": "pbc.gov.cn / stats.gov.cn",
+              "method": "月度数据下载（发布日历对齐）",
+              "frequency": "monthly",
+              "history": "多年",
+              "stability": "官方稳定",
+              "cost": "低",
+              "compliance": "官方公开",
+              "verdict": "found-efficient-source"
+            }
+          ],
+          "decision": "akshare 封装已可用，官方源作交叉验证"
+        }
+      ],
+      "upgradePath": "新增月度宏观采集器（3 接口）→ 管道接入 → 证伪测试通过后升 P0"
+    },
+    "M9": {
+      "name": "CPI/PPI 再通胀 regime",
+      "doc": "01-macro-theories.md",
+      "status": "needs-extension",
+      "rationale": "PPI 2006+ 实测可用；CPI 月率表 1996+ 但尾行 2025-09 今值 NaN（更新滞后需校验）；缺采集器",
+      "dependencies": [
+        {
+          "field": "PPI 环比",
+          "source": "akshare macro_china_ppi",
+          "path": "待建",
+          "frequency": "monthly",
+          "history": "2006+（247 行）",
+          "asOf": "发布日",
+          "gap": "新增采集器；字段口径（当月=环比指数）需与统计局核对",
+          "lookaheadRisk": "发布滞后"
+        },
+        {
+          "field": "CPI 环比",
+          "source": "akshare macro_china_cpi_monthly",
+          "path": "待建",
+          "frequency": "monthly",
+          "history": "1996+（357 行）",
+          "asOf": "发布日（表尾存在 NaN 行，取最后有效值）",
+          "gap": "新增采集器",
+          "lookaheadRisk": "发布滞后"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "同源族外官方源",
+          "candidates": [
+            {
+              "source": "国家统计局",
+              "url": "stats.gov.cn（月度数据发布日程）",
+              "method": "月度下载",
+              "frequency": "monthly",
+              "history": "多年",
+              "stability": "官方稳定",
+              "cost": "低",
+              "compliance": "官方公开",
+              "verdict": "found-efficient-source"
+            }
+          ],
+          "decision": "akshare 已覆盖"
+        }
+      ],
+      "upgradePath": "月度采集器 + 发布日对齐 → 升 P0"
+    },
+    "M10": {
+      "name": "增长-通胀象限投资时钟",
+      "doc": "01-macro-theories.md",
+      "status": "needs-extension",
+      "rationale": "PMI 2008+、PPI 2006+ 实测可用；缺采集器",
+      "dependencies": [
+        {
+          "field": "PMI 3MMA",
+          "source": "akshare macro_china_pmi",
+          "path": "待建",
+          "frequency": "monthly",
+          "history": "2008+（223 行）",
+          "asOf": "发布日（当月约次月首日发布）",
+          "gap": "新增采集器",
+          "lookaheadRisk": "发布滞后"
+        },
+        {
+          "field": "PPI 环比 3MMA",
+          "source": "akshare macro_china_ppi",
+          "path": "待建",
+          "frequency": "monthly",
+          "history": "2006+",
+          "asOf": "发布日",
+          "gap": "新增采集器",
+          "lookaheadRisk": "发布滞后"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "同源族外官方源",
+          "candidates": [
+            {
+              "source": "国家统计局",
+              "url": "stats.gov.cn",
+              "method": "月度下载",
+              "frequency": "monthly",
+              "history": "多年",
+              "stability": "官方稳定",
+              "cost": "低",
+              "compliance": "官方公开",
+              "verdict": "found-efficient-source"
+            }
+          ],
+          "decision": "akshare 已覆盖"
+        }
+      ],
+      "upgradePath": "月度采集器 → 升 P0（与 M9 共用采集器）"
+    },
+    "M11": {
+      "name": "政策事件驱动",
+      "doc": "01-macro-theories.md",
+      "status": "needs-extension",
+      "rationale": "无免费结构化政策日历；一致预期数据亦无免费源；事件集需人工维护",
+      "dependencies": [
+        {
+          "field": "政策公告日历+一致预期",
+          "source": "人工维护 YAML",
+          "path": "待建",
+          "frequency": "事件型",
+          "history": "需 ≥40 事件样本",
+          "asOf": "公告日收盘确认",
+          "gap": "人工维护集（前置）",
+          "lookaheadRisk": "公告前 3 日 CAR 泄漏检测已内置"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "结构化政策事件源",
+          "candidates": [
+            {
+              "source": "央行/发改委/商务部/海关/交易所公告",
+              "url": "pbc.gov.cn / ndrc.gov.cn / mofcom.gov.cn / customs.gov.cn",
+              "method": "人工留档 YAML（date/product/category/URL）",
+              "frequency": "事件型",
+              "history": "官网留档多年",
+              "stability": "官方稳定但分散",
+              "cost": "人工维护（每周约 0.5h）",
+              "compliance": "官方公开",
+              "verdict": "found-but-expensive"
+            },
+            {
+              "source": "一致预期数据商",
+              "url": "Wind/Bloomberg（付费）",
+              "method": "订阅",
+              "frequency": "事件型",
+              "history": "多年",
+              "stability": "商业稳定",
+              "cost": "高",
+              "compliance": "合法付费",
+              "verdict": "found-but-expensive"
+            }
+          ],
+          "decision": "接受人工维护日历（found-but-expensive），无一致预期时按'超出/符合预期'分组缺失 → 先验映射表在回测检验；若事件集无法积累 ≥40 样本则维持观察不交易"
+        }
+      ],
+      "upgradePath": "人工日历 ≥20 样本起测，≥40 样本启用"
+    },
+    "M12": {
+      "name": "中美利差→汇率压力",
+      "doc": "01-macro-theories.md",
+      "status": "needs-extension",
+      "rationale": "CN10Y 与 US10Y 同表已实测（bond_zh_us_rate 全量 2002+），仅差管道扩展",
+      "dependencies": [
+        {
+          "field": "CN10Y−US10Y",
+          "source": "akshare bond_zh_us_rate（同表两列）",
+          "path": "待建（扩展 macro-snapshot）",
+          "frequency": "daily",
+          "history": "2002+（9330 行全量实测）",
+          "asOf": "T-1 stale 规则同 US10Y",
+          "gap": "扩展 macro-probe spec",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "同源族外官方源",
+          "candidates": [
+            {
+              "source": "中国货币网/财政部",
+              "url": "chinamoney.com.cn / mof.gov.cn（国债收益率曲线）",
+              "method": "官网下载",
+              "frequency": "daily",
+              "history": "2002+",
+              "stability": "官方稳定",
+              "cost": "低",
+              "compliance": "官方公开",
+              "verdict": "found-efficient-source"
+            }
+          ],
+          "decision": "akshare 同表已覆盖，无需外探"
+        }
+      ],
+      "upgradePath": "macro-probe 增加 CN10Y 锚点 → 升 P0"
+    },
+    "M13": {
+      "name": "中国波指 QVIX 过滤",
+      "doc": "01-macro-theories.md",
+      "status": "needs-extension",
+      "rationale": "QVIX 实测 2015-02-09 起 2800 行日频（11 年+），t1 的'不足 3 年'顾虑不成立；仅差管道接入",
+      "dependencies": [
+        {
+          "field": "QVIX 水平/5 日变化",
+          "source": "akshare index_option_50etf_qvix",
+          "path": "待建",
+          "frequency": "daily",
+          "history": "2015-02-09+（2800 行）",
+          "asOf": "T 日收盘",
+          "gap": "新增采集器+快照锚点",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "同源族外官方源",
+          "candidates": [
+            {
+              "source": "上证所 50ETF 期权波动率指数（iVIX 官方发布）",
+              "url": "sse.com.cn（2015-06 起官方发布）",
+              "method": "官网数据页/上证所行情",
+              "frequency": "daily",
+              "history": "2015+",
+              "stability": "官方",
+              "cost": "低",
+              "compliance": "官方公开",
+              "verdict": "found-efficient-source"
+            }
+          ],
+          "decision": "akshare 接口已可用且历史深，直接接入"
+        }
+      ],
+      "upgradePath": "新增 QVIX 采集器 → 与 M5 相同 walk-forward 门槛 → 升 P0"
+    },
+    "T1-REJECTED": {
+      "name": "t1 已剔除 6 项复审计",
+      "doc": "01-macro-theories.md §3",
+      "status": "rejected",
+      "items": {
+        "TIPS-breakeven": {
+          "audit": "数据可得性已解决：FRED DFII10 2003+ 免费（SR-11）",
+          "verdict": "found-efficient-source",
+          "recommendation": "建议 t1 改判 needs-extension 复活为 M3 扩展"
+        },
+        "CBOE-VIX": {
+          "audit": "FRED VIXCLS 1990+ / CBOE CSV 免费（SR-11/SR-12）",
+          "verdict": "found-efficient-source",
+          "recommendation": "建议复活为 M5 锚点候选/交叉验证"
+        },
+        "OMO净投放": {
+          "audit": "PBOC 公开市场业务交易公告 2013+ 免费但无结构化接口（SR-18）",
+          "verdict": "found-but-expensive",
+          "recommendation": "维持剔除；M1 价格型代理合理；若接受人工维护可降级为观察项"
+        },
+        "LME外盘": {
+          "audit": "futures_foreign_hist 实测 LME 铜铝镍锡铅锌 2016-08+（SR-10）",
+          "verdict": "found-efficient-source",
+          "recommendation": "复活为 M2 沪伦比 P1 扩展"
+        },
+        "人民币金溢价": {
+          "audit": "XAU（伦敦金 2006+）+USDCNH vs AU0 可计算隐含溢价（SR-10）；需 oz→g 换算与期货/现货升贴水口径声明",
+          "verdict": "found-efficient-source",
+          "recommendation": "复活为观察项/P1（t1 定价模型决策）"
+        },
+        "LLM叙事预测": {
+          "audit": "无模型无证伪命题，非数据问题",
+          "verdict": "no-source",
+          "recommendation": "维持剔除（FinCoT 边界拦截）"
+        }
+      },
+      "exploration": [
+        {
+          "need": "逐项探索结论（明细见 items.*.audit/verdict）",
+          "candidates": [
+            {
+              "item": "TIPS-breakeven",
+              "verdict": "found-efficient-source",
+              "recommendation": "建议 t1 改判 needs-extension 复活为 M3 扩展"
+            },
+            {
+              "item": "CBOE-VIX",
+              "verdict": "found-efficient-source",
+              "recommendation": "建议复活为 M5 锚点候选/交叉验证"
+            },
+            {
+              "item": "OMO净投放",
+              "verdict": "found-but-expensive",
+              "recommendation": "维持剔除；M1 价格型代理合理；若接受人工维护可降级为观察项"
+            },
+            {
+              "item": "LME外盘",
+              "verdict": "found-efficient-source",
+              "recommendation": "复活为 M2 沪伦比 P1 扩展"
+            },
+            {
+              "item": "人民币金溢价",
+              "verdict": "found-efficient-source",
+              "recommendation": "复活为观察项/P1（t1 定价模型决策）"
+            },
+            {
+              "item": "LLM叙事预测",
+              "verdict": "no-source",
+              "recommendation": "维持剔除（FinCoT 边界拦截）"
+            }
+          ],
+          "decision": "见 recommendation 列"
+        }
+      ]
+    },
+    "FS-01": {
+      "name": "交易所库存分位+拐点",
+      "doc": "02-fundamental-theories.md",
+      "status": "needs-extension",
+      "rationale": "futures_inventory_em 实测仅 72 行≈3 个月（2026-05-19 起）；250 日分位需新增增量采集器积累 8-10 个月；官方仓单通道可加速部分品种",
+      "dependencies": [
+        {
+          "field": "inv_pct/Δinv5",
+          "source": "akshare futures_inventory_em（74 品种）",
+          "path": "待建增量库",
+          "frequency": "daily（盘后发布）",
+          "history": "现有 72 行（3 个月）→ 增量积累",
+          "asOf": "T 日盘后（入库留档发布时点）",
+          "gap": "新采集器+≥250 日积累",
+          "lookaheadRisk": "低（盘后数据，T 日收盘后评估合规；须确认个别品种次日更新时点）"
+        },
+        {
+          "field": "行情腿 MA20/ATR5",
+          "source": "data/daily + GA-1/GA-2",
+          "path": "data/daily/*.json",
+          "frequency": "daily",
+          "history": "61-500 bars",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "长历史交易所库存（替代 3 个月短板）",
+          "candidates": [
+            {
+              "source": "郑商所官方仓单日报",
+              "url": "czce.com.cn（akshare futures_warehouse_receipt_czce）",
+              "method": "逐日回拉+品种级聚合（实测 2026-07-01 OK）",
+              "frequency": "daily",
+              "history": "逐日积累",
+              "stability": "实测可用",
+              "cost": "低（脚本+重试）",
+              "compliance": "官方公开",
+              "verdict": "found-efficient-source"
+            },
+            {
+              "source": "上期所官方库存/仓单",
+              "url": "shfe.com.cn/data/tradedata/future/dailydata/",
+              "method": "官网文件直爬（akshare 接口当前环境 SSL 失败）",
+              "frequency": "daily/weekly",
+              "history": "周度库存多年",
+              "stability": "官网需爬虫维护",
+              "cost": "中（爬虫+维护）",
+              "compliance": "官方公开",
+              "verdict": "found-but-expensive"
+            },
+            {
+              "source": "大商所官方仓单日报",
+              "url": "dce.com.cn（akshare 接口当前 JSONDecodeError）",
+              "method": "官网直爬",
+              "frequency": "daily",
+              "history": "逐日",
+              "stability": "需爬虫",
+              "cost": "中",
+              "compliance": "官方公开",
+              "verdict": "found-but-expensive"
+            },
+            {
+              "source": "LME 周度库存",
+              "url": "akshare macro_euro_lme_stock（2718 行实测）",
+              "method": "直接调用",
+              "frequency": "weekly",
+              "history": "约 2000+",
+              "stability": "实测可用",
+              "cost": "低",
+              "compliance": "公开",
+              "verdict": "found-efficient-source"
+            },
+            {
+              "source": "Mysteel 社会库存",
+              "url": "mysteel.com（付费）",
+              "method": "订阅",
+              "frequency": "weekly",
+              "history": "多年",
+              "stability": "商业稳定",
+              "cost": "高",
+              "compliance": "合法付费",
+              "verdict": "found-but-expensive"
+            }
+          ],
+          "decision": "主路径=EM 增量积累（found-efficient-source）；郑商所品种用官方仓单加速；SHFE/DCE 官方爬虫列为二期（成本取舍）；Mysteel 不引入（付费）"
+        }
+      ],
+      "upgradePath": "EM 增量采集器上线 → ≥250 日 → 分位标定 → 证伪测试",
+      "auditNotes": [
+        "库存口径=交易所库存/注册仓单 ≠ 全社会库存（已在策略内声明）",
+        "2023-24 纯碱、2016-17 供给侧段反面证据已内置"
+      ]
+    },
+    "FS-02": {
+      "name": "基差分位回归",
+      "doc": "02-fundamental-theories.md",
+      "status": "available",
+      "rationale": "futures_spot_price_daily 2011+ 与 spot_price_previous（54 品种+180 日分布锚）实测可用；缺现货质量门逐品种审计（GA-6）",
+      "dependencies": [
+        {
+          "field": "br/z_t/μ̂_180",
+          "source": "akshare futures_spot_price_daily/_previous（生意社）",
+          "path": "待建基差历史库（spot_price_daily 批量拉取）",
+          "frequency": "daily",
+          "history": "2011+（start_day/end_day 参数实测）",
+          "asOf": "查询日快照；历史回填须 PIT 拉取",
+          "gap": "基差历史批量采集器（t2 手递 ②）+ GA-6 质量门",
+          "lookaheadRisk": "无（180 日带为源端 as-of 计算）；现货挂牌价粘性/修订风险由质量门管理"
+        },
+        {
+          "field": "期货腿",
+          "source": "data/daily + GA-1",
+          "path": "data/daily/*.json",
+          "frequency": "daily",
+          "history": "61-500 bars",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "现货价替代/交叉验证源",
+          "candidates": [
+            {
+              "source": "钢之家/我的钢铁现货",
+              "url": "steelhome.cn / mysteel.com（部分免费周度）",
+              "method": "免费页抓取/付费订阅",
+              "frequency": "daily/weekly",
+              "history": "多年",
+              "stability": "免费页不稳定",
+              "cost": "中-高",
+              "compliance": "合法",
+              "verdict": "found-but-expensive"
+            },
+            {
+              "source": "交易所现货指数（如郑商所现货指数）",
+              "url": "czce.com.cn 现货指数页",
+              "method": "官网查询",
+              "frequency": "daily",
+              "history": "部分品种",
+              "stability": "官方",
+              "cost": "低",
+              "compliance": "官方公开",
+              "verdict": "found-but-expensive"
+            }
+          ],
+          "decision": "生意社主源可用，替代源仅作质量交叉验证，不引入付费"
+        }
+      ],
+      "upgradePath": "基差历史采集器+质量门 → 直接可回测（数据今日即可得）"
+    },
+    "FS-03": {
+      "name": "月差/期限结构展期收益",
+      "doc": "02-fundamental-theories.md",
+      "status": "needs-extension",
+      "rationale": "合约级数据源实测可用（futures_zh_daily_sina 213 行含 hold），term-structure 采集器在库；缺历史月差序列批量构建器与两腿流动性字段审计",
+      "dependencies": [
+        {
+          "field": "sp_t（近远月价差率）",
+          "source": "akshare futures_zh_daily_sina",
+          "path": "data/contract-bars + 待建月差序列库",
+          "frequency": "daily",
+          "history": "合约上市起（逐合约 200+ 行）",
+          "asOf": "T 日收盘",
+          "gap": "历史月差序列构建器（近远月识别+换月拼接）",
+          "lookaheadRisk": "中——换月拼接必须用 T 日时点的活跃合约映射（PIT），禁止事后选合约；≥9.5% 跳变剔除规则已内置"
+        },
+        {
+          "field": "两腿流动性",
+          "source": "合约级 volume/hold",
+          "path": "同上",
+          "frequency": "daily",
+          "history": "同上",
+          "asOf": "T 日",
+          "gap": "流动性门审计（近月量/主力 ≥20%）",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "合约级历史日线（同源族外）",
+          "candidates": [
+            {
+              "source": "CFMMC 官方日线",
+              "url": "akshare get_futures_daily（5 市场，仓库 cfmmc-verify 已接入）",
+              "method": "按日逐市场拉取",
+              "frequency": "daily",
+              "history": "逐日",
+              "stability": "官方，重试封装已有",
+              "cost": "低",
+              "compliance": "官方公开",
+              "verdict": "found-efficient-source"
+            }
+          ],
+          "decision": "sina 合约日线为主（已实测），CFMMC 官方作交叉验证"
+        }
+      ],
+      "upgradePath": "月差序列构建器+流动性门审计 → 升 available"
+    },
+    "FS-04": {
+      "name": "黑色产业链利润分位",
+      "doc": "02-fundamental-theories.md",
+      "status": "available",
+      "rationale": "纯价格数据（RB/I/J/JM/HC）；GA-1 回填后满足 2016+ 样本标定；无需付费利润数据（口径已在策略内声明）",
+      "dependencies": [
+        {
+          "field": "π_t 利润代理",
+          "source": "data/daily 价差派生",
+          "path": "data/daily/{RB0,I0,J0,JM0,HC0}.json",
+          "frequency": "daily",
+          "history": "61 bars；源 2009+",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "event-calendar 政策事件前提开关",
+          "source": "人工维护 YAML（FS-09 模板）",
+          "path": "待建（GA-7 政策日历 v0 最小集）",
+          "frequency": "事件型",
+          "history": "年份级标注：2016–2017 供给侧 / 2021 粗钢压减 / 2025 粗钢产量调控",
+          "asOf": "event.date ≤ 锚点日（F9）",
+          "gap": "GA-7（t10 修订新增；未完成前 G4 冻结不可达）",
+          "lookaheadRisk": "无（F9 纪律：禁止从价格反推事件）",
+          "purpose": "前提开关（数据层输入，非定价）"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "真实钢厂利润（含现货成本）",
+          "candidates": [
+            {
+              "source": "Mysteel/钢联",
+              "url": "mysteel.com（付费）",
+              "method": "订阅",
+              "frequency": "daily/weekly",
+              "history": "多年",
+              "stability": "商业稳定",
+              "cost": "高",
+              "compliance": "合法付费",
+              "verdict": "found-but-expensive"
+            }
+          ],
+          "decision": "价格代理版先落地（t2 已声明口径），付费真实利润为 FS-P1-03 升级项"
+        }
+      ],
+      "upgradePath": "GA-1 回填 → 250d 标定窗口满足 → 回测"
+    },
+    "FS-05": {
+      "name": "农产品压榨/替代价差回归",
+      "doc": "02-fundamental-theories.md",
+      "status": "available",
+      "rationale": "纯价格数据；M/RM/Y/P/OI/C/CS 在库；GA-1 回填后满足 ≥5 年协整标定",
+      "dependencies": [
+        {
+          "field": "价差协整输入",
+          "source": "data/daily",
+          "path": "data/daily/{M0,RM0,Y0,P0,OI0,C0,CS0}.json",
+          "frequency": "daily",
+          "history": "61-500 bars；源 2005+",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无（滚动 250d 估计只用 T 日及以前）"
+        },
+        {
+          "field": "event-calendar 贸易/储备事件前提开关",
+          "source": "人工维护 YAML（FS-09 模板）",
+          "path": "待建（GA-7 政策日历 v0 最小集）",
+          "frequency": "事件型",
+          "history": "年份级标注：2019 菜籽进口政策 / 2023 反倾销 / 收抛储",
+          "asOf": "event.date ≤ 锚点日（F9）",
+          "gap": "GA-7（t10 修订新增；未完成前 G4 冻结不可达）",
+          "lookaheadRisk": "无（F9 纪律）",
+          "purpose": "前提开关（数据层输入，非定价）"
+        }
+      ],
+      "exploration": [],
+      "upgradePath": "GA-1 → 协整标定 → 断裂门回测"
+    },
+    "FS-06": {
+      "name": "库存×基差二维象限",
+      "doc": "02-fundamental-theories.md",
+      "status": "needs-extension",
+      "rationale": "继承 FS-01 库存历史缺口（needs-extension）与 FS-02（available）；另依赖板块广度历史（GA-3 重建）",
+      "dependencies": [
+        {
+          "field": "inv_pct 与 z_br 联合",
+          "source": "FS-01+FS-02 数据",
+          "path": "同 FS-01/FS-02",
+          "frequency": "daily",
+          "history": "库存 3 个月（增量积累）/基差 2011+",
+          "asOf": "两信号同一交易日收盘同时成立（禁跨日拼接，已内置）",
+          "gap": "同 FS-01",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "板块 advanceRatio1d",
+          "source": "data/sector（GA-3 重建历史）",
+          "path": "data/sector/*.json",
+          "frequency": "daily",
+          "history": "当前仅 1 行；可由日线重算",
+          "asOf": "T 日收盘",
+          "gap": "GA-3",
+          "lookaheadRisk": "无（聚合只用当日收盘数据）"
+        }
+      ],
+      "exploration": [],
+      "upgradePath": "FS-01 增量积累 + GA-3 → 联合象限回测"
+    },
+    "FS-07": {
+      "name": "季节性窗口",
+      "doc": "02-fundamental-theories.md",
+      "status": "available",
+      "rationale": "主力连续 ≥8 年实测可行（futures_main_sina 2005-2009+）；full-history-collector 工具已存在；比率拼接复权逻辑需审计",
+      "dependencies": [
+        {
+          "field": "r̄_m 季节统计",
+          "source": "主力连续 ≥8 年",
+          "path": "research/backtest/data（GA-1 输出）",
+          "frequency": "daily",
+          "history": "品种相关 2005-2009+（8-20 年）",
+          "asOf": "历史窗口切片",
+          "gap": "GA-1 + 比率拼接纪律审计",
+          "lookaheadRisk": "中——季节窗口用历史均值，必须只用当年之前年份（预注册口径）；异常年剔除规则已内置"
+        }
+      ],
+      "exploration": [],
+      "upgradePath": "GA-1 → bootstrap 显著性 → 有效窗口日历"
+    },
+    "FS-08": {
+      "name": "能化成本传导 ECM",
+      "doc": "02-fundamental-theories.md",
+      "status": "available",
+      "rationale": "纯价格数据；SC0 500 bars 在库，化工品 GA-1 回填后满足 ≥750 日标定",
+      "dependencies": [
+        {
+          "field": "SC0/化工品日线",
+          "source": "data/daily",
+          "path": "data/daily/{SC0,TA0,EG0,PP0,L0,EB0,BU0,FU0,PG0,PX0}.json",
+          "frequency": "daily",
+          "history": "61-500 bars；源 2006+",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "event-calendar 供给冲击事件前提开关",
+          "source": "人工维护 YAML（FS-09 模板）",
+          "path": "待建（GA-7 政策日历 v0 最小集）",
+          "frequency": "事件型",
+          "history": "年份级标注：2020 负油价 / 2022 俄乌供给冲击",
+          "asOf": "event.date ≤ 锚点日（F9）",
+          "gap": "GA-7（t10 修订新增；未完成期间 EC-01 只允许 paper 验证、禁止 live 开仓）",
+          "lookaheadRisk": "无（F9 纪律）",
+          "purpose": "前提开关（数据层输入，非定价）"
+        }
+      ],
+      "exploration": [],
+      "upgradePath": "GA-1 → 协整/ECM 标定（γ<0 显著性门）→ 回测"
+    },
+    "FS-09": {
+      "name": "政策/事件驱动",
+      "doc": "02-fundamental-theories.md",
+      "status": "needs-extension",
+      "rationale": "政策日历 YAML 人工维护为硬前置（≥20 事件样本）；无免费结构化源",
+      "dependencies": [
+        {
+          "field": "政策事件集",
+          "source": "人工维护 YAML",
+          "path": "待建",
+          "frequency": "事件型",
+          "history": "≥20 样本",
+          "asOf": "公告日收盘确认；当日 |ΔP|≥1×ATR5 放弃（已内置）",
+          "gap": "人工维护集",
+          "lookaheadRisk": "公告前 3 日 CAR 泄漏检测（已内置）"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "结构化政策事件源",
+          "candidates": [
+            {
+              "source": "发改委/商务部/海关/交易所公告",
+              "url": "ndrc.gov.cn / mofcom.gov.cn / customs.gov.cn",
+              "method": "人工留档 YAML（date/product/category/URL）",
+              "frequency": "事件型",
+              "history": "官网留档",
+              "stability": "官方稳定",
+              "cost": "人工维护",
+              "compliance": "官方公开",
+              "verdict": "found-but-expensive"
+            },
+            {
+              "source": "商业事件库（Wind 公告/新闻联播库）",
+              "url": "付费",
+              "method": "订阅",
+              "frequency": "事件型",
+              "history": "多年",
+              "stability": "商业稳定",
+              "cost": "高",
+              "compliance": "合法付费",
+              "verdict": "found-but-expensive"
+            }
+          ],
+          "decision": "人工维护为唯一免费合规路径；与 M11 共用日历模板"
+        }
+      ],
+      "upgradePath": "事件集 ≥20 → 分类 CAR 回测 → ≥40 启用"
+    },
+    "FS-P1-01": {
+      "name": "开工率/表观需求驱动",
+      "doc": "02-fundamental-theories.md",
+      "status": "needs-extension",
+      "exploration": [
+        {
+          "need": "日频开工率",
+          "candidates": [
+            {
+              "source": "钢联/隆众付费",
+              "url": "mysteel.com / longzhong",
+              "method": "订阅",
+              "frequency": "daily/weekly",
+              "history": "多年",
+              "stability": "商业稳定",
+              "cost": "高",
+              "compliance": "合法付费",
+              "verdict": "found-but-expensive"
+            },
+            {
+              "source": "统计局月度产量",
+              "url": "stats.gov.cn",
+              "method": "月度下载",
+              "frequency": "monthly",
+              "history": "多年",
+              "stability": "官方",
+              "cost": "低",
+              "compliance": "官方公开",
+              "verdict": "found-but-expensive"
+            }
+          ],
+          "decision": "日频免费层 no-source（无免费合规日频开工率）；统计局月频可作 FS-01 月度确认层（低成本）"
+        }
+      ]
+    },
+    "FS-P1-02": {
+      "name": "会员持仓蜘蛛网",
+      "doc": "02-fundamental-theories.md",
+      "status": "needs-extension",
+      "exploration": [
+        {
+          "need": "会员持仓排名历史",
+          "candidates": [
+            {
+              "source": "akshare get_rank_sum_daily",
+              "url": "（akshare 封装，实测 2026-08-25..27 OK）",
+              "method": "每日盘后拉取",
+              "frequency": "daily",
+              "history": "2000+",
+              "stability": "实测可用",
+              "cost": "低",
+              "compliance": "公开",
+              "verdict": "found-efficient-source"
+            },
+            {
+              "source": "交易所官网持仓排名",
+              "url": "czce/dce/shfe 官网",
+              "method": "爬虫/下载",
+              "frequency": "daily",
+              "history": "多年",
+              "stability": "官方",
+              "cost": "中",
+              "compliance": "官方公开",
+              "verdict": "found-but-expensive"
+            }
+          ],
+          "decision": "数据侧就绪（found-efficient-source）；阻塞=仓库 OI 纪律裁定（需队长决策），纪律放开后可立即升 P0"
+        }
+      ]
+    },
+    "FS-P1-03": {
+      "name": "真实产业利润",
+      "doc": "02-fundamental-theories.md",
+      "status": "needs-extension",
+      "exploration": [
+        {
+          "need": "含现货原料/运费/加工费的利润",
+          "candidates": [
+            {
+              "source": "Mysteel/钢联",
+              "url": "mysteel.com（付费）",
+              "method": "订阅",
+              "frequency": "daily",
+              "history": "多年",
+              "stability": "商业稳定",
+              "cost": "高",
+              "compliance": "合法付费",
+              "verdict": "found-but-expensive"
+            },
+            {
+              "source": "生意社现货（部分原料）",
+              "url": "akshare futures_spot_price_daily",
+              "method": "免费接口",
+              "frequency": "daily",
+              "history": "2011+",
+              "stability": "可用",
+              "cost": "低",
+              "compliance": "公开",
+              "verdict": "found-but-expensive"
+            }
+          ],
+          "decision": "免费层只能做部分口径（found-but-expensive）；维持 P1，价格代理版（FS-04）优先落地"
+        }
+      ]
+    },
+    "FS-P1-04": {
+      "name": "原油裂解价差/SC 系库存",
+      "doc": "02-fundamental-theories.md",
+      "status": "needs-extension",
+      "exploration": [
+        {
+          "need": "SC 交易所库存",
+          "candidates": [
+            {
+              "source": "INE 官方仓单日报",
+              "url": "ine.com.cn",
+              "method": "官网爬虫（无 akshare 接口）",
+              "frequency": "daily",
+              "history": "SC 2018-03 起",
+              "stability": "官网需维护",
+              "cost": "中（爬虫）",
+              "compliance": "官方公开",
+              "verdict": "found-but-expensive"
+            }
+          ],
+          "decision": "唯一免费通道为官网爬虫（found-but-expensive）；无低成本替代"
+        },
+        {
+          "need": "SC 现货基差",
+          "candidates": [
+            {
+              "source": "无境内原油现货挂牌价（t2 实测 54 品种基差表不含 SC）",
+              "url": "—",
+              "method": "—",
+              "frequency": "—",
+              "history": "—",
+              "stability": "—",
+              "cost": "—",
+              "compliance": "—",
+              "verdict": "no-source"
+            }
+          ],
+          "decision": "SC 基差类策略不可落地（no-source），FS-08 产品腿单边结构是正确取舍"
+        }
+      ]
+    },
+    "FS-P1-05": {
+      "name": "集运 EC 基本面",
+      "doc": "02-fundamental-theories.md",
+      "status": "needs-extension",
+      "exploration": [
+        {
+          "need": "运价指数",
+          "candidates": [
+            {
+              "source": "上海航运交易所 SCFI",
+              "url": "sse.net.cn",
+              "method": "官网周频爬取",
+              "frequency": "weekly",
+              "history": "2009+",
+              "stability": "官方发布",
+              "cost": "中（爬虫）",
+              "compliance": "官方公开",
+              "verdict": "found-but-expensive"
+            }
+          ],
+          "decision": "周频可用（found-but-expensive）；装载率/运力无免费源 → no-source；维持 P1 由宏观域（t1）协调"
+        }
+      ]
+    },
+    "T2-REJECTED": {
+      "name": "t2 已剔除 5 项复审计",
+      "doc": "02-fundamental-theories.md §4",
+      "status": "rejected",
+      "items": {
+        "X-01-99期货网库存": {
+          "audit": "futures_inventory_99 复测仍 JSONDecodeError（全品种）",
+          "verdict": "no-source",
+          "recommendation": "维持剔除；替代=EM 增量+官方仓单（SR-03/04/05/06）"
+        },
+        "X-02-社会库存/真实利润": {
+          "audit": "Mysteel/钢联/隆众付费（SR-21）",
+          "verdict": "found-but-expensive",
+          "recommendation": "维持剔除（预算决策）；交易所库存口径替代已在 FS-01 声明"
+        },
+        "X-03-天气驱动": {
+          "audit": "NOAA GSOD 免费但工程量大；ECMWF 付费（SR-23）",
+          "verdict": "found-but-expensive",
+          "recommendation": "维持剔除（数据纪律扩张成本 > 收益）"
+        },
+        "X-04-CFTC/EIA": {
+          "audit": "CFTC COT 1986+ / EIA 周报均官方免费（SR-22）——数据可得性不构成障碍",
+          "verdict": "found-efficient-source",
+          "recommendation": "数据侧复活；但与内盘无直接定价契约的剔除理由仍由 t5 裁量"
+        },
+        "X-05-生猪/鸡蛋存栏": {
+          "audit": "农业农村部月度，滞后 1-2 月（SR-25）",
+          "verdict": "found-but-expensive",
+          "recommendation": "维持剔除（低频滞后与日频期货不匹配）"
+        }
+      },
+      "exploration": [
+        {
+          "need": "逐项探索结论（明细见 items.*.audit/verdict）",
+          "candidates": [
+            {
+              "item": "X-01-99期货网库存",
+              "verdict": "no-source",
+              "recommendation": "维持剔除；替代=EM 增量+官方仓单（SR-03/04/05/06）"
+            },
+            {
+              "item": "X-02-社会库存/真实利润",
+              "verdict": "found-but-expensive",
+              "recommendation": "维持剔除（预算决策）；交易所库存口径替代已在 FS-01 声明"
+            },
+            {
+              "item": "X-03-天气驱动",
+              "verdict": "found-but-expensive",
+              "recommendation": "维持剔除（数据纪律扩张成本 > 收益）"
+            },
+            {
+              "item": "X-04-CFTC/EIA",
+              "verdict": "found-efficient-source",
+              "recommendation": "数据侧复活；但与内盘无直接定价契约的剔除理由仍由 t5 裁量"
+            },
+            {
+              "item": "X-05-生猪/鸡蛋存栏",
+              "verdict": "found-but-expensive",
+              "recommendation": "维持剔除（低频滞后与日频期货不匹配）"
+            }
+          ],
+          "decision": "见 recommendation 列"
+        }
+      ]
+    },
+    "TR-01": {
+      "name": "趋势延续（状态过滤版）",
+      "doc": "03-trading-theories.md",
+      "status": "available",
+      "rationale": "data/daily 字段完整（含 openInterest/settle/turnover）；MA/ATR/量比/OIΔ 库内派生；GA-1/GA-2 回填后满足 ≥200 笔 walk-forward",
+      "dependencies": [
+        {
+          "field": "OHLCV+OI+量比",
+          "source": "data/daily + GA-1",
+          "path": "data/daily/*.json",
+          "frequency": "daily",
+          "history": "61-500 bars；源 2005-2009+（OI 全历史实测非空）",
+          "asOf": "T 日收盘评估、T+1 开盘执行（§0.2 已内置）",
+          "gap": "GA-1/GA-2",
+          "lookaheadRisk": "无（T+1 执行+跳空放弃条款已内置）"
+        }
+      ],
+      "exploration": [],
+      "auditNotes": [
+        "换月日 ≥9.5% 跳变剔除（已内置）",
+        "长历史回填时须保留 per-bar sources 列（data/daily schema 已含）"
+      ]
+    },
+    "TR-02": {
+      "name": "压缩→扩张突破",
+      "doc": "03-trading-theories.md",
+      "status": "available",
+      "rationale": "TR/NR7/HV%ile/量比库内派生；HV%ile 需 GA-2 全品种批量",
+      "dependencies": [
+        {
+          "field": "HV%ile/TR/量比",
+          "source": "data/daily + probability 派生",
+          "path": "data/daily/*.json",
+          "frequency": "daily",
+          "history": "同 TR-01",
+          "asOf": "T 日收盘",
+          "gap": "GA-1/GA-2",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [],
+      "auditNotes": [
+        "证据级别 C（未回测），理论级证伪门槛已内置"
+      ]
+    },
+    "TR-03": {
+      "name": "趋势回踩续势",
+      "doc": "03-trading-theories.md",
+      "status": "available",
+      "rationale": "MA/ATR/OIΔ/量比库内派生；无新增数据源",
+      "dependencies": [
+        {
+          "field": "MA20 带/OIΔ/量比",
+          "source": "data/daily",
+          "path": "data/daily/*.json",
+          "frequency": "daily",
+          "history": "同 TR-01",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [],
+      "auditNotes": [
+        "止损距离 ≤1.5R 门禁（已内置）"
+      ]
+    },
+    "TR-04": {
+      "name": "极端偏离均值修复（chop 态）",
+      "doc": "03-trading-theories.md",
+      "status": "needs-extension",
+      "rationale": "价格数据齐；缺三个历史支撑字段：HV%ile 全品种批量（GA-2）、板块广度历史（GA-3）、FinCoT Q1 驱动文本全品种历史回溯（当前 recordings 仅 RB0/M0/SC0 有 fincot 文件）",
+      "dependencies": [
+        {
+          "field": "HV%ile",
+          "source": "probability 派生",
+          "path": "GA-2 输出",
+          "frequency": "daily",
+          "history": "派生",
+          "asOf": "T 日收盘",
+          "gap": "GA-2",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "板块上涨广度",
+          "source": "sector-aggregator 重建",
+          "path": "data/sector/*.json",
+          "frequency": "daily",
+          "history": "当前 1 行；GA-3 重建",
+          "asOf": "T 日收盘",
+          "gap": "GA-3",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "FinCoT Q1 驱动文本",
+          "source": "run artifacts（FinCoT 分析层，仅过滤）",
+          "path": "recordings/*/fincot-*.json",
+          "frequency": "每 run",
+          "history": "仅 RB0/M0/SC0；全品种需按需重跑（LLM 成本）",
+          "asOf": "信号日",
+          "gap": "全品种历史回溯",
+          "lookaheadRisk": "中——回测必须用历史 run 产物，禁止用未来重跑文本替代（重跑=前视）"
+        }
+      ],
+      "exploration": [],
+      "upgradePath": "GA-2+GA-3+FinCoT 历史审计 → 子样本验证通过升 P0"
+    },
+    "TR-05": {
+      "name": "区间边界+突破移交（仅 B 模式启用）",
+      "doc": "03-trading-theories.md",
+      "status": "available",
+      "rationale": "箱体/ATR/HV%ile/量比库内派生；无新增数据源",
+      "dependencies": [
+        {
+          "field": "箱体/量比/HV%ile",
+          "source": "data/daily + probability 派生",
+          "path": "data/daily/*.json",
+          "frequency": "daily",
+          "history": "同 TR-01",
+          "asOf": "T 日收盘",
+          "gap": "GA-1/GA-2",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [],
+      "auditNotes": [
+        "A 模式默认停用（内部反面证据），B 模式移交 TR-01/02 定价（已内置防混用）"
+      ]
+    },
+    "TR-06": {
+      "name": "事件冲击确认",
+      "doc": "03-trading-theories.md",
+      "status": "available",
+      "rationale": "事件判定（ATR5/量比/OIΔ）库内派生；FinCoT Q1 仅作事件识别过滤（同 TR-04 的 FinCoT 历史回溯注意项）",
+      "dependencies": [
+        {
+          "field": "事件判定+OIΔ",
+          "source": "data/daily",
+          "path": "data/daily/*.json",
+          "frequency": "daily",
+          "history": "同 TR-01",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "Q1 驱动文本（事件识别）",
+          "source": "run artifacts",
+          "path": "recordings/*/fincot-*.json",
+          "frequency": "每 run",
+          "history": "仅 RB0/M0/SC0",
+          "asOf": "信号日",
+          "gap": "全品种历史回溯（LLM 成本）",
+          "lookaheadRisk": "同 TR-04（禁止未来重跑）"
+        }
+      ],
+      "exploration": [],
+      "auditNotes": [
+        "事件样本天然稀疏（≥100 笔门槛已内置）"
+      ]
+    },
+    "TR-07": {
+      "name": "跨期价差回归（carry 均衡带）",
+      "doc": "03-trading-theories.md",
+      "status": "needs-extension",
+      "rationale": "数据源实测可用（futures_zh_daily_sina 213 行含 hold）；缺历史价差序列自建器 + PIT 换月拼接纪律 + 两腿流动性字段审计",
+      "dependencies": [
+        {
+          "field": "近远月价差 z_t",
+          "source": "akshare futures_zh_daily_sina",
+          "path": "待建价差序列库",
+          "frequency": "daily",
+          "history": "逐合约积累（各合约上市起）",
+          "asOf": "T 日收盘，T+1 两腿同步（任一腿跳空 >0.5×ATR5 放弃，已内置）",
+          "gap": "价差序列构建器（近远月识别+换月拼接）",
+          "lookaheadRisk": "中——拼接必须 PIT（T 日时点活跃合约），禁止事后最优合约选择"
+        },
+        {
+          "field": "两腿流动性",
+          "source": "合约 volume/hold",
+          "path": "同上",
+          "frequency": "daily",
+          "history": "同上",
+          "asOf": "T 日",
+          "gap": "流动性阈值审计",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [
+        {
+          "need": "合约级历史日线（同源族外）",
+          "candidates": [
+            {
+              "source": "CFMMC 官方日线（get_futures_daily）",
+              "url": "仓库 cfmmc-verify 已接入",
+              "method": "按日拉取/交叉验证",
+              "frequency": "daily",
+              "history": "逐日",
+              "stability": "官方",
+              "cost": "低",
+              "compliance": "官方公开",
+              "verdict": "found-efficient-source"
+            }
+          ],
+          "decision": "sina 合约日线为主源，CFMMC 交叉验证"
+        }
+      ],
+      "upgradePath": "价差序列构建器+拼接纪律审计 → 升 P0（与 FS-03 共用月差库）"
+    },
+    "TR-08": {
+      "name": "跨品种相对强弱价差",
+      "doc": "03-trading-theories.md",
+      "status": "needs-extension",
+      "rationale": "两腿日线需 GA-1 回填（≥500 bars 协整标定）；板块 leaders/laggards 历史需 GA-3 重建",
+      "dependencies": [
+        {
+          "field": "两腿日线",
+          "source": "data/daily + GA-1",
+          "path": "data/daily/*.json",
+          "frequency": "daily",
+          "history": "61 bars；源 2005+",
+          "asOf": "T 日收盘",
+          "gap": "GA-1",
+          "lookaheadRisk": "无"
+        },
+        {
+          "field": "板块 leaders/laggards",
+          "source": "sector-aggregator",
+          "path": "data/sector/*.json",
+          "frequency": "daily",
+          "history": "当前 1 行；GA-3 重建",
+          "asOf": "T 日收盘",
+          "gap": "GA-3",
+          "lookaheadRisk": "无"
+        }
+      ],
+      "exploration": [],
+      "upgradePath": "GA-1+GA-3 → 滚动协整（ADF 通过率 ≥80%）→ 升 P0"
+    },
+    "T3-REJECTED": {
+      "name": "t3 已剔除 9 项复审计",
+      "doc": "03-trading-theories.md §10",
+      "status": "rejected",
+      "items": {
+        "均线网格/裸RSI/形态库/裸Donchian/马丁格尔": {
+          "audit": "无模型支撑（非数据问题）",
+          "verdict": "no-source",
+          "recommendation": "维持剔除"
+        },
+        "交割套利": {
+          "audit": "个人户不可交割+现货数据受限",
+          "verdict": "no-source",
+          "recommendation": "维持剔除"
+        },
+        "日内高频/开盘冲量": {
+          "audit": "分钟级数据可得（TqSdk 免费层，SR-26）",
+          "verdict": "found-efficient-source",
+          "recommendation": "数据侧已解决；但仓库口径不采集日内（§0.4）→ 口径决定维持剔除，非数据不可得"
+        },
+        "纯日历季节性多空": {
+          "audit": "属 t2 边界（FS-07 覆盖）",
+          "verdict": "no-source",
+          "recommendation": "维持剔除"
+        },
+        "情绪打分/舆情择时": {
+          "audit": "免费合规层无结构化历史舆情库（SR-27）",
+          "verdict": "no-source",
+          "recommendation": "维持剔除"
+        }
+      },
+      "exploration": [
+        {
+          "need": "逐项探索结论（明细见 items.*.audit/verdict）",
+          "candidates": [
+            {
+              "item": "均线网格/裸RSI/形态库/裸Donchian/马丁格尔",
+              "verdict": "no-source",
+              "recommendation": "维持剔除"
+            },
+            {
+              "item": "交割套利",
+              "verdict": "no-source",
+              "recommendation": "维持剔除"
+            },
+            {
+              "item": "日内高频/开盘冲量",
+              "verdict": "found-efficient-source",
+              "recommendation": "数据侧已解决；但仓库口径不采集日内（§0.4）→ 口径决定维持剔除，非数据不可得"
+            },
+            {
+              "item": "纯日历季节性多空",
+              "verdict": "no-source",
+              "recommendation": "维持剔除"
+            },
+            {
+              "item": "情绪打分/舆情择时",
+              "verdict": "no-source",
+              "recommendation": "维持剔除"
+            }
+          ],
+          "decision": "见 recommendation 列"
+        }
+      ]
+    }
+  },
+  "statusSummary": {
+    "available": [
+      "M1",
+      "M2",
+      "M3",
+      "M4",
+      "M5",
+      "M6",
+      "M7",
+      "FS-02",
+      "FS-04",
+      "FS-05",
+      "FS-07",
+      "FS-08",
+      "TR-01",
+      "TR-02",
+      "TR-03",
+      "TR-05",
+      "TR-06"
+    ],
+    "needs-extension": [
+      "M8",
+      "M9",
+      "M10",
+      "M11",
+      "M12",
+      "M13",
+      "FS-01",
+      "FS-03",
+      "FS-06",
+      "FS-09",
+      "FS-P1-01",
+      "FS-P1-02",
+      "FS-P1-03",
+      "FS-P1-04",
+      "FS-P1-05",
+      "TR-04",
+      "TR-07",
+      "TR-08"
+    ],
+    "rejected": [
+      "T1-REJECTED(6)",
+      "T2-REJECTED(5)",
+      "T3-REJECTED(9)"
+    ],
+    "counts": {
+      "available": 17,
+      "needs-extension": 18,
+      "rejected": 20,
+      "rejectedWithRevivalEvidence": 8
+    }
+  }
+}
