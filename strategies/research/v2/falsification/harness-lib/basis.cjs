@@ -53,4 +53,59 @@ function loadBasisSummary() {
   return JSON.parse(fs.readFileSync(p, 'utf8'));
 }
 
-module.exports = { BASIS_DIR, loadManifest, loadBasisHistory, loadBasisSummary };
+// FS-02 F2 滚动锚（PIT）：窗口 [t-window, t-1]，不含当日；返回与 rows 对齐的序列。
+// rows 须为 loadBasisHistory 的输出（升序）。
+function basisZSeries(rows, { window = 180, minObs = 180 } = {}) {
+  const n = rows.length;
+  const out = new Array(n);
+  let sum = 0;
+  let sumsq = 0;
+  let count = 0;
+  for (let t = 0; t < n; t++) {
+    if (t > 0) {
+      const prev = rows[t - 1].br;
+      if (prev !== null && prev !== undefined && Number.isFinite(Number(prev))) {
+        sum += Number(prev);
+        sumsq += Number(prev) ** 2;
+        count += 1;
+      }
+      if (count > window) {
+        const drop = rows[t - 1 - window];
+        const dropV = drop && drop.br !== null && drop.br !== undefined ? Number(drop.br) : null;
+        if (dropV !== null && Number.isFinite(dropV)) {
+          sum -= dropV;
+          sumsq -= dropV ** 2;
+          count -= 1;
+        }
+      }
+    }
+    const mu = count >= minObs ? sum / count : null;
+    const varPop = count >= minObs && count > 0 ? Math.max(0, sumsq / count - mu * mu) : null;
+    const sigma = varPop === null || varPop === 0 ? null : Math.sqrt(varPop);
+    const z = mu === null || sigma === null ? null : (Number(rows[t].br) - mu) / sigma;
+    out[t] = {
+      date: rows[t].date,
+      br: rows[t].br,
+      mu: mu === null ? null : Math.round(mu * 1e12) / 1e12,
+      sigma: sigma === null ? null : Math.round(sigma * 1e12) / 1e12,
+      z: z === null ? null : Math.round(z * 1e9) / 1e9,
+    };
+  }
+  return out;
+}
+
+// FS-02 F3 信号 + F2 确认门（连续 3 日 |z| 递增 = 加速走扩，放弃信号）
+function basisSignal(zSeries, { threshold = 1.5 } = {}) {
+  return zSeries.map((row, t) => {
+    if (row.z === null) return { ...row, signal: 0, accelerating: false };
+    const signal = row.z <= -threshold ? 1 : row.z >= threshold ? -1 : 0;
+    const accelerating =
+      t >= 2 &&
+      zSeries[t - 2].z !== null &&
+      Math.abs(row.z) > Math.abs(zSeries[t - 1].z) &&
+      Math.abs(zSeries[t - 1].z) > Math.abs(zSeries[t - 2].z);
+    return { ...row, signal, accelerating };
+  });
+}
+
+module.exports = { BASIS_DIR, loadManifest, loadBasisHistory, loadBasisSummary, basisZSeries, basisSignal };
