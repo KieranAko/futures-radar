@@ -133,13 +133,13 @@ function verifyRecord(record, raw, currentRunId) {
   const tIdx = bars.findIndex(b => b.date === record.signalDate);
   if (tIdx === -1) {
     return {
-      recordId: record.recordId, status: 'unverifiable',
+      recordId: record.recordId, status: 'unverifiable', signalDate: record.signalDate,
       attribution: [{ code: 'signal_date_missing', detail: `序列中找不到信号日 ${record.signalDate}` }],
       verificationSeries: series.source
     };
   }
   if (tIdx + 1 >= bars.length) {
-    return { recordId: record.recordId, status: 'pending_data', verificationSeries: series.source };
+    return { recordId: record.recordId, status: 'pending_data', signalDate: record.signalDate, verificationSeries: series.source };
   }
 
   // 触发只在 T+1 判定：收盘确认型取 T+1 close，开盘执行型取 T+1 open
@@ -162,7 +162,7 @@ function verifyRecord(record, raw, currentRunId) {
 
   // 确认后下一交易日开盘执行
   if (tIdx + 2 >= bars.length) {
-    return { recordId: record.recordId, status: 'triggered_pending_entry', verifyDate: t1.date, verificationSeries: series.source };
+    return { recordId: record.recordId, status: 'triggered_pending_entry', signalDate: record.signalDate, verifyDate: t1.date, verificationSeries: series.source };
   }
   const entryBar = bars[tIdx + 2];
   const entryPrice = entryBar.open;
@@ -172,7 +172,7 @@ function verifyRecord(record, raw, currentRunId) {
   const gapPts = Math.abs(entryPrice - (record.triggerLevel || entryPrice));
   if (gapThreshold && gapPts > gapThreshold) {
     return {
-      recordId: record.recordId, status: 'skipped_gap', verifyDate: entryBar.date, entryPrice, verificationSeries: series.source,
+      recordId: record.recordId, status: 'skipped_gap', signalDate: record.signalDate, verifyDate: entryBar.date, entryPrice, verificationSeries: series.source,
       attribution: [{ code: 'gap_skip', detail: `跳空 ${gapPts.toFixed(1)} > ${gapThreshold.toFixed(1)}（0.75×ATR5 约束），放弃执行` }]
     };
   }

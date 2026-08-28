@@ -46,6 +46,9 @@ function main() {
   const i = args.indexOf('--runId');
   const runId = i >= 0 ? args[i + 1] : null;
   if (!runId) throw new Error('--runId required');
+  const asProduction = args.includes('--as-production');
+  // 生产契约沿用 q4_confirmation（单数，report/build-model.cjs 读取）；实验线自用版保持 q4_confirmations（复数）
+  const q4Key = asProduction ? 'q4_confirmation' : 'q4_confirmations';
   const runPath = runDir(runId);
   const outputs = readJson(path.join(runPath, 'analyze', 'outputs-v2.json'));
   const prefill = readJson(path.join(runPath, 'analyze', 'prefill-v2.json')).prefill;
@@ -81,7 +84,7 @@ function main() {
         priceAlignment: pf.q2.priceAlignment,
       },
       q3_odds: o.q3_odds,
-      q4_confirmations: { signals: q4.signals },
+      [q4Key]: { signals: q4.signals },
       q5_invalidation: { conditions: q5.conditions },
       q6_risks: {
         limitDistance: pf.q6.limitDistance,
@@ -132,12 +135,18 @@ function main() {
   };
 
   const outDir = path.join(runPath, 'analyze');
-  const asProduction = args.includes('--as-production');
-  // 生产兼容文件：promote 后 analysis.json / reasoning-results.json / sector-driver.json 直接可用
-  writeJson(path.join(outDir, asProduction ? 'analysis.json' : 'analysis-v2.json'), analysis);
-  writeJson(path.join(outDir, asProduction ? 'reasoning-results.json' : 'reasoning-results-v2.json'), reasoning);
+  // 生产兼容文件：promote 后 analysis.json / reasoning-results.json 写 run 顶层（生产布局），
+  // 实验线自用版本写 analyze/ 子目录（analysis-v2.json）
+  writeJson(path.join(asProduction ? runPath : outDir, asProduction ? 'analysis.json' : 'analysis-v2.json'), analysis);
+  writeJson(path.join(asProduction ? runPath : outDir, asProduction ? 'reasoning-results.json' : 'reasoning-results-v2.json'), reasoning);
   if (asProduction) {
     const outputs2 = readJson(path.join(outDir, 'outputs-v2.json'));
+    // 生产 pipeline analyze 阶段要求的证据冻结产物（v2 从 packets-v2 直接转换）
+    writeJson(path.join(runPath, 'evidence-packets.json'), {
+      schema: 'futures-radar-evidence-packets/1',
+      meta: { runId, signalDate, generatedAt: new Date().toISOString(), mode: 'analyze-v2' },
+      packets,
+    });
     const sectorDriver = {
       meta: { runId, signalDate, generatedAt: new Date().toISOString(), mode: 'daily-v2' },
       sectors: Object.fromEntries(
@@ -164,7 +173,7 @@ function main() {
       q1: analyses.every((a) => a.q1_driver?.primary),
       q2: analyses.every((a) => a.q2_trendOrImpulse?.judgment),
       q3: analyses.every((a) => a.q3_odds?.bias),
-      q4: analyses.every((a) => Array.isArray(a.q4_confirmations?.signals)),
+      q4: analyses.every((a) => Array.isArray(a[q4Key]?.signals)),
       q5: analyses.every((a) => Array.isArray(a.q5_invalidation?.conditions)),
       q6: analyses.every((a) => a.q6_risks?.margin),
     },
