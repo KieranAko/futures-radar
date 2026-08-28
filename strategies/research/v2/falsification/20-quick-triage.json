@@ -1,0 +1,144 @@
+{
+  "schema": "futures-strategy-quick-triage/1",
+  "generatedAt": "2026-08-28T11:28:41.064Z",
+  "layer0_structural": {
+    "FS02": "理论清晰、模型可识别、数据 blocked（PIT 基差历史未建）→ 先建数据，不做证伪",
+    "TR01": "理论可证伪、数据就绪、样本充足 → 进代理测试",
+    "TR06": "数据就绪但事件样本极稀 → 样本层降级",
+    "M1": "数据就绪、β̂<0 门后样本不足 → 样本层降级",
+    "FS04": "理论级证伪已触发（夏普 0.077<0.5）→ 低优先级",
+    "FS05": "理论级证伪已触发（命中 38.7%<55%）→ 低优先级",
+    "TR03": "retired，不再投入",
+    "EC01": "retired，不再投入"
+  },
+  "layer1_sample": {
+    "TR01": {
+      "status": "sufficient",
+      "note": "harness n=1756，远超 200 门禁"
+    },
+    "TR06": {
+      "status": "insufficient",
+      "note": "harness 事件 0 起，滚动 24 月 <30"
+    },
+    "M1": {
+      "status": "insufficient",
+      "note": "β̂<0 门后 n=7，门禁 200"
+    },
+    "FS02": {
+      "status": "blocked",
+      "note": "缺 2011+ PIT 基差历史，无法估计"
+    },
+    "FS04": {
+      "status": "falsified",
+      "note": "理论级 (b) 已证伪"
+    },
+    "FS05": {
+      "status": "falsified",
+      "note": "理论级 (b) 已证伪"
+    }
+  },
+  "layer2_proxy": {
+    "TR01": {
+      "symbols": 59,
+      "n": 134146,
+      "all": {
+        "mean": -0.1557,
+        "ci": [
+          -0.5657,
+          0.2543
+        ]
+      },
+      "confirmed": {
+        "n": 38337,
+        "mean": 0.046,
+        "ci": [
+          0.0088,
+          0.0833
+        ]
+      },
+      "unconfirmed": {
+        "n": 95809,
+        "mean": -0.2364,
+        "ci": [
+          -0.8103,
+          0.3375
+        ]
+      },
+      "diffConfirmedMinusUnconfirmed": 0.2824
+    },
+    "TR06": {
+      "symbols": [
+        "RB0",
+        "M0",
+        "SC0"
+      ],
+      "totalDays": 7650,
+      "events": 1
+    },
+    "M1": {
+      "RB0": {
+        "n": 163,
+        "hitRate": 49.08,
+        "meanAligned10dPct": 0.2084
+      },
+      "HC0": {
+        "n": 163,
+        "hitRate": 53.37,
+        "meanAligned10dPct": 0.3843
+      },
+      "J0": {
+        "n": 163,
+        "hitRate": 48.47,
+        "meanAligned10dPct": -0.1028
+      },
+      "SA0": {
+        "n": 69,
+        "hitRate": 47.83,
+        "meanAligned10dPct": 0.8874
+      },
+      "FG0": {
+        "n": 165,
+        "hitRate": 49.09,
+        "meanAligned10dPct": 0.5744
+      }
+    }
+  },
+  "promiseRank": [
+    {
+      "rank": 1,
+      "id": "FS-02",
+      "score": 8,
+      "reason": "唯一尚未证伪且理论/模型简单；投入=数据建设而非证伪计算"
+    },
+    {
+      "rank": 2,
+      "id": "TR-01",
+      "score": 6,
+      "reason": "确认机制存活，代理测试见 layer2；需要模型改进而非调参"
+    },
+    {
+      "rank": 3,
+      "id": "TR-06",
+      "score": 3,
+      "reason": "事件样本不足，先解决事件识别/数据积累"
+    },
+    {
+      "rank": 4,
+      "id": "M1",
+      "score": 2,
+      "reason": "β̂<0 门后样本不足，等待宏观历史延长"
+    },
+    {
+      "rank": 5,
+      "id": "FS-04",
+      "score": 1,
+      "reason": "理论级证伪已触发"
+    },
+    {
+      "rank": 6,
+      "id": "FS-05",
+      "score": 1,
+      "reason": "理论级证伪已触发"
+    }
+  ]
+}
