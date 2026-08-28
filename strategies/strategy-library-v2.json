@@ -598,7 +598,13 @@
         "data/daily/*.json"
       ],
       "falsificationStatus": "suspended",
-      "statusNote": "t8 walk-forward 证伪（seed=20260828，17/18/19 号报告）：n=1756、meanR +0.0095R、PF 1.034<1.2、95% CI [−0.025,0.044] 含 0 → suspended。理论级确认机制未证伪（确认 +0.0095R vs 无确认 −0.0158R），edge 强度不足以覆盖成本；保留 re_evaluation 路径（needs-clarify：N1 同品种并发 260/1756、N2 时间止损语义近似）。"
+      "statusNote": "t8 walk-forward 证伪（seed=20260828，17/18/19 号报告）：n=1756、meanR +0.0095R、PF 1.034<1.2、95% CI [−0.025,0.044] 含 0 → suspended。理论级确认机制未证伪（确认 +0.0095R vs 无确认 −0.0158R），edge 强度不足以覆盖成本；保留 re_evaluation 路径（needs-clarify：N1 同品种并发 260/1756、N2 时间止损语义近似）。\n[实验完整性重分类 2026-08-28] adapter 保真度不足（EMA20 近似、加仓未实现、T2 取 2R 下界）；PF 1.034 接近门槛。证伪结论暂停，待保真复跑。",
+      "evidenceTier": "not_evaluable",
+      "fidelityAudit": {
+        "status": "needs_rework",
+        "checkedAgainst": "23-fidelity-review.md",
+        "blockingForFalsification": true
+      }
     },
     {
       "id": "TR-03",
@@ -791,7 +797,13 @@
         "data/daily/*.json"
       ],
       "falsificationStatus": "retired",
-      "statusNote": "t8 walk-forward 证伪：n=1119、meanR −0.0998R、PF 0.429、95% CI [−0.117,−0.082] 全负、0/12 年、12 折连续命中<50% → retired。理论级②按库原文两步执行（R2 队长终裁）：第一步『>1.5R 子样本』按规则恒为空（vacuous）；第二步『收紧距离门槛后重验』=1.0×ATR5 门槛嵌套重跑 n=37、PF 0.374<1 → 仍不达标 → retired。"
+      "statusNote": "t8 walk-forward 证伪：n=1119、meanR −0.0998R、PF 0.429、95% CI [−0.117,−0.082] 全负、0/12 年、12 折连续命中<50% → retired。理论级②按库原文两步执行（R2 队长终裁）：第一步『>1.5R 子样本』按规则恒为空（vacuous）；第二步『收紧距离门槛后重验』=1.0×ATR5 门槛嵌套重跑 n=37、PF 0.374<1 → 仍不达标 → retired。\n[实验完整性重分类 2026-08-28] 证据可靠：n=1119, PF 0.429, CI 严格为负, 12/12 折负; 理论级证伪成立。保持 retired。",
+      "evidenceTier": "falsified",
+      "fidelityAudit": {
+        "status": "needs_rework",
+        "checkedAgainst": "23-fidelity-review.md",
+        "blockingForFalsification": true
+      }
     },
     {
       "id": "TR-06",
@@ -997,7 +1009,13 @@
         "data/daily/*.json"
       ],
       "falsificationStatus": "suspended",
-      "statusNote": "t8 walk-forward 证伪：2015–2026 事件 0 起（|r|≥max(2×ATR5,3%)∧量比≥2；Q1 驱动文本项历史不可评估 needs-clarify）→ 滚动 24 月<30 样本门禁触发（库 killRules）→ suspended。chase/delayed 理论测试 0 样本未执行。事件定义待重估。"
+      "statusNote": "t8 walk-forward 证伪：2015–2026 事件 0 起（|r|≥max(2×ATR5,3%)∧量比≥2；Q1 驱动文本项历史不可评估 needs-clarify）→ 滚动 24 月<30 样本门禁触发（库 killRules）→ suspended。chase/delayed 理论测试 0 样本未执行。事件定义待重估。\n[实验完整性重分类 2026-08-28] 事件识别缺 FinCoT Q1 历史，价格量能代理 2015-2026 仅 1 起；不能判策略失败，须重建事件识别后复跑。",
+      "evidenceTier": "not_evaluable",
+      "fidelityAudit": {
+        "status": "needs_rework",
+        "checkedAgainst": "23-fidelity-review.md",
+        "blockingForFalsification": true
+      }
     },
     {
       "id": "FS-02",
@@ -1204,7 +1222,13 @@
         "data/daily/*.json"
       ],
       "falsificationStatus": "designed",
-      "statusNote": "t8：数据前置未满足（2011+ PIT dom_basis_rate 基差历史采集器未运行，实测仅 GA-6 单次快照 2026-07-10..2026-08-28）→ blocked 未执行证伪，非证伪失败 → 保持 designed。needs-clarify：PIT 逐日快照采集器先行（基差统一口径 br=(S−F)/S），再重跑证伪。"
+      "statusNote": "t8：数据前置未满足（2011+ PIT dom_basis_rate 基差历史采集器未运行，实测仅 GA-6 单次快照 2026-07-10..2026-08-28）→ blocked 未执行证伪，非证伪失败 → 保持 designed。needs-clarify：PIT 逐日快照采集器先行（基差统一口径 br=(S−F)/S），再重跑证伪。\n[实验完整性重分类 2026-08-28] 2011+ PIT 基差历史未建成，未执行证伪。",
+      "evidenceTier": "untested",
+      "fidelityAudit": {
+        "status": "needs_rework",
+        "checkedAgainst": "23-fidelity-review.md",
+        "blockingForFalsification": true
+      }
     },
     {
       "id": "FS-04",
@@ -1420,7 +1444,13 @@
         "event-calendar"
       ],
       "falsificationStatus": "suspended",
-      "statusNote": "t8 walk-forward 证伪：理论级 (b) 扣成本夏普 0.077<0.5 证伪；n=43<200；(a) 40 日回归 3 样本 inconclusive；(d) 政策窗口比较检验无样本未执行（前提开关 by-construction 安装）；F5 平稳性门（EG2 表统一后）暂停占比 56.7%>50% 触发 kill → suspended。"
+      "statusNote": "t8 walk-forward 证伪：理论级 (b) 扣成本夏普 0.077<0.5 证伪；n=43<200；(a) 40 日回归 3 样本 inconclusive；(d) 政策窗口比较检验无样本未执行（前提开关 by-construction 安装）；F5 平稳性门（EG2 表统一后）暂停占比 56.7%>50% 触发 kill → suspended。\n[实验完整性重分类 2026-08-28] n=43 且 F5 门暂停占比 56.7% 触发 kill；样本与事件门设置影响大，须保真复跑。",
+      "evidenceTier": "not_evaluable",
+      "fidelityAudit": {
+        "status": "needs_rework",
+        "checkedAgainst": "23-fidelity-review.md",
+        "blockingForFalsification": true
+      }
     },
     {
       "id": "FS-05",
@@ -1634,7 +1664,13 @@
         "event-calendar"
       ],
       "falsificationStatus": "suspended",
-      "statusNote": "t8 walk-forward 证伪：理论级 (b) 回归命中 38.7%<55% 证伪；(a) 4/4 已评估对协整通过率<70% 全剔除（C0-CS0 未评估：预热不足+事件门）；2016 起被 GA-7 收抛储事件前提开关整窗暂停（事件粒度待队长裁定）；(c) M−RM 断裂门检验 vacuous（2019/2024 窗口内 0 交易）→ suspended。"
+      "statusNote": "t8 walk-forward 证伪：理论级 (b) 回归命中 38.7%<55% 证伪；(a) 4/4 已评估对协整通过率<70% 全剔除（C0-CS0 未评估：预热不足+事件门）；2016 起被 GA-7 收抛储事件前提开关整窗暂停（事件粒度待队长裁定）；(c) M−RM 断裂门检验 vacuous（2019/2024 窗口内 0 交易）→ suspended。\n[实验完整性重分类 2026-08-28] GA-7 收抛储常态化整窗暂停使 2016+ 样本被截断，仅 2015；事件粒度未裁定，不能判策略失败。",
+      "evidenceTier": "not_evaluable",
+      "fidelityAudit": {
+        "status": "needs_rework",
+        "checkedAgainst": "23-fidelity-review.md",
+        "blockingForFalsification": true
+      }
     },
     {
       "id": "M1",
@@ -1835,7 +1871,13 @@
         "data/macro/*.json"
       ],
       "falsificationStatus": "suspended",
-      "statusNote": "t8 walk-forward 证伪（β̂<0 入池门 R8 队长终裁后重跑，seed=20260828）：n=7、meanR −0.053R、PF 0.345<1.2、95% CI 含 0、windowGate 达标占比 0%（窗内 1–5 笔）→ suspended（样本不足 + PF 门禁，非理论证伪）。全池方向命中 57.1%（7 笔）；pre2024 57.1%/post2024 无样本。symbol-freeze 语义（R7）已生效：本次未触发（symbolsToFreeze=∅）。β̂ 符号门使 25→7 笔（多数历史信号 β̂≥0 被门排除，佐证 R8 库内矛盾）。"
+      "statusNote": "t8 walk-forward 证伪（β̂<0 入池门 R8 队长终裁后重跑，seed=20260828）：n=7、meanR −0.053R、PF 0.345<1.2、95% CI 含 0、windowGate 达标占比 0%（窗内 1–5 笔）→ suspended（样本不足 + PF 门禁，非理论证伪）。全池方向命中 57.1%（7 笔）；pre2024 57.1%/post2024 无样本。symbol-freeze 语义（R7）已生效：本次未触发（symbolsToFreeze=∅）。β̂ 符号门使 25→7 笔（多数历史信号 β̂≥0 被门排除，佐证 R8 库内矛盾）。\n[实验完整性重分类 2026-08-28] β̂<0 门后 n=7，样本不足；需更长宏观历史与保真复跑。",
+      "evidenceTier": "not_evaluable",
+      "fidelityAudit": {
+        "status": "needs_rework",
+        "checkedAgainst": "23-fidelity-review.md",
+        "blockingForFalsification": true
+      }
     },
     {
       "id": "EC-01",
@@ -2057,7 +2099,13 @@
         "event-calendar"
       ],
       "falsificationStatus": "retired",
-      "statusNote": "t8 walk-forward 证伪（paper-only 判定，activationGate 条款）：理论级 (b) 夏普 −0.615<0.5 证伪；9/9 品种对模型级门排除率 84–91%（残差 ADF 统一 EG2 表，R4）→ 池空；n=10、PF 0.119、95% CI 严格为负。状态 retired = 队长终裁（R3，2026-08-28）：G4 兜底（理论级证伪成立→retired）+ 池空无执行路径 + paper-only；非库 killOn『对级剔除/suspended』的直接映射。"
+      "statusNote": "t8 walk-forward 证伪（paper-only 判定，activationGate 条款）：理论级 (b) 夏普 −0.615<0.5 证伪；9/9 品种对模型级门排除率 84–91%（残差 ADF 统一 EG2 表，R4）→ 池空；n=10、PF 0.119、95% CI 严格为负。状态 retired = 队长终裁（R3，2026-08-28）：G4 兜底（理论级证伪成立→retired）+ 池空无执行路径 + paper-only；非库 killOn『对级剔除/suspended』的直接映射。\n[实验完整性重分类 2026-08-28] paper-only；统一 EG2 后理论级证伪成立且 9/9 产品对模型资格排除；队长裁定 retired。",
+      "evidenceTier": "falsified",
+      "fidelityAudit": {
+        "status": "needs_rework",
+        "checkedAgainst": "23-fidelity-review.md",
+        "blockingForFalsification": true
+      }
     }
   ],
   "waitlist": {
@@ -2270,6 +2318,11 @@
         "fix": "队长终裁落地（2026-08-28，18-review R1–R8 + N1–N11）：R1 报告与机器产物逐数字对齐并留勘误记录；R2 TR-03 理论②按库原文两步执行（>1.5R 子样本 vacuous + 收紧 1.0×ATR5 门槛重验 PF 0.374<1 → retired）；R3 EC-01 retired=队长裁定（G4 兜底+池空+paper-only，非库 killOn 映射）；R4 三类残差平稳性门统一 EG2 表（EC-01 复跑 10 笔、FS-04 复跑 43 笔）；R5/R6 FS-05 措辞修正（4/4 对全剔除+C0-CS0 未评估；断裂门检验 vacuous）；R7 M1 killRule 语义改 symbol-freeze（冻结触发品种，不改策略状态）；R8 M1 增加 β̂<0 入池门（direction/formulas 已写入，重跑 25→7 笔）。仅状态字段与 M1 入池门（队长授权）变更，其余理论/模型/定价零改动。",
         "location": "M1.strategy.direction / M1.marketModel.formulas F2 / 各条目 statusNote / revisionLog",
         "sourceDocs": "18-review.md（t9）、19-final-falsification-report.md（t10）、17-falsification-results.md（t10 修订版）"
+      },
+      {
+        "id": "wf-v9-integrity-reclassification",
+        "fix": "V9 探针作废；核心策略按证据强度重分类为 falsified/not_evaluable/untested；adapter 保真度验收未通过前冻结证伪结论",
+        "location": "strategies[].evidenceTier/fidelityAudit + experimentIntegrity"
       }
     ]
   },
@@ -2488,6 +2541,21 @@
         "gap": "**队长已裁定 OI 纪律维持不放开（cap-1/H7）**：OI 衍生类策略不得进入可执行策略集；数据侧 ready ≠ 策略侧允许",
         "upgrade": "待用户未来明确解禁后重新评估（仍须完整五段 + §7 全流程）"
       }
+    ]
+  },
+  "experimentIntegrity": {
+    "schema": "futures-strategy-experiment-integrity/1",
+    "updatedAt": "2026-08-28T18:27:00.893Z",
+    "rule": "在 adapter 保真度验收通过前，任何策略不得新产生 retired/suspended 证伪结论；现有 not_evaluable 状态为临时标记。",
+    "taxonomy": {
+      "falsified": "证据可靠，保持 retired",
+      "not_evaluable": "实验设置缺陷导致结论无效，待保真复跑",
+      "untested": "数据前置未满足，未执行"
+    },
+    "adapterFidelityChecklist": "strategies/research/v2/falsification/23-fidelity-review.md",
+    "preregistrationProtocol": "strategies/research/v2/falsification/24-preregistration-protocol.md",
+    "voidedExperiments": [
+      "22-v9-theory-source-probes.json"
     ]
   }
 }
