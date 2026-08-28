@@ -1,6 +1,6 @@
 {
   "name": "futures-radar-skill",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "该SKILL专注期货投机市场机会发现，提供全期货市场品种扫描→TOP10机会发现→TOP3品种LLM推理分析报告。",
   "private": true,
   "type": "module",
@@ -21,6 +21,7 @@
     "signal:backtest:v4": "node strategies/signal-backtest/runner-v4.cjs",
     "signal:backtest:v5": "node strategies/signal-backtest/runner-v5.cjs",
     "signal:backtest:v6": "node strategies/signal-backtest/runner-v6.cjs",
+    "signal:backtest:v6-1": "node strategies/signal-backtest/runner-v6-1.cjs",
     "test": "node --test \"test/*.test.js\" \"reasoning/test/*.test.js\" \"research/experiments/test/*.test.js\" \"research/backtest/test/*.test.cjs\"",
     "test:core": "node --test \"test/*.test.js\"",
     "test:reasoning": "node --test \"reasoning/test/*.test.js\"",

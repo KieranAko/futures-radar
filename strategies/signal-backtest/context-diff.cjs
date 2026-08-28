@@ -15,7 +15,14 @@ const HIGH_IMPACT = new Set(['fomc', 'opec_meeting']); // 政策冲击才强制�
 
 function signOf(v) { return v == null ? 0 : (v > 0 ? 1 : v < 0 ? -1 : 0); }
 
-function diffRows(prev, curr) {
+function diffRowsWith(prev, curr, opts = {}) {
+  const {
+    macroMinAbs = 0.5,
+    macroMinFlips = 2,
+    sectorMinAbs = 1.0,
+    momentumMinAbs = 2.0,
+    highImpact = HIGH_IMPACT
+  } = opts;
   const reasons = [];
   if (!prev) return { changed: true, reasons: ['first_anchor'] };
 
@@ -24,13 +31,13 @@ function diffRows(prev, curr) {
   for (const id of MACRO_IDS) {
     const p = prev.macro[id]; const c = curr.macro[id];
     const pv = p && p[2]; const cv = c && c[2];
-    if (pv != null && cv != null && signOf(pv) !== signOf(cv) && signOf(cv) !== 0 && Math.abs(cv) >= 0.5) {
+    if (pv != null && cv != null && signOf(pv) !== signOf(cv) && signOf(cv) !== 0 && Math.abs(cv) >= macroMinAbs) {
       macroFlips.push(id);
     }
   }
-  if (macroFlips.length >= 2) reasons.push(`macro_flips:${macroFlips.join(',')}`);
+  if (macroFlips.length >= macroMinFlips) reasons.push(`macro_flips:${macroFlips.join(',')}`);
   // 2) 板块 5 日方向翻转（幅度 >= 1%）
-  if (prev.sect.r5 != null && curr.sect.r5 != null && signOf(prev.sect.r5) !== signOf(curr.sect.r5) && signOf(curr.sect.r5) !== 0 && Math.abs(curr.sect.r5) >= 1.0) {
+  if (prev.sect.r5 != null && curr.sect.r5 != null && signOf(prev.sect.r5) !== signOf(curr.sect.r5) && signOf(curr.sect.r5) !== 0 && Math.abs(curr.sect.r5) >= sectorMinAbs) {
     reasons.push('sector_flip:r5');
   }
   // 3) 价格均线位势翻转（close 与 MA20 的关系）
@@ -38,18 +45,20 @@ function diffRows(prev, curr) {
     reasons.push('price_ma20_cross');
   }
   // 4) 5 日动量方向翻转（幅度 >= 2%）
-  if (signOf(prev.chg5) !== signOf(curr.chg5) && signOf(curr.chg5) !== 0 && Math.abs(curr.chg5) >= 2.0) {
+  if (signOf(prev.chg5) !== signOf(curr.chg5) && signOf(curr.chg5) !== 0 && Math.abs(curr.chg5) >= momentumMinAbs) {
     reasons.push('momentum_flip:chg5');
   }
   // 5) 本锚点窗口内有新的高影响事件
   const prevDate = prev.d;
   const newEvents = (curr.evt || []).filter(e => {
     const [mmdd, type] = e.split('|');
-    return mmdd > prevDate.slice(5) && HIGH_IMPACT.has(type);
+    return mmdd > prevDate.slice(5) && highImpact.has(type);
   });
   if (newEvents.length > 0) reasons.push(`new_event:${newEvents[0].split('|')[1]}`);
   return { changed: reasons.length > 0, reasons };
 }
+
+function diffRows(prev, curr) { return diffRowsWith(prev, curr); }
 
 function buildDiff(symbol) {
   const bundle = JSON.parse(fs.readFileSync(path.join(V5, `bundle-${symbol}.json`), 'utf8'));
@@ -76,4 +85,4 @@ function buildAll() {
 
 if (require.main === module) console.log(JSON.stringify(buildAll(), null, 2));
 
-module.exports = { diffRows, buildDiff, buildAll };
+module.exports = { diffRows, diffRowsWith, buildDiff, buildAll };

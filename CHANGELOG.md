@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.15（2026-08-28）
+
+- **信号质量回测 v6.1（硬约束修正版）**：按 `v6-optimization-plan.md` 的 P1/P2/P3/P5/P6/P7/P8/P9/P10 修复 `runner-v6-1.cjs`——G1 只作用于 B/C（A 臂无上下文字段时闸门放弃判定）；三集合口径 + `skippedCF` 闸门成本；前 10 校准 / 后 10 验证拆分并剔除 4 笔归因交易；止损帽保证 R≥1；G2 三层共振改用信号日 sector br/co；失效价带宽校验（不在 (stop, trigger] 带内则 G5 放弃）；0.25R 成本净收益口径；证据方向 linter；diff 阈值敏感性只报告不选优
+- **v6.1 结果（诚实口径）**：A 11 笔成交 63.64%、毛 +0.10%/净 -1.70%；B 5 笔 100%、毛 +2.20%/净 +1.29%；C 1 笔 100%、毛 +0.20%/净 -0.13%。闸门成本：B saved 5.74%/cost 0，C saved 10.47%/cost 7.08（净 +3.39%）。C 验证段剔除归因交易后 0 笔，`inSample=true`，不得放行。注：信号日 sector 重算后 SC0 06-24 赢单不再满足三层共振豁免，被 G2 拦截——v6.1 证明更严格的时点口径是有成本的，报告如实记录
+- **新增工具**：`context-diff-sensitivity.cjs`（baseline/relaxed/strict 三档复用计数）；失效不可用 A/B/C=69/35/21；止损帽命中 6/2/2；证据 linter 警告 B/C=18/17
+- **版本对齐**：VERSION.md / package.json / SKILL.md / README.md / pipeline banner 统一为 0.1.15；新增 `npm run signal:backtest:v6-1`
+- 新增 signal-backtest-v6-1 测试 5 条（G1 作用域/闸门成本/R≥1/失效带宽/P3 拆分/P10 敏感性）；全量测试 624 → 629（115 → 116 套件）
+
 ## 0.1.14（2026-08-28）
 
 - **信号质量回测 v6（v5 计划 + 五道安全闸，不新增 LLM）**：新增 `runner-v6.cjs`——复用 v5 冻结的 A/B/C 计划，只更换执行引擎。G1 冲突闸（shock/|chg5|≥8 的 breakout 须宏观+板块同侧）、G2 确认距离闸（C 臂 Q4 位与触发价 ≤1.5×ATR，三层共振可豁免）、G3 目标帽（target1 ≤2×ATR5）、G4 三日确认退出 + 保本/移动止损（MFE<0.5R 第 3 日收盘离场；≥1R 保本；≥1.5R 移动止损）、G5 持仓期失效硬退出

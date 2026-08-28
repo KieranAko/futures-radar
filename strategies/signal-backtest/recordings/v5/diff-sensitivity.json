@@ -1,0 +1,89 @@
+{
+  "schema": "futures-radar-context-diff-sensitivity/1",
+  "generatedAt": "2026-08-28T03:54:00.230Z",
+  "symbols": [
+    {
+      "symbol": "RB0",
+      "counts": [
+        {
+          "config": "baseline",
+          "changed": 17,
+          "reused": 3
+        },
+        {
+          "config": "relaxed",
+          "changed": 13,
+          "reused": 7
+        },
+        {
+          "config": "strict",
+          "changed": 18,
+          "reused": 2
+        }
+      ]
+    },
+    {
+      "symbol": "M0",
+      "counts": [
+        {
+          "config": "baseline",
+          "changed": 18,
+          "reused": 2
+        },
+        {
+          "config": "relaxed",
+          "changed": 11,
+          "reused": 9
+        },
+        {
+          "config": "strict",
+          "changed": 20,
+          "reused": 0
+        }
+      ]
+    },
+    {
+      "symbol": "SC0",
+      "counts": [
+        {
+          "config": "baseline",
+          "changed": 16,
+          "reused": 4
+        },
+        {
+          "config": "relaxed",
+          "changed": 13,
+          "reused": 7
+        },
+        {
+          "config": "strict",
+          "changed": 17,
+          "reused": 3
+        }
+      ]
+    }
+  ],
+  "configs": [
+    {
+      "id": "baseline",
+      "macroMinAbs": 0.5,
+      "macroMinFlips": 2,
+      "sectorMinAbs": 1,
+      "momentumMinAbs": 2
+    },
+    {
+      "id": "relaxed",
+      "macroMinAbs": 1,
+      "macroMinFlips": 3,
+      "sectorMinAbs": 1.5,
+      "momentumMinAbs": 3
+    },
+    {
+      "id": "strict",
+      "macroMinAbs": 0.25,
+      "macroMinFlips": 2,
+      "sectorMinAbs": 0.5,
+      "momentumMinAbs": 1
+    }
+  ]
+}
