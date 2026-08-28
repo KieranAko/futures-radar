@@ -297,3 +297,16 @@
 | t7 | E | M1 通过门槛对齐 G3：达标窗口占比 ≥60%（预注册口径） | M1.strategyLevel.ci |
 
 未改变部分：8 条策略理论/模型/定价链本体、D1–D11 与 cap-1..cap-6 裁定、状态机与冻结纪律（t9 §5 指引）。
+
+## 12. 实验完整性状态（2026-08-28 重分类，以 JSON 为准）
+
+> 本节只陈述当前证据层状态；核心 manifest 未变（旧策略线关闭），后续扩充走"机制假设生成 + 绑定式廉价探针"。
+
+- **证据层**：falsified 2（TR-03、EC-01，保持 retired）；untested 1（FS-02）；insufficient_sample 1（M1）；not_evaluable 4（TR-01、TR-06、FS-04、FS-05，fidelityAudit=closed_no_rerun 或 needs_rework）。
+- **适配保真度**：23-fidelity-review.md F-A..F-H 是任何新 retired/suspended 结论的前置；预注册统计按 24-preregistration-protocol.md（FWER=0.05，3 假设/轮 α_adj=0.0167，seed=20260828）。
+- **机制假设轮次 1**（`strategies/research/v2/falsification/25-mechanism-bound-probes.md`）：
+  - H-MECH-01 宏观：US10Y×DXY 双锚共振 → 沪金/沪银（10 日）——screen_pending；
+  - H-MECH-02 基本面：焦炭/铁矿比价 z 回归（10 日两腿）——screen_pending；
+  - H-MECH-03 交易员：极端隔夜跳空 fade（5 日）——screen_pending。
+  - 本轮不 promote/discard 任何候选；命中率检验全部 low_power_no_conclusion；探针不改变本文件 §1–§11 的任何条目。
+- **FS-02 数据前置（GA-8）**：`ga8-basis-history-collector.py` 按周切片拉取 `futures_spot_price_daily`，统一口径 `br=(S−F)/S=−dom_basis_rate`，PIT 留档 + revisions.jsonl；产出 `falsification/data/basis-history/`（JSONL + manifest + summary）。
