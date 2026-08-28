@@ -1,0 +1,138 @@
+{
+  "specId": "EC-01",
+  "strategyId": "EC-01",
+  "description": "能化成本传导误差修正（M4 ⊕ FS-08）walk-forward 证伪 spec — GA-7 paper-only 条款：仅 paper 验证（activationGate），禁止 live；事件日历联动暂停（2020 负油价/2022 俄乌）",
+  "library": {
+    "sourceFile": "strategies/strategy-library-v2.json",
+    "entryId": "EC-01"
+  },
+  "universe": {
+    "symbols": [
+      "SC0",
+      "TA0",
+      "EG0",
+      "PP0",
+      "L0",
+      "EB0",
+      "BU0",
+      "FU0",
+      "PG0",
+      "PX0"
+    ],
+    "sectors": [],
+    "macro": []
+  },
+  "data": {
+    "daily": true,
+    "derived": [
+      "atr5",
+      "ma20"
+    ],
+    "sector": [],
+    "macro": [],
+    "calendar": true,
+    "rollJumps": true,
+    "tradableSet": false
+  },
+  "period": {
+    "start": "2015-01-01",
+    "end": "2026-08-28"
+  },
+  "warmupBars": 300,
+  "folds": {
+    "mode": "purged-expanding",
+    "testPeriod": "year",
+    "purgeBars": 5
+  },
+  "execution": {
+    "entryOffsetBars": 1,
+    "pathPriority": "stop-first",
+    "cost": {
+      "roundtripBps": 7,
+      "legs": 1
+    }
+  },
+  "strategyLevel": {
+    "minTrades": 200,
+    "pfThreshold": 1.2,
+    "ci": {
+      "level": 0.95,
+      "method": "bootstrap-percentile",
+      "mustExcludeZero": true
+    },
+    "majorityYearsPositive": true,
+    "baselines": [
+      "always-long",
+      "always-short",
+      "random"
+    ],
+    "random": {
+      "mode": "same-entries-flipped-side",
+      "runs": 1,
+      "seed": 20260828
+    },
+    "theoryFalsifiedState": "suspended",
+    "paperOnly": true
+  },
+  "theoryLevel": {
+    "hypothesis": "F1 协整 + 误差修正（γ<0）+ F2 产品端回归",
+    "engine": "adapter"
+  },
+  "machineKillRules": [
+    {
+      "id": "ec01-min-trades",
+      "metric": "n",
+      "op": "lt",
+      "value": 200,
+      "onTrigger": "suspended",
+      "note": "样本不足 → designed"
+    },
+    {
+      "id": "ec01-pf",
+      "metric": "pf",
+      "op": "lt",
+      "value": 1.2,
+      "onTrigger": "suspended",
+      "note": "PF < 1.2 → suspended"
+    },
+    {
+      "id": "ec01-sharpe",
+      "metric": "sharpeTrade",
+      "op": "lt",
+      "value": 0.5,
+      "onTrigger": "suspended",
+      "note": "扣成本夏普 < 0.5 → suspended（库 killRules）"
+    },
+    {
+      "id": "ec01-gap-loss",
+      "metric": "custom.gapLossShare",
+      "op": "gt",
+      "value": 0.3,
+      "onTrigger": "suspended",
+      "note": "隔夜跳空亏损占比 > 30% → 需隔夜过滤修订；修订后仍 >30% → 停用"
+    },
+    {
+      "id": "ec01-all-pairs-excluded",
+      "metric": "custom.allPairsExcluded",
+      "op": "isTrue",
+      "value": true,
+      "onTrigger": "retired",
+      "note": "R3 队长终裁映射（非库 killOn 直接映射）：reason=G4 兜底（理论级证伪成立→retired）+ 池空无执行路径 + paper-only"
+    }
+  ],
+  "signal": {
+    "adapter": "EC-01"
+  },
+  "params": {
+    "window": 250,
+    "zThreshold": 2,
+    "gammaSigP": 0.05,
+    "qualBetaMin": 0.2,
+    "qualR2Min": 0.3,
+    "stopAtrMult": 1.5,
+    "adverseSigma": 0.5,
+    "timeExitBars": 20,
+    "gapAbandonFactor": 1,
+    "positionDiscount": 0.75
+  }
+}

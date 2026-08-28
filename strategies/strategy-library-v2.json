@@ -426,7 +426,7 @@
       "sourceIds": [
         "t3 §1"
       ],
-      "status": "designed",
+      "status": "suspended",
       "evidenceGrade": "A-",
       "pricingSource": "self-model",
       "analysisFilter": {
@@ -596,7 +596,9 @@
       "crossModelRefs": [],
       "crossDataInputs": [
         "data/daily/*.json"
-      ]
+      ],
+      "falsificationStatus": "suspended",
+      "statusNote": "t8 walk-forward 证伪（seed=20260828，17/18/19 号报告）：n=1756、meanR +0.0095R、PF 1.034<1.2、95% CI [−0.025,0.044] 含 0 → suspended。理论级确认机制未证伪（确认 +0.0095R vs 无确认 −0.0158R），edge 强度不足以覆盖成本；保留 re_evaluation 路径（needs-clarify：N1 同品种并发 260/1756、N2 时间止损语义近似）。"
     },
     {
       "id": "TR-03",
@@ -605,7 +607,7 @@
       "sourceIds": [
         "t3 §3"
       ],
-      "status": "designed",
+      "status": "retired",
       "evidenceGrade": "B",
       "pricingSource": "self-model",
       "analysisFilter": {
@@ -787,7 +789,9 @@
       "crossModelRefs": [],
       "crossDataInputs": [
         "data/daily/*.json"
-      ]
+      ],
+      "falsificationStatus": "retired",
+      "statusNote": "t8 walk-forward 证伪：n=1119、meanR −0.0998R、PF 0.429、95% CI [−0.117,−0.082] 全负、0/12 年、12 折连续命中<50% → retired。理论级②按库原文两步执行（R2 队长终裁）：第一步『>1.5R 子样本』按规则恒为空（vacuous）；第二步『收紧距离门槛后重验』=1.0×ATR5 门槛嵌套重跑 n=37、PF 0.374<1 → 仍不达标 → retired。"
     },
     {
       "id": "TR-06",
@@ -796,7 +800,7 @@
       "sourceIds": [
         "t3 §6"
       ],
-      "status": "designed",
+      "status": "suspended",
       "evidenceGrade": "B",
       "pricingSource": "self-model",
       "analysisFilter": {
@@ -991,7 +995,9 @@
       "crossModelRefs": [],
       "crossDataInputs": [
         "data/daily/*.json"
-      ]
+      ],
+      "falsificationStatus": "suspended",
+      "statusNote": "t8 walk-forward 证伪：2015–2026 事件 0 起（|r|≥max(2×ATR5,3%)∧量比≥2；Q1 驱动文本项历史不可评估 needs-clarify）→ 滚动 24 月<30 样本门禁触发（库 killRules）→ suspended。chase/delayed 理论测试 0 样本未执行。事件定义待重估。"
     },
     {
       "id": "FS-02",
@@ -1105,8 +1111,8 @@
           "180 日带为源端 as-of 计算",
           "现货挂牌价粘性/修订风险由质量门管理"
         ],
-        "inputs": "futures_spot_price_daily（2011+ 基差历史，采集器须存 dom_basis_rate 比率序列，PIT，t8 F-1）+ futures_spot_price_previous（180 日分布锚，绝对带转比率域）；期货腿 data/daily",
-        "preconditionsNote": "基差历史批量采集器（PIT 拉取）+ GA-6 现货粘性质量门"
+        "inputs": "futures_spot_price_daily（2011+ 基差历史，采集器须存 dom_basis_rate 比率序列，PIT，t8 F-1）+ futures_spot_price_previous（180 日分布锚，绝对带转比率域）；期货腿 data/daily；现货可交易集 strategies/research/v2/falsification/data/ga6-tradable-set.json（GA-6：42 可交易/12 剔除，>40% 零变动剔除）",
+        "preconditionsNote": "基差历史批量采集器（PIT 逐日快照：现货同日修订风险实测 0.03–0.33，禁今日数据回填历史）+ GA-6 现货粘性质量门（可交易集 ga6-tradable-set.json）；基差统一口径 br=(S−F)/S——daily 接口 dom_basis_rate=(F−S)/S 须取反（2026-08-27 RB0 实测验证）"
       },
       "parameters": [
         {
@@ -1196,7 +1202,9 @@
       "crossModelRefs": [],
       "crossDataInputs": [
         "data/daily/*.json"
-      ]
+      ],
+      "falsificationStatus": "designed",
+      "statusNote": "t8：数据前置未满足（2011+ PIT dom_basis_rate 基差历史采集器未运行，实测仅 GA-6 单次快照 2026-07-10..2026-08-28）→ blocked 未执行证伪，非证伪失败 → 保持 designed。needs-clarify：PIT 逐日快照采集器先行（基差统一口径 br=(S−F)/S），再重跑证伪。"
     },
     {
       "id": "FS-04",
@@ -1205,7 +1213,7 @@
       "sourceIds": [
         "t2 §FS-04"
       ],
-      "status": "designed",
+      "status": "suspended",
       "evidenceGrade": "B",
       "pricingSource": "self-model",
       "analysisFilter": {
@@ -1410,7 +1418,9 @@
       "crossDataInputs": [
         "data/daily/*.json",
         "event-calendar"
-      ]
+      ],
+      "falsificationStatus": "suspended",
+      "statusNote": "t8 walk-forward 证伪：理论级 (b) 扣成本夏普 0.077<0.5 证伪；n=43<200；(a) 40 日回归 3 样本 inconclusive；(d) 政策窗口比较检验无样本未执行（前提开关 by-construction 安装）；F5 平稳性门（EG2 表统一后）暂停占比 56.7%>50% 触发 kill → suspended。"
     },
     {
       "id": "FS-05",
@@ -1419,7 +1429,7 @@
       "sourceIds": [
         "t2 §FS-05"
       ],
-      "status": "designed",
+      "status": "suspended",
       "evidenceGrade": "B",
       "pricingSource": "self-model",
       "analysisFilter": {
@@ -1604,7 +1614,7 @@
         },
         "theoryLevel": {
           "hypothesis": "F1 协整回归 + F2 结构断裂门有效性",
-          "test": "(a) 滚动协整通过率 < 70% 的品种对 → 剔除该对；(b) 组合扣成本（双腿 0.14%）夏普 < 0.5 或回归命中 < 55% → 停用；(c) M−RM 专项：2019 菜籽进口政策、2023 反倾销两段结构断裂若未被断裂门捕捉（该段出现 >2 次 3σ 止损）→ 断裂门参数修订，修订后仍不达标 → 该对永久停用",
+          "test": "(a) 滚动协整通过率 < 70% 的品种对 → 剔除该对；(b) 组合扣成本（双腿 0.14%）夏普 < 0.5 或回归命中 < 55% → 停用；(c) M−RM 专项：2019 菜籽进口政策、2024-09-09 加拿大油菜籽反倾销立案调查（商务部 2024 年第 37 号）两段结构断裂若未被断裂门捕捉（该段出现 >2 次 3σ 止损）→ 断裂门参数修订，修订后仍不达标 → 该对永久停用",
           "killOn": "(b) 触发 → suspended；(c) 修订后仍不达标 → 该对永久停用"
         },
         "killRules": [
@@ -1615,13 +1625,16 @@
       },
       "knownCounterEvidence": [
         "2019 M−RM 价差中枢永久上移（菜籽进口政策），均值回归策略该段大亏（t2 §FS-05）",
+        "2024-09-09 加拿大油菜籽反倾销立案调查（商务部 2024 年第 37 号）：M−RM 结构断裂事件，须被断裂门捕捉（t4 队长裁决：库原文曾记 2023 系错误，按 GA-7 政策日历实证日期修正）",
         "Y−P 受印尼棕榈油出口政策频繁冲击，非平稳段多：列为低置信品种对，仅断裂门通过率连续 90 日 100% 时才允许交易（t2 §FS-05）"
       ],
       "crossModelRefs": [],
       "crossDataInputs": [
         "data/daily/*.json",
         "event-calendar"
-      ]
+      ],
+      "falsificationStatus": "suspended",
+      "statusNote": "t8 walk-forward 证伪：理论级 (b) 回归命中 38.7%<55% 证伪；(a) 4/4 已评估对协整通过率<70% 全剔除（C0-CS0 未评估：预热不足+事件门）；2016 起被 GA-7 收抛储事件前提开关整窗暂停（事件粒度待队长裁定）；(c) M−RM 断裂门检验 vacuous（2019/2024 窗口内 0 交易）→ suspended。"
     },
     {
       "id": "M1",
@@ -1630,7 +1643,7 @@
       "sourceIds": [
         "t1 §M1"
       ],
-      "status": "designed",
+      "status": "suspended",
       "evidenceGrade": "中-高",
       "pricingSource": "self-model",
       "analysisFilter": {
@@ -1671,7 +1684,7 @@
         ],
         "formulas": [
           "F1: s_t = Δ5d DR007_t（百分点）",
-          "F2: 条件模型（线性简化，参数滚动标定）：E[r_{i,t+1:t+10} | s_t] = α_i + β_i·s_t，预期 β_i < 0（i ∈ 黑色 + SA/FG 国内需求型能化）",
+          "F2: 条件模型（线性简化，参数滚动标定）：E[r_{i,t+1:t+10} | s_t] = α_i + β_i·s_t，预期 β_i < 0（i ∈ 黑色 + SA/FG 国内需求型能化）；入池门 β̂_i < 0（R8 队长终裁 2026-08-28：β̂_i ≥ 0 的品种不入池，方向与理论一致才交易）",
           "F3: 方向门禁（模型自带确认区）：价格 close ≤ MA20 且 ≤ MA60 时才执行空头；多头对称。信号与价格确认同向才入场",
           "F4: 冲击消化：|s_t| 回落 < 0.3pp（edge 衰减）；1.5×ATR5 反向 = 波动失效"
         ],
@@ -1702,7 +1715,7 @@
         ]
       },
       "strategy": {
-        "direction": "s_t ≥ +0.5pp 且破 MA20/MA60 → 空 {黑色（RB0/HC0/J0 取 |β̂| 最强 1 个）+ 建材（SA0/FG0 取 |β̂| 最强 1 个）}；s_t ≤ −0.5pp 且站上 → 多；|s_t|<0.5pp 中性不开新仓。篮子豁免：篮子总风险合计 ≤1R、并发计数按 1 个仓位计；同板块 ≤1 由池内最强品种规则保证（t9 F-03）",
+        "direction": "s_t ≥ +0.5pp 且破 MA20/MA60 → 空 {黑色（RB0/HC0/J0 取 |β̂| 最强 1 个（β̂<0 入池门：仅方向与理论一致的品种入池，β̂≥0 不入池——R8 队长终裁 2026-08-28，修正 F2 预期 β_i<0 与 |β̂| 口径的库内矛盾））+ 建材（SA0/FG0 取 |β̂| 最强 1 个（β̂<0 入池门：仅方向与理论一致的品种入池，β̂≥0 不入池——R8 队长终裁 2026-08-28，修正 F2 预期 β_i<0 与 |β̂| 口径的库内矛盾））}；s_t ≤ −0.5pp 且站上 → 多；|s_t|<0.5pp 中性不开新仓。篮子豁免：篮子总风险合计 ≤1R、并发计数按 1 个仓位计；同板块 ≤1 由池内最强品种规则保证（t9 F-03）",
         "entry": "信号日收盘确认（价格确认同向）→ T+1 开盘",
         "stop": "见 pricingModel.stop",
         "target": "见 pricingModel.target",
@@ -1820,7 +1833,9 @@
       "crossDataInputs": [
         "data/daily/*.json",
         "data/macro/*.json"
-      ]
+      ],
+      "falsificationStatus": "suspended",
+      "statusNote": "t8 walk-forward 证伪（β̂<0 入池门 R8 队长终裁后重跑，seed=20260828）：n=7、meanR −0.053R、PF 0.345<1.2、95% CI 含 0、windowGate 达标占比 0%（窗内 1–5 笔）→ suspended（样本不足 + PF 门禁，非理论证伪）。全池方向命中 57.1%（7 笔）；pre2024 57.1%/post2024 无样本。symbol-freeze 语义（R7）已生效：本次未触发（symbolsToFreeze=∅）。β̂ 符号门使 25→7 笔（多数历史信号 β̂≥0 被门排除，佐证 R8 库内矛盾）。"
     },
     {
       "id": "EC-01",
@@ -1831,7 +1846,7 @@
         "t2 §FS-08"
       ],
       "mergeDecision": "D2",
-      "status": "designed",
+      "status": "retired",
       "evidenceGrade": "C",
       "pricingSource": "self-model",
       "analysisFilter": {
@@ -2040,7 +2055,9 @@
       "crossDataInputs": [
         "data/daily/*.json",
         "event-calendar"
-      ]
+      ],
+      "falsificationStatus": "retired",
+      "statusNote": "t8 walk-forward 证伪（paper-only 判定，activationGate 条款）：理论级 (b) 夏普 −0.615<0.5 证伪；9/9 品种对模型级门排除率 84–91%（残差 ADF 统一 EG2 表，R4）→ 池空；n=10、PF 0.119、95% CI 严格为负。状态 retired = 队长终裁（R3，2026-08-28）：G4 兜底（理论级证伪成立→retired）+ 池空无执行路径 + paper-only；非库 killOn『对级剔除/suspended』的直接映射。"
     }
   ],
   "waitlist": {
@@ -2241,6 +2258,18 @@
         "id": "t7-E",
         "fix": "M1 通过门槛对齐 G3：达标窗口占比 ≥60%（预注册口径）",
         "location": "M1.falsificationTests.strategyLevel.ci"
+      },
+      {
+        "id": "wf-t10-falsification-status",
+        "fix": "8 条核心策略 walk-forward 证伪状态落库（seed=20260828）：TR-03/EC-01=retired；TR-01/TR-06/FS-04/FS-05/M1=suspended；FS-02 保持 designed（数据前置未满足）。仅更新 status + 新增 falsificationStatus/statusNote 状态字段；theory/marketModel/pricingModel/strategy/parameters/falsificationTests/killRules 零改动。",
+        "location": "各条目 status/falsificationStatus/statusNote + revisionLog",
+        "sourceDocs": "falsification/17-falsification-results.md（t10 修订版）、18-review.md（t9 复核）、19-final-falsification-report.md"
+      },
+      {
+        "id": "wf-t10-captain-final-rulings",
+        "fix": "队长终裁落地（2026-08-28，18-review R1–R8 + N1–N11）：R1 报告与机器产物逐数字对齐并留勘误记录；R2 TR-03 理论②按库原文两步执行（>1.5R 子样本 vacuous + 收紧 1.0×ATR5 门槛重验 PF 0.374<1 → retired）；R3 EC-01 retired=队长裁定（G4 兜底+池空+paper-only，非库 killOn 映射）；R4 三类残差平稳性门统一 EG2 表（EC-01 复跑 10 笔、FS-04 复跑 43 笔）；R5/R6 FS-05 措辞修正（4/4 对全剔除+C0-CS0 未评估；断裂门检验 vacuous）；R7 M1 killRule 语义改 symbol-freeze（冻结触发品种，不改策略状态）；R8 M1 增加 β̂<0 入池门（direction/formulas 已写入，重跑 25→7 笔）。仅状态字段与 M1 入池门（队长授权）变更，其余理论/模型/定价零改动。",
+        "location": "M1.strategy.direction / M1.marketModel.formulas F2 / 各条目 statusNote / revisionLog",
+        "sourceDocs": "18-review.md（t9）、19-final-falsification-report.md（t10）、17-falsification-results.md（t10 修订版）"
       }
     ]
   }

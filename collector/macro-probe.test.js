@@ -16,6 +16,7 @@ const require = createRequire(import.meta.url);
 const macroProbe = require('../collector/macro-probe.cjs');
 const {
   computeChange5d,
+  computeChange5dFromHistory,
   determineSignalDate,
   selectAsOfBar,
   extractSc0FromRaw,
@@ -72,6 +73,42 @@ describe('determineSignalDate', () => {
   it('无合约时返回 null', () => {
     assert.strictEqual(determineSignalDate(makeRaw('R2', {})), null);
     assert.strictEqual(determineSignalDate({ contracts: { X0: { ohlcv: { dates: [] } } } }), null);
+  });
+});
+
+// ── computeChange5dFromHistory（GA-5 宏历史回退） ──────────────
+describe('computeChange5dFromHistory', () => {
+  const hist = [
+    ['2026-08-17', 100], ['2026-08-18', 101], ['2026-08-19', 102],
+    ['2026-08-20', 103], ['2026-08-21', 104], ['2026-08-24', 105],
+    ['2026-08-25', 106], ['2026-08-26', 107],
+  ];
+
+  it('asOf 恰为历史末日：基准 = 末日 idx - 5', () => {
+    // vt = 107 (asOf 2026-08-26)，v5 = 102（5 个交易日前 08-19）
+    assert.strictEqual(computeChange5dFromHistory(hist, '2026-08-26', 107), Math.round((107 / 102 - 1) * 10000) / 100);
+  });
+
+  it('asOf 晚于历史末日（当日快照 bar）：asOf 视为末日 + 1，基准 = 末日 idx - 4', () => {
+    // vt = 108.5 (asOf 2026-08-27 快照)，v5 = 103（08-20，asOf 前第 5 个交易日）
+    assert.strictEqual(computeChange5dFromHistory(hist, '2026-08-27', 108.5), Math.round((108.5 / 103 - 1) * 10000) / 100);
+  });
+
+  it('历史不足 6 根 → null', () => {
+    assert.strictEqual(computeChange5dFromHistory(hist.slice(0, 5), '2026-08-21', 104), null);
+  });
+
+  it('asOf 早于历史首日 → null；vt 非有限 → null；v5=0 → null', () => {
+    assert.strictEqual(computeChange5dFromHistory(hist, '2026-08-01', 100), null);
+    assert.strictEqual(computeChange5dFromHistory(hist, '2026-08-26', NaN), null);
+    // asOf=08-26 → j5 = 末日 idx(7) - 5 = 2 → zeroHist[2] = 0 → null
+    const zeroHist = hist.map((r) => (r[0] === '2026-08-19' ? [r[0], 0] : r));
+    assert.strictEqual(computeChange5dFromHistory(zeroHist, '2026-08-26', 107), null);
+  });
+
+  it('过滤非法行（非日期/非有限值）后仍可用', () => {
+    const dirty = [['bad', 1], ['2026-08-17', 'x'], ...hist];
+    assert.strictEqual(computeChange5dFromHistory(dirty, '2026-08-26', 107), Math.round((107 / 102 - 1) * 10000) / 100);
   });
 });
 
@@ -265,6 +302,60 @@ describe('buildIndicatorFromSeries', () => {
     assert.strictEqual(r.status, 'missing');
     assert.ok(r.reason.includes('ascending'), r.reason);
   });
+
+  // ── GA-5：窗口不足 → 宏历史回退 ─────────────────────────────
+  it('GA-5：快照通道 1 根 bar + 宏历史回退 → change5d 有限且标注 change5dSource', () => {
+    const seriesResult = {
+      ok: true,
+      fetchedAt: now,
+      series: [['2026-08-25', 105]],
+    };
+    const hist = [
+      ['2026-08-17', 100], ['2026-08-18', 101], ['2026-08-19', 102],
+      ['2026-08-20', 103], ['2026-08-21', 104], ['2026-08-24', 104.5],
+      ['2026-08-25', 105],
+    ];
+    const r = buildIndicatorFromSeries('USDCNH', cfg, seriesResult, '2026-08-25', now, {
+      historySeriesFor: (id) => (id === 'USDCNH' ? hist : null),
+    });
+    assert.strictEqual(r.status, 'fresh');
+    // asOf(08-25) 恰为历史末日 → 基准 = 末日 idx-5 → v5 = 101
+    assert.strictEqual(r.change5d, Math.round((105 / 101 - 1) * 10000) / 100);
+    assert.strictEqual(r.change5dSource, 'macro-history');
+    assert.ok(r.change5dNote.includes('macro-history'));
+  });
+
+  it('GA-5：窗口不足且无回退 → 显式降级 stale 标注，不留裸 null', () => {
+    const seriesResult = {
+      ok: true,
+      fetchedAt: now,
+      series: [['2026-08-25', 105]],
+    };
+    const r = buildIndicatorFromSeries('USDCNH', cfg, seriesResult, '2026-08-25', now, {
+      historySeriesFor: () => null,
+    });
+    assert.strictEqual(r.status, 'stale');
+    assert.strictEqual(r.change5d, null);
+    assert.strictEqual(r.change5dStatus, 'unavailable');
+    assert.ok(r.degradedReason.includes('macro-history'));
+  });
+
+  it('GA-5：主序列窗口充足时不用回退（change5dSource 缺省）', () => {
+    const seriesResult = {
+      ok: true,
+      fetchedAt: now,
+      series: [
+        ['2026-08-18', 100], ['2026-08-19', 101], ['2026-08-20', 102],
+        ['2026-08-21', 103], ['2026-08-24', 104], ['2026-08-25', 105],
+      ],
+    };
+    const r = buildIndicatorFromSeries('USDCNH', cfg, seriesResult, '2026-08-25', now, {
+      historySeriesFor: () => { throw new Error('must not be called'); },
+    });
+    assert.strictEqual(r.change5d, 5);
+    assert.strictEqual(r.change5dSource, undefined);
+    assert.strictEqual(r.status, 'fresh');
+  });
 });
 
 // ── buildSnapshot + validateMacroSnapshot ─────────────────────
@@ -457,6 +548,47 @@ describe('runMacroProbe', () => {
     const runDir = path.join(tmp, 'runs', 'NO-RAW');
     fs.mkdirSync(runDir, { recursive: true });
     await assert.rejects(runMacroProbe({ runId: 'NO-RAW', runtimeRootOverride: tmp, fetchSeriesFn: fakeFetch }));
+    fs.rmSync(tmp, { recursive: true, force: true });
+  });
+
+  it('GA-5：USDCNH 快照通道 1 根 bar → 宏历史回退，快照通过校验且 change5d 有限', async () => {
+    const tmp = makeTempRoot();
+    const { runId, runDir } = makeProbeFixture(tmp);
+    const hist = [
+      ['2026-08-17', 7.0], ['2026-08-18', 7.01], ['2026-08-19', 7.02],
+      ['2026-08-20', 7.03], ['2026-08-21', 7.04], ['2026-08-24', 7.05],
+    ];
+    const fetchWithSnapshot = (fetchSpec) => {
+      const base = {
+        DXY: { series: [['2026-08-18', 99], ['2026-08-19', 98], ['2026-08-20', 97], ['2026-08-21', 96], ['2026-08-24', 95], ['2026-08-25', 94], ['2026-08-26', 93]], fetchedAt: '2026-08-26T05:59:00Z' },
+        USDCNH: { series: [['2026-08-25', 7.15]], fetchedAt: '2026-08-26T05:59:00Z', kind: 'sina_fx_snapshot' },
+        US10Y: { series: [['2026-08-18', 4.2], ['2026-08-19', 4.21], ['2026-08-20', 4.22], ['2026-08-21', 4.23], ['2026-08-24', 4.24], ['2026-08-25', 4.25]], fetchedAt: '2026-08-26T05:59:00Z' },
+        DR007: { error: 'chinamoney timeout' },
+      };
+      const key = fetchSpec.kind === 'sina_fx' ? (fetchSpec.symbol === 'DINIW' ? 'DXY' : fetchSpec.symbol)
+        : fetchSpec.kind === 'akshare_bond_zh_us_rate' ? 'US10Y'
+        : fetchSpec.kind === 'akshare_repo_rate' ? 'DR007'
+        : 'UNKNOWN';
+      if (!base[key] || base[key].error) return { ok: false, error: (base[key] && base[key].error) || 'no data', fetchedAt: '2026-08-26T05:59:00Z' };
+      return { ok: true, ...base[key] };
+    };
+    const snap = await runMacroProbe({
+      runId,
+      runtimeRootOverride: tmp,
+      fetchSeriesFn: fetchWithSnapshot,
+      nowIso: '2026-08-26T06:00:00Z',
+      historySeriesFor: (id) => (id === 'USDCNH' ? hist : null),
+    });
+    const usdcnh = snap.indicators.USDCNH;
+    assert.strictEqual(usdcnh.status, 'fresh');
+    assert.strictEqual(usdcnh.value, 7.15);
+    // asOf(08-25) 晚于历史末日(08-24) → 基准 = 末日 idx-4 → v5 = 7.01 → (7.15/7.01-1)*100 = 2.0
+    assert.strictEqual(usdcnh.change5d, 2);
+    assert.strictEqual(usdcnh.change5dSource, 'macro-history');
+    const written = JSON.parse(fs.readFileSync(path.join(runDir, 'macro-snapshot.json'), 'utf8'));
+    assert.strictEqual(written.indicators.USDCNH.change5d, usdcnh.change5d);
+    const v = validateMacroSnapshot(written);
+    assert.strictEqual(v.ok, true, JSON.stringify(v.errors));
     fs.rmSync(tmp, { recursive: true, force: true });
   });
 });

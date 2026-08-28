@@ -74,6 +74,35 @@ function computeChange5d(values, asOfIndex) {
   return round2((vt / v5 - 1) * 100);
 }
 
+// ── GA-5：change5d 宏历史回退 ──────────────────────────────────
+// 主序列窗口不足 6 根时（如 sina 实时快照兜底通道只返回 1 根 bar），
+// change5d 回退到宏历史序列（recordings/v5/macro-history.json 同指标 series）：
+//   change5d = (v_asOf / v_{asOf 前第 5 个交易日} - 1) * 100
+// 锚定规则：asOf 恰为历史序列末日 → 基准 = 末日 idx - 5；
+// asOf 晚于历史末日（当日快照 bar）→ asOf 视为历史末日后第 1 个交易日，基准 = 末日 idx - 4。
+// 回退成功返回有限 change5d；不可得返回 null（调用方负责显式降级标注）。
+function computeChange5dFromHistory(historySeries, asOfDate, vt) {
+  if (!Array.isArray(historySeries) || historySeries.length === 0) return null;
+  if (!Number.isFinite(vt)) return null;
+  const rows = historySeries
+    .map((p) => (Array.isArray(p)
+      ? [String(p[0]), Number(p[1])]
+      : [String(p && p.date), Number(p && p.value)]))
+    .filter((p) => p[0] && isValidIsoDate(p[0]) && Number.isFinite(p[1]));
+  let i = -1;
+  for (let j = 0; j < rows.length; j++) {
+    if (rows[j][0] <= asOfDate) i = j;
+    else break;
+  }
+  if (i < 0) return null;
+  const back = rows[i][0] === asOfDate ? 5 : 4;
+  const j5 = i - back;
+  if (j5 < 0) return null;
+  const v5 = rows[j5][1];
+  if (v5 === 0) return null;
+  return round2((vt / v5 - 1) * 100);
+}
+
 // signalDate = raw.json 各合约最新日期的最大值
 function determineSignalDate(raw) {
   let max = null;
@@ -138,7 +167,8 @@ function extractSc0FromRaw(raw, signalDate, fetchedAt, cfg) {
 }
 
 // 外部抓取序列 → 指标快照：bar 选择 + change5d + 新鲜度判定
-function buildIndicatorFromSeries(id, cfg, seriesResult, signalDate, nowIso) {
+// opts.historySeriesFor(id)：GA-5 宏历史回退提供器，返回 [date,value][] 或 null（测试可注入）
+function buildIndicatorFromSeries(id, cfg, seriesResult, signalDate, nowIso, opts = {}) {
   const base = {
     source: cfg.source,
     fetchedAt: (seriesResult && seriesResult.fetchedAt) || nowIso,
@@ -176,13 +206,38 @@ function buildIndicatorFromSeries(id, cfg, seriesResult, signalDate, nowIso) {
     return { status: 'missing', reason: `no bar with date <= ${signalDate}`, ...base };
   }
 
-  return {
+  const result = {
     status: bar.date === signalDate ? 'fresh' : 'stale',
     value: round4(bar.value),
     change5d: computeChange5d(series.map((s) => s.value), bar.index),
     asOf: bar.date,
     ...base,
   };
+
+  // GA-5：主序列窗口不足 6 根 → 宏历史序列回退计算 change5d
+  if (result.change5d === null && typeof opts.historySeriesFor === 'function') {
+    let hist = null;
+    try {
+      hist = opts.historySeriesFor(id);
+    } catch (e) {
+      hist = null;
+    }
+    const fallback = computeChange5dFromHistory(hist, bar.date, bar.value);
+    if (fallback !== null) {
+      result.change5d = fallback;
+      result.change5dSource = 'macro-history';
+      result.change5dNote = 'primary window < 6 bars; change5d computed from macro-history (5th trading day before asOf)';
+    }
+  }
+
+  // 仍不可得：显式降级标注（F2 stale 降权路径），不输出裸 null
+  if (result.change5d === null) {
+    result.change5dStatus = 'unavailable';
+    result.degradedReason = 'change5d unavailable: primary window < 6 bars and macro-history fallback unavailable';
+    if (result.status === 'fresh') result.status = 'stale';
+  }
+
+  return result;
 }
 
 function buildSnapshot({ runId, signalDate, nowIso, indicatorResults }) {
@@ -314,8 +369,20 @@ function validateMacroSnapshot(snapshot, { anchorDecls = null } = {}) {
   return { ok: errors.length === 0, errors };
 }
 
+// ── GA-5：宏历史序列加载（recordings/v5，读取失败不阻断，回退路径缺失时走显式降级） ──
+function loadMacroHistoryIndicators(historyPathOverride = null) {
+  const p = historyPathOverride || path.join(skillRoot, 'strategies', 'signal-backtest', 'recordings', 'v5', 'macro-history.json');
+  if (!fs.existsSync(p)) return null;
+  try {
+    const h = JSON.parse(fs.readFileSync(p, 'utf8'));
+    return h && h.indicators ? h.indicators : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 // ── 主流程 ──────────────────────────────────────────────────
-async function runMacroProbe({ runId, fetchSeriesFn = null, nowIso = new Date().toISOString(), runtimeRootOverride = null, writeFile = true }) {
+async function runMacroProbe({ runId, fetchSeriesFn = null, nowIso = new Date().toISOString(), runtimeRootOverride = null, writeFile = true, historySeriesFor = null, historyPathOverride = null }) {
   const rt = runtimeRootOverride || runtimeRoot;
   const runDir = path.join(rt, 'runs', runId);
   const rawPath = path.join(runDir, 'raw.json');
@@ -329,6 +396,12 @@ async function runMacroProbe({ runId, fetchSeriesFn = null, nowIso = new Date().
   if (!signalDate) {
     throw new Error('raw.json has no contract dates — cannot determine signalDate');
   }
+
+  const historyIndicators = loadMacroHistoryIndicators(historyPathOverride);
+  const historyProvider = historySeriesFor
+    || ((indId) => (historyIndicators && historyIndicators[indId] && Array.isArray(historyIndicators[indId].series))
+      ? historyIndicators[indId].series
+      : null);
 
   const results = {};
   for (const [id, cfg] of Object.entries(indicatorCfg.indicators)) {
@@ -344,7 +417,7 @@ async function runMacroProbe({ runId, fetchSeriesFn = null, nowIso = new Date().
       } catch (e) {
         seriesResult = { ok: false, error: (e && e.message) || String(e), fetchedAt: null };
       }
-      results[id] = buildIndicatorFromSeries(id, cfg, seriesResult, signalDate, nowIso);
+      results[id] = buildIndicatorFromSeries(id, cfg, seriesResult, signalDate, nowIso, { historySeriesFor: historyProvider });
     }
   }
 
@@ -416,6 +489,7 @@ if (require.main === module) {
 module.exports = {
   SCHEMA_VERSION,
   computeChange5d,
+  computeChange5dFromHistory,
   determineSignalDate,
   selectAsOfBar,
   extractSc0FromRaw,
@@ -423,4 +497,5 @@ module.exports = {
   buildSnapshot,
   validateMacroSnapshot,
   runMacroProbe,
+  loadMacroHistoryIndicators,
 };

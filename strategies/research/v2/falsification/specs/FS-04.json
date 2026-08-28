@@ -1,0 +1,30 @@
+{
+  "specId": "FS-04",
+  "strategyId": "FS-04",
+  "description": "黑色产业链利润分位 walk-forward 证伪 spec — 单边 RB 腿 + 焦化对称 J0 腿（库 direction）；政策日历前提开关（GA-7）",
+  "library": { "sourceFile": "strategies/strategy-library-v2.json", "entryId": "FS-04" },
+  "universe": { "symbols": ["RB0", "I0", "J0", "JM0", "HC0"], "sectors": [], "macro": [] },
+  "data": { "daily": true, "derived": ["atr5", "ma20"], "sector": [], "macro": [], "calendar": true, "rollJumps": true, "tradableSet": false },
+  "period": { "start": "2015-01-01", "end": "2026-08-28" },
+  "warmupBars": 300,
+  "folds": { "mode": "purged-expanding", "testPeriod": "year", "purgeBars": 5 },
+  "execution": { "entryOffsetBars": 1, "pathPriority": "stop-first", "cost": { "roundtripBps": 7, "legs": 1 } },
+  "strategyLevel": {
+    "minTrades": 200,
+    "pfThreshold": 1.2,
+    "ci": { "level": 0.95, "method": "bootstrap-percentile", "mustExcludeZero": true },
+    "majorityYearsPositive": true,
+    "baselines": ["always-long", "always-short", "random"],
+    "random": { "mode": "same-entries-flipped-side", "runs": 1, "seed": 20260828 },
+    "theoryFalsifiedState": "retired"
+  },
+  "theoryLevel": { "hypothesis": "F1/F2 利润均值回归 + 产品端弹性驱动 + 政策前提", "engine": "adapter" },
+  "machineKillRules": [
+    { "id": "fs04-min-trades", "metric": "n", "op": "lt", "value": 200, "onTrigger": "suspended", "note": "样本不足 → designed" },
+    { "id": "fs04-pf", "metric": "pf", "op": "lt", "value": 1.2, "onTrigger": "suspended", "note": "PF < 1.2 → suspended" },
+    { "id": "fs04-sharpe", "metric": "sharpeTrade", "op": "lt", "value": 0.5, "onTrigger": "suspended", "note": "扣成本夏普 < 0.5 → suspended（库 killRules）" },
+    { "id": "fs04-adf-gate", "metric": "custom.adfPauseShare", "op": "gt", "value": 0.5, "onTrigger": "suspended", "note": "250d 残差 ADF p>0.05 占比 >50% → 该品种组停用（重估窗口，t8 F-3）" }
+  ],
+  "signal": { "adapter": "FS-04" },
+  "params": { "window": 250, "zThreshold": 2, "zTier": 3, "stopAtrMult": 1.5, "timeExitBars": 40, "gapAbandonFactor": 1 }
+}

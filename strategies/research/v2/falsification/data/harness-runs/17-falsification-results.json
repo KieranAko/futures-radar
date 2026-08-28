@@ -1,0 +1,1394 @@
+{
+  "schema": "falsification-t8-results/3",
+  "task": "t8+t10",
+  "revision": "队长终裁版：R1 勘误记录、R2 两步执行、R3 队长裁定表述、R4 eg2 复跑、R5/R6 措辞、R7 symbol-freeze、R8 M1 β̂<0 入池门重跑（25→7 笔）",
+  "generatedAt": "2026-08-28T10:36:00.311Z",
+  "seed": 20260828,
+  "strategies": {
+    "TR-01": {
+      "specId": "TR-01",
+      "n": 1756,
+      "meanR": 0.009543,
+      "pf": 1.034341,
+      "sharpeTrade": 0.01297,
+      "ci95": [
+        -0.025135,
+        0.043593
+      ],
+      "gateChecks": [
+        {
+          "id": "minTrades",
+          "passed": true,
+          "detail": "n=1756 >= 200"
+        },
+        {
+          "id": "pfThreshold",
+          "passed": false,
+          "detail": "PF=1.034341 vs 1.2"
+        },
+        {
+          "id": "ciExcludesZero",
+          "passed": false,
+          "detail": "95% CI=[-0.025135,0.043593]"
+        },
+        {
+          "id": "majorityYearsPositive",
+          "passed": true,
+          "detail": "7/12 years positive"
+        }
+      ],
+      "windowGate": null,
+      "baselines": {
+        "alwaysLongBps": 376.6943453339961,
+        "alwaysShortBps": -390.6943453339961,
+        "random": {
+          "mode": "same-entries-flipped-side",
+          "meanR": -0.03007870444191337
+        }
+      },
+      "baselineComparisons": {
+        "random": {
+          "strategyMeanR": 0.009543108769931646,
+          "baselineMeanR": -0.03007870444191337,
+          "diffMeanR": 0.039621813211845026,
+          "diffCI": [
+            -0.016248609339407746,
+            0.09637045615034183
+          ],
+          "beatsBaseline": false,
+          "method": "bootstrap-paired-diff"
+        },
+        "always-long": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": 0.009543,
+          "baselineMeanBps": 376.6943453339961,
+          "baselineMeanPseudoR": 1.2976661405496788
+        },
+        "always-short": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": 0.009543,
+          "baselineMeanBps": -390.6943453339961,
+          "baselineMeanPseudoR": -1.3458944354331293
+        }
+      },
+      "theory": {
+        "present": true,
+        "hypothesis": "信息确认机制有效（确认子样本扣成本收益 > 无确认子样本）",
+        "tests": [
+          {
+            "id": "tr01-info-confirmation",
+            "label": "『突破+量比≥1.2』收益 > 『无确认突破』收益",
+            "falsified": false,
+            "killState": "retired",
+            "evidence": {
+              "confirmedN": 1756,
+              "confirmedMeanR": 0.009543108769931646,
+              "noConfirmN": 2490,
+              "noConfirmMeanR": -0.01575588313253014,
+              "note": "无确认子样本 = 同规则但量比 < 1.2 的突破（嵌套 engine run，seed=20260828）"
+            }
+          }
+        ],
+        "anyFalsified": false,
+        "falsified": [],
+        "inconclusive": [],
+        "killOn": "理论级证伪成立即 retired",
+        "metrics": {
+          "confirmedMeanR": 0.009543108769931646,
+          "noConfirmMeanR": -0.01575588313253014
+        }
+      },
+      "killVerdicts": [
+        {
+          "rule": "tr01-min-trades",
+          "metric": "n",
+          "op": "lt",
+          "value": 200,
+          "observed": 1756,
+          "triggered": false,
+          "onTrigger": "suspended",
+          "note": "样本不足 → 引擎按 sample-insufficiency 停留 designed"
+        },
+        {
+          "rule": "tr01-pf",
+          "metric": "pf",
+          "op": "lt",
+          "value": 1.2,
+          "observed": 1.034341,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "PF < 1.2 → suspended"
+        }
+      ],
+      "suggestion": {
+        "suggestedState": "suspended",
+        "reasons": [
+          "killRule tr01-pf 触发 (pf lt 1.2, observed=1.034341) → suspended",
+          "策略级门禁未通过: pfThreshold, ciExcludesZero"
+        ],
+        "events": [
+          "kill:tr01-pf",
+          "strategy-gate-fail"
+        ],
+        "note": "最终状态由 t8 执行结论 + t9 复核 + 队长裁定决定；本引擎仅输出判定依据"
+      },
+      "violations": [],
+      "resultsHash": "5ba1ea503ad70d0ca2f37875d86a9118d504128227689b82dab40b532f8df4fb"
+    },
+    "TR-03": {
+      "specId": "TR-03",
+      "n": 1119,
+      "meanR": -0.099839,
+      "pf": 0.429345,
+      "sharpeTrade": -0.335703,
+      "ci95": [
+        -0.116735,
+        -0.081788
+      ],
+      "gateChecks": [
+        {
+          "id": "minTrades",
+          "passed": true,
+          "detail": "n=1119 >= 200"
+        },
+        {
+          "id": "pfThreshold",
+          "passed": false,
+          "detail": "PF=0.429345 vs 1.2"
+        },
+        {
+          "id": "ciExcludesZero",
+          "passed": true,
+          "detail": "95% CI=[-0.116735,-0.081788]"
+        },
+        {
+          "id": "majorityYearsPositive",
+          "passed": false,
+          "detail": "0/12 years positive"
+        }
+      ],
+      "windowGate": null,
+      "baselines": {
+        "alwaysLongBps": 376.6943453339961,
+        "alwaysShortBps": -390.6943453339961,
+        "random": {
+          "mode": "same-entries-flipped-side",
+          "meanR": 0.0070381000893655
+        }
+      },
+      "baselineComparisons": {
+        "random": {
+          "strategyMeanR": -0.09983884897229678,
+          "baselineMeanR": 0.0070381000893655,
+          "diffMeanR": -0.10687694906166213,
+          "diffCI": [
+            -0.1473882430741734,
+            -0.06538927703306524
+          ],
+          "beatsBaseline": false,
+          "method": "bootstrap-paired-diff"
+        },
+        "always-long": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": -0.099839,
+          "baselineMeanBps": 376.6943453339961,
+          "baselineMeanPseudoR": 2.7011989287762663
+        },
+        "always-short": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": -0.099839,
+          "baselineMeanBps": -390.6943453339961,
+          "baselineMeanPseudoR": -2.8015900959686926
+        }
+      },
+      "theory": {
+        "present": true,
+        "hypothesis": "噪声耗尽确认有效（θ 定价正确）",
+        "tests": [
+          {
+            "id": "tr03-confirm-gain",
+            "label": "①『回踩+反转确认』收益 > 『回踩无确认』收益",
+            "falsified": false,
+            "killState": "retired",
+            "evidence": {
+              "confirmedN": 1119,
+              "confirmedMeanR": -0.09983884897229678,
+              "noConfirmN": 7126,
+              "noConfirmMeanR": -0.1369173508279539
+            }
+          },
+          {
+            "id": "tr03-stop-distance-pricing",
+            "label": "② 止损距离>1.5R 子样本（按规则为空，第一步 vacuous）+ 收紧 1.0×ATR5 门槛重验 PF ≥ 1",
+            "falsified": true,
+            "killState": "retired",
+            "evidence": {
+              "step1": {
+                "note": ">1.5R 子样本按执行规则在入场前即被放弃，恒为空，第一步 vacuous",
+                "vacuous": true
+              },
+              "step2": {
+                "note": "收紧距离门槛至 1.0×ATR5 重验（嵌套 run，seed=20260828，R2 队长终裁按库原文执行）",
+                "tightenedN": 37,
+                "tightenedPF": 0.37358391684638187
+              },
+              "executedSetPF": 0.42934505634608416,
+              "executedSetN": 1119,
+              "conclusion": "收紧后重验 PF<1 → 仍不达标 → retired"
+            }
+          }
+        ],
+        "anyFalsified": true,
+        "falsified": [
+          {
+            "id": "tr03-stop-distance-pricing",
+            "label": "② 止损距离>1.5R 子样本（按规则为空，第一步 vacuous）+ 收紧 1.0×ATR5 门槛重验 PF ≥ 1",
+            "falsified": true,
+            "killState": "retired",
+            "evidence": {
+              "step1": {
+                "note": ">1.5R 子样本按执行规则在入场前即被放弃，恒为空，第一步 vacuous",
+                "vacuous": true
+              },
+              "step2": {
+                "note": "收紧距离门槛至 1.0×ATR5 重验（嵌套 run，seed=20260828，R2 队长终裁按库原文执行）",
+                "tightenedN": 37,
+                "tightenedPF": 0.37358391684638187
+              },
+              "executedSetPF": 0.42934505634608416,
+              "executedSetN": 1119,
+              "conclusion": "收紧后重验 PF<1 → 仍不达标 → retired"
+            }
+          }
+        ],
+        "inconclusive": [],
+        "killOn": "任一理论级证伪成立即 retired；连续 2 个滚动窗口命中率 < 50% → suspended（killRules）",
+        "metrics": {
+          "confirmedMeanR": -0.09983884897229678,
+          "noConfirmMeanR": -0.1369173508279539,
+          "pfExecuted": 0.4293,
+          "maxConsecFoldHitFail": 12
+        }
+      },
+      "killVerdicts": [
+        {
+          "rule": "tr03-min-trades",
+          "metric": "n",
+          "op": "lt",
+          "value": 200,
+          "observed": 1119,
+          "triggered": false,
+          "onTrigger": "suspended",
+          "note": "样本不足 → designed"
+        },
+        {
+          "rule": "tr03-pf",
+          "metric": "pf",
+          "op": "lt",
+          "value": 1.2,
+          "observed": 0.429345,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "PF < 1.2 → suspended"
+        },
+        {
+          "rule": "tr03-consec-fold-hit",
+          "metric": "custom.maxConsecFoldHitFail",
+          "op": "gte",
+          "value": 2,
+          "observed": 12,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "连续 2 个滚动窗口命中率 < 50% → suspended（库 killRules）"
+        }
+      ],
+      "suggestion": {
+        "suggestedState": "retired",
+        "reasons": [
+          "理论级证伪成立: tr03-stop-distance-pricing → retired",
+          "killRule tr03-pf 触发 (pf lt 1.2, observed=0.429345) → suspended",
+          "killRule tr03-consec-fold-hit 触发 (custom.maxConsecFoldHitFail gte 2, observed=12) → suspended",
+          "策略级门禁未通过: pfThreshold, majorityYearsPositive"
+        ],
+        "events": [
+          "theory-falsified",
+          "kill:tr03-pf",
+          "kill:tr03-consec-fold-hit",
+          "strategy-gate-fail"
+        ],
+        "note": "最终状态由 t8 执行结论 + t9 复核 + 队长裁定决定；本引擎仅输出判定依据"
+      },
+      "violations": [],
+      "resultsHash": "76570c995ba3c1ec39e4d71960d35fadeaaf956bf4edbce673bdb25a43a0a67b"
+    },
+    "TR-06": {
+      "specId": "TR-06",
+      "n": 0,
+      "meanR": null,
+      "pf": 0,
+      "sharpeTrade": null,
+      "ci95": [
+        null,
+        null
+      ],
+      "gateChecks": [
+        {
+          "id": "minTrades",
+          "passed": false,
+          "detail": "n=0 >= 100"
+        },
+        {
+          "id": "pfThreshold",
+          "passed": false,
+          "detail": "PF=0 vs 1.2"
+        },
+        {
+          "id": "ciExcludesZero",
+          "passed": false,
+          "detail": "95% CI=[null,null]"
+        },
+        {
+          "id": "majorityYearsPositive",
+          "passed": false,
+          "detail": "0/0 years positive"
+        }
+      ],
+      "windowGate": null,
+      "baselines": {
+        "alwaysLongBps": 299.0030451000001,
+        "alwaysShortBps": -313.0030451000001,
+        "random": {
+          "mode": "same-entries-flipped-side",
+          "meanR": 0
+        }
+      },
+      "baselineComparisons": {
+        "random": {
+          "strategyMeanR": null,
+          "baselineMeanR": null,
+          "diffMeanR": null,
+          "diffCI": [
+            null,
+            null
+          ],
+          "beatsBaseline": false,
+          "method": "bootstrap-paired-diff"
+        },
+        "always-long": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": null,
+          "baselineMeanBps": 299.0030451000001,
+          "baselineMeanPseudoR": 0.029900304510000017
+        },
+        "always-short": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": null,
+          "baselineMeanBps": -313.0030451000001,
+          "baselineMeanPseudoR": -0.03130030450999998
+        }
+      },
+      "theory": {
+        "present": true,
+        "hypothesis": "冲击分解模型 λ/γ 区分有效（确认等待有增益 ≥ 0.5R）",
+        "tests": [
+          {
+            "id": "tr06-confirm-wait-gain",
+            "label": "延迟入场（确认/回踩）− 当日追入 ≥ 0.5R",
+            "falsified": false,
+            "killState": "retired",
+            "evidence": {
+              "delayedN": 0,
+              "delayedMeanR": null,
+              "chaseN": 0,
+              "chaseMeanR": null,
+              "diffR": null
+            }
+          }
+        ],
+        "anyFalsified": false,
+        "falsified": [],
+        "inconclusive": [],
+        "killOn": "理论级证伪成立即 retired",
+        "metrics": {
+          "delayedMeanR": null,
+          "chaseMeanR": null,
+          "diffR": null,
+          "rolling24mEventsMin": 0
+        }
+      },
+      "killVerdicts": [
+        {
+          "rule": "tr06-min-trades",
+          "metric": "n",
+          "op": "lt",
+          "value": 100,
+          "observed": 0,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "事件样本稀疏，minTrades=100（库 note）；不足 → designed"
+        },
+        {
+          "rule": "tr06-pf",
+          "metric": "pf",
+          "op": "lt",
+          "value": 1.2,
+          "observed": 0,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "PF < 1.2 → suspended"
+        },
+        {
+          "rule": "tr06-rolling-24m-events",
+          "metric": "custom.rolling24mEventsMin",
+          "op": "lt",
+          "value": 30,
+          "observed": 0,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "滚动 24 个月事件样本 < 30 → 自动停用（库 killRules 样本充分性门禁）"
+        }
+      ],
+      "suggestion": {
+        "suggestedState": "suspended",
+        "reasons": [
+          "killRule tr06-min-trades 触发 (n lt 100, observed=0) → suspended",
+          "killRule tr06-pf 触发 (pf lt 1.2, observed=0) → suspended",
+          "killRule tr06-rolling-24m-events 触发 (custom.rolling24mEventsMin lt 30, observed=0) → suspended",
+          "策略级门禁未通过: minTrades, pfThreshold, ciExcludesZero, majorityYearsPositive"
+        ],
+        "events": [
+          "kill:tr06-min-trades",
+          "kill:tr06-pf",
+          "kill:tr06-rolling-24m-events",
+          "strategy-gate-fail"
+        ],
+        "note": "最终状态由 t8 执行结论 + t9 复核 + 队长裁定决定；本引擎仅输出判定依据"
+      },
+      "violations": [],
+      "resultsHash": "7a12ee74acccb6205503ec2a55d8e661190bc911f6ad6676276ec2c43a33399f"
+    },
+    "FS-04": {
+      "specId": "FS-04",
+      "n": 43,
+      "meanR": 0.06417,
+      "pf": 1.285638,
+      "sharpeTrade": 0.076827,
+      "ci95": [
+        -0.154532,
+        0.336119
+      ],
+      "gateChecks": [
+        {
+          "id": "minTrades",
+          "passed": false,
+          "detail": "n=43 >= 200"
+        },
+        {
+          "id": "pfThreshold",
+          "passed": true,
+          "detail": "PF=1.285638 vs 1.2"
+        },
+        {
+          "id": "ciExcludesZero",
+          "passed": false,
+          "detail": "95% CI=[-0.154532,0.336119]"
+        },
+        {
+          "id": "majorityYearsPositive",
+          "passed": false,
+          "detail": "4/8 years positive"
+        }
+      ],
+      "windowGate": null,
+      "baselines": {
+        "alwaysLongBps": 706.265557736842,
+        "alwaysShortBps": -720.265557736842,
+        "random": {
+          "mode": "same-entries-flipped-side",
+          "meanR": 0.000530511627906915
+        }
+      },
+      "baselineComparisons": {
+        "random": {
+          "strategyMeanR": 0.06416979069767441,
+          "baselineMeanR": 0.000530511627906915,
+          "diffMeanR": 0.0636392790697674,
+          "diffCI": [
+            -0.3958720930232558,
+            0.5408282093023257
+          ],
+          "beatsBaseline": false,
+          "method": "bootstrap-paired-diff"
+        },
+        "always-long": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": 0.06417,
+          "baselineMeanBps": 706.265557736842,
+          "baselineMeanPseudoR": 1.9877409788069518
+        },
+        "always-short": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": 0.06417,
+          "baselineMeanBps": -720.265557736842,
+          "baselineMeanPseudoR": -2.027143117844384
+        }
+      },
+      "theory": {
+        "present": true,
+        "hypothesis": "F1/F2 利润均值回归 + 产品端弹性驱动 + 政策前提",
+        "tests": [
+          {
+            "id": "fs04-profit-regression",
+            "label": "(a) z 极端后 40 日 π 回归概率 > 55%",
+            "falsified": false,
+            "killState": "retired",
+            "evidence": {
+              "hits": 0,
+              "total": 3,
+              "regressRate": 0
+            }
+          },
+          {
+            "id": "fs04-sharpe",
+            "label": "(b) 多 RB 单边扣成本夏普 ≥ 0.5",
+            "falsified": true,
+            "killState": "suspended",
+            "evidence": {
+              "n": 43,
+              "sharpe": 0.07682709745833659
+            }
+          },
+          {
+            "id": "fs04-attribution",
+            "label": "(c) 回归由原料腿驱动的样本占比 ≤ 40%",
+            "falsified": false,
+            "evidence": {
+              "attr": 0,
+              "attrN": 0,
+              "attrShare": null,
+              "note": ">40% → 单边改双腿结构（模型修订建议，非证伪门槛变更）"
+            }
+          },
+          {
+            "id": "fs04-policy-gate",
+            "label": "(d) 政策窗口表现劣于全样本 → 政策过滤层必装",
+            "falsified": false,
+            "evidence": {
+              "policyTrades": 0,
+              "note": "政策窗口内入场被事件日历前提开关禁止（by-construction 0 笔），过滤层已为必装组件；无窗口内样本可比较"
+            }
+          }
+        ],
+        "anyFalsified": true,
+        "falsified": [
+          {
+            "id": "fs04-sharpe",
+            "label": "(b) 多 RB 单边扣成本夏普 ≥ 0.5",
+            "falsified": true,
+            "killState": "suspended",
+            "evidence": {
+              "n": 43,
+              "sharpe": 0.07682709745833659
+            }
+          }
+        ],
+        "inconclusive": [],
+        "killOn": "(a) 证伪 F1/F2 → retired；(b) 触发 → suspended",
+        "metrics": {
+          "sharpeTrade": 0.07682709745833659,
+          "regressRate40d": 0,
+          "attrShare": null,
+          "adfPauseShare": 0.5668016194331984
+        }
+      },
+      "killVerdicts": [
+        {
+          "rule": "fs04-min-trades",
+          "metric": "n",
+          "op": "lt",
+          "value": 200,
+          "observed": 43,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "样本不足 → designed"
+        },
+        {
+          "rule": "fs04-pf",
+          "metric": "pf",
+          "op": "lt",
+          "value": 1.2,
+          "observed": 1.285638,
+          "triggered": false,
+          "onTrigger": "suspended",
+          "note": "PF < 1.2 → suspended"
+        },
+        {
+          "rule": "fs04-sharpe",
+          "metric": "sharpeTrade",
+          "op": "lt",
+          "value": 0.5,
+          "observed": 0.076827,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "扣成本夏普 < 0.5 → suspended（库 killRules）"
+        },
+        {
+          "rule": "fs04-adf-gate",
+          "metric": "custom.adfPauseShare",
+          "op": "gt",
+          "value": 0.5,
+          "observed": 0.566802,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "250d 残差 ADF p>0.05 占比 >50% → 该品种组停用（重估窗口，t8 F-3）"
+        }
+      ],
+      "suggestion": {
+        "suggestedState": "suspended",
+        "reasons": [
+          "理论级证伪成立: fs04-sharpe → suspended",
+          "killRule fs04-min-trades 触发 (n lt 200, observed=43) → suspended",
+          "killRule fs04-sharpe 触发 (sharpeTrade lt 0.5, observed=0.076827) → suspended",
+          "killRule fs04-adf-gate 触发 (custom.adfPauseShare gt 0.5, observed=0.566802) → suspended",
+          "策略级门禁未通过: minTrades, ciExcludesZero, majorityYearsPositive"
+        ],
+        "events": [
+          "theory-falsified",
+          "kill:fs04-min-trades",
+          "kill:fs04-sharpe",
+          "kill:fs04-adf-gate",
+          "strategy-gate-fail"
+        ],
+        "note": "最终状态由 t8 执行结论 + t9 复核 + 队长裁定决定；本引擎仅输出判定依据"
+      },
+      "violations": [],
+      "resultsHash": "2b98120b4435b68aea0b36d50a73736b7d5f3153ba259c98e856c9e37e90d296"
+    },
+    "FS-05": {
+      "specId": "FS-05",
+      "n": 32,
+      "meanR": 0.27486,
+      "pf": 9.001455,
+      "sharpeTrade": 0.625841,
+      "ci95": [
+        0.138564,
+        0.441723
+      ],
+      "gateChecks": [
+        {
+          "id": "minTrades",
+          "passed": false,
+          "detail": "n=32 >= 200"
+        },
+        {
+          "id": "pfThreshold",
+          "passed": true,
+          "detail": "PF=9.001455 vs 1.2"
+        },
+        {
+          "id": "ciExcludesZero",
+          "passed": true,
+          "detail": "95% CI=[0.138564,0.441723]"
+        },
+        {
+          "id": "majorityYearsPositive",
+          "passed": true,
+          "detail": "1/1 years positive"
+        }
+      ],
+      "windowGate": null,
+      "baselines": {
+        "alwaysLongBps": 259.9197772266666,
+        "alwaysShortBps": -273.9197772266667,
+        "random": {
+          "mode": "same-entries-flipped-side",
+          "meanR": -0.10201071875
+        }
+      },
+      "baselineComparisons": {
+        "random": {
+          "strategyMeanR": 0.27486046875,
+          "baselineMeanR": -0.10201071875,
+          "diffMeanR": 0.3768711874999999,
+          "diffCI": [
+            0.21325640624999995,
+            0.5674649062499999
+          ],
+          "beatsBaseline": true,
+          "method": "bootstrap-paired-diff"
+        },
+        "always-long": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": 0.27486,
+          "baselineMeanBps": 259.9197772266666,
+          "baselineMeanPseudoR": 0.025991977722666686
+        },
+        "always-short": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": 0.27486,
+          "baselineMeanBps": -273.9197772266667,
+          "baselineMeanPseudoR": -0.02739197772266666
+        }
+      },
+      "theory": {
+        "present": true,
+        "hypothesis": "F1 协整回归 + F2 结构断裂门有效性",
+        "tests": [
+          {
+            "id": "fs05-coint-pass-rate",
+            "label": "(a) 滚动协整通过率 < 70% 的品种对剔除（对级）",
+            "falsified": false,
+            "evidence": {
+              "M0-RM0": {
+                "pass": 163,
+                "total": 243,
+                "rate": 0.6708,
+                "remove": true
+              },
+              "Y0-M0": {
+                "pass": 83,
+                "total": 245,
+                "rate": 0.3388,
+                "remove": true
+              },
+              "Y0-P0": {
+                "pass": 105,
+                "total": 242,
+                "rate": 0.4339,
+                "remove": true
+              },
+              "OI0-Y0": {
+                "pass": 73,
+                "total": 241,
+                "rate": 0.3029,
+                "remove": true
+              }
+            }
+          },
+          {
+            "id": "fs05-portfolio",
+            "label": "(b) 组合夏普 ≥ 0.5 且回归命中 ≥ 55%",
+            "falsified": true,
+            "killState": "suspended",
+            "evidence": {
+              "n": 32,
+              "sharpe": 0.6258410624858223,
+              "convHits": 12,
+              "convN": 31,
+              "convRate": 0.3870967741935484
+            }
+          },
+          {
+            "id": "fs05-rm-break-gate",
+            "label": "(c) M−RM 两段结构断裂被断裂门捕捉（各窗口 >2 次 3σ 止损即未捕捉 → 断裂门参数修订）",
+            "falsified": false,
+            "revisionRequired": false,
+            "evidence": [
+              {
+                "window": "2019-03-01..2019-12-31",
+                "zStop3Sigma": 0,
+                "gateMissed": false
+              },
+              {
+                "window": "2024-09-09..2025-12-31",
+                "zStop3Sigma": 0,
+                "gateMissed": false
+              }
+            ]
+          }
+        ],
+        "anyFalsified": true,
+        "falsified": [
+          {
+            "id": "fs05-portfolio",
+            "label": "(b) 组合夏普 ≥ 0.5 且回归命中 ≥ 55%",
+            "falsified": true,
+            "killState": "suspended",
+            "evidence": {
+              "n": 32,
+              "sharpe": 0.6258410624858223,
+              "convHits": 12,
+              "convN": 31,
+              "convRate": 0.3870967741935484
+            }
+          }
+        ],
+        "inconclusive": [],
+        "killOn": "(b) 触发 → suspended；(c) 修订后仍不达标 → 该对永久停用",
+        "metrics": {
+          "sharpeTrade": 0.6258410624858223,
+          "convergenceHitRate": 0.3870967741935484,
+          "cointPassRates": {
+            "M0-RM0": {
+              "pass": 163,
+              "total": 243,
+              "rate": 0.6708,
+              "remove": true
+            },
+            "Y0-M0": {
+              "pass": 83,
+              "total": 245,
+              "rate": 0.3388,
+              "remove": true
+            },
+            "Y0-P0": {
+              "pass": 105,
+              "total": 242,
+              "rate": 0.4339,
+              "remove": true
+            },
+            "OI0-Y0": {
+              "pass": 73,
+              "total": 241,
+              "rate": 0.3029,
+              "remove": true
+            }
+          }
+        }
+      },
+      "killVerdicts": [
+        {
+          "rule": "fs05-min-trades",
+          "metric": "n",
+          "op": "lt",
+          "value": 200,
+          "observed": 32,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "样本不足 → designed"
+        },
+        {
+          "rule": "fs05-pf",
+          "metric": "pf",
+          "op": "lt",
+          "value": 1.2,
+          "observed": 9.001455,
+          "triggered": false,
+          "onTrigger": "suspended",
+          "note": "PF < 1.2 → suspended"
+        },
+        {
+          "rule": "fs05-sharpe",
+          "metric": "sharpeTrade",
+          "op": "lt",
+          "value": 0.5,
+          "observed": 0.625841,
+          "triggered": false,
+          "onTrigger": "suspended",
+          "note": "组合夏普 < 0.5 → suspended（库 killRules）"
+        },
+        {
+          "rule": "fs05-convergence",
+          "metric": "custom.convergenceHitRate",
+          "op": "lt",
+          "value": 0.55,
+          "observed": 0.387097,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "回归命中 < 55% → suspended（库 killRules）"
+        }
+      ],
+      "suggestion": {
+        "suggestedState": "suspended",
+        "reasons": [
+          "理论级证伪成立: fs05-portfolio → suspended",
+          "killRule fs05-min-trades 触发 (n lt 200, observed=32) → suspended",
+          "killRule fs05-convergence 触发 (custom.convergenceHitRate lt 0.55, observed=0.387097) → suspended",
+          "策略级门禁未通过: minTrades"
+        ],
+        "events": [
+          "theory-falsified",
+          "kill:fs05-min-trades",
+          "kill:fs05-convergence",
+          "strategy-gate-fail"
+        ],
+        "note": "最终状态由 t8 执行结论 + t9 复核 + 队长裁定决定；本引擎仅输出判定依据"
+      },
+      "violations": [],
+      "resultsHash": "fd033375ad43c3b0292ca202e6904e5e64f29293601a46b644a43a5f5aebb577"
+    },
+    "M1": {
+      "specId": "M1",
+      "n": 7,
+      "meanR": -0.052874,
+      "pf": 0.344589,
+      "sharpeTrade": -0.310603,
+      "ci95": [
+        -0.182564,
+        0.039795
+      ],
+      "gateChecks": [
+        {
+          "id": "minTrades",
+          "passed": false,
+          "detail": "n=7 >= 200"
+        },
+        {
+          "id": "pfThreshold",
+          "passed": false,
+          "detail": "PF=0.344589 vs 1.2"
+        },
+        {
+          "id": "ciExcludesZero",
+          "passed": false,
+          "detail": "95% CI=[-0.182564,0.039795]"
+        },
+        {
+          "id": "windowGate",
+          "passed": false,
+          "detail": "达标窗口占比=0% vs 60%"
+        }
+      ],
+      "windowGate": {
+        "config": {
+          "metric": "hitRateDirection",
+          "minHit": 0.55,
+          "pThreshold": 0.1,
+          "minShare": 0.6
+        },
+        "perWindow": [
+          {
+            "fold": "window-1",
+            "n": 1,
+            "hitRateDirection": 0,
+            "binomialP": null,
+            "met": false
+          },
+          {
+            "fold": "window-2",
+            "n": 5,
+            "hitRateDirection": 0.2,
+            "binomialP": 0.96875,
+            "met": false
+          },
+          {
+            "fold": "window-3",
+            "n": 1,
+            "hitRateDirection": 0,
+            "binomialP": null,
+            "met": false
+          }
+        ],
+        "share": 0,
+        "passed": false
+      },
+      "baselines": {
+        "alwaysLongBps": -20.13464799999992,
+        "alwaysShortBps": 13.134647999999935,
+        "random": {
+          "mode": "same-entries-flipped-side",
+          "meanR": -0.06353471428571429
+        }
+      },
+      "baselineComparisons": {
+        "random": {
+          "strategyMeanR": -0.052874428571428565,
+          "baselineMeanR": -0.06353471428571429,
+          "diffMeanR": 0.010660285714285709,
+          "diffCI": [
+            -0.3533442857142857,
+            0.33185385714285714
+          ],
+          "beatsBaseline": false,
+          "method": "bootstrap-paired-diff"
+        },
+        "always-long": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": -0.052874,
+          "baselineMeanBps": -20.13464799999992,
+          "baselineMeanPseudoR": -0.06976212316478017
+        },
+        "always-short": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": -0.052874,
+          "baselineMeanBps": 13.134647999999935,
+          "baselineMeanPseudoR": 0.045508664045282546
+        }
+      },
+      "theory": {
+        "present": true,
+        "hypothesis": "信用渠道传导 β_i < 0（冲击后 10 日方向命中率显著 > 50%）",
+        "tests": [
+          {
+            "id": "m1-credit-channel",
+            "label": "全池方向命中率 ≥ 50%（<50% → 整体停用并回炉 β 标定）",
+            "falsified": false,
+            "killState": "suspended",
+            "evidence": {
+              "n": 7,
+              "poolHitRate": 0.5714285714285714
+            }
+          },
+          {
+            "id": "m1-structural-2023",
+            "label": "2023 前后分段报告（β_i 衰减结构性风险）",
+            "falsified": false,
+            "evidence": {
+              "pre2024N": 7,
+              "pre2024HitRate": 0.5714285714285714,
+              "post2024N": 0,
+              "post2024HitRate": null
+            }
+          }
+        ],
+        "anyFalsified": false,
+        "falsified": [],
+        "inconclusive": [],
+        "killOn": "全池连续 2 个滚动窗口命中率 < 50% → 策略整体停用；单品种连续 2 窗口 < 50% → 冻结该品种方向映射",
+        "metrics": {
+          "poolHitRate": 0.5714285714285714,
+          "maxConsecFoldHitFail": 1,
+          "symbolsToFreeze": [],
+          "poolConsecFoldFail2": false,
+          "pre2024HitRate": 0.5714285714285714,
+          "post2024HitRate": null
+        }
+      },
+      "killVerdicts": [
+        {
+          "rule": "m1-min-trades",
+          "metric": "n",
+          "op": "lt",
+          "value": 200,
+          "observed": 7,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "样本不足 → designed"
+        },
+        {
+          "rule": "m1-pf",
+          "metric": "pf",
+          "op": "lt",
+          "value": 1.2,
+          "observed": 0.344589,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "PF < 1.2 → suspended"
+        },
+        {
+          "rule": "m1-pool-hit",
+          "metric": "custom.poolHitRate",
+          "op": "lt",
+          "value": 0.5,
+          "observed": 0.571429,
+          "triggered": false,
+          "onTrigger": "suspended",
+          "note": "全池 < 50% → 策略整体停用并回炉 β 标定（库 killRules）"
+        },
+        {
+          "rule": "m1-consec-window",
+          "metric": "custom.maxConsecFoldHitFail",
+          "op": "gte",
+          "value": 2,
+          "observed": 1,
+          "triggered": false,
+          "onTrigger": "symbol-freeze",
+          "note": "R7 队长终裁：连续 2 个滚动窗口命中率 < 50% → 冻结该品种方向映射（symbol-freeze）；只记录冻结清单（theory metrics.symbolsToFreeze），不改变策略状态"
+        }
+      ],
+      "suggestion": {
+        "suggestedState": "suspended",
+        "reasons": [
+          "killRule m1-min-trades 触发 (n lt 200, observed=7) → suspended",
+          "killRule m1-pf 触发 (pf lt 1.2, observed=0.344589) → suspended",
+          "策略级门禁未通过: minTrades, pfThreshold, ciExcludesZero, windowGate"
+        ],
+        "events": [
+          "kill:m1-min-trades",
+          "kill:m1-pf",
+          "strategy-gate-fail"
+        ],
+        "note": "最终状态由 t8 执行结论 + t9 复核 + 队长裁定决定；本引擎仅输出判定依据"
+      },
+      "violations": [],
+      "resultsHash": "92b5e0eef989076e1862b6e195bc2cc487271c150e9a7e030ad87dbcf0c48b47"
+    },
+    "EC-01": {
+      "specId": "EC-01",
+      "n": 10,
+      "meanR": -0.206827,
+      "pf": 0.119015,
+      "sharpeTrade": -0.614797,
+      "ci95": [
+        -0.416995,
+        -0.027966
+      ],
+      "gateChecks": [
+        {
+          "id": "minTrades",
+          "passed": false,
+          "detail": "n=10 >= 200"
+        },
+        {
+          "id": "pfThreshold",
+          "passed": false,
+          "detail": "PF=0.119015 vs 1.2"
+        },
+        {
+          "id": "ciExcludesZero",
+          "passed": true,
+          "detail": "95% CI=[-0.416995,-0.027966]"
+        },
+        {
+          "id": "majorityYearsPositive",
+          "passed": false,
+          "detail": "0/3 years positive"
+        }
+      ],
+      "windowGate": null,
+      "baselines": {
+        "alwaysLongBps": 75.83022050617278,
+        "alwaysShortBps": -89.83022050617278,
+        "random": {
+          "mode": "same-entries-flipped-side",
+          "meanR": 0.5861786
+        }
+      },
+      "baselineComparisons": {
+        "random": {
+          "strategyMeanR": -0.20682650000000002,
+          "baselineMeanR": 0.5861786,
+          "diffMeanR": -0.7930051,
+          "diffCI": [
+            -1.5319187000000003,
+            -0.04633530000000004
+          ],
+          "beatsBaseline": false,
+          "method": "bootstrap-paired-diff"
+        },
+        "always-long": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": -0.206827,
+          "baselineMeanBps": 75.83022050617278,
+          "baselineMeanPseudoR": 0.19183121155463323
+        },
+        "always-short": {
+          "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+          "strategyMeanR": -0.206827,
+          "baselineMeanBps": -89.83022050617278,
+          "baselineMeanPseudoR": -0.22724765824090185
+        }
+      },
+      "theory": {
+        "present": true,
+        "hypothesis": "F1 协整 + 误差修正（γ<0）+ F2 产品端回归",
+        "tests": [
+          {
+            "id": "ec01-pair-falsification",
+            "label": "(a) 无协整（ADF p>0.05）或 γ≥0 → 该品种对证伪剔除（对级）",
+            "falsified": false,
+            "evidence": {
+              "TA0": {
+                "checked": 2004,
+                "adfFail": 1687,
+                "gammaFail": 0,
+                "qualFail": 41,
+                "excluded": true
+              },
+              "PP0": {
+                "checked": 2004,
+                "adfFail": 1791,
+                "gammaFail": 0,
+                "qualFail": 9,
+                "excluded": true
+              },
+              "L0": {
+                "checked": 2005,
+                "adfFail": 1831,
+                "gammaFail": 0,
+                "qualFail": 32,
+                "excluded": true
+              },
+              "BU0": {
+                "checked": 2000,
+                "adfFail": 1752,
+                "gammaFail": 0,
+                "qualFail": 139,
+                "excluded": true
+              },
+              "FU0": {
+                "checked": 1921,
+                "adfFail": 1673,
+                "gammaFail": 0,
+                "qualFail": 3,
+                "excluded": true
+              },
+              "EG0": {
+                "checked": 1530,
+                "adfFail": 1467,
+                "gammaFail": 0,
+                "qualFail": 51,
+                "excluded": true
+              },
+              "EB0": {
+                "checked": 1350,
+                "adfFail": 1262,
+                "gammaFail": 0,
+                "qualFail": 2,
+                "excluded": true
+              },
+              "PG0": {
+                "checked": 1224,
+                "adfFail": 1169,
+                "gammaFail": 0,
+                "qualFail": 17,
+                "excluded": true
+              },
+              "PX0": {
+                "checked": 413,
+                "adfFail": 400,
+                "gammaFail": 0,
+                "qualFail": 0,
+                "excluded": true
+              }
+            }
+          },
+          {
+            "id": "ec01-sharpe",
+            "label": "(b) 策略扣成本夏普 ≥ 0.5",
+            "falsified": false,
+            "killState": "suspended",
+            "evidence": {
+              "n": 10,
+              "sharpe": -0.6147973176767606
+            }
+          },
+          {
+            "id": "ec01-overnight-gap",
+            "label": "(c) 隔夜跳空亏损占比 ≤ 30%（>30% → 增加隔夜过滤修订，修订后仍 >30% 才停用）",
+            "falsified": false,
+            "revisionRequired": false,
+            "evidence": {
+              "gapLoss": 0,
+              "totalLoss": 2.3477,
+              "gapLossShare": 0
+            }
+          },
+          {
+            "id": "ec01-structural-windows",
+            "label": "2020 负油价/2022 俄乌冲击期单列（不参与参数估计，事件日历联动暂停）",
+            "falsified": false,
+            "evidence": {
+              "note": "事件窗口内入场被 ga7 日历禁止（0 笔）；2020 段样本仅作结构性对照",
+              "structural2020Trades": 0
+            }
+          }
+        ],
+        "anyFalsified": false,
+        "falsified": [],
+        "inconclusive": [],
+        "killOn": "(a) 该品种对证伪 → 剔除出池；(b) 触发 → suspended；(c) 修订后仍不达标 → 停用",
+        "metrics": {
+          "sharpeTrade": -0.6147973176767606,
+          "gapLossShare": 0,
+          "allPairsExcluded": true
+        }
+      },
+      "killVerdicts": [
+        {
+          "rule": "ec01-min-trades",
+          "metric": "n",
+          "op": "lt",
+          "value": 200,
+          "observed": 10,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "样本不足 → designed"
+        },
+        {
+          "rule": "ec01-pf",
+          "metric": "pf",
+          "op": "lt",
+          "value": 1.2,
+          "observed": 0.119015,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "PF < 1.2 → suspended"
+        },
+        {
+          "rule": "ec01-sharpe",
+          "metric": "sharpeTrade",
+          "op": "lt",
+          "value": 0.5,
+          "observed": -0.614797,
+          "triggered": true,
+          "onTrigger": "suspended",
+          "note": "扣成本夏普 < 0.5 → suspended（库 killRules）"
+        },
+        {
+          "rule": "ec01-gap-loss",
+          "metric": "custom.gapLossShare",
+          "op": "gt",
+          "value": 0.3,
+          "observed": 0,
+          "triggered": false,
+          "onTrigger": "suspended",
+          "note": "隔夜跳空亏损占比 > 30% → 需隔夜过滤修订；修订后仍 >30% → 停用"
+        },
+        {
+          "rule": "ec01-all-pairs-excluded",
+          "metric": "custom.allPairsExcluded",
+          "op": "isTrue",
+          "value": true,
+          "observed": true,
+          "triggered": true,
+          "onTrigger": "retired",
+          "note": "R3 队长终裁映射（非库 killOn 直接映射）：reason=G4 兜底（理论级证伪成立→retired）+ 池空无执行路径 + paper-only"
+        }
+      ],
+      "suggestion": {
+        "suggestedState": "retired",
+        "reasons": [
+          "killRule ec01-min-trades 触发 (n lt 200, observed=10) → suspended",
+          "killRule ec01-pf 触发 (pf lt 1.2, observed=0.119015) → suspended",
+          "killRule ec01-sharpe 触发 (sharpeTrade lt 0.5, observed=-0.614797) → suspended",
+          "killRule ec01-all-pairs-excluded 触发 (custom.allPairsExcluded isTrue true, observed=true) → retired",
+          "策略级门禁未通过: minTrades, pfThreshold, majorityYearsPositive"
+        ],
+        "events": [
+          "kill:ec01-min-trades",
+          "kill:ec01-pf",
+          "kill:ec01-sharpe",
+          "kill:ec01-all-pairs-excluded",
+          "strategy-gate-fail"
+        ],
+        "note": "最终状态由 t8 执行结论 + t9 复核 + 队长裁定决定；本引擎仅输出判定依据"
+      },
+      "violations": [],
+      "resultsHash": "9d1890b2afd60a58e0696f46828205d81f5256c3048bd4c13e6bf21303d09b67"
+    }
+  },
+  "fs02": {
+    "status": "designed",
+    "reason": "数据前置不满足：2011+ PIT dom_basis_rate 基差历史采集器未运行（仅 GA-6 单次快照 2026-07-10..2026-08-28）",
+    "spec": "specs/FS-02.json (blocked 字段)"
+  },
+  "summary": {
+    "retired": [
+      "TR-03",
+      "EC-01"
+    ],
+    "suspended": [
+      "TR-01",
+      "TR-06",
+      "FS-04",
+      "FS-05",
+      "M1"
+    ],
+    "designed": [
+      "FS-02"
+    ]
+  },
+  "captainFinalRulings": {
+    "r1": "done-errata",
+    "r2": "done-two-step",
+    "r3": "done-captain-ruling-wording",
+    "r4": "done-eg2",
+    "r5r6": "done-wording",
+    "r7": "done-symbol-freeze",
+    "r8": "done-beta-gate-rerun"
+  },
+  "pendingCaptainRulings": [
+    "FS-05 收抛储事件粒度（needs-clarify #8，不影响当前状态）"
+  ]
+}

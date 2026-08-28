@@ -1,0 +1,9 @@
+{
+  "kind": "akshare_futures_spot_price_daily_recheck",
+  "fetchedAt": "2026-08-28T08:37:21Z",
+  "anchorDate": "20260827",
+  "rows": 54,
+  "comparedSymbols": 54,
+  "diffCount": 0,
+  "diffs": []
+}

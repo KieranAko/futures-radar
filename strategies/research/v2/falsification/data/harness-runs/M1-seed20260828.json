@@ -1,0 +1,1483 @@
+{
+  "schema": "falsification-harness-result/1",
+  "specId": "M1",
+  "strategyId": "M1",
+  "specFile": "M1",
+  "libraryRef": {
+    "sourceFile": "strategies/strategy-library-v2.json",
+    "entryId": "M1"
+  },
+  "meta": {
+    "seed": 20260828,
+    "foldsMode": "rolling",
+    "generatedAt": "2026-08-28T10:36:01.058Z"
+  },
+  "data": {
+    "symbols": [
+      "RB0",
+      "HC0",
+      "J0",
+      "SA0",
+      "FG0"
+    ],
+    "timelineStart": "2019-01-02",
+    "timelineEnd": "2026-08-28",
+    "nBars": 4237
+  },
+  "folds": [
+    {
+      "fold": "window-1",
+      "year": null,
+      "label": "2019-01..2019-12",
+      "testStart": "2019-01-02",
+      "testEnd": "2019-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 1,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "window-2",
+      "year": null,
+      "label": "2020-01..2020-12",
+      "testStart": "2020-01-02",
+      "testEnd": "2020-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 5,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "window-3",
+      "year": null,
+      "label": "2021-01..2021-12",
+      "testStart": "2021-01-04",
+      "testEnd": "2021-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 1,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "window-4",
+      "year": null,
+      "label": "2022-01..2022-12",
+      "testStart": "2022-01-04",
+      "testEnd": "2022-12-30",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "window-5",
+      "year": null,
+      "label": "2023-01..2023-12",
+      "testStart": "2023-01-03",
+      "testEnd": "2023-12-29",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "window-6",
+      "year": null,
+      "label": "2024-01..2024-12",
+      "testStart": "2024-01-02",
+      "testEnd": "2024-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "window-7",
+      "year": null,
+      "label": "2025-01..2025-12",
+      "testStart": "2025-01-02",
+      "testEnd": "2025-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "window-8",
+      "year": null,
+      "label": "2026-01..2026-08",
+      "testStart": "2026-01-05",
+      "testEnd": "2026-08-28",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    }
+  ],
+  "paramsHistory": [
+    {
+      "fold": "window-1",
+      "params": {
+        "shockThreshold": 0.5,
+        "digestThreshold": 0.3,
+        "stopAtrMult": 1.5,
+        "targetAtrMult": 2,
+        "sigmaTarget": 0.15,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 1
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "window-2",
+      "params": {
+        "shockThreshold": 0.5,
+        "digestThreshold": 0.3,
+        "stopAtrMult": 1.5,
+        "targetAtrMult": 2,
+        "sigmaTarget": 0.15,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 1
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "window-3",
+      "params": {
+        "shockThreshold": 0.5,
+        "digestThreshold": 0.3,
+        "stopAtrMult": 1.5,
+        "targetAtrMult": 2,
+        "sigmaTarget": 0.15,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 1
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "window-4",
+      "params": {
+        "shockThreshold": 0.5,
+        "digestThreshold": 0.3,
+        "stopAtrMult": 1.5,
+        "targetAtrMult": 2,
+        "sigmaTarget": 0.15,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 1
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "window-5",
+      "params": {
+        "shockThreshold": 0.5,
+        "digestThreshold": 0.3,
+        "stopAtrMult": 1.5,
+        "targetAtrMult": 2,
+        "sigmaTarget": 0.15,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 1
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "window-6",
+      "params": {
+        "shockThreshold": 0.5,
+        "digestThreshold": 0.3,
+        "stopAtrMult": 1.5,
+        "targetAtrMult": 2,
+        "sigmaTarget": 0.15,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 1
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "window-7",
+      "params": {
+        "shockThreshold": 0.5,
+        "digestThreshold": 0.3,
+        "stopAtrMult": 1.5,
+        "targetAtrMult": 2,
+        "sigmaTarget": 0.15,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 1
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "window-8",
+      "params": {
+        "shockThreshold": 0.5,
+        "digestThreshold": 0.3,
+        "stopAtrMult": 1.5,
+        "targetAtrMult": 2,
+        "sigmaTarget": 0.15,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 1
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    }
+  ],
+  "strategyLevel": {
+    "gate": {
+      "passed": false,
+      "checks": [
+        {
+          "id": "minTrades",
+          "passed": false,
+          "detail": "n=7 >= 200"
+        },
+        {
+          "id": "pfThreshold",
+          "passed": false,
+          "detail": "PF=0.344589 vs 1.2"
+        },
+        {
+          "id": "ciExcludesZero",
+          "passed": false,
+          "detail": "95% CI=[-0.182564,0.039795]"
+        },
+        {
+          "id": "windowGate",
+          "passed": false,
+          "detail": "达标窗口占比=0% vs 60%"
+        }
+      ],
+      "stats": {
+        "n": 7,
+        "meanR": -0.052874,
+        "stdR": 0.170232,
+        "sharpeTrade": -0.310603,
+        "pf": 0.344589,
+        "t": -0.821777,
+        "p": 0.4426,
+        "ci95": [
+          -0.182564,
+          0.039795
+        ],
+        "ciExcludesZero": false,
+        "ciPositive": false
+      },
+      "foldStats": {
+        "rows": [
+          {
+            "fold": "window-1",
+            "n": 1,
+            "meanR": -0.072694,
+            "hitRateNet": 0,
+            "hitRateDirection": 0,
+            "binomialP": null
+          },
+          {
+            "fold": "window-2",
+            "n": 5,
+            "meanR": -0.0625474,
+            "hitRateNet": 0.6,
+            "hitRateDirection": 0.2,
+            "binomialP": 0.5000000000000012
+          },
+          {
+            "fold": "window-3",
+            "n": 1,
+            "meanR": 0.01531,
+            "hitRateNet": 1,
+            "hitRateDirection": 0,
+            "binomialP": null
+          },
+          {
+            "fold": "window-4",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "window-5",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "window-6",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "window-7",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "window-8",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          }
+        ],
+        "majorityYearsPositive": false,
+        "positiveYears": 1,
+        "yearsWithTrades": 3
+      },
+      "windowGate": {
+        "config": {
+          "metric": "hitRateDirection",
+          "minHit": 0.55,
+          "pThreshold": 0.1,
+          "minShare": 0.6
+        },
+        "perWindow": [
+          {
+            "fold": "window-1",
+            "n": 1,
+            "hitRateDirection": 0,
+            "binomialP": null,
+            "met": false
+          },
+          {
+            "fold": "window-2",
+            "n": 5,
+            "hitRateDirection": 0.2,
+            "binomialP": 0.96875,
+            "met": false
+          },
+          {
+            "fold": "window-3",
+            "n": 1,
+            "hitRateDirection": 0,
+            "binomialP": null,
+            "met": false
+          }
+        ],
+        "share": 0,
+        "passed": false
+      }
+    },
+    "baselines": {
+      "always-long": {
+        "convention": "per symbol per fold: hold from first non-jump bar open to last bar close, side=±1, roundtrip cost deducted; retBps = side*(exit-entry)/entry*1e4 - roundtripBps/legs",
+        "rows": [
+          {
+            "fold": "window-1",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": 499.737198
+          },
+          {
+            "fold": "window-1",
+            "symbol": "HC0",
+            "side": 1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": 783.286787
+          },
+          {
+            "fold": "window-1",
+            "symbol": "J0",
+            "side": 1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": -40.537037
+          },
+          {
+            "fold": "window-1",
+            "symbol": "FG0",
+            "side": 1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": 1390.953005
+          },
+          {
+            "fold": "window-2",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": 2239.803571
+          },
+          {
+            "fold": "window-2",
+            "symbol": "HC0",
+            "side": 1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": 2642.987087
+          },
+          {
+            "fold": "window-2",
+            "symbol": "J0",
+            "side": 1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": 4925.184628
+          },
+          {
+            "fold": "window-2",
+            "symbol": "SA0",
+            "side": 1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": -138.221372
+          },
+          {
+            "fold": "window-2",
+            "symbol": "FG0",
+            "side": 1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": 2557.310811
+          },
+          {
+            "fold": "window-3",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": -93.072807
+          },
+          {
+            "fold": "window-3",
+            "symbol": "HC0",
+            "side": 1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": -212.157048
+          },
+          {
+            "fold": "window-3",
+            "symbol": "J0",
+            "side": 1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": 345.706349
+          },
+          {
+            "fold": "window-3",
+            "symbol": "SA0",
+            "side": 1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": 3547.089696
+          },
+          {
+            "fold": "window-3",
+            "symbol": "FG0",
+            "side": 1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": -787.283784
+          },
+          {
+            "fold": "window-4",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": -461.426546
+          },
+          {
+            "fold": "window-4",
+            "symbol": "HC0",
+            "side": 1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": -587.590909
+          },
+          {
+            "fold": "window-4",
+            "symbol": "J0",
+            "side": 1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": -974.078289
+          },
+          {
+            "fold": "window-4",
+            "symbol": "SA0",
+            "side": 1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": 2496.5
+          },
+          {
+            "fold": "window-4",
+            "symbol": "FG0",
+            "side": 1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": -238.794118
+          },
+          {
+            "fold": "window-5",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": -242.52439
+          },
+          {
+            "fold": "window-5",
+            "symbol": "HC0",
+            "side": 1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": -13.213453
+          },
+          {
+            "fold": "window-5",
+            "symbol": "J0",
+            "side": 1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": -601.613208
+          },
+          {
+            "fold": "window-5",
+            "symbol": "SA0",
+            "side": 1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": -2543.645985
+          },
+          {
+            "fold": "window-5",
+            "symbol": "FG0",
+            "side": 1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": 1562.400846
+          },
+          {
+            "fold": "window-6",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": -1741.327715
+          },
+          {
+            "fold": "window-6",
+            "symbol": "HC0",
+            "side": 1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": -1666.914634
+          },
+          {
+            "fold": "window-6",
+            "symbol": "J0",
+            "side": 1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": -2777.178963
+          },
+          {
+            "fold": "window-6",
+            "symbol": "SA0",
+            "side": 1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": -2874.146766
+          },
+          {
+            "fold": "window-6",
+            "symbol": "FG0",
+            "side": 1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": -2944.989362
+          },
+          {
+            "fold": "window-7",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": -557.206505
+          },
+          {
+            "fold": "window-7",
+            "symbol": "HC0",
+            "side": 1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": -422.486229
+          },
+          {
+            "fold": "window-7",
+            "symbol": "J0",
+            "side": 1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": -623.998615
+          },
+          {
+            "fold": "window-7",
+            "symbol": "SA0",
+            "side": 1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": -1595.989569
+          },
+          {
+            "fold": "window-7",
+            "symbol": "FG0",
+            "side": 1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": -1805.913273
+          },
+          {
+            "fold": "window-8",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2026-01-05",
+            "exitDate": "2026-08-28",
+            "retBps": -76.865231
+          },
+          {
+            "fold": "window-8",
+            "symbol": "HC0",
+            "side": 1,
+            "entryDate": "2026-01-05",
+            "exitDate": "2026-08-28",
+            "retBps": 305.368502
+          }
+        ],
+        "stats": {
+          "n": 36,
+          "meanRetBps": -20.13464799999992
+        }
+      },
+      "always-short": {
+        "convention": "per symbol per fold: hold from first non-jump bar open to last bar close, side=±1, roundtrip cost deducted; retBps = side*(exit-entry)/entry*1e4 - roundtripBps/legs",
+        "rows": [
+          {
+            "fold": "window-1",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": -506.737198
+          },
+          {
+            "fold": "window-1",
+            "symbol": "HC0",
+            "side": -1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": -790.286787
+          },
+          {
+            "fold": "window-1",
+            "symbol": "J0",
+            "side": -1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": 33.537037
+          },
+          {
+            "fold": "window-1",
+            "symbol": "FG0",
+            "side": -1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": -1397.953005
+          },
+          {
+            "fold": "window-2",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": -2246.803571
+          },
+          {
+            "fold": "window-2",
+            "symbol": "HC0",
+            "side": -1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": -2649.987087
+          },
+          {
+            "fold": "window-2",
+            "symbol": "J0",
+            "side": -1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": -4932.184628
+          },
+          {
+            "fold": "window-2",
+            "symbol": "SA0",
+            "side": -1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": 131.221372
+          },
+          {
+            "fold": "window-2",
+            "symbol": "FG0",
+            "side": -1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": -2564.310811
+          },
+          {
+            "fold": "window-3",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": 86.072807
+          },
+          {
+            "fold": "window-3",
+            "symbol": "HC0",
+            "side": -1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": 205.157048
+          },
+          {
+            "fold": "window-3",
+            "symbol": "J0",
+            "side": -1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": -352.706349
+          },
+          {
+            "fold": "window-3",
+            "symbol": "SA0",
+            "side": -1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": -3554.089696
+          },
+          {
+            "fold": "window-3",
+            "symbol": "FG0",
+            "side": -1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": 780.283784
+          },
+          {
+            "fold": "window-4",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": 454.426546
+          },
+          {
+            "fold": "window-4",
+            "symbol": "HC0",
+            "side": -1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": 580.590909
+          },
+          {
+            "fold": "window-4",
+            "symbol": "J0",
+            "side": -1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": 967.078289
+          },
+          {
+            "fold": "window-4",
+            "symbol": "SA0",
+            "side": -1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": -2503.5
+          },
+          {
+            "fold": "window-4",
+            "symbol": "FG0",
+            "side": -1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": 231.794118
+          },
+          {
+            "fold": "window-5",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": 235.52439
+          },
+          {
+            "fold": "window-5",
+            "symbol": "HC0",
+            "side": -1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": 6.213453
+          },
+          {
+            "fold": "window-5",
+            "symbol": "J0",
+            "side": -1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": 594.613208
+          },
+          {
+            "fold": "window-5",
+            "symbol": "SA0",
+            "side": -1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": 2536.645985
+          },
+          {
+            "fold": "window-5",
+            "symbol": "FG0",
+            "side": -1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": -1569.400846
+          },
+          {
+            "fold": "window-6",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": 1734.327715
+          },
+          {
+            "fold": "window-6",
+            "symbol": "HC0",
+            "side": -1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": 1659.914634
+          },
+          {
+            "fold": "window-6",
+            "symbol": "J0",
+            "side": -1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": 2770.178963
+          },
+          {
+            "fold": "window-6",
+            "symbol": "SA0",
+            "side": -1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": 2867.146766
+          },
+          {
+            "fold": "window-6",
+            "symbol": "FG0",
+            "side": -1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": 2937.989362
+          },
+          {
+            "fold": "window-7",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": 550.206505
+          },
+          {
+            "fold": "window-7",
+            "symbol": "HC0",
+            "side": -1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": 415.486229
+          },
+          {
+            "fold": "window-7",
+            "symbol": "J0",
+            "side": -1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": 616.998615
+          },
+          {
+            "fold": "window-7",
+            "symbol": "SA0",
+            "side": -1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": 1588.989569
+          },
+          {
+            "fold": "window-7",
+            "symbol": "FG0",
+            "side": -1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": 1798.913273
+          },
+          {
+            "fold": "window-8",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2026-01-05",
+            "exitDate": "2026-08-28",
+            "retBps": 69.865231
+          },
+          {
+            "fold": "window-8",
+            "symbol": "HC0",
+            "side": -1,
+            "entryDate": "2026-01-05",
+            "exitDate": "2026-08-28",
+            "retBps": -312.368502
+          }
+        ],
+        "stats": {
+          "n": 36,
+          "meanRetBps": 13.134647999999935
+        }
+      },
+      "random": {
+        "convention": "same entry bars as strategy; direction and stop/target mirrored around the actual entry price; dynamic manage() exits not mirrored (fixed-price brackets used)",
+        "mode": "same-entries-flipped-side",
+        "runs": 1,
+        "runResults": [
+          {
+            "run": 0,
+            "mode": "same-entries-flipped-side",
+            "seed": -1627234715,
+            "trades": 7,
+            "netRs": [
+              0.121539,
+              -0.251037,
+              0.490007,
+              -0.323563,
+              -0.414575,
+              -0.411987,
+              0.344873
+            ]
+          }
+        ],
+        "pooledNetRs": [
+          0.121539,
+          -0.251037,
+          0.490007,
+          -0.323563,
+          -0.414575,
+          -0.411987,
+          0.344873
+        ]
+      }
+    },
+    "baselineComparisons": {
+      "random": {
+        "strategyMeanR": -0.052874428571428565,
+        "baselineMeanR": -0.06353471428571429,
+        "diffMeanR": 0.010660285714285709,
+        "diffCI": [
+          -0.3533442857142857,
+          0.33185385714285714
+        ],
+        "beatsBaseline": false,
+        "method": "bootstrap-paired-diff"
+      },
+      "always-long": {
+        "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+        "strategyMeanR": -0.052874,
+        "baselineMeanBps": -20.13464799999992,
+        "baselineMeanPseudoR": -0.06976212316478017
+      },
+      "always-short": {
+        "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+        "strategyMeanR": -0.052874,
+        "baselineMeanBps": 13.134647999999935,
+        "baselineMeanPseudoR": 0.045508664045282546
+      }
+    }
+  },
+  "theoryLevel": {
+    "present": true,
+    "hypothesis": "信用渠道传导 β_i < 0（冲击后 10 日方向命中率显著 > 50%）",
+    "tests": [
+      {
+        "id": "m1-credit-channel",
+        "label": "全池方向命中率 ≥ 50%（<50% → 整体停用并回炉 β 标定）",
+        "falsified": false,
+        "killState": "suspended",
+        "evidence": {
+          "n": 7,
+          "poolHitRate": 0.5714285714285714
+        }
+      },
+      {
+        "id": "m1-structural-2023",
+        "label": "2023 前后分段报告（β_i 衰减结构性风险）",
+        "falsified": false,
+        "evidence": {
+          "pre2024N": 7,
+          "pre2024HitRate": 0.5714285714285714,
+          "post2024N": 0,
+          "post2024HitRate": null
+        }
+      }
+    ],
+    "anyFalsified": false,
+    "falsified": [],
+    "inconclusive": [],
+    "killOn": "全池连续 2 个滚动窗口命中率 < 50% → 策略整体停用；单品种连续 2 窗口 < 50% → 冻结该品种方向映射",
+    "metrics": {
+      "poolHitRate": 0.5714285714285714,
+      "maxConsecFoldHitFail": 1,
+      "symbolsToFreeze": [],
+      "poolConsecFoldFail2": false,
+      "pre2024HitRate": 0.5714285714285714,
+      "post2024HitRate": null
+    }
+  },
+  "killVerdicts": [
+    {
+      "rule": "m1-min-trades",
+      "metric": "n",
+      "op": "lt",
+      "value": 200,
+      "observed": 7,
+      "triggered": true,
+      "onTrigger": "suspended",
+      "note": "样本不足 → designed"
+    },
+    {
+      "rule": "m1-pf",
+      "metric": "pf",
+      "op": "lt",
+      "value": 1.2,
+      "observed": 0.344589,
+      "triggered": true,
+      "onTrigger": "suspended",
+      "note": "PF < 1.2 → suspended"
+    },
+    {
+      "rule": "m1-pool-hit",
+      "metric": "custom.poolHitRate",
+      "op": "lt",
+      "value": 0.5,
+      "observed": 0.571429,
+      "triggered": false,
+      "onTrigger": "suspended",
+      "note": "全池 < 50% → 策略整体停用并回炉 β 标定（库 killRules）"
+    },
+    {
+      "rule": "m1-consec-window",
+      "metric": "custom.maxConsecFoldHitFail",
+      "op": "gte",
+      "value": 2,
+      "observed": 1,
+      "triggered": false,
+      "onTrigger": "symbol-freeze",
+      "note": "R7 队长终裁：连续 2 个滚动窗口命中率 < 50% → 冻结该品种方向映射（symbol-freeze）；只记录冻结清单（theory metrics.symbolsToFreeze），不改变策略状态"
+    }
+  ],
+  "suggestion": {
+    "suggestedState": "suspended",
+    "reasons": [
+      "killRule m1-min-trades 触发 (n lt 200, observed=7) → suspended",
+      "killRule m1-pf 触发 (pf lt 1.2, observed=0.344589) → suspended",
+      "策略级门禁未通过: minTrades, pfThreshold, ciExcludesZero, windowGate"
+    ],
+    "events": [
+      "kill:m1-min-trades",
+      "kill:m1-pf",
+      "strategy-gate-fail"
+    ],
+    "note": "最终状态由 t8 执行结论 + t9 复核 + 队长裁定决定；本引擎仅输出判定依据"
+  },
+  "violations": [],
+  "trades": [
+    {
+      "id": 0,
+      "signalDate": "2019-07-04",
+      "entryDate": "2019-07-05",
+      "exitDate": "2019-07-08",
+      "exitReason": "shock-digested",
+      "direction": 1,
+      "sizeR": 0.5792,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 4020,
+          "stop": 3895.3,
+          "target": 4195.6,
+          "exit": 3992,
+          "rawR": -0.224539,
+          "costR": 0.011283,
+          "netR": -0.235822,
+          "exitReason": "shock-digested"
+        },
+        {
+          "symbol": "FG0",
+          "side": 1,
+          "entry": 1489,
+          "stop": 1454.7,
+          "target": 1532.4,
+          "exit": 1489,
+          "rawR": 0,
+          "costR": 0.015194,
+          "netR": -0.015194,
+          "exitReason": "shock-digested"
+        }
+      ],
+      "netR": -0.072694,
+      "grossR": -0.065026,
+      "tags": {
+        "s": -0.7,
+        "betaA": -0.04975,
+        "betaB": -0.02045,
+        "symbols": [
+          "RB0",
+          "FG0"
+        ]
+      },
+      "foldId": "window-1"
+    },
+    {
+      "id": 0,
+      "signalDate": "2020-01-06",
+      "entryDate": "2020-01-07",
+      "exitDate": "2020-01-09",
+      "exitReason": "shock-digested",
+      "direction": 1,
+      "sizeR": 0.5,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3558,
+          "stop": 3501.1,
+          "target": 3636.2,
+          "exit": 3555,
+          "rawR": -0.052724,
+          "costR": 0.021886,
+          "netR": -0.07461,
+          "exitReason": "shock-digested"
+        },
+        {
+          "symbol": "FG0",
+          "side": 1,
+          "entry": 1509,
+          "stop": 1482.4,
+          "target": 1539.8,
+          "exit": 1503,
+          "rawR": -0.225564,
+          "costR": 0.019855,
+          "netR": -0.245419,
+          "exitReason": "shock-digested"
+        }
+      ],
+      "netR": -0.080007,
+      "grossR": -0.069572,
+      "tags": {
+        "s": -0.5,
+        "betaA": -0.02407,
+        "betaB": -0.01997,
+        "symbols": [
+          "RB0",
+          "FG0"
+        ]
+      },
+      "foldId": "window-2"
+    },
+    {
+      "id": 1,
+      "signalDate": "2020-01-08",
+      "entryDate": "2020-01-09",
+      "exitDate": "2020-01-09",
+      "exitReason": "shock-digested",
+      "direction": 1,
+      "sizeR": 0.6,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3617,
+          "stop": 3559.4,
+          "target": 3693.8,
+          "exit": 3555,
+          "rawR": -1.076389,
+          "costR": 0.021978,
+          "netR": -1.098367,
+          "exitReason": "shock-digested"
+        },
+        {
+          "symbol": "FG0",
+          "side": 1,
+          "entry": 1508,
+          "stop": 1487.9,
+          "target": 1534.8,
+          "exit": 1503,
+          "rawR": -0.248756,
+          "costR": 0.026259,
+          "netR": -0.275015,
+          "exitReason": "shock-digested"
+        }
+      ],
+      "netR": -0.412015,
+      "grossR": -0.397544,
+      "tags": {
+        "s": -0.6,
+        "betaA": -0.02455,
+        "betaB": -0.0207,
+        "symbols": [
+          "RB0",
+          "FG0"
+        ]
+      },
+      "foldId": "window-2"
+    },
+    {
+      "id": 2,
+      "signalDate": "2020-03-30",
+      "entryDate": "2020-03-31",
+      "exitDate": "2020-04-02",
+      "exitReason": "shock-digested",
+      "direction": -1,
+      "sizeR": 0.3196,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3253,
+          "stop": 3358.1,
+          "target": 3087.2,
+          "exit": 3229,
+          "rawR": 0.228354,
+          "costR": 0.010833,
+          "netR": 0.217521,
+          "exitReason": "shock-digested"
+        },
+        {
+          "symbol": "FG0",
+          "side": -1,
+          "entry": 1289,
+          "stop": 1321.3,
+          "target": 1236.6,
+          "exit": 1280,
+          "rawR": 0.278638,
+          "costR": 0.013967,
+          "netR": 0.26467,
+          "exitReason": "shock-digested"
+        }
+      ],
+      "netR": 0.077054,
+      "grossR": 0.081017,
+      "tags": {
+        "s": 0.55,
+        "betaA": -0.03858,
+        "betaB": -0.0187,
+        "symbols": [
+          "RB0",
+          "FG0"
+        ]
+      },
+      "foldId": "window-2"
+    },
+    {
+      "id": 3,
+      "signalDate": "2020-03-31",
+      "entryDate": "2020-04-01",
+      "exitDate": "2020-04-02",
+      "exitReason": "shock-digested",
+      "direction": -1,
+      "sizeR": 0.4101,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3245,
+          "stop": 3342.8,
+          "target": 3086.6,
+          "exit": 3229,
+          "rawR": 0.163599,
+          "costR": 0.011613,
+          "netR": 0.151986,
+          "exitReason": "shock-digested"
+        },
+        {
+          "symbol": "FG0",
+          "side": -1,
+          "entry": 1281,
+          "stop": 1324.9,
+          "target": 1245.8,
+          "exit": 1280,
+          "rawR": 0.022779,
+          "costR": 0.010213,
+          "netR": 0.012566,
+          "exitReason": "shock-digested"
+        }
+      ],
+      "netR": 0.033741,
+      "grossR": 0.038217,
+      "tags": {
+        "s": 0.7,
+        "betaA": -0.03577,
+        "betaB": -0.01752,
+        "symbols": [
+          "RB0",
+          "FG0"
+        ]
+      },
+      "foldId": "window-2"
+    },
+    {
+      "id": 4,
+      "signalDate": "2020-05-11",
+      "entryDate": "2020-05-12",
+      "exitDate": "2020-05-12",
+      "exitReason": "shock-digested",
+      "direction": 1,
+      "sizeR": 0.4896,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3448,
+          "stop": 3380.3,
+          "target": 3547.6,
+          "exit": 3464,
+          "rawR": 0.236337,
+          "costR": 0.017826,
+          "netR": 0.218511,
+          "exitReason": "shock-digested"
+        },
+        {
+          "symbol": "FG0",
+          "side": 1,
+          "entry": 1342,
+          "stop": 1300.7,
+          "target": 1392.4,
+          "exit": 1345,
+          "rawR": 0.072639,
+          "costR": 0.011373,
+          "netR": 0.061266,
+          "exitReason": "shock-digested"
+        }
+      ],
+      "netR": 0.06849,
+      "grossR": 0.075637,
+      "tags": {
+        "s": -0.66,
+        "betaA": -0.01422,
+        "betaB": -0.01193,
+        "symbols": [
+          "RB0",
+          "FG0"
+        ]
+      },
+      "foldId": "window-2"
+    },
+    {
+      "id": 0,
+      "signalDate": "2021-12-30",
+      "entryDate": "2021-12-31",
+      "exitDate": "2021-12-31",
+      "exitReason": "end-of-fold",
+      "direction": -1,
+      "sizeR": 0.2492,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 4282,
+          "stop": 4427.9,
+          "target": 4061.8,
+          "exit": 4315,
+          "rawR": -0.226182,
+          "costR": 0.010272,
+          "netR": -0.236454,
+          "exitReason": "end-of-fold"
+        },
+        {
+          "symbol": "FG0",
+          "side": -1,
+          "entry": 1735,
+          "stop": 1816.8,
+          "target": 1630.6,
+          "exit": 1705,
+          "rawR": 0.366748,
+          "costR": 0.007424,
+          "netR": 0.359325,
+          "exitReason": "end-of-fold"
+        }
+      ],
+      "netR": 0.01531,
+      "grossR": 0.017515,
+      "tags": {
+        "s": 0.5,
+        "betaA": -0.00015,
+        "betaB": -0.00559,
+        "symbols": [
+          "RB0",
+          "FG0"
+        ]
+      },
+      "foldId": "window-3"
+    }
+  ],
+  "abandons": 0,
+  "intents": 7,
+  "resultsHash": "92b5e0eef989076e1862b6e195bc2cc487271c150e9a7e030ad87dbcf0c48b47"
+}

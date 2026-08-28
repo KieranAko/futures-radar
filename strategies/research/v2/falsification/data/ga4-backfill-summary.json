@@ -1,0 +1,42 @@
+{
+  "schema": "futures-radar-ga4-summary/1",
+  "writtenAt": "2026-08-28T08:19:00Z",
+  "US10Y": {
+    "source": "akshare bond_zh_us_rate",
+    "fetchedAt": "2026-08-28T08:17:51Z",
+    "rows": 8928,
+    "range": [
+      "1990-12-19",
+      "2026-08-27"
+    ]
+  },
+  "DR007": {
+    "source": "akshare repo_rate_hist (FDR007 2017-05-31+/FR007 proxy 2015+)",
+    "fetchedAt": "2026-08-28T08:18:03Z",
+    "rows": 2906,
+    "range": [
+      "2015-01-04",
+      "2026-08-27"
+    ],
+    "segments": [
+      {
+        "field": "FR007",
+        "start": "2015-01-04",
+        "end": "2017-05-27",
+        "role": "proxy",
+        "note": "FR007 代理段（2015-2017-05-30），仅用于 2015-2017 粗标定"
+      },
+      {
+        "field": "FDR007",
+        "start": "2017-05-31",
+        "end": "2026-08-27",
+        "role": "primary",
+        "note": "FDR007 官方定盘口径（2017-05-31 起），walk-forward 只使用本段"
+      }
+    ]
+  },
+  "recordingsWritten": [
+    "strategies\\signal-backtest\\recordings\\v4\\macro-history.json",
+    "strategies\\signal-backtest\\recordings\\v5\\macro-history.json"
+  ]
+}

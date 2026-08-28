@@ -1,0 +1,40 @@
+{
+  "specId": "FS-02",
+  "strategyId": "FS-02",
+  "description": "基差分位回归（现货–期货收敛）walk-forward 证伪 spec — 【BLOCKED：数据前置不满足，未执行】",
+  "library": { "sourceFile": "strategies/strategy-library-v2.json", "entryId": "FS-02" },
+  "blocked": {
+    "reason": "数据契约前置不满足（04-data-contracts.json FS-02）：futures_spot_price_daily 的 2011+ dom_basis_rate 历史 + PIT 逐日快照采集器未运行。实测仅有的现货数据为 GA-6 审计快照：ga6-fetch-spot-daily.json 覆盖 2026-07-10..2026-08-28（50 日，fetchedAt 2026-08-28 一次性拉取，非 PIT 历史）与 ga6-fetch-spot-previous.json（180 日分布锚快照 2026-08-27）。50 日窗口不足 180 日启动锚、更不足 ≥180 日序列直估口径；且 F7 禁今日数据回填历史。",
+    "evidence": [
+      "falsification/data/ga6-fetch-spot-daily.json: startDay=20260710 endDay=20260828, fetchedAt=2026-08-28T08:31:20Z（非逐日 PIT 快照）",
+      "falsification/data/ga6-fetch-spot-previous.json: anchorDate=20260827, rows=54（单日快照）",
+      "04-data-contracts.json FS-02 preconditionsNote: 基差历史批量采集器（PIT 逐日快照）+ 基差统一口径 br=(S−F)/S"
+    ],
+    "conclusion": "FS-02 walk-forward 不可执行 → 停留 designed；needs-clarify：需基差历史采集器先运行（PIT 逐日快照 ≥2011，或至少 ≥180 日后启用正式口径），并完成 GA-6 可交易集口径复核（42 品种），再重跑本证伪。",
+    "stateSuggestion": "designed（数据前置未满足，非证伪失败）"
+  },
+  "universe": { "symbols": ["RB0", "M0", "RM0", "CU0", "AL0", "ZN0", "NI0", "SN0", "PB0", "AG0", "AU0"], "sectors": [], "macro": [] },
+  "data": { "daily": true, "derived": ["atr5"], "sector": [], "macro": [], "calendar": false, "rollJumps": true, "tradableSet": true },
+  "period": { "start": "2015-01-01", "end": "2026-08-28" },
+  "warmupBars": 200,
+  "folds": { "mode": "purged-expanding", "testPeriod": "year", "purgeBars": 5 },
+  "execution": { "entryOffsetBars": 1, "pathPriority": "stop-first", "cost": { "roundtripBps": 7, "legs": 1 } },
+  "strategyLevel": {
+    "minTrades": 200,
+    "pfThreshold": 1.2,
+    "ci": { "level": 0.95, "method": "bootstrap-percentile", "mustExcludeZero": true },
+    "majorityYearsPositive": true,
+    "baselines": ["always-long", "always-short", "random"],
+    "random": { "mode": "same-entries-flipped-side", "runs": 1, "seed": 20260828 },
+    "theoryFalsifiedState": "retired"
+  },
+  "theoryLevel": { "hypothesis": "F1 基差均值回归 + F2 收敛方向不对称性", "engine": "none" },
+  "machineKillRules": [
+    { "id": "fs02-min-trades", "metric": "n", "op": "lt", "value": 200, "onTrigger": "suspended", "note": "样本不足 → designed" },
+    { "id": "fs02-pf", "metric": "pf", "op": "lt", "value": 1.2, "onTrigger": "suspended", "note": "PF < 1.2 → suspended" },
+    { "id": "fs02-sharpe", "metric": "sharpeTrade", "op": "lt", "value": 0.5, "onTrigger": "suspended", "note": "组合夏普 < 0.5 → suspended（库 killRules）" },
+    { "id": "fs02-hit", "metric": "custom.convergenceHitRate", "op": "lt", "value": 0.55, "onTrigger": "retired", "note": "命中率 < 55% → 证伪 F1 → retired（库 killRules）" }
+  ],
+  "signal": { "adapter": null },
+  "params": { "zThreshold": 1.5, "anchorDays": 180, "adverseSigma": 0.5, "timeExitBars": 20, "gapAbandonFactor": 1 }
+}

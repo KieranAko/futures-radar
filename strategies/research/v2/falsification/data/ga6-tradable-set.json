@@ -1,0 +1,142 @@
+{
+  "schema": "futures-radar-ga6-tradable-set/1",
+  "generatedAt": "2026-08-28T08:40:17Z",
+  "rule": "30 日零变动占比 ≤ 40% 才可进入 FS-02 可交易集（比率域 z 基差策略，现货挂牌价作为 S_t 输入）",
+  "tradableSymbols": [
+    "AG",
+    "AL",
+    "AU",
+    "BR",
+    "BU",
+    "BZ",
+    "CF",
+    "CU",
+    "EB",
+    "EG",
+    "FU",
+    "HC",
+    "I",
+    "JD",
+    "L",
+    "LC",
+    "LH",
+    "M",
+    "MA",
+    "NI",
+    "OI",
+    "P",
+    "PB",
+    "PF",
+    "PG",
+    "PL",
+    "PP",
+    "PR",
+    "RB",
+    "RM",
+    "RU",
+    "SF",
+    "SM",
+    "SN",
+    "SP",
+    "SR",
+    "TA",
+    "UR",
+    "V",
+    "WR",
+    "Y",
+    "ZN"
+  ],
+  "excludedSymbols": [
+    {
+      "A": {
+        "zero_change_ratio": 0.9655172413793104,
+        "distinct_values": 2,
+        "last_date": "20260828"
+      }
+    },
+    {
+      "C": {
+        "zero_change_ratio": 0.5517241379310345,
+        "distinct_values": 10,
+        "last_date": "20260828"
+      }
+    },
+    {
+      "CY": {
+        "zero_change_ratio": 0.8620689655172413,
+        "distinct_values": 5,
+        "last_date": "20260828"
+      }
+    },
+    {
+      "FG": {
+        "zero_change_ratio": 0.7241379310344828,
+        "distinct_values": 9,
+        "last_date": "20260828"
+      }
+    },
+    {
+      "J": {
+        "zero_change_ratio": 0.7586206896551724,
+        "distinct_values": 8,
+        "last_date": "20260828"
+      }
+    },
+    {
+      "JM": {
+        "zero_change_ratio": 0.7586206896551724,
+        "distinct_values": 8,
+        "last_date": "20260828"
+      }
+    },
+    {
+      "PS": {
+        "zero_change_ratio": 0.896551724137931,
+        "distinct_values": 4,
+        "last_date": "20260828"
+      }
+    },
+    {
+      "PX": {
+        "zero_change_ratio": 0.9655172413793104,
+        "distinct_values": 2,
+        "last_date": "20260828"
+      }
+    },
+    {
+      "SA": {
+        "zero_change_ratio": 0.8275862068965517,
+        "distinct_values": 6,
+        "last_date": "20260828"
+      }
+    },
+    {
+      "SH": {
+        "zero_change_ratio": 0.9310344827586207,
+        "distinct_values": 3,
+        "last_date": "20260828"
+      }
+    },
+    {
+      "SI": {
+        "zero_change_ratio": 0.7241379310344828,
+        "distinct_values": 8,
+        "last_date": "20260828"
+      }
+    },
+    {
+      "SS": {
+        "zero_change_ratio": 0.5517241379310345,
+        "distinct_values": 13,
+        "last_date": "20260828"
+      }
+    }
+  ],
+  "noSpotQuoteSymbols": [],
+  "revisionRiskNotes": [
+    "生意社现货价为挂牌/参考价，与真实成交价存在偏离；通过质量门的品种仍按 t2 口径降权观察（部分化工品挂牌价长期不动）",
+    "回填历史必须 PIT 逐日拉取；本审计仅为采集日样例快照（v0），非历史回填",
+    "dominant_contract 换月导致 dom_basis 跳变与现货粘性无关，审计只统计 spot_price 序列"
+  ],
+  "usage": "FS-02 基差历史批量采集器（第二批）按本名单过滤品种；名单在 GA-6 全量历史审计完成后冻结"
+}

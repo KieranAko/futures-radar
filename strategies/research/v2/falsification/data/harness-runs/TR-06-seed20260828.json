@@ -1,0 +1,1169 @@
+{
+  "schema": "falsification-harness-result/1",
+  "specId": "TR-06",
+  "strategyId": "TR-06",
+  "specFile": "TR-06",
+  "libraryRef": {
+    "sourceFile": "strategies/strategy-library-v2.json",
+    "entryId": "TR-06"
+  },
+  "meta": {
+    "seed": 20260828,
+    "foldsMode": "purged-expanding",
+    "generatedAt": "2026-08-28T10:05:22.394Z"
+  },
+  "data": {
+    "symbols": [
+      "RB0",
+      "M0",
+      "SC0"
+    ],
+    "timelineStart": "2015-01-05",
+    "timelineEnd": "2026-08-28",
+    "nBars": 5272
+  },
+  "folds": [
+    {
+      "fold": "fold-1-2015",
+      "year": "2015",
+      "label": "2015",
+      "testStart": "2015-01-05",
+      "testEnd": "2015-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-2-2016",
+      "year": "2016",
+      "label": "2016",
+      "testStart": "2016-01-04",
+      "testEnd": "2016-12-30",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-3-2017",
+      "year": "2017",
+      "label": "2017",
+      "testStart": "2017-01-02",
+      "testEnd": "2017-12-29",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-4-2018",
+      "year": "2018",
+      "label": "2018",
+      "testStart": "2018-01-02",
+      "testEnd": "2018-12-28",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-5-2019",
+      "year": "2019",
+      "label": "2019",
+      "testStart": "2019-01-02",
+      "testEnd": "2019-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-6-2020",
+      "year": "2020",
+      "label": "2020",
+      "testStart": "2020-01-02",
+      "testEnd": "2020-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-7-2021",
+      "year": "2021",
+      "label": "2021",
+      "testStart": "2021-01-04",
+      "testEnd": "2021-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-8-2022",
+      "year": "2022",
+      "label": "2022",
+      "testStart": "2022-01-04",
+      "testEnd": "2022-12-30",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-9-2023",
+      "year": "2023",
+      "label": "2023",
+      "testStart": "2023-01-03",
+      "testEnd": "2023-12-29",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-10-2024",
+      "year": "2024",
+      "label": "2024",
+      "testStart": "2024-01-02",
+      "testEnd": "2024-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-11-2025",
+      "year": "2025",
+      "label": "2025",
+      "testStart": "2025-01-02",
+      "testEnd": "2025-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-12-2026",
+      "year": "2026",
+      "label": "2026",
+      "testStart": "2026-01-05",
+      "testEnd": "2026-08-28",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 0,
+      "abandons": 0,
+      "abandonReasons": {}
+    }
+  ],
+  "paramsHistory": [
+    {
+      "fold": "fold-1-2015",
+      "params": {
+        "mode": "delayed",
+        "eventAtrMult": 2,
+        "eventMinPct": 0.03,
+        "volEvent": 2,
+        "volConfirm": 1.2,
+        "stopAtrMult": 0.25,
+        "t2RangeMult": 2,
+        "t2R": 3,
+        "timeExitBars": 8,
+        "gapAbandonFactor": 0.75
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-2-2016",
+      "params": {
+        "mode": "delayed",
+        "eventAtrMult": 2,
+        "eventMinPct": 0.03,
+        "volEvent": 2,
+        "volConfirm": 1.2,
+        "stopAtrMult": 0.25,
+        "t2RangeMult": 2,
+        "t2R": 3,
+        "timeExitBars": 8,
+        "gapAbandonFactor": 0.75
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-3-2017",
+      "params": {
+        "mode": "delayed",
+        "eventAtrMult": 2,
+        "eventMinPct": 0.03,
+        "volEvent": 2,
+        "volConfirm": 1.2,
+        "stopAtrMult": 0.25,
+        "t2RangeMult": 2,
+        "t2R": 3,
+        "timeExitBars": 8,
+        "gapAbandonFactor": 0.75
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-4-2018",
+      "params": {
+        "mode": "delayed",
+        "eventAtrMult": 2,
+        "eventMinPct": 0.03,
+        "volEvent": 2,
+        "volConfirm": 1.2,
+        "stopAtrMult": 0.25,
+        "t2RangeMult": 2,
+        "t2R": 3,
+        "timeExitBars": 8,
+        "gapAbandonFactor": 0.75
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-5-2019",
+      "params": {
+        "mode": "delayed",
+        "eventAtrMult": 2,
+        "eventMinPct": 0.03,
+        "volEvent": 2,
+        "volConfirm": 1.2,
+        "stopAtrMult": 0.25,
+        "t2RangeMult": 2,
+        "t2R": 3,
+        "timeExitBars": 8,
+        "gapAbandonFactor": 0.75
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-6-2020",
+      "params": {
+        "mode": "delayed",
+        "eventAtrMult": 2,
+        "eventMinPct": 0.03,
+        "volEvent": 2,
+        "volConfirm": 1.2,
+        "stopAtrMult": 0.25,
+        "t2RangeMult": 2,
+        "t2R": 3,
+        "timeExitBars": 8,
+        "gapAbandonFactor": 0.75
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-7-2021",
+      "params": {
+        "mode": "delayed",
+        "eventAtrMult": 2,
+        "eventMinPct": 0.03,
+        "volEvent": 2,
+        "volConfirm": 1.2,
+        "stopAtrMult": 0.25,
+        "t2RangeMult": 2,
+        "t2R": 3,
+        "timeExitBars": 8,
+        "gapAbandonFactor": 0.75
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-8-2022",
+      "params": {
+        "mode": "delayed",
+        "eventAtrMult": 2,
+        "eventMinPct": 0.03,
+        "volEvent": 2,
+        "volConfirm": 1.2,
+        "stopAtrMult": 0.25,
+        "t2RangeMult": 2,
+        "t2R": 3,
+        "timeExitBars": 8,
+        "gapAbandonFactor": 0.75
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-9-2023",
+      "params": {
+        "mode": "delayed",
+        "eventAtrMult": 2,
+        "eventMinPct": 0.03,
+        "volEvent": 2,
+        "volConfirm": 1.2,
+        "stopAtrMult": 0.25,
+        "t2RangeMult": 2,
+        "t2R": 3,
+        "timeExitBars": 8,
+        "gapAbandonFactor": 0.75
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-10-2024",
+      "params": {
+        "mode": "delayed",
+        "eventAtrMult": 2,
+        "eventMinPct": 0.03,
+        "volEvent": 2,
+        "volConfirm": 1.2,
+        "stopAtrMult": 0.25,
+        "t2RangeMult": 2,
+        "t2R": 3,
+        "timeExitBars": 8,
+        "gapAbandonFactor": 0.75
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-11-2025",
+      "params": {
+        "mode": "delayed",
+        "eventAtrMult": 2,
+        "eventMinPct": 0.03,
+        "volEvent": 2,
+        "volConfirm": 1.2,
+        "stopAtrMult": 0.25,
+        "t2RangeMult": 2,
+        "t2R": 3,
+        "timeExitBars": 8,
+        "gapAbandonFactor": 0.75
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-12-2026",
+      "params": {
+        "mode": "delayed",
+        "eventAtrMult": 2,
+        "eventMinPct": 0.03,
+        "volEvent": 2,
+        "volConfirm": 1.2,
+        "stopAtrMult": 0.25,
+        "t2RangeMult": 2,
+        "t2R": 3,
+        "timeExitBars": 8,
+        "gapAbandonFactor": 0.75
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    }
+  ],
+  "strategyLevel": {
+    "gate": {
+      "passed": false,
+      "checks": [
+        {
+          "id": "minTrades",
+          "passed": false,
+          "detail": "n=0 >= 100"
+        },
+        {
+          "id": "pfThreshold",
+          "passed": false,
+          "detail": "PF=0 vs 1.2"
+        },
+        {
+          "id": "ciExcludesZero",
+          "passed": false,
+          "detail": "95% CI=[null,null]"
+        },
+        {
+          "id": "majorityYearsPositive",
+          "passed": false,
+          "detail": "0/0 years positive"
+        }
+      ],
+      "stats": {
+        "n": 0,
+        "meanR": null,
+        "stdR": null,
+        "sharpeTrade": null,
+        "pf": 0,
+        "t": null,
+        "p": null,
+        "ci95": [
+          null,
+          null
+        ],
+        "ciExcludesZero": false,
+        "ciPositive": false
+      },
+      "foldStats": {
+        "rows": [
+          {
+            "fold": "fold-1-2015",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "fold-2-2016",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "fold-3-2017",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "fold-4-2018",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "fold-5-2019",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "fold-6-2020",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "fold-7-2021",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "fold-8-2022",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "fold-9-2023",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "fold-10-2024",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "fold-11-2025",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          },
+          {
+            "fold": "fold-12-2026",
+            "n": 0,
+            "meanR": null,
+            "hitRateNet": null,
+            "hitRateDirection": null,
+            "binomialP": null
+          }
+        ],
+        "majorityYearsPositive": false,
+        "positiveYears": 0,
+        "yearsWithTrades": 0
+      },
+      "windowGate": null
+    },
+    "baselines": {
+      "always-long": {
+        "convention": "per symbol per fold: hold from first non-jump bar open to last bar close, side=±1, roundtrip cost deducted; retBps = side*(exit-entry)/entry*1e4 - roundtripBps/legs",
+        "rows": [
+          {
+            "fold": "fold-1-2015",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2015-01-05",
+            "exitDate": "2015-12-31",
+            "retBps": -3010.921569
+          },
+          {
+            "fold": "fold-1-2015",
+            "symbol": "M0",
+            "side": 1,
+            "entryDate": "2015-01-05",
+            "exitDate": "2015-12-31",
+            "retBps": -1513.067095
+          },
+          {
+            "fold": "fold-2-2016",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2016-01-04",
+            "exitDate": "2016-12-30",
+            "retBps": 5737.09665
+          },
+          {
+            "fold": "fold-2-2016",
+            "symbol": "M0",
+            "side": 1,
+            "entryDate": "2016-01-04",
+            "exitDate": "2016-12-30",
+            "retBps": 1820.004219
+          },
+          {
+            "fold": "fold-3-2017",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2017-01-02",
+            "exitDate": "2017-12-29",
+            "retBps": 2862.742198
+          },
+          {
+            "fold": "fold-3-2017",
+            "symbol": "M0",
+            "side": 1,
+            "entryDate": "2017-01-02",
+            "exitDate": "2017-12-29",
+            "retBps": -278.317829
+          },
+          {
+            "fold": "fold-4-2018",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2018-01-02",
+            "exitDate": "2018-12-28",
+            "retBps": -1051.461984
+          },
+          {
+            "fold": "fold-4-2018",
+            "symbol": "M0",
+            "side": 1,
+            "entryDate": "2018-01-02",
+            "exitDate": "2018-12-28",
+            "retBps": -530.465704
+          },
+          {
+            "fold": "fold-5-2019",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": 496.237198
+          },
+          {
+            "fold": "fold-5-2019",
+            "symbol": "M0",
+            "side": 1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": 553
+          },
+          {
+            "fold": "fold-5-2019",
+            "symbol": "SC0",
+            "side": 1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": 2689.953782
+          },
+          {
+            "fold": "fold-6-2020",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": 2236.303571
+          },
+          {
+            "fold": "fold-6-2020",
+            "symbol": "M0",
+            "side": 1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": 2507.388489
+          },
+          {
+            "fold": "fold-6-2020",
+            "symbol": "SC0",
+            "side": 1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": -3761.916166
+          },
+          {
+            "fold": "fold-7-2021",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": -96.572807
+          },
+          {
+            "fold": "fold-7-2021",
+            "symbol": "M0",
+            "side": 1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": -835.300259
+          },
+          {
+            "fold": "fold-7-2021",
+            "symbol": "SC0",
+            "side": 1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": 6467.083856
+          },
+          {
+            "fold": "fold-8-2022",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": -464.926546
+          },
+          {
+            "fold": "fold-8-2022",
+            "symbol": "M0",
+            "side": 1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": 2216.602484
+          },
+          {
+            "fold": "fold-8-2022",
+            "symbol": "SC0",
+            "side": 1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": 1367.292643
+          },
+          {
+            "fold": "fold-9-2023",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": -246.02439
+          },
+          {
+            "fold": "fold-9-2023",
+            "symbol": "M0",
+            "side": 1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": -1587.68615
+          },
+          {
+            "fold": "fold-9-2023",
+            "symbol": "SC0",
+            "side": 1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": -455.785639
+          },
+          {
+            "fold": "fold-10-2024",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": -1744.827715
+          },
+          {
+            "fold": "fold-10-2024",
+            "symbol": "M0",
+            "side": 1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": -1812.471125
+          },
+          {
+            "fold": "fold-10-2024",
+            "symbol": "SC0",
+            "side": 1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": 285.279412
+          },
+          {
+            "fold": "fold-11-2025",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": -560.706505
+          },
+          {
+            "fold": "fold-11-2025",
+            "symbol": "M0",
+            "side": 1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": 92.191771
+          },
+          {
+            "fold": "fold-11-2025",
+            "symbol": "SC0",
+            "side": 1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": -2330.268206
+          },
+          {
+            "fold": "fold-12-2026",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2026-01-05",
+            "exitDate": "2026-08-28",
+            "retBps": -80.365231
+          }
+        ],
+        "stats": {
+          "n": 30,
+          "meanRetBps": 299.0030451000001
+        }
+      },
+      "always-short": {
+        "convention": "per symbol per fold: hold from first non-jump bar open to last bar close, side=±1, roundtrip cost deducted; retBps = side*(exit-entry)/entry*1e4 - roundtripBps/legs",
+        "rows": [
+          {
+            "fold": "fold-1-2015",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2015-01-05",
+            "exitDate": "2015-12-31",
+            "retBps": 2996.921569
+          },
+          {
+            "fold": "fold-1-2015",
+            "symbol": "M0",
+            "side": -1,
+            "entryDate": "2015-01-05",
+            "exitDate": "2015-12-31",
+            "retBps": 1499.067095
+          },
+          {
+            "fold": "fold-2-2016",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2016-01-04",
+            "exitDate": "2016-12-30",
+            "retBps": -5751.09665
+          },
+          {
+            "fold": "fold-2-2016",
+            "symbol": "M0",
+            "side": -1,
+            "entryDate": "2016-01-04",
+            "exitDate": "2016-12-30",
+            "retBps": -1834.004219
+          },
+          {
+            "fold": "fold-3-2017",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2017-01-02",
+            "exitDate": "2017-12-29",
+            "retBps": -2876.742198
+          },
+          {
+            "fold": "fold-3-2017",
+            "symbol": "M0",
+            "side": -1,
+            "entryDate": "2017-01-02",
+            "exitDate": "2017-12-29",
+            "retBps": 264.317829
+          },
+          {
+            "fold": "fold-4-2018",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2018-01-02",
+            "exitDate": "2018-12-28",
+            "retBps": 1037.461984
+          },
+          {
+            "fold": "fold-4-2018",
+            "symbol": "M0",
+            "side": -1,
+            "entryDate": "2018-01-02",
+            "exitDate": "2018-12-28",
+            "retBps": 516.465704
+          },
+          {
+            "fold": "fold-5-2019",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": -510.237198
+          },
+          {
+            "fold": "fold-5-2019",
+            "symbol": "M0",
+            "side": -1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": -567
+          },
+          {
+            "fold": "fold-5-2019",
+            "symbol": "SC0",
+            "side": -1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": -2703.953782
+          },
+          {
+            "fold": "fold-6-2020",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": -2250.303571
+          },
+          {
+            "fold": "fold-6-2020",
+            "symbol": "M0",
+            "side": -1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": -2521.388489
+          },
+          {
+            "fold": "fold-6-2020",
+            "symbol": "SC0",
+            "side": -1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": 3747.916166
+          },
+          {
+            "fold": "fold-7-2021",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": 82.572807
+          },
+          {
+            "fold": "fold-7-2021",
+            "symbol": "M0",
+            "side": -1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": 821.300259
+          },
+          {
+            "fold": "fold-7-2021",
+            "symbol": "SC0",
+            "side": -1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": -6481.083856
+          },
+          {
+            "fold": "fold-8-2022",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": 450.926546
+          },
+          {
+            "fold": "fold-8-2022",
+            "symbol": "M0",
+            "side": -1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": -2230.602484
+          },
+          {
+            "fold": "fold-8-2022",
+            "symbol": "SC0",
+            "side": -1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": -1381.292643
+          },
+          {
+            "fold": "fold-9-2023",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": 232.02439
+          },
+          {
+            "fold": "fold-9-2023",
+            "symbol": "M0",
+            "side": -1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": 1573.68615
+          },
+          {
+            "fold": "fold-9-2023",
+            "symbol": "SC0",
+            "side": -1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": 441.785639
+          },
+          {
+            "fold": "fold-10-2024",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": 1730.827715
+          },
+          {
+            "fold": "fold-10-2024",
+            "symbol": "M0",
+            "side": -1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": 1798.471125
+          },
+          {
+            "fold": "fold-10-2024",
+            "symbol": "SC0",
+            "side": -1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": -299.279412
+          },
+          {
+            "fold": "fold-11-2025",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": 546.706505
+          },
+          {
+            "fold": "fold-11-2025",
+            "symbol": "M0",
+            "side": -1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": -106.191771
+          },
+          {
+            "fold": "fold-11-2025",
+            "symbol": "SC0",
+            "side": -1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": 2316.268206
+          },
+          {
+            "fold": "fold-12-2026",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2026-01-05",
+            "exitDate": "2026-08-28",
+            "retBps": 66.365231
+          }
+        ],
+        "stats": {
+          "n": 30,
+          "meanRetBps": -313.0030451000001
+        }
+      },
+      "random": {
+        "convention": "same entry bars as strategy; direction and stop/target mirrored around the actual entry price; dynamic manage() exits not mirrored (fixed-price brackets used)",
+        "mode": "same-entries-flipped-side",
+        "runs": 1,
+        "runResults": [
+          {
+            "run": 0,
+            "mode": "same-entries-flipped-side",
+            "seed": -1627234715,
+            "trades": 0,
+            "netRs": []
+          }
+        ],
+        "pooledNetRs": []
+      }
+    },
+    "baselineComparisons": {
+      "random": {
+        "strategyMeanR": null,
+        "baselineMeanR": null,
+        "diffMeanR": null,
+        "diffCI": [
+          null,
+          null
+        ],
+        "beatsBaseline": false,
+        "method": "bootstrap-paired-diff"
+      },
+      "always-long": {
+        "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+        "strategyMeanR": null,
+        "baselineMeanBps": 299.0030451000001,
+        "baselineMeanPseudoR": 0.029900304510000017
+      },
+      "always-short": {
+        "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+        "strategyMeanR": null,
+        "baselineMeanBps": -313.0030451000001,
+        "baselineMeanPseudoR": -0.03130030450999998
+      }
+    }
+  },
+  "theoryLevel": {
+    "present": true,
+    "hypothesis": "冲击分解模型 λ/γ 区分有效（确认等待有增益 ≥ 0.5R）",
+    "tests": [
+      {
+        "id": "tr06-confirm-wait-gain",
+        "label": "延迟入场（确认/回踩）− 当日追入 ≥ 0.5R",
+        "falsified": false,
+        "killState": "retired",
+        "evidence": {
+          "delayedN": 0,
+          "delayedMeanR": null,
+          "chaseN": 0,
+          "chaseMeanR": null,
+          "diffR": null
+        }
+      }
+    ],
+    "anyFalsified": false,
+    "falsified": [],
+    "inconclusive": [],
+    "killOn": "理论级证伪成立即 retired",
+    "metrics": {
+      "delayedMeanR": null,
+      "chaseMeanR": null,
+      "diffR": null,
+      "rolling24mEventsMin": 0
+    }
+  },
+  "killVerdicts": [
+    {
+      "rule": "tr06-min-trades",
+      "metric": "n",
+      "op": "lt",
+      "value": 100,
+      "observed": 0,
+      "triggered": true,
+      "onTrigger": "suspended",
+      "note": "事件样本稀疏，minTrades=100（库 note）；不足 → designed"
+    },
+    {
+      "rule": "tr06-pf",
+      "metric": "pf",
+      "op": "lt",
+      "value": 1.2,
+      "observed": 0,
+      "triggered": true,
+      "onTrigger": "suspended",
+      "note": "PF < 1.2 → suspended"
+    },
+    {
+      "rule": "tr06-rolling-24m-events",
+      "metric": "custom.rolling24mEventsMin",
+      "op": "lt",
+      "value": 30,
+      "observed": 0,
+      "triggered": true,
+      "onTrigger": "suspended",
+      "note": "滚动 24 个月事件样本 < 30 → 自动停用（库 killRules 样本充分性门禁）"
+    }
+  ],
+  "suggestion": {
+    "suggestedState": "suspended",
+    "reasons": [
+      "killRule tr06-min-trades 触发 (n lt 100, observed=0) → suspended",
+      "killRule tr06-pf 触发 (pf lt 1.2, observed=0) → suspended",
+      "killRule tr06-rolling-24m-events 触发 (custom.rolling24mEventsMin lt 30, observed=0) → suspended",
+      "策略级门禁未通过: minTrades, pfThreshold, ciExcludesZero, majorityYearsPositive"
+    ],
+    "events": [
+      "kill:tr06-min-trades",
+      "kill:tr06-pf",
+      "kill:tr06-rolling-24m-events",
+      "strategy-gate-fail"
+    ],
+    "note": "最终状态由 t8 执行结论 + t9 复核 + 队长裁定决定；本引擎仅输出判定依据"
+  },
+  "violations": [],
+  "trades": [],
+  "abandons": 0,
+  "intents": 0,
+  "resultsHash": "7a12ee74acccb6205503ec2a55d8e661190bc911f6ad6676276ec2c43a33399f"
+}

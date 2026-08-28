@@ -1,0 +1,30 @@
+{
+  "specId": "FS-05",
+  "strategyId": "FS-05",
+  "description": "农产品压榨/替代价差回归（协整 OU）walk-forward 证伪 spec — 5 品种对双腿；双腿成本 14bp；事件前提开关（GA-7）",
+  "library": { "sourceFile": "strategies/strategy-library-v2.json", "entryId": "FS-05" },
+  "universe": { "symbols": ["M0", "RM0", "Y0", "P0", "OI0", "C0", "CS0"], "sectors": [], "macro": [] },
+  "data": { "daily": true, "derived": ["atr5"], "sector": [], "macro": [], "calendar": true, "rollJumps": true, "tradableSet": false },
+  "period": { "start": "2015-01-01", "end": "2026-08-28" },
+  "warmupBars": 300,
+  "folds": { "mode": "purged-expanding", "testPeriod": "year", "purgeBars": 5 },
+  "execution": { "entryOffsetBars": 1, "pathPriority": "stop-first", "cost": { "roundtripBps": 14, "legs": 2 } },
+  "strategyLevel": {
+    "minTrades": 200,
+    "pfThreshold": 1.2,
+    "ci": { "level": 0.95, "method": "bootstrap-percentile", "mustExcludeZero": true },
+    "majorityYearsPositive": true,
+    "baselines": ["always-long", "always-short", "random"],
+    "random": { "mode": "same-entries-flipped-side", "runs": 1, "seed": 20260828 },
+    "theoryFalsifiedState": "suspended"
+  },
+  "theoryLevel": { "hypothesis": "F1 协整回归 + F2 结构断裂门有效性", "engine": "adapter" },
+  "machineKillRules": [
+    { "id": "fs05-min-trades", "metric": "n", "op": "lt", "value": 200, "onTrigger": "suspended", "note": "样本不足 → designed" },
+    { "id": "fs05-pf", "metric": "pf", "op": "lt", "value": 1.2, "onTrigger": "suspended", "note": "PF < 1.2 → suspended" },
+    { "id": "fs05-sharpe", "metric": "sharpeTrade", "op": "lt", "value": 0.5, "onTrigger": "suspended", "note": "组合夏普 < 0.5 → suspended（库 killRules）" },
+    { "id": "fs05-convergence", "metric": "custom.convergenceHitRate", "op": "lt", "value": 0.55, "onTrigger": "suspended", "note": "回归命中 < 55% → suspended（库 killRules）" }
+  ],
+  "signal": { "adapter": "FS-05" },
+  "params": { "window": 250, "zThreshold": 2, "zTier": 2.5, "adverseSigma": 0.5, "stopSigma": 3, "timeExitBars": 20, "gapAbandonFactor": 0.5 }
+}

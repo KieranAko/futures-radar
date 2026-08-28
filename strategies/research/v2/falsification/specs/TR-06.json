@@ -1,0 +1,40 @@
+{
+  "specId": "TR-06",
+  "strategyId": "TR-06",
+  "description": "事件冲击确认 walk-forward 证伪 spec — 历史验证限 RB0/M0/SC0（D7/F6：FinCoT Q1 历史仅此 3 品种；Q1 驱动文本项历史不可评估 → needs-clarify，事件判定按价格+量能两条件执行）",
+  "library": { "sourceFile": "strategies/strategy-library-v2.json", "entryId": "TR-06" },
+  "universe": { "symbols": ["RB0", "M0", "SC0"], "sectors": [], "macro": [] },
+  "data": { "daily": true, "derived": ["atr5", "volumeRatio", "hv20"], "sector": [], "macro": [], "calendar": false, "rollJumps": true, "tradableSet": false },
+  "period": { "start": "2015-01-01", "end": "2026-08-28" },
+  "warmupBars": 60,
+  "folds": { "mode": "purged-expanding", "testPeriod": "year", "purgeBars": 5 },
+  "execution": { "entryOffsetBars": 1, "pathPriority": "stop-first", "cost": { "roundtripBps": 7, "legs": 1 } },
+  "strategyLevel": {
+    "minTrades": 100,
+    "pfThreshold": 1.2,
+    "ci": { "level": 0.95, "method": "bootstrap-percentile", "mustExcludeZero": true },
+    "majorityYearsPositive": true,
+    "baselines": ["always-long", "always-short", "random"],
+    "random": { "mode": "same-entries-flipped-side", "runs": 1, "seed": 20260828 },
+    "theoryFalsifiedState": "retired"
+  },
+  "theoryLevel": { "hypothesis": "冲击分解模型 λ/γ 区分有效（确认等待有增益）", "engine": "adapter" },
+  "machineKillRules": [
+    { "id": "tr06-min-trades", "metric": "n", "op": "lt", "value": 100, "onTrigger": "suspended", "note": "事件样本稀疏，minTrades=100（库 note）；不足 → designed" },
+    { "id": "tr06-pf", "metric": "pf", "op": "lt", "value": 1.2, "onTrigger": "suspended", "note": "PF < 1.2 → suspended" },
+    { "id": "tr06-rolling-24m-events", "metric": "custom.rolling24mEventsMin", "op": "lt", "value": 30, "onTrigger": "suspended", "note": "滚动 24 个月事件样本 < 30 → 自动停用（库 killRules 样本充分性门禁）" }
+  ],
+  "signal": { "adapter": "TR-06" },
+  "params": {
+    "mode": "delayed",
+    "eventAtrMult": 2,
+    "eventMinPct": 0.03,
+    "volEvent": 2,
+    "volConfirm": 1.2,
+    "stopAtrMult": 0.25,
+    "t2RangeMult": 2,
+    "t2R": 3,
+    "timeExitBars": 8,
+    "gapAbandonFactor": 0.75
+  }
+}

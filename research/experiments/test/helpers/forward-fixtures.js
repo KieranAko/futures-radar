@@ -27,8 +27,8 @@ export const DATE_ZERO = '2026-09-03';      // historical 2024-12-25 shifted: 0 
 export function loadHistoricalCache() {
   // 优先完整缓存（clowder 开发环境）；缺失时回退内置冻结切片（独立安装/CI）
   const candidates = [
-    path.join(__dirname, '../../../backtest/data/historical-cache.json'),
-    path.join(__dirname, '../fixtures/historical-cache-forward-slice.json')
+    path.join(__dirname, '../fixtures/historical-cache-forward-slice.json'),
+    path.join(__dirname, '../../../backtest/data/historical-cache.json')
   ];
   const file = candidates.find((f) => fs.existsSync(f));
   if (!file) {

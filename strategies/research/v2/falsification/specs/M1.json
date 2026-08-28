@@ -1,0 +1,132 @@
+{
+  "specId": "M1",
+  "strategyId": "M1",
+  "description": "DR007 流动性冲击 walk-forward 证伪 spec — 2019-01..2026-08 滚动 12 个月窗口；窗口门禁（命中率≥55% 且单尾 p<0.10，达标占比≥60%，库 ci 字段 t7-E 口径）；FDR007 段（拼接纪律 t7-D）",
+  "library": {
+    "sourceFile": "strategies/strategy-library-v2.json",
+    "entryId": "M1"
+  },
+  "universe": {
+    "symbols": [
+      "RB0",
+      "HC0",
+      "J0",
+      "SA0",
+      "FG0"
+    ],
+    "sectors": [],
+    "macro": [
+      "DR007"
+    ]
+  },
+  "data": {
+    "daily": true,
+    "derived": [
+      "atr5",
+      "ma20",
+      "ma60",
+      "hv20"
+    ],
+    "sector": [],
+    "macro": [
+      "DR007"
+    ],
+    "calendar": false,
+    "rollJumps": true,
+    "tradableSet": false
+  },
+  "period": {
+    "start": "2019-01-01",
+    "end": "2026-08-28"
+  },
+  "warmupBars": 300,
+  "folds": {
+    "mode": "rolling",
+    "windowMonths": 12
+  },
+  "execution": {
+    "entryOffsetBars": 1,
+    "pathPriority": "stop-first",
+    "cost": {
+      "roundtripBps": 7,
+      "legs": 2
+    }
+  },
+  "strategyLevel": {
+    "minTrades": 200,
+    "pfThreshold": 1.2,
+    "ci": {
+      "level": 0.95,
+      "method": "bootstrap-percentile",
+      "mustExcludeZero": true
+    },
+    "majorityYearsPositive": false,
+    "windowGate": {
+      "metric": "hitRateDirection",
+      "minHit": 0.55,
+      "pThreshold": 0.1,
+      "minShare": 0.6
+    },
+    "baselines": [
+      "always-long",
+      "always-short",
+      "random"
+    ],
+    "random": {
+      "mode": "same-entries-flipped-side",
+      "runs": 1,
+      "seed": 20260828
+    },
+    "theoryFalsifiedState": "suspended"
+  },
+  "theoryLevel": {
+    "hypothesis": "信用渠道传导 β_i < 0",
+    "engine": "adapter"
+  },
+  "machineKillRules": [
+    {
+      "id": "m1-min-trades",
+      "metric": "n",
+      "op": "lt",
+      "value": 200,
+      "onTrigger": "suspended",
+      "note": "样本不足 → designed"
+    },
+    {
+      "id": "m1-pf",
+      "metric": "pf",
+      "op": "lt",
+      "value": 1.2,
+      "onTrigger": "suspended",
+      "note": "PF < 1.2 → suspended"
+    },
+    {
+      "id": "m1-pool-hit",
+      "metric": "custom.poolHitRate",
+      "op": "lt",
+      "value": 0.5,
+      "onTrigger": "suspended",
+      "note": "全池 < 50% → 策略整体停用并回炉 β 标定（库 killRules）"
+    },
+    {
+      "id": "m1-consec-window",
+      "metric": "custom.maxConsecFoldHitFail",
+      "op": "gte",
+      "value": 2,
+      "onTrigger": "symbol-freeze",
+      "note": "R7 队长终裁：连续 2 个滚动窗口命中率 < 50% → 冻结该品种方向映射（symbol-freeze）；只记录冻结清单（theory metrics.symbolsToFreeze），不改变策略状态"
+    }
+  ],
+  "signal": {
+    "adapter": "M1"
+  },
+  "params": {
+    "shockThreshold": 0.5,
+    "digestThreshold": 0.3,
+    "stopAtrMult": 1.5,
+    "targetAtrMult": 2.0,
+    "sigmaTarget": 0.15,
+    "timeExitBars": 10,
+    "gapAbandonFactor": 1
+  }
+}

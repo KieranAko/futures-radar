@@ -1,0 +1,189 @@
+{
+  "schema": "falsification-harness-selftest/1",
+  "generatedAt": "2026-08-28T10:36:47.048Z",
+  "total": 22,
+  "passed": 22,
+  "failed": 0,
+  "durationMs": 131,
+  "results": [
+    {
+      "name": "stats: PF / hitRate / mean / sharpe exact",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "stats: t-test & binomial known values",
+      "status": "PASS",
+      "detail": "",
+      "ms": 1,
+      "extra": null
+    },
+    {
+      "name": "stats: bootstrap CI excludes 0 on positive-edge series",
+      "status": "PASS",
+      "detail": "",
+      "ms": 5,
+      "extra": null
+    },
+    {
+      "name": "stats: paired diff CI positive when x = y + 0.3",
+      "status": "PASS",
+      "detail": "",
+      "ms": 4,
+      "extra": null
+    },
+    {
+      "name": "stats: OLS exact on line",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "stats: ADF rejects unit root for AR(1) phi=0.5, fails to reject for RW",
+      "status": "PASS",
+      "detail": "",
+      "ms": 1,
+      "extra": null
+    },
+    {
+      "name": "stats: Engle-Granger detects cointegration, rejects independent pair",
+      "status": "PASS",
+      "detail": "",
+      "ms": 1,
+      "extra": null
+    },
+    {
+      "name": "sim: T+1 fill at next bar open",
+      "status": "PASS",
+      "detail": "",
+      "ms": 1,
+      "extra": null
+    },
+    {
+      "name": "sim: gap-abandon when T+1 open gap exceeds 0.5xATR",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "sim: stop-first path priority (stop & target same bar → stop)",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "sim: target hit when only target touched",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "sim: gap through stop → exit at open",
+      "status": "PASS",
+      "detail": "",
+      "ms": 1,
+      "extra": null
+    },
+    {
+      "name": "sim: time exit at close of timeExitBars-th bar",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "sim: cost model exact (7bp roundtrip, 1 leg)",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "sim: roll-jump bar bans entry and force-closes holdings at prev close",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "sim: multi-leg any-stop closes siblings at close, weighted R",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "engine: purged-expanding year folds correct",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "engine: lookahead guard throws on future bar access",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "engine: determinism — two runs produce identical resultsHash",
+      "status": "PASS",
+      "detail": "",
+      "ms": 55,
+      "extra": null
+    },
+    {
+      "name": "engine: demo smoke on real RB0 data (2015–2026), no violations",
+      "status": "PASS",
+      "detail": "",
+      "ms": 25,
+      "extra": {
+        "trades": 83,
+        "gate": [
+          {
+            "id": "minTrades",
+            "passed": false,
+            "detail": "n=83 >= 200"
+          },
+          {
+            "id": "pfThreshold",
+            "passed": true,
+            "detail": "PF=1.827716 vs 1.2"
+          },
+          {
+            "id": "ciExcludesZero",
+            "passed": true,
+            "detail": "95% CI=[0.103206,0.736926]"
+          },
+          {
+            "id": "majorityYearsPositive",
+            "passed": true,
+            "detail": "8/12 years positive"
+          }
+        ],
+        "suggestion": "retired"
+      }
+    },
+    {
+      "name": "engine: random-flipped baseline discriminates against strategy edge",
+      "status": "PASS",
+      "detail": "",
+      "ms": 13,
+      "extra": null
+    },
+    {
+      "name": "gates: sample insufficiency stays designed; theory falsified retires",
+      "status": "PASS",
+      "detail": "",
+      "ms": 24,
+      "extra": null
+    }
+  ]
+}

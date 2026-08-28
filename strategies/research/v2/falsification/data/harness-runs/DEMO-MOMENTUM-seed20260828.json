@@ -1,0 +1,3566 @@
+{
+  "schema": "falsification-harness-result/1",
+  "specId": "DEMO-MOMENTUM",
+  "strategyId": "DEMO",
+  "specFile": "DEMO-MOMENTUM",
+  "libraryRef": {
+    "sourceFile": "strategies/strategy-library-v2.json",
+    "entryId": null,
+    "note": "demo spec not in library; t8 real specs must set entryId to TR-01/TR-03/TR-06/FS-02/FS-04/FS-05/M1/EC-01"
+  },
+  "meta": {
+    "seed": 20260828,
+    "foldsMode": "purged-expanding",
+    "generatedAt": "2026-08-28T09:34:42.666Z"
+  },
+  "data": {
+    "symbols": [
+      "RB0"
+    ],
+    "timelineStart": "2015-01-05",
+    "timelineEnd": "2026-08-28",
+    "nBars": 4232
+  },
+  "folds": [
+    {
+      "fold": "fold-1-2015",
+      "year": "2015",
+      "label": "2015",
+      "testStart": "2015-01-05",
+      "testEnd": "2015-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 8,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-2-2016",
+      "year": "2016",
+      "label": "2016",
+      "testStart": "2016-01-04",
+      "testEnd": "2016-12-30",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 9,
+      "abandons": 1,
+      "abandonReasons": {
+        "gap-abandon": 1
+      }
+    },
+    {
+      "fold": "fold-3-2017",
+      "year": "2017",
+      "label": "2017",
+      "testStart": "2017-01-02",
+      "testEnd": "2017-12-29",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 4,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-4-2018",
+      "year": "2018",
+      "label": "2018",
+      "testStart": "2018-01-02",
+      "testEnd": "2018-12-28",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 7,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-5-2019",
+      "year": "2019",
+      "label": "2019",
+      "testStart": "2019-01-02",
+      "testEnd": "2019-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 6,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-6-2020",
+      "year": "2020",
+      "label": "2020",
+      "testStart": "2020-01-02",
+      "testEnd": "2020-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 10,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-7-2021",
+      "year": "2021",
+      "label": "2021",
+      "testStart": "2021-01-04",
+      "testEnd": "2021-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 7,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-8-2022",
+      "year": "2022",
+      "label": "2022",
+      "testStart": "2022-01-04",
+      "testEnd": "2022-12-30",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 7,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-9-2023",
+      "year": "2023",
+      "label": "2023",
+      "testStart": "2023-01-03",
+      "testEnd": "2023-12-29",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 6,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-10-2024",
+      "year": "2024",
+      "label": "2024",
+      "testStart": "2024-01-02",
+      "testEnd": "2024-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 6,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-11-2025",
+      "year": "2025",
+      "label": "2025",
+      "testStart": "2025-01-02",
+      "testEnd": "2025-12-31",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 5,
+      "abandons": 0,
+      "abandonReasons": {}
+    },
+    {
+      "fold": "fold-12-2026",
+      "year": "2026",
+      "label": "2026",
+      "testStart": "2026-01-05",
+      "testEnd": "2026-08-28",
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      },
+      "trades": 8,
+      "abandons": 0,
+      "abandonReasons": {}
+    }
+  ],
+  "paramsHistory": [
+    {
+      "fold": "fold-1-2015",
+      "params": {
+        "donchian": 20,
+        "donchianLookback": 1,
+        "volConfirm": 1.2,
+        "atrMultStop": 1,
+        "atrMultTarget": 2,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 0.5
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-2-2016",
+      "params": {
+        "donchian": 20,
+        "donchianLookback": 1,
+        "volConfirm": 1.2,
+        "atrMultStop": 1,
+        "atrMultTarget": 2,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 0.5
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-3-2017",
+      "params": {
+        "donchian": 20,
+        "donchianLookback": 1,
+        "volConfirm": 1.2,
+        "atrMultStop": 1,
+        "atrMultTarget": 2,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 0.5
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-4-2018",
+      "params": {
+        "donchian": 20,
+        "donchianLookback": 1,
+        "volConfirm": 1.2,
+        "atrMultStop": 1,
+        "atrMultTarget": 2,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 0.5
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-5-2019",
+      "params": {
+        "donchian": 20,
+        "donchianLookback": 1,
+        "volConfirm": 1.2,
+        "atrMultStop": 1,
+        "atrMultTarget": 2,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 0.5
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-6-2020",
+      "params": {
+        "donchian": 20,
+        "donchianLookback": 1,
+        "volConfirm": 1.2,
+        "atrMultStop": 1,
+        "atrMultTarget": 2,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 0.5
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-7-2021",
+      "params": {
+        "donchian": 20,
+        "donchianLookback": 1,
+        "volConfirm": 1.2,
+        "atrMultStop": 1,
+        "atrMultTarget": 2,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 0.5
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-8-2022",
+      "params": {
+        "donchian": 20,
+        "donchianLookback": 1,
+        "volConfirm": 1.2,
+        "atrMultStop": 1,
+        "atrMultTarget": 2,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 0.5
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-9-2023",
+      "params": {
+        "donchian": 20,
+        "donchianLookback": 1,
+        "volConfirm": 1.2,
+        "atrMultStop": 1,
+        "atrMultTarget": 2,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 0.5
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-10-2024",
+      "params": {
+        "donchian": 20,
+        "donchianLookback": 1,
+        "volConfirm": 1.2,
+        "atrMultStop": 1,
+        "atrMultTarget": 2,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 0.5
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-11-2025",
+      "params": {
+        "donchian": 20,
+        "donchianLookback": 1,
+        "volConfirm": 1.2,
+        "atrMultStop": 1,
+        "atrMultTarget": 2,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 0.5
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    },
+    {
+      "fold": "fold-12-2026",
+      "params": {
+        "donchian": 20,
+        "donchianLookback": 1,
+        "volConfirm": 1.2,
+        "atrMultStop": 1,
+        "atrMultTarget": 2,
+        "timeExitBars": 10,
+        "gapAbandonFactor": 0.5
+      },
+      "calibProvenance": {
+        "kind": "pre-registered-initial"
+      }
+    }
+  ],
+  "strategyLevel": {
+    "gate": {
+      "passed": false,
+      "checks": [
+        {
+          "id": "minTrades",
+          "passed": false,
+          "detail": "n=83 >= 200"
+        },
+        {
+          "id": "pfThreshold",
+          "passed": true,
+          "detail": "PF=2.963567 vs 1.2"
+        },
+        {
+          "id": "ciExcludesZero",
+          "passed": true,
+          "detail": "95% CI=[0.179395,2.368088]"
+        },
+        {
+          "id": "majorityYearsPositive",
+          "passed": true,
+          "detail": "8/12 years positive"
+        }
+      ],
+      "stats": {
+        "n": 83,
+        "meanR": 0.987839,
+        "stdR": 5.38436,
+        "sharpeTrade": 0.183465,
+        "pf": 2.963567,
+        "t": 1.671442,
+        "p": 0.0984,
+        "ci95": [
+          0.179395,
+          2.368088
+        ],
+        "ciExcludesZero": true,
+        "ciPositive": true
+      },
+      "foldStats": {
+        "rows": [
+          {
+            "fold": "fold-1-2015",
+            "n": 8,
+            "meanR": 6.56439,
+            "hitRateNet": 0.625,
+            "binomialP": 0.36328125000000006
+          },
+          {
+            "fold": "fold-2-2016",
+            "n": 9,
+            "meanR": 1.129177888888889,
+            "hitRateNet": 0.7777777777777778,
+            "binomialP": 0.08984375000000004
+          },
+          {
+            "fold": "fold-3-2017",
+            "n": 4,
+            "meanR": -0.2099955,
+            "hitRateNet": 0.25,
+            "binomialP": null
+          },
+          {
+            "fold": "fold-4-2018",
+            "n": 7,
+            "meanR": 0.133807,
+            "hitRateNet": 0.42857142857142855,
+            "binomialP": 0.7734375000000037
+          },
+          {
+            "fold": "fold-5-2019",
+            "n": 6,
+            "meanR": 0.4481515,
+            "hitRateNet": 0.5,
+            "binomialP": 0.6562500000000016
+          },
+          {
+            "fold": "fold-6-2020",
+            "n": 10,
+            "meanR": 0.4686289,
+            "hitRateNet": 0.5,
+            "binomialP": 0.6230468749999999
+          },
+          {
+            "fold": "fold-7-2021",
+            "n": 7,
+            "meanR": -0.12367142857142856,
+            "hitRateNet": 0.2857142857142857,
+            "binomialP": 0.9375000000000038
+          },
+          {
+            "fold": "fold-8-2022",
+            "n": 7,
+            "meanR": 0.2323761428571429,
+            "hitRateNet": 0.42857142857142855,
+            "binomialP": 0.7734375000000037
+          },
+          {
+            "fold": "fold-9-2023",
+            "n": 6,
+            "meanR": 0.9760566666666666,
+            "hitRateNet": 0.6666666666666666,
+            "binomialP": 0.3437500000000006
+          },
+          {
+            "fold": "fold-10-2024",
+            "n": 6,
+            "meanR": -0.5766539999999999,
+            "hitRateNet": 0.16666666666666666,
+            "binomialP": 0.9843750000000022
+          },
+          {
+            "fold": "fold-11-2025",
+            "n": 5,
+            "meanR": 1.779188,
+            "hitRateNet": 1,
+            "binomialP": 0.03125000000000003
+          },
+          {
+            "fold": "fold-12-2026",
+            "n": 8,
+            "meanR": -0.02652574999999996,
+            "hitRateNet": 0.375,
+            "binomialP": 0.8554687500000021
+          }
+        ],
+        "majorityYearsPositive": true,
+        "positiveYears": 8,
+        "yearsWithTrades": 12
+      },
+      "windowGate": null
+    },
+    "baselines": {
+      "always-long": {
+        "convention": "per symbol per fold: hold from first non-jump bar open to last bar close, side=±1, roundtrip cost deducted; retBps = side*(exit-entry)/entry*1e4 - roundtripBps/legs",
+        "rows": [
+          {
+            "fold": "fold-1-2015",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2015-01-05",
+            "exitDate": "2015-12-31",
+            "retBps": -3010.921569
+          },
+          {
+            "fold": "fold-2-2016",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2016-01-04",
+            "exitDate": "2016-12-30",
+            "retBps": 5737.09665
+          },
+          {
+            "fold": "fold-3-2017",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2017-01-02",
+            "exitDate": "2017-12-29",
+            "retBps": 2862.742198
+          },
+          {
+            "fold": "fold-4-2018",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2018-01-02",
+            "exitDate": "2018-12-28",
+            "retBps": -1051.461984
+          },
+          {
+            "fold": "fold-5-2019",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": 496.237198
+          },
+          {
+            "fold": "fold-6-2020",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": 2236.303571
+          },
+          {
+            "fold": "fold-7-2021",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": -96.572807
+          },
+          {
+            "fold": "fold-8-2022",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": -464.926546
+          },
+          {
+            "fold": "fold-9-2023",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": -246.02439
+          },
+          {
+            "fold": "fold-10-2024",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": -1744.827715
+          },
+          {
+            "fold": "fold-11-2025",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": -560.706505
+          },
+          {
+            "fold": "fold-12-2026",
+            "symbol": "RB0",
+            "side": 1,
+            "entryDate": "2026-01-05",
+            "exitDate": "2026-08-28",
+            "retBps": -80.365231
+          }
+        ],
+        "stats": {
+          "n": 12,
+          "meanRetBps": 339.71440583333333
+        }
+      },
+      "always-short": {
+        "convention": "per symbol per fold: hold from first non-jump bar open to last bar close, side=±1, roundtrip cost deducted; retBps = side*(exit-entry)/entry*1e4 - roundtripBps/legs",
+        "rows": [
+          {
+            "fold": "fold-1-2015",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2015-01-05",
+            "exitDate": "2015-12-31",
+            "retBps": 2996.921569
+          },
+          {
+            "fold": "fold-2-2016",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2016-01-04",
+            "exitDate": "2016-12-30",
+            "retBps": -5751.09665
+          },
+          {
+            "fold": "fold-3-2017",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2017-01-02",
+            "exitDate": "2017-12-29",
+            "retBps": -2876.742198
+          },
+          {
+            "fold": "fold-4-2018",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2018-01-02",
+            "exitDate": "2018-12-28",
+            "retBps": 1037.461984
+          },
+          {
+            "fold": "fold-5-2019",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2019-01-02",
+            "exitDate": "2019-12-31",
+            "retBps": -510.237198
+          },
+          {
+            "fold": "fold-6-2020",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2020-01-02",
+            "exitDate": "2020-12-31",
+            "retBps": -2250.303571
+          },
+          {
+            "fold": "fold-7-2021",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2021-01-04",
+            "exitDate": "2021-12-31",
+            "retBps": 82.572807
+          },
+          {
+            "fold": "fold-8-2022",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2022-01-04",
+            "exitDate": "2022-12-30",
+            "retBps": 450.926546
+          },
+          {
+            "fold": "fold-9-2023",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2023-01-03",
+            "exitDate": "2023-12-29",
+            "retBps": 232.02439
+          },
+          {
+            "fold": "fold-10-2024",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2024-01-02",
+            "exitDate": "2024-12-31",
+            "retBps": 1730.827715
+          },
+          {
+            "fold": "fold-11-2025",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2025-01-02",
+            "exitDate": "2025-12-31",
+            "retBps": 546.706505
+          },
+          {
+            "fold": "fold-12-2026",
+            "symbol": "RB0",
+            "side": -1,
+            "entryDate": "2026-01-05",
+            "exitDate": "2026-08-28",
+            "retBps": 66.365231
+          }
+        ],
+        "stats": {
+          "n": 12,
+          "meanRetBps": -353.71440583333333
+        }
+      },
+      "random": {
+        "convention": "same entry bars as strategy; direction and stop/target mirrored around the actual entry price; dynamic manage() exits not mirrored (fixed-price brackets used)",
+        "mode": "same-entries-flipped-side",
+        "runs": 1,
+        "runResults": [
+          {
+            "run": 0,
+            "mode": "same-entries-flipped-side",
+            "seed": -1627234715,
+            "trades": 83,
+            "netRs": [
+              -1.024614,
+              -1.05362,
+              1.432806,
+              0.32168,
+              -3.105335,
+              -1.055222,
+              -1.04001,
+              -1.544475,
+              -1.048112,
+              -1.029541,
+              -1.023483,
+              -1.017024,
+              -1.021056,
+              -1.019597,
+              -1.024982,
+              -1.020288,
+              0.994307,
+              -1.016776,
+              -1.020265,
+              -1.033099,
+              -1.028463,
+              1.648537,
+              -1.026678,
+              -1.417981,
+              -1.033299,
+              2.098735,
+              2.079352,
+              -1.191709,
+              -1.041052,
+              2.245352,
+              -1.036205,
+              1.760603,
+              1.042819,
+              -1.041237,
+              1.380248,
+              2.364702,
+              -1.034294,
+              -1.048986,
+              -1.055462,
+              -1.065625,
+              -1.041098,
+              -1.054444,
+              -1.028035,
+              -1.02984,
+              1.929604,
+              -1.040709,
+              2.061743,
+              -1.01486,
+              -1.026648,
+              -1.017213,
+              -1.014574,
+              -1.028,
+              -1.023656,
+              -1.019203,
+              0.362961,
+              -1.036522,
+              1.756295,
+              -1.034347,
+              1.569233,
+              -1.028864,
+              -1.032835,
+              1.255031,
+              -1.061942,
+              -1.046508,
+              -1.05189,
+              -0.606452,
+              -1.048515,
+              -1.047407,
+              2.074085,
+              1.120662,
+              -0.387918,
+              -1.081667,
+              -1.045411,
+              -1.07846,
+              -1.048848,
+              1.819581,
+              2.140569,
+              -1.087417,
+              2.021119,
+              0.174058,
+              -1.078275,
+              1.913798,
+              -1.076442
+            ]
+          }
+        ],
+        "pooledNetRs": [
+          -1.024614,
+          -1.05362,
+          1.432806,
+          0.32168,
+          -3.105335,
+          -1.055222,
+          -1.04001,
+          -1.544475,
+          -1.048112,
+          -1.029541,
+          -1.023483,
+          -1.017024,
+          -1.021056,
+          -1.019597,
+          -1.024982,
+          -1.020288,
+          0.994307,
+          -1.016776,
+          -1.020265,
+          -1.033099,
+          -1.028463,
+          1.648537,
+          -1.026678,
+          -1.417981,
+          -1.033299,
+          2.098735,
+          2.079352,
+          -1.191709,
+          -1.041052,
+          2.245352,
+          -1.036205,
+          1.760603,
+          1.042819,
+          -1.041237,
+          1.380248,
+          2.364702,
+          -1.034294,
+          -1.048986,
+          -1.055462,
+          -1.065625,
+          -1.041098,
+          -1.054444,
+          -1.028035,
+          -1.02984,
+          1.929604,
+          -1.040709,
+          2.061743,
+          -1.01486,
+          -1.026648,
+          -1.017213,
+          -1.014574,
+          -1.028,
+          -1.023656,
+          -1.019203,
+          0.362961,
+          -1.036522,
+          1.756295,
+          -1.034347,
+          1.569233,
+          -1.028864,
+          -1.032835,
+          1.255031,
+          -1.061942,
+          -1.046508,
+          -1.05189,
+          -0.606452,
+          -1.048515,
+          -1.047407,
+          2.074085,
+          1.120662,
+          -0.387918,
+          -1.081667,
+          -1.045411,
+          -1.07846,
+          -1.048848,
+          1.819581,
+          2.140569,
+          -1.087417,
+          2.021119,
+          0.174058,
+          -1.078275,
+          1.913798,
+          -1.076442
+        ]
+      }
+    },
+    "baselineComparisons": {
+      "random": {
+        "strategyMeanR": 0.9878393855421678,
+        "baselineMeanR": -0.31046518072289153,
+        "diffMeanR": 1.29830456626506,
+        "diffCI": [
+          0.31112725301204813,
+          2.753110590361445
+        ],
+        "beatsBaseline": true,
+        "method": "bootstrap-paired-diff"
+      },
+      "always-long": {
+        "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+        "strategyMeanR": 0.987839,
+        "baselineMeanBps": 339.71440583333333,
+        "baselineMeanPseudoR": 1.6504708743584138
+      },
+      "always-short": {
+        "convention": "market baseline in bps converted to pseudo-R via strategy median relative initial-risk distance (|entry-stop|/entry)",
+        "strategyMeanR": 0.987839,
+        "baselineMeanBps": -353.71440583333333,
+        "baselineMeanPseudoR": -1.7184885734734587
+      }
+    }
+  },
+  "theoryLevel": {
+    "present": true,
+    "hypothesis": "demo: 扣成本后 20 日突破动量仍有方向优势（命中率显著 > 50%）",
+    "tests": [
+      {
+        "id": "demo-direction-edge",
+        "label": "扣成本命中率 > 50% 且二项检验 p < 0.05",
+        "falsified": true,
+        "evidence": {
+          "n": 83,
+          "hitRateNet": 0.5060240963855421,
+          "binomialP": 0.49999999999997524
+        }
+      }
+    ],
+    "anyFalsified": true,
+    "falsified": [
+      {
+        "id": "demo-direction-edge",
+        "label": "扣成本命中率 > 50% 且二项检验 p < 0.05",
+        "falsified": true,
+        "evidence": {
+          "n": 83,
+          "hitRateNet": 0.5060240963855421,
+          "binomialP": 0.49999999999997524
+        }
+      }
+    ],
+    "inconclusive": [],
+    "killOn": "demo-direction-edge 证伪 → retired（示例）"
+  },
+  "killVerdicts": [
+    {
+      "rule": "demo-min-trades",
+      "metric": "n",
+      "op": "lt",
+      "value": 200,
+      "observed": 83,
+      "triggered": true,
+      "onTrigger": "suspended",
+      "note": "样本不足 → 引擎按 sample-insufficiency 停留 designed"
+    },
+    {
+      "rule": "demo-pf",
+      "metric": "pf",
+      "op": "lt",
+      "value": 1.2,
+      "observed": 2.963567,
+      "triggered": false,
+      "onTrigger": "suspended",
+      "note": "PF < 1.2 → suspended"
+    }
+  ],
+  "suggestion": {
+    "suggestedState": "retired",
+    "reasons": [
+      "理论级证伪成立: demo-direction-edge → retired",
+      "killRule demo-min-trades 触发 (n lt 200, observed=83) → suspended",
+      "策略级门禁未通过: minTrades"
+    ],
+    "events": [
+      "theory-falsified",
+      "kill:demo-min-trades",
+      "strategy-gate-fail"
+    ],
+    "note": "最终状态由 t8 执行结论 + t9 复核 + 队长裁定决定；本引擎仅输出判定依据"
+  },
+  "violations": [],
+  "trades": [
+    {
+      "id": 0,
+      "signalDate": "2015-04-01",
+      "entryDate": "2015-04-02",
+      "exitDate": "2015-04-10",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 2377,
+          "stop": 2444.6,
+          "target": 2280.8,
+          "exit": 2280.8,
+          "rawR": 1.423077,
+          "costR": 0.024614,
+          "netR": 1.398463,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.398463,
+      "grossR": 1.423077,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.204158372858433,
+        "donchian": 20
+      },
+      "foldId": "fold-1-2015"
+    },
+    {
+      "id": 1,
+      "signalDate": "2015-06-12",
+      "entryDate": "2015-06-15",
+      "exitDate": "2015-06-16",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 2298,
+          "stop": 2328,
+          "target": 2241,
+          "exit": 2241,
+          "rawR": 1.9,
+          "costR": 0.05362,
+          "netR": 1.84638,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.84638,
+      "grossR": 1.9,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.4456489278624802,
+        "donchian": 20
+      },
+      "foldId": "fold-1-2015"
+    },
+    {
+      "id": 2,
+      "signalDate": "2015-07-07",
+      "entryDate": "2015-07-08",
+      "exitDate": "2015-07-10",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 1965,
+          "stop": 2045,
+          "target": 1781,
+          "exit": 2045,
+          "rawR": -1,
+          "costR": 0.017194,
+          "netR": -1.017194,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.017194,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.6020410767472921,
+        "donchian": 20
+      },
+      "foldId": "fold-1-2015"
+    },
+    {
+      "id": 3,
+      "signalDate": "2015-08-24",
+      "entryDate": "2015-08-25",
+      "exitDate": "2015-08-26",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 1936,
+          "stop": 1972.2,
+          "target": 1857.6,
+          "exit": 1972.2,
+          "rawR": -1,
+          "costR": 0.037436,
+          "netR": -1.037436,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.037436,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.6596760432168578,
+        "donchian": 20
+      },
+      "foldId": "fold-1-2015"
+    },
+    {
+      "id": 4,
+      "signalDate": "2015-09-29",
+      "entryDate": "2015-09-30",
+      "exitDate": "2015-10-08",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 1837,
+          "stop": 1860.6,
+          "target": 1777.8,
+          "exit": 1765,
+          "rawR": 3.050847,
+          "costR": 0.054487,
+          "netR": 2.99636,
+          "exitReason": "target-gap-through"
+        }
+      ],
+      "netR": 2.99636,
+      "grossR": 3.050847,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2047430561022452,
+        "donchian": 20
+      },
+      "foldId": "fold-1-2015"
+    },
+    {
+      "id": 5,
+      "signalDate": "2015-11-19",
+      "entryDate": "2015-11-20",
+      "exitDate": "2015-11-23",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 1704,
+          "stop": 1725.6,
+          "target": 1663.8,
+          "exit": 1663.8,
+          "rawR": 1.861111,
+          "costR": 0.055222,
+          "netR": 1.805889,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.805889,
+      "grossR": 1.861111,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.8708440778222217,
+        "donchian": 20
+      },
+      "foldId": "fold-1-2015"
+    },
+    {
+      "id": 6,
+      "signalDate": "2015-12-21",
+      "entryDate": "2015-12-22",
+      "exitDate": "2015-12-23",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 1749,
+          "stop": 1718.4,
+          "target": 1810.2,
+          "exit": 1718.4,
+          "rawR": -1,
+          "costR": 0.04001,
+          "netR": -1.04001,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.04001,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.7529819614647724,
+        "donchian": 20
+      },
+      "foldId": "fold-1-2015"
+    },
+    {
+      "id": 7,
+      "signalDate": "2015-12-29",
+      "entryDate": "2015-12-30",
+      "exitDate": "2015-12-31",
+      "exitReason": "end-of-data",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 1779,
+          "stop": 1751,
+          "target": 1838,
+          "exit": 3112,
+          "rawR": 47.607143,
+          "costR": 0.044475,
+          "netR": 47.562668,
+          "exitReason": "end-of-data"
+        }
+      ],
+      "netR": 47.562668,
+      "grossR": 47.607143,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.4771693656416243,
+        "donchian": 20
+      },
+      "foldId": "fold-1-2015"
+    },
+    {
+      "id": 0,
+      "signalDate": "2016-02-19",
+      "entryDate": "2016-02-22",
+      "exitDate": "2016-02-22",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 1897,
+          "stop": 1869.4,
+          "target": 1952.2,
+          "exit": 1952.2,
+          "rawR": 2,
+          "costR": 0.048112,
+          "netR": 1.951888,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.951888,
+      "grossR": 2,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.3583976112889713,
+        "donchian": 20
+      },
+      "foldId": "fold-2-2016"
+    },
+    {
+      "id": 1,
+      "signalDate": "2016-02-29",
+      "entryDate": "2016-03-01",
+      "exitDate": "2016-03-07",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 1975,
+          "stop": 1928.2,
+          "target": 2050.6,
+          "exit": 2050.6,
+          "rawR": 1.615385,
+          "costR": 0.029541,
+          "netR": 1.585844,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.585844,
+      "grossR": 1.615385,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.3115133483318597,
+        "donchian": 20
+      },
+      "foldId": "fold-2-2016"
+    },
+    {
+      "id": 2,
+      "signalDate": "2016-04-13",
+      "entryDate": "2016-04-14",
+      "exitDate": "2016-04-19",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 2355,
+          "stop": 2284.8,
+          "target": 2489.4,
+          "exit": 2489.4,
+          "rawR": 1.91453,
+          "costR": 0.023483,
+          "netR": 1.891047,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.891047,
+      "grossR": 1.91453,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.551474958259875,
+        "donchian": 20
+      },
+      "foldId": "fold-2-2016"
+    },
+    {
+      "id": 3,
+      "signalDate": "2016-04-20",
+      "entryDate": "2016-04-21",
+      "exitDate": "2016-04-21",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 2612,
+          "stop": 2504.6,
+          "target": 2766.8,
+          "exit": 2766.8,
+          "rawR": 1.441341,
+          "costR": 0.017024,
+          "netR": 1.424317,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.424317,
+      "grossR": 1.441341,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.222644211244834,
+        "donchian": 20
+      },
+      "foldId": "fold-2-2016"
+    },
+    {
+      "id": 4,
+      "signalDate": "2016-06-27",
+      "entryDate": "2016-06-28",
+      "exitDate": "2016-07-04",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 2268,
+          "stop": 2192.6,
+          "target": 2418.8,
+          "exit": 2418.8,
+          "rawR": 2,
+          "costR": 0.021056,
+          "netR": 1.978944,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.978944,
+      "grossR": 2,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2058809060975126,
+        "donchian": 20
+      },
+      "foldId": "fold-2-2016"
+    },
+    {
+      "id": 5,
+      "signalDate": "2016-07-04",
+      "entryDate": "2016-07-05",
+      "exitDate": "2016-07-05",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 2430,
+          "stop": 2343.2,
+          "target": 2585.6,
+          "exit": 2343.2,
+          "rawR": -1,
+          "costR": 0.019597,
+          "netR": -1.019597,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.019597,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2780664278461444,
+        "donchian": 20
+      },
+      "foldId": "fold-2-2016"
+    },
+    {
+      "id": 6,
+      "signalDate": "2016-09-07",
+      "entryDate": "2016-09-08",
+      "exitDate": "2016-09-19",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 2334,
+          "stop": 2399.4,
+          "target": 2203.2,
+          "exit": 2200,
+          "rawR": 2.04893,
+          "costR": 0.024982,
+          "netR": 2.023948,
+          "exitReason": "target-gap-through"
+        }
+      ],
+      "netR": 2.023948,
+      "grossR": 2.04893,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2106398526568753,
+        "donchian": 20
+      },
+      "foldId": "fold-2-2016"
+    },
+    {
+      "id": 7,
+      "signalDate": "2016-11-04",
+      "entryDate": "2016-11-07",
+      "exitDate": "2016-11-07",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 2736,
+          "stop": 2641.6,
+          "target": 2864.8,
+          "exit": 2864.8,
+          "rawR": 1.364407,
+          "costR": 0.020288,
+          "netR": 1.344119,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.344119,
+      "grossR": 1.364407,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.213412793975737,
+        "donchian": 20
+      },
+      "foldId": "fold-2-2016"
+    },
+    {
+      "id": 8,
+      "signalDate": "2016-12-26",
+      "entryDate": "2016-12-27",
+      "exitDate": "2016-12-28",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 2932,
+          "stop": 3046.6,
+          "target": 2672.8,
+          "exit": 3046.6,
+          "rawR": -1,
+          "costR": 0.017909,
+          "netR": -1.017909,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.017909,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2241684228734278,
+        "donchian": 20
+      },
+      "foldId": "fold-2-2016"
+    },
+    {
+      "id": 0,
+      "signalDate": "2017-03-23",
+      "entryDate": "2017-03-24",
+      "exitDate": "2017-04-05",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3130,
+          "stop": 3260.6,
+          "target": 2859.8,
+          "exit": 3260.6,
+          "rawR": -1,
+          "costR": 0.016776,
+          "netR": -1.016776,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.016776,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.4185881265392566,
+        "donchian": 20
+      },
+      "foldId": "fold-3-2017"
+    },
+    {
+      "id": 1,
+      "signalDate": "2017-05-19",
+      "entryDate": "2017-05-22",
+      "exitDate": "2017-05-31",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3254,
+          "stop": 3141.6,
+          "target": 3448.8,
+          "exit": 3141.6,
+          "rawR": -1,
+          "costR": 0.020265,
+          "netR": -1.020265,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.020265,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2199397886495726,
+        "donchian": 20
+      },
+      "foldId": "fold-3-2017"
+    },
+    {
+      "id": 2,
+      "signalDate": "2017-06-29",
+      "entryDate": "2017-06-30",
+      "exitDate": "2017-07-05",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3291,
+          "stop": 3221.4,
+          "target": 3448.2,
+          "exit": 3448.2,
+          "rawR": 2.258621,
+          "costR": 0.033099,
+          "netR": 2.225522,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 2.225522,
+      "grossR": 2.258621,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2301832274312758,
+        "donchian": 20
+      },
+      "foldId": "fold-3-2017"
+    },
+    {
+      "id": 3,
+      "signalDate": "2017-11-30",
+      "entryDate": "2017-12-01",
+      "exitDate": "2017-12-07",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3993,
+          "stop": 3894.8,
+          "target": 4180.4,
+          "exit": 3894.8,
+          "rawR": -1,
+          "costR": 0.028463,
+          "netR": -1.028463,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.028463,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2141009365088646,
+        "donchian": 20
+      },
+      "foldId": "fold-3-2017"
+    },
+    {
+      "id": 0,
+      "signalDate": "2018-02-26",
+      "entryDate": "2018-02-27",
+      "exitDate": "2018-03-06",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 4038,
+          "stop": 3944.6,
+          "target": 4194.8,
+          "exit": 3944.6,
+          "rawR": -1,
+          "costR": 0.030263,
+          "netR": -1.030263,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.030263,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2738706178247212,
+        "donchian": 20
+      },
+      "foldId": "fold-4-2018"
+    },
+    {
+      "id": 1,
+      "signalDate": "2018-03-08",
+      "entryDate": "2018-03-09",
+      "exitDate": "2018-03-19",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3773,
+          "stop": 3872,
+          "target": 3638,
+          "exit": 3638,
+          "rawR": 1.363636,
+          "costR": 0.026678,
+          "netR": 1.336959,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.336959,
+      "grossR": 1.363636,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2330902837999287,
+        "donchian": 20
+      },
+      "foldId": "fold-4-2018"
+    },
+    {
+      "id": 2,
+      "signalDate": "2018-03-23",
+      "entryDate": "2018-03-26",
+      "exitDate": "2018-04-02",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3379,
+          "stop": 3479.4,
+          "target": 3148.2,
+          "exit": 3479.4,
+          "rawR": -1,
+          "costR": 0.023559,
+          "netR": -1.023559,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.023559,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.5636436896599966,
+        "donchian": 20
+      },
+      "foldId": "fold-4-2018"
+    },
+    {
+      "id": 3,
+      "signalDate": "2018-06-01",
+      "entryDate": "2018-06-04",
+      "exitDate": "2018-06-13",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3739,
+          "stop": 3660.4,
+          "target": 3881.2,
+          "exit": 3881.2,
+          "rawR": 1.80916,
+          "costR": 0.033299,
+          "netR": 1.775861,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.775861,
+      "grossR": 1.80916,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2248985901399734,
+        "donchian": 20
+      },
+      "foldId": "fold-4-2018"
+    },
+    {
+      "id": 4,
+      "signalDate": "2018-08-20",
+      "entryDate": "2018-08-21",
+      "exitDate": "2018-08-23",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 4392,
+          "stop": 4301.6,
+          "target": 4584.8,
+          "exit": 4301.6,
+          "rawR": -1,
+          "costR": 0.034009,
+          "netR": -1.034009,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.034009,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.6302024428351156,
+        "donchian": 20
+      },
+      "foldId": "fold-4-2018"
+    },
+    {
+      "id": 5,
+      "signalDate": "2018-09-28",
+      "entryDate": "2018-10-08",
+      "exitDate": "2018-10-09",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3947,
+          "stop": 4025.6,
+          "target": 3780.8,
+          "exit": 4025.6,
+          "rawR": -1,
+          "costR": 0.035151,
+          "netR": -1.035151,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.035151,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2001116492495882,
+        "donchian": 20
+      },
+      "foldId": "fold-4-2018"
+    },
+    {
+      "id": 6,
+      "signalDate": "2018-11-21",
+      "entryDate": "2018-11-22",
+      "exitDate": "2018-11-26",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3723,
+          "stop": 3828.4,
+          "target": 3515.2,
+          "exit": 3515.2,
+          "rawR": 1.971537,
+          "costR": 0.024726,
+          "netR": 1.946811,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.946811,
+      "grossR": 1.971537,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.3003830332278012,
+        "donchian": 20
+      },
+      "foldId": "fold-4-2018"
+    },
+    {
+      "id": 0,
+      "signalDate": "2019-01-18",
+      "entryDate": "2019-01-21",
+      "exitDate": "2019-01-28",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3636,
+          "stop": 3574,
+          "target": 3751,
+          "exit": 3751,
+          "rawR": 1.854839,
+          "costR": 0.041052,
+          "netR": 1.813787,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.813787,
+      "grossR": 1.854839,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.263596846447114,
+        "donchian": 20
+      },
+      "foldId": "fold-5-2019"
+    },
+    {
+      "id": 1,
+      "signalDate": "2019-05-21",
+      "entryDate": "2019-05-22",
+      "exitDate": "2019-05-24",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3913,
+          "stop": 3850.8,
+          "target": 4055.4,
+          "exit": 3850.8,
+          "rawR": -1,
+          "costR": 0.044037,
+          "netR": -1.044037,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.044037,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.633387580152987,
+        "donchian": 20
+      },
+      "foldId": "fold-5-2019"
+    },
+    {
+      "id": 2,
+      "signalDate": "2019-08-02",
+      "entryDate": "2019-08-05",
+      "exitDate": "2019-08-08",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3817,
+          "stop": 3890.8,
+          "target": 3666.4,
+          "exit": 3666.4,
+          "rawR": 2.04065,
+          "costR": 0.036205,
+          "netR": 2.004446,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 2.004446,
+      "grossR": 2.04065,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.347175733972564,
+        "donchian": 20
+      },
+      "foldId": "fold-5-2019"
+    },
+    {
+      "id": 3,
+      "signalDate": "2019-08-09",
+      "entryDate": "2019-08-12",
+      "exitDate": "2019-08-12",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3584,
+          "stop": 3682.2,
+          "target": 3408.6,
+          "exit": 3682.2,
+          "rawR": -1,
+          "costR": 0.025548,
+          "netR": -1.025548,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.025548,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2825281498421988,
+        "donchian": 20
+      },
+      "foldId": "fold-5-2019"
+    },
+    {
+      "id": 4,
+      "signalDate": "2019-08-26",
+      "entryDate": "2019-08-27",
+      "exitDate": "2019-09-09",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3362,
+          "stop": 3489.2,
+          "target": 3137.6,
+          "exit": 3489.2,
+          "rawR": -1,
+          "costR": 0.018502,
+          "netR": -1.018502,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.018502,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2711685527082182,
+        "donchian": 20
+      },
+      "foldId": "fold-5-2019"
+    },
+    {
+      "id": 5,
+      "signalDate": "2019-11-14",
+      "entryDate": "2019-11-15",
+      "exitDate": "2019-11-19",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3511,
+          "stop": 3451.4,
+          "target": 3630.2,
+          "exit": 3630.2,
+          "rawR": 2,
+          "costR": 0.041237,
+          "netR": 1.958763,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.958763,
+      "grossR": 2,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2542560429222995,
+        "donchian": 20
+      },
+      "foldId": "fold-5-2019"
+    },
+    {
+      "id": 0,
+      "signalDate": "2020-02-03",
+      "entryDate": "2020-02-04",
+      "exitDate": "2020-02-04",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3209,
+          "stop": 3328.8,
+          "target": 3041.4,
+          "exit": 3328.8,
+          "rawR": -1,
+          "costR": 0.01875,
+          "netR": -1.01875,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.01875,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.267136067644796,
+        "donchian": 20
+      },
+      "foldId": "fold-6-2020"
+    },
+    {
+      "id": 1,
+      "signalDate": "2020-03-13",
+      "entryDate": "2020-03-16",
+      "exitDate": "2020-03-19",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3560,
+          "stop": 3492.8,
+          "target": 3721.4,
+          "exit": 3492.8,
+          "rawR": -1,
+          "costR": 0.037083,
+          "netR": -1.037083,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.037083,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2759000517307244,
+        "donchian": 20
+      },
+      "foldId": "fold-6-2020"
+    },
+    {
+      "id": 2,
+      "signalDate": "2020-03-30",
+      "entryDate": "2020-03-31",
+      "exitDate": "2020-04-09",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3253,
+          "stop": 3319.4,
+          "target": 3087.2,
+          "exit": 3319.4,
+          "rawR": -1,
+          "costR": 0.034294,
+          "netR": -1.034294,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.034294,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.4085586611240168,
+        "donchian": 20
+      },
+      "foldId": "fold-6-2020"
+    },
+    {
+      "id": 3,
+      "signalDate": "2020-05-18",
+      "entryDate": "2020-05-19",
+      "exitDate": "2020-05-27",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3527,
+          "stop": 3476.6,
+          "target": 3630.8,
+          "exit": 3476.6,
+          "rawR": -1,
+          "costR": 0.048986,
+          "netR": -1.048986,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.048986,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2647457387666883,
+        "donchian": 20
+      },
+      "foldId": "fold-6-2020"
+    },
+    {
+      "id": 4,
+      "signalDate": "2020-07-08",
+      "entryDate": "2020-07-09",
+      "exitDate": "2020-07-22",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3708,
+          "stop": 3661.2,
+          "target": 3783.6,
+          "exit": 3783.6,
+          "rawR": 1.615385,
+          "costR": 0.055462,
+          "netR": 1.559923,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.559923,
+      "grossR": 1.615385,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.285977162239318,
+        "donchian": 20
+      },
+      "foldId": "fold-6-2020"
+    },
+    {
+      "id": 5,
+      "signalDate": "2020-09-09",
+      "entryDate": "2020-09-10",
+      "exitDate": "2020-09-21",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3675,
+          "stop": 3714.2,
+          "target": 3545.6,
+          "exit": 3545.6,
+          "rawR": 3.30102,
+          "costR": 0.065625,
+          "netR": 3.235395,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 3.235395,
+      "grossR": 3.30102,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2816888164551383,
+        "donchian": 20
+      },
+      "foldId": "fold-6-2020"
+    },
+    {
+      "id": 6,
+      "signalDate": "2020-11-09",
+      "entryDate": "2020-11-10",
+      "exitDate": "2020-11-20",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3875,
+          "stop": 3809,
+          "target": 3959,
+          "exit": 3959,
+          "rawR": 1.272727,
+          "costR": 0.041098,
+          "netR": 1.231629,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.231629,
+      "grossR": 1.272727,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.294436773013722,
+        "donchian": 20
+      },
+      "foldId": "fold-6-2020"
+    },
+    {
+      "id": 7,
+      "signalDate": "2020-11-17",
+      "entryDate": "2020-11-18",
+      "exitDate": "2020-11-25",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3920,
+          "stop": 3869.6,
+          "target": 4017.8,
+          "exit": 3869.6,
+          "rawR": -1,
+          "costR": 0.054444,
+          "netR": -1.054444,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.054444,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.3197422120887539,
+        "donchian": 20
+      },
+      "foldId": "fold-6-2020"
+    },
+    {
+      "id": 8,
+      "signalDate": "2020-12-10",
+      "entryDate": "2020-12-11",
+      "exitDate": "2020-12-11",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 4045,
+          "stop": 3944,
+          "target": 4232,
+          "exit": 4232,
+          "rawR": 1.851485,
+          "costR": 0.028035,
+          "netR": 1.82345,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.82345,
+      "grossR": 1.851485,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.5120017203194789,
+        "donchian": 20
+      },
+      "foldId": "fold-6-2020"
+    },
+    {
+      "id": 9,
+      "signalDate": "2020-12-18",
+      "entryDate": "2020-12-21",
+      "exitDate": "2020-12-22",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 4314,
+          "stop": 4212.8,
+          "target": 4522.4,
+          "exit": 4522.4,
+          "rawR": 2.059289,
+          "costR": 0.02984,
+          "netR": 2.029449,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 2.029449,
+      "grossR": 2.059289,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.205289348165957,
+        "donchian": 20
+      },
+      "foldId": "fold-6-2020"
+    },
+    {
+      "id": 0,
+      "signalDate": "2021-03-03",
+      "entryDate": "2021-03-04",
+      "exitDate": "2021-03-05",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 4844,
+          "stop": 4710.6,
+          "target": 5104.8,
+          "exit": 4710.6,
+          "rawR": -1,
+          "costR": 0.025418,
+          "netR": -1.025418,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.025418,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.341472923549464,
+        "donchian": 20
+      },
+      "foldId": "fold-7-2021"
+    },
+    {
+      "id": 1,
+      "signalDate": "2021-04-26",
+      "entryDate": "2021-04-27",
+      "exitDate": "2021-05-06",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 5362,
+          "stop": 5269.8,
+          "target": 5573.4,
+          "exit": 5573.4,
+          "rawR": 2.292842,
+          "costR": 0.040709,
+          "netR": 2.252132,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 2.252132,
+      "grossR": 2.292842,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.3642567789826618,
+        "donchian": 20
+      },
+      "foldId": "fold-7-2021"
+    },
+    {
+      "id": 2,
+      "signalDate": "2021-05-11",
+      "entryDate": "2021-05-12",
+      "exitDate": "2021-05-13",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 6080,
+          "stop": 5857.4,
+          "target": 6543.2,
+          "exit": 5857.4,
+          "rawR": -1,
+          "costR": 0.019119,
+          "netR": -1.019119,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.019119,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.7193308229485278,
+        "donchian": 20
+      },
+      "foldId": "fold-7-2021"
+    },
+    {
+      "id": 3,
+      "signalDate": "2021-05-24",
+      "entryDate": "2021-05-25",
+      "exitDate": "2021-06-04",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 4976,
+          "stop": 5210.4,
+          "target": 4501.2,
+          "exit": 5210.4,
+          "rawR": -1,
+          "costR": 0.01486,
+          "netR": -1.01486,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.01486,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.3507830828303464,
+        "donchian": 20
+      },
+      "foldId": "fold-7-2021"
+    },
+    {
+      "id": 4,
+      "signalDate": "2021-07-07",
+      "entryDate": "2021-07-08",
+      "exitDate": "2021-07-09",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 5459,
+          "stop": 5315.6,
+          "target": 5685.8,
+          "exit": 5315.6,
+          "rawR": -1,
+          "costR": 0.026648,
+          "netR": -1.026648,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.026648,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2176823205757994,
+        "donchian": 20
+      },
+      "foldId": "fold-7-2021"
+    },
+    {
+      "id": 5,
+      "signalDate": "2021-08-18",
+      "entryDate": "2021-08-19",
+      "exitDate": "2021-08-30",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 5100,
+          "stop": 5307.4,
+          "target": 4817.2,
+          "exit": 5307.4,
+          "rawR": -1,
+          "costR": 0.017213,
+          "netR": -1.017213,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.017213,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.3657141187897555,
+        "donchian": 20
+      },
+      "foldId": "fold-7-2021"
+    },
+    {
+      "id": 6,
+      "signalDate": "2021-10-21",
+      "entryDate": "2021-10-22",
+      "exitDate": "2021-10-28",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 4976,
+          "stop": 5215,
+          "target": 4498,
+          "exit": 4498,
+          "rawR": 2,
+          "costR": 0.014574,
+          "netR": 1.985426,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.985426,
+      "grossR": 2,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.4501914234653024,
+        "donchian": 20
+      },
+      "foldId": "fold-7-2021"
+    },
+    {
+      "id": 0,
+      "signalDate": "2022-04-25",
+      "entryDate": "2022-04-26",
+      "exitDate": "2022-04-29",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 4800,
+          "stop": 4920,
+          "target": 4494,
+          "exit": 4920,
+          "rawR": -1,
+          "costR": 0.028,
+          "netR": -1.028,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.028,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.327423372272293,
+        "donchian": 20
+      },
+      "foldId": "fold-8-2022"
+    },
+    {
+      "id": 1,
+      "signalDate": "2022-06-17",
+      "entryDate": "2022-06-20",
+      "exitDate": "2022-06-20",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 4346,
+          "stop": 4474.6,
+          "target": 4112.8,
+          "exit": 4112.8,
+          "rawR": 1.813375,
+          "costR": 0.023656,
+          "netR": 1.789719,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.789719,
+      "grossR": 1.813375,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.3158461275509858,
+        "donchian": 20
+      },
+      "foldId": "fold-8-2022"
+    },
+    {
+      "id": 2,
+      "signalDate": "2022-07-11",
+      "entryDate": "2022-07-12",
+      "exitDate": "2022-07-15",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 4049,
+          "stop": 4196.6,
+          "target": 3753.8,
+          "exit": 3753.8,
+          "rawR": 2,
+          "costR": 0.019203,
+          "netR": 1.980797,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.980797,
+      "grossR": 2,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2891865126951132,
+        "donchian": 20
+      },
+      "foldId": "fold-8-2022"
+    },
+    {
+      "id": 3,
+      "signalDate": "2022-09-01",
+      "entryDate": "2022-09-02",
+      "exitDate": "2022-09-09",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3628,
+          "stop": 3780.8,
+          "target": 3364.4,
+          "exit": 3780.8,
+          "rawR": -1,
+          "costR": 0.01662,
+          "netR": -1.01662,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.01662,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.344716705868342,
+        "donchian": 20
+      },
+      "foldId": "fold-8-2022"
+    },
+    {
+      "id": 4,
+      "signalDate": "2022-10-20",
+      "entryDate": "2022-10-21",
+      "exitDate": "2022-10-24",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3600,
+          "stop": 3669,
+          "target": 3444,
+          "exit": 3669,
+          "rawR": -1,
+          "costR": 0.036522,
+          "netR": -1.036522,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.036522,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2221021296328871,
+        "donchian": 20
+      },
+      "foldId": "fold-8-2022"
+    },
+    {
+      "id": 5,
+      "signalDate": "2022-10-31",
+      "entryDate": "2022-11-01",
+      "exitDate": "2022-11-01",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3391,
+          "stop": 3474.6,
+          "target": 3241.8,
+          "exit": 3474.6,
+          "rawR": -1,
+          "costR": 0.028394,
+          "netR": -1.028394,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.028394,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2270411824196437,
+        "donchian": 20
+      },
+      "foldId": "fold-8-2022"
+    },
+    {
+      "id": 6,
+      "signalDate": "2022-12-09",
+      "entryDate": "2022-12-12",
+      "exitDate": "2022-12-16",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3945,
+          "stop": 3864.6,
+          "target": 4105.8,
+          "exit": 4105.8,
+          "rawR": 2,
+          "costR": 0.034347,
+          "netR": 1.965653,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.965653,
+      "grossR": 2,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2746739126155364,
+        "donchian": 20
+      },
+      "foldId": "fold-8-2022"
+    },
+    {
+      "id": 0,
+      "signalDate": "2023-03-09",
+      "entryDate": "2023-03-10",
+      "exitDate": "2023-03-16",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 4325,
+          "stop": 4234.4,
+          "target": 4470.2,
+          "exit": 4234.4,
+          "rawR": -1,
+          "costR": 0.033416,
+          "netR": -1.033416,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.033416,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.6335076200944714,
+        "donchian": 20
+      },
+      "foldId": "fold-9-2023"
+    },
+    {
+      "id": 1,
+      "signalDate": "2023-04-10",
+      "entryDate": "2023-04-11",
+      "exitDate": "2023-04-24",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3909,
+          "stop": 4003.8,
+          "target": 3713.4,
+          "exit": 3713.4,
+          "rawR": 2.063291,
+          "costR": 0.028864,
+          "netR": 2.034427,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 2.034427,
+      "grossR": 2.063291,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.4860423507807239,
+        "donchian": 20
+      },
+      "foldId": "fold-9-2023"
+    },
+    {
+      "id": 2,
+      "signalDate": "2023-04-24",
+      "entryDate": "2023-04-25",
+      "exitDate": "2023-05-05",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3715,
+          "stop": 3794.2,
+          "target": 3553.6,
+          "exit": 3553.6,
+          "rawR": 2.037879,
+          "costR": 0.032835,
+          "netR": 2.005044,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 2.005044,
+      "grossR": 2.037879,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.210519321777949,
+        "donchian": 20
+      },
+      "foldId": "fold-9-2023"
+    },
+    {
+      "id": 3,
+      "signalDate": "2023-07-21",
+      "entryDate": "2023-07-24",
+      "exitDate": "2023-08-03",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3820,
+          "stop": 3755.2,
+          "target": 3958.6,
+          "exit": 3755.2,
+          "rawR": -1,
+          "costR": 0.041265,
+          "netR": -1.041265,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.041265,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.3511315413685223,
+        "donchian": 20
+      },
+      "foldId": "fold-9-2023"
+    },
+    {
+      "id": 4,
+      "signalDate": "2023-11-03",
+      "entryDate": "2023-11-06",
+      "exitDate": "2023-11-13",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3805,
+          "stop": 3762,
+          "target": 3891,
+          "exit": 3891,
+          "rawR": 2,
+          "costR": 0.061942,
+          "netR": 1.938058,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.938058,
+      "grossR": 2,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2773022509492344,
+        "donchian": 20
+      },
+      "foldId": "fold-9-2023"
+    },
+    {
+      "id": 5,
+      "signalDate": "2023-11-15",
+      "entryDate": "2023-11-16",
+      "exitDate": "2023-11-21",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3920,
+          "stop": 3861,
+          "target": 4038,
+          "exit": 4038,
+          "rawR": 2,
+          "costR": 0.046508,
+          "netR": 1.953492,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.953492,
+      "grossR": 2,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.4302800149875083,
+        "donchian": 20
+      },
+      "foldId": "fold-9-2023"
+    },
+    {
+      "id": 0,
+      "signalDate": "2024-02-02",
+      "entryDate": "2024-02-05",
+      "exitDate": "2024-02-19",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3825,
+          "stop": 3876.6,
+          "target": 3721.8,
+          "exit": 3877,
+          "rawR": -1.007752,
+          "costR": 0.05189,
+          "netR": -1.059641,
+          "exitReason": "stop-gap-through"
+        }
+      ],
+      "netR": -1.059641,
+      "grossR": -1.007752,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.3658961878516767,
+        "donchian": 20
+      },
+      "foldId": "fold-10-2024"
+    },
+    {
+      "id": 1,
+      "signalDate": "2024-02-20",
+      "entryDate": "2024-02-21",
+      "exitDate": "2024-02-21",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3753,
+          "stop": 3806.8,
+          "target": 3645.4,
+          "exit": 3806.8,
+          "rawR": -1,
+          "costR": 0.048831,
+          "netR": -1.048831,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.048831,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.385831416210614,
+        "donchian": 20
+      },
+      "foldId": "fold-10-2024"
+    },
+    {
+      "id": 2,
+      "signalDate": "2024-03-11",
+      "entryDate": "2024-03-12",
+      "exitDate": "2024-03-14",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3604,
+          "stop": 3656,
+          "target": 3506,
+          "exit": 3506,
+          "rawR": 1.884615,
+          "costR": 0.048515,
+          "netR": 1.8361,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.8361,
+      "grossR": 1.884615,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2571681012224172,
+        "donchian": 20
+      },
+      "foldId": "fold-10-2024"
+    },
+    {
+      "id": 3,
+      "signalDate": "2024-07-25",
+      "entryDate": "2024-07-26",
+      "exitDate": "2024-07-26",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3332,
+          "stop": 3381.2,
+          "target": 3224.6,
+          "exit": 3381.2,
+          "rawR": -1,
+          "costR": 0.047407,
+          "netR": -1.047407,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.047407,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2246188232270085,
+        "donchian": 20
+      },
+      "foldId": "fold-10-2024"
+    },
+    {
+      "id": 4,
+      "signalDate": "2024-08-14",
+      "entryDate": "2024-08-15",
+      "exitDate": "2024-08-21",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3110,
+          "stop": 3183.2,
+          "target": 2930.6,
+          "exit": 3189,
+          "rawR": -1.079235,
+          "costR": 0.02974,
+          "netR": -1.108975,
+          "exitReason": "stop-gap-through"
+        }
+      ],
+      "netR": -1.108975,
+      "grossR": -1.079235,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.3870516177257244,
+        "donchian": 20
+      },
+      "foldId": "fold-10-2024"
+    },
+    {
+      "id": 5,
+      "signalDate": "2024-12-10",
+      "entryDate": "2024-12-11",
+      "exitDate": "2024-12-18",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3402,
+          "stop": 3325.6,
+          "target": 3554.8,
+          "exit": 3325.6,
+          "rawR": -1,
+          "costR": 0.03117,
+          "netR": -1.03117,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.03117,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.7790011731070148,
+        "donchian": 20
+      },
+      "foldId": "fold-10-2024"
+    },
+    {
+      "id": 0,
+      "signalDate": "2025-04-08",
+      "entryDate": "2025-04-09",
+      "exitDate": "2025-04-22",
+      "exitReason": "time-exit",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3102,
+          "stop": 3177.2,
+          "target": 2948.6,
+          "exit": 3075,
+          "rawR": 0.359043,
+          "costR": 0.028875,
+          "netR": 0.330168,
+          "exitReason": "time-exit"
+        }
+      ],
+      "netR": 0.330168,
+      "grossR": 0.359043,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.4576796486311956,
+        "donchian": 20
+      },
+      "foldId": "fold-11-2025"
+    },
+    {
+      "id": 1,
+      "signalDate": "2025-05-26",
+      "entryDate": "2025-05-27",
+      "exitDate": "2025-06-03",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3010,
+          "stop": 3035.8,
+          "target": 2940.4,
+          "exit": 2940.4,
+          "rawR": 2.697674,
+          "costR": 0.081667,
+          "netR": 2.616008,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 2.616008,
+      "grossR": 2.697674,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.343688809042206,
+        "donchian": 20
+      },
+      "foldId": "fold-11-2025"
+    },
+    {
+      "id": 2,
+      "signalDate": "2025-07-02",
+      "entryDate": "2025-07-03",
+      "exitDate": "2025-07-11",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3075,
+          "stop": 3027.6,
+          "target": 3139.8,
+          "exit": 3139.8,
+          "rawR": 1.367089,
+          "costR": 0.045411,
+          "netR": 1.321677,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.321677,
+      "grossR": 1.367089,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.4130601895121182,
+        "donchian": 20
+      },
+      "foldId": "fold-11-2025"
+    },
+    {
+      "id": 3,
+      "signalDate": "2025-07-10",
+      "entryDate": "2025-07-11",
+      "exitDate": "2025-07-21",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3116,
+          "stop": 3088.2,
+          "target": 3192.6,
+          "exit": 3192.6,
+          "rawR": 2.755396,
+          "costR": 0.07846,
+          "netR": 2.676935,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 2.676935,
+      "grossR": 2.755396,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.5370754305277596,
+        "donchian": 20
+      },
+      "foldId": "fold-11-2025"
+    },
+    {
+      "id": 4,
+      "signalDate": "2025-07-21",
+      "entryDate": "2025-07-22",
+      "exitDate": "2025-07-22",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3224,
+          "stop": 3177.8,
+          "target": 3316.4,
+          "exit": 3316.4,
+          "rawR": 2,
+          "costR": 0.048848,
+          "netR": 1.951152,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.951152,
+      "grossR": 2,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.5595058017738734,
+        "donchian": 20
+      },
+      "foldId": "fold-11-2025"
+    },
+    {
+      "id": 0,
+      "signalDate": "2026-01-07",
+      "entryDate": "2026-01-08",
+      "exitDate": "2026-01-09",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3180,
+          "stop": 3146.6,
+          "target": 3267.8,
+          "exit": 3146.6,
+          "rawR": -1,
+          "costR": 0.066647,
+          "netR": -1.066647,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.066647,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 2.033511622228805,
+        "donchian": 20
+      },
+      "foldId": "fold-12-2026"
+    },
+    {
+      "id": 1,
+      "signalDate": "2026-02-24",
+      "entryDate": "2026-02-25",
+      "exitDate": "2026-02-25",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3029,
+          "stop": 3056.6,
+          "target": 2967.8,
+          "exit": 3056.6,
+          "rawR": -1,
+          "costR": 0.076822,
+          "netR": -1.076822,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.076822,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.3176688802332985,
+        "donchian": 20
+      },
+      "foldId": "fold-12-2026"
+    },
+    {
+      "id": 2,
+      "signalDate": "2026-04-20",
+      "entryDate": "2026-04-21",
+      "exitDate": "2026-05-06",
+      "exitReason": "target",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3172,
+          "stop": 3146.6,
+          "target": 3222.8,
+          "exit": 3227,
+          "rawR": 2.165354,
+          "costR": 0.087417,
+          "netR": 2.077937,
+          "exitReason": "target-gap-through"
+        }
+      ],
+      "netR": 2.077937,
+      "grossR": 2.165354,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.7027891561145576,
+        "donchian": 20
+      },
+      "foldId": "fold-12-2026"
+    },
+    {
+      "id": 3,
+      "signalDate": "2026-05-07",
+      "entryDate": "2026-05-08",
+      "exitDate": "2026-05-13",
+      "exitReason": "stop",
+      "direction": 1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": 1,
+          "entry": 3272,
+          "stop": 3238.4,
+          "target": 3342.2,
+          "exit": 3238.4,
+          "rawR": -1,
+          "costR": 0.068167,
+          "netR": -1.068167,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.068167,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2218486607599872,
+        "donchian": 20
+      },
+      "foldId": "fold-12-2026"
+    },
+    {
+      "id": 4,
+      "signalDate": "2026-05-26",
+      "entryDate": "2026-05-27",
+      "exitDate": "2026-06-09",
+      "exitReason": "time-exit",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3146,
+          "stop": 3190.8,
+          "target": 3056.4,
+          "exit": 3156,
+          "rawR": -0.223214,
+          "costR": 0.049156,
+          "netR": -0.272371,
+          "exitReason": "time-exit"
+        }
+      ],
+      "netR": -0.272371,
+      "grossR": -0.223214,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.6003177787162162,
+        "donchian": 20
+      },
+      "foldId": "fold-12-2026"
+    },
+    {
+      "id": 5,
+      "signalDate": "2026-06-18",
+      "entryDate": "2026-06-22",
+      "exitDate": "2026-07-01",
+      "exitReason": "target",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3131,
+          "stop": 3159,
+          "target": 3075,
+          "exit": 3075,
+          "rawR": 2,
+          "costR": 0.078275,
+          "netR": 1.921725,
+          "exitReason": "target"
+        }
+      ],
+      "netR": 1.921725,
+      "grossR": 2,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.269922238780743,
+        "donchian": 20
+      },
+      "foldId": "fold-12-2026"
+    },
+    {
+      "id": 6,
+      "signalDate": "2026-07-13",
+      "entryDate": "2026-07-14",
+      "exitDate": "2026-07-14",
+      "exitReason": "stop",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3054,
+          "stop": 3078.8,
+          "target": 3004.4,
+          "exit": 3078.8,
+          "rawR": -1,
+          "costR": 0.086202,
+          "netR": -1.086202,
+          "exitReason": "stop"
+        }
+      ],
+      "netR": -1.086202,
+      "grossR": -1,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.2945981236112092,
+        "donchian": 20
+      },
+      "foldId": "fold-12-2026"
+    },
+    {
+      "id": 7,
+      "signalDate": "2026-07-30",
+      "entryDate": "2026-07-31",
+      "exitDate": "2026-08-13",
+      "exitReason": "time-exit",
+      "direction": -1,
+      "sizeR": 1,
+      "legs": [
+        {
+          "symbol": "RB0",
+          "side": -1,
+          "entry": 3014,
+          "stop": 3041.6,
+          "target": 2958.8,
+          "exit": 3002,
+          "rawR": 0.434783,
+          "costR": 0.076442,
+          "netR": 0.358341,
+          "exitReason": "time-exit"
+        }
+      ],
+      "netR": 0.358341,
+      "grossR": 0.434783,
+      "tags": {
+        "confirmed": true,
+        "volRatio": 1.7847977053140098,
+        "donchian": 20
+      },
+      "foldId": "fold-12-2026"
+    }
+  ],
+  "abandons": 1,
+  "intents": 84,
+  "resultsHash": "17073cc3c2a25282fae936abe8aeccfff518ed4aa257a4e74c4b9a50b8b2a3b9"
+}

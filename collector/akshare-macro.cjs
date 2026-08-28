@@ -71,7 +71,7 @@ async function fetchSinaFxSnapshot(symbol, opts = {}) {
     series: [[date, price]],
     fetchedAt: new Date().toISOString(),
     snapshotTime: parts[0].trim(),
-    note: 'sina 实时快照兜底（日线通道失败后启用；观测值非日线 bar，change5d 不可用）'
+    note: 'sina 实时快照兜底（日线通道失败后启用；观测值非日线 bar，change5d 由 macro-probe 回退宏历史序列计算）'
   };
 }
 

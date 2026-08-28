@@ -1,0 +1,65 @@
+{
+  "specId": "DEMO-MOMENTUM",
+  "strategyId": "DEMO",
+  "description": "demo 20-bar Donchian momentum with volume confirmation — reference spec for the falsification harness; NOT one of the 8 library strategies. Used by harness selftest.",
+  "library": {
+    "sourceFile": "strategies/strategy-library-v2.json",
+    "entryId": null,
+    "note": "demo spec not in library; t8 real specs must set entryId to TR-01/TR-03/TR-06/FS-02/FS-04/FS-05/M1/EC-01"
+  },
+  "universe": {
+    "symbols": ["RB0"],
+    "sectors": [],
+    "macro": []
+  },
+  "data": {
+    "daily": true,
+    "derived": ["atr5", "volumeRatio"],
+    "sector": [],
+    "macro": [],
+    "calendar": false,
+    "rollJumps": true,
+    "tradableSet": false
+  },
+  "period": {
+    "start": "2015-01-01",
+    "end": "2026-08-28"
+  },
+  "warmupBars": 60,
+  "folds": {
+    "mode": "purged-expanding",
+    "testPeriod": "year",
+    "purgeBars": 5
+  },
+  "execution": {
+    "entryOffsetBars": 1,
+    "pathPriority": "stop-first",
+    "cost": { "roundtripBps": 7, "legs": 1 }
+  },
+  "strategyLevel": {
+    "minTrades": 200,
+    "pfThreshold": 1.2,
+    "ci": { "level": 0.95, "method": "bootstrap-percentile", "mustExcludeZero": true },
+    "majorityYearsPositive": true,
+    "baselines": ["always-long", "always-short", "random"],
+    "random": { "mode": "same-entries-flipped-side", "runs": 1, "seed": 20260828 }
+  },
+  "theoryLevel": {
+    "hypothesis": "demo: 扣成本后 20 日突破动量仍有方向优势",
+    "engine": "adapter"
+  },
+  "machineKillRules": [
+    { "id": "demo-min-trades", "metric": "n", "op": "lt", "value": 200, "onTrigger": "suspended", "note": "样本不足 → 引擎按 sample-insufficiency 停留 designed" },
+    { "id": "demo-pf", "metric": "pf", "op": "lt", "value": 1.2, "onTrigger": "suspended", "note": "PF < 1.2 → suspended" }
+  ],
+  "signal": { "adapter": "demo" },
+  "params": {
+    "donchian": 20,
+    "donchianLookback": 1,
+    "volConfirm": 1.2,
+    "atrMultStop": 1,
+    "atrMultTarget": 2,
+    "timeExitBars": 10,
+    "gapAbandonFactor": 0.5
+  }
+}

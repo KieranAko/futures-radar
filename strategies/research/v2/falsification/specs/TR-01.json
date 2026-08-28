@@ -1,0 +1,41 @@
+{
+  "specId": "TR-01",
+  "strategyId": "TR-01",
+  "description": "趋势延续（状态过滤版）walk-forward 证伪 spec — 按 strategy-library-v2.json TR-01 falsificationTests/dataContract 逐字构建；universe=全部 59 品种日线（库 inputs: data/daily/<SYMBOL>.json）",
+  "library": { "sourceFile": "strategies/strategy-library-v2.json", "entryId": "TR-01" },
+  "universe": { "symbols": ["A0","AG0","AL0","AO0","AP0","AU0","B0","BC0","BR0","BU0","C0","CF0","CJ0","CS0","CU0","EB0","EC0","EG0","FG0","FU0","HC0","I0","J0","JD0","JM0","L0","LC0","LH0","LU0","M0","MA0","NI0","NR0","OI0","P0","PB0","PF0","PG0","PK0","PP0","PX0","RB0","RM0","RU0","SA0","SC0","SF0","SH0","SI0","SM0","SN0","SP0","SR0","SS0","TA0","UR0","V0","Y0","ZN0"], "sectors": [], "macro": [] },
+  "data": { "daily": true, "derived": ["atr5", "ma20", "ma60", "volumeRatio", "hv20"], "sector": [], "macro": [], "calendar": false, "rollJumps": true, "tradableSet": false },
+  "period": { "start": "2015-01-01", "end": "2026-08-28" },
+  "warmupBars": 120,
+  "folds": { "mode": "purged-expanding", "testPeriod": "year", "purgeBars": 5 },
+  "execution": { "entryOffsetBars": 1, "pathPriority": "stop-first", "cost": { "roundtripBps": 7, "legs": 1 } },
+  "strategyLevel": {
+    "minTrades": 200,
+    "pfThreshold": 1.2,
+    "ci": { "level": 0.95, "method": "bootstrap-percentile", "mustExcludeZero": true },
+    "majorityYearsPositive": true,
+    "baselines": ["always-long", "always-short", "random"],
+    "random": { "mode": "same-entries-flipped-side", "runs": 1, "seed": 20260828 },
+    "theoryFalsifiedState": "retired"
+  },
+  "theoryLevel": { "hypothesis": "信息确认机制有效", "engine": "adapter" },
+  "machineKillRules": [
+    { "id": "tr01-min-trades", "metric": "n", "op": "lt", "value": 200, "onTrigger": "suspended", "note": "样本不足 → 引擎按 sample-insufficiency 停留 designed" },
+    { "id": "tr01-pf", "metric": "pf", "op": "lt", "value": 1.2, "onTrigger": "suspended", "note": "PF < 1.2 → suspended" }
+  ],
+  "signal": { "adapter": "TR-01" },
+  "params": {
+    "mode": "confirm-required",
+    "donchian": 20,
+    "gThreshold": 0.003,
+    "gTier": 0.006,
+    "volConfirm": 1.2,
+    "stopAtrMult": 1.5,
+    "stopExtremeOffset": 0.25,
+    "t1R": 2,
+    "t2R": 3,
+    "trailAtrMult": 2,
+    "timeExitBars": 10,
+    "gapAbandonFactor": 0.5
+  }
+}

@@ -1,0 +1,1065 @@
+{
+  "schema": "futures-radar-ga6-stickiness/1",
+  "auditedAt": "2026-08-28T08:40:17Z",
+  "qualityGate": "30 日零变动占比 > 40% 剔除出 FS-02 可交易集（t2 §FS-02 / GA-6）",
+  "pitDiscipline": "F7：逐日 PIT 快照留档（fetch 文件含 fetchedAt）；历史回填禁止用今日数据",
+  "window": {
+    "startDay": "20260710",
+    "endDay": "20260828",
+    "rowsPerSymbol": 30
+  },
+  "dailyFetch": {
+    "fetchedAt": "2026-08-28T08:31:20Z",
+    "rows": 1944
+  },
+  "previousFetch": {
+    "fetchedAt": "2026-08-28T08:31:46Z",
+    "rows": 54,
+    "anchorDate": "20260827"
+  },
+  "symbolsAudited": 54,
+  "symbolsWithoutSpotQuote": [],
+  "excludedCount": 12,
+  "tradableCount": 42,
+  "revisionRiskSample": {
+    "anchorDate": "20260827",
+    "crossCheckedSymbols": 54,
+    "mismatches": [
+      {
+        "symbol": "A",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 948.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "a2611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "AG",
+        "date": "20260827",
+        "spot_diff": 0.03,
+        "basis_diff": 298.67,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "ag2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "AL",
+        "date": "20260827",
+        "spot_diff": 0.03,
+        "basis_diff": 232.67,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "al2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "AU",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 6.1,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "au2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "BR",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 450.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "br2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "BU",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 368.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "bu2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "BZ",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 1166.33,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "bz2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "C",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 82.29,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "c2611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "CF",
+        "date": "20260827",
+        "spot_diff": 0.03,
+        "basis_diff": 2282.33,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "CF701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "CU",
+        "date": "20260827",
+        "spot_diff": 0.33,
+        "basis_diff": 2273.67,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "cu2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "CY",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 3650.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "CY611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "EB",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 1002.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "eb2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "EG",
+        "date": "20260827",
+        "spot_diff": 3.33,
+        "basis_diff": 1197.33,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "eg2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "FG",
+        "date": "20260827",
+        "spot_diff": 944.05,
+        "basis_diff": 93.0,
+        "signFlip": false,
+        "issue": "同源数值不一致（修订/口径差异）",
+        "contract": "FG701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "FU",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 5424.5,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "fu2611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "HC",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 12.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "hc2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "I",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 10.61,
+        "signFlip": false,
+        "issue": "同源数值不一致（修订/口径差异）",
+        "contract": "i2701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "J",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 460.5,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "j2701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "JD",
+        "date": "20260827",
+        "spot_diff": 5399.18,
+        "basis_diff": 3280.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "jd2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "JM",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 1278.75,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "jm2701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "L",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 1770.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "l2701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "LC",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 4040.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "LC2701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "LH",
+        "date": "20260827",
+        "spot_diff": 10939.05,
+        "basis_diff": 1820.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "lh2611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "M",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 234.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "m2701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "MA",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 144.83,
+        "signFlip": false,
+        "issue": "同源数值不一致（修订/口径差异）",
+        "contract": "MA610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "NI",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 1940.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "ni2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "OI",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 726.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "OI611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "P",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 646.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "p2701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "PB",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 144.5,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "pb2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "PF",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 640.82,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "PF610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "PG",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 936.5,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "pg2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "PL",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 1712.33,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "PL611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "PP",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 2790.67,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "pp2701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "PR",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 1266.09,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "PR611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "PS",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 11460.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "PS2611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "PX",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 1104.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "PX611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "RB",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 48.5,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "rb2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "RM",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 172.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "RM611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "RU",
+        "date": "20260827",
+        "spot_diff": 0.03,
+        "basis_diff": 2006.33,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "ru2701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "SA",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 152.14,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "SA701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "SF",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 790.43,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "SF611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "SH",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 1151.0,
+        "signFlip": false,
+        "issue": "同源数值不一致（修订/口径差异）",
+        "contract": "SH611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "SI",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 1250.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "SI2611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "SM",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 468.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "SM611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "SN",
+        "date": "20260827",
+        "spot_diff": 0.5,
+        "basis_diff": 3284.5,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "sn2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "SP",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 192.67,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "sp2611",
+        "prevContract": "2611"
+      },
+      {
+        "symbol": "SR",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 354.67,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "SR701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "SS",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 970.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "ss2610",
+        "prevContract": "2610"
+      },
+      {
+        "symbol": "TA",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 1308.75,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "TA701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "UR",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 62.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "UR701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "V",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 190.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "v2701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "WR",
+        "date": "20260827",
+        "spot_diff": 5.0,
+        "basis_diff": 125.5,
+        "signFlip": false,
+        "issue": "同源数值不一致（修订/口径差异）",
+        "contract": "wr2701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "Y",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 160.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "y2701",
+        "prevContract": "2701"
+      },
+      {
+        "symbol": "ZN",
+        "date": "20260827",
+        "spot_diff": 0.0,
+        "basis_diff": 806.0,
+        "signFlip": true,
+        "issue": "基差符号口径相反（daily dom_basis=F−S vs previous=S−F；FS-02 采集器须统一符号）",
+        "contract": "zn2610",
+        "prevContract": "2610"
+      }
+    ]
+  },
+  "pitChecklist": {
+    "F7-1": "每次拉取记录 fetchedAt（本审计 fetch 文件含 fetchedAt，auditedAt 为审计时刻）",
+    "F7-2": "历史回填必须逐日 PIT 拉取（start=end=T 日），禁止用今日数据回填历史",
+    "F7-3": "审计窗口为采集日快照（v0 样例）；GA-6 全量历史审计按逐日 PIT 重跑后冻结名单",
+    "F7-4": "修订风险：生意社挂牌价为参考价，可能修订；回测引用值以当日快照文件为准，不追后修",
+    "F7-5": "dominant_contract 换月导致 dom_basis 跳变与现货粘性无关，审计只统计 spot_price 序列"
+  },
+  "perSymbol": {
+    "A": {
+      "rows": 30,
+      "distinct_values": 2,
+      "zero_change_ratio": 0.9655172413793104,
+      "excluded": true,
+      "last_spot": 4500.0,
+      "last_date": "20260828",
+      "sticky_5d": true
+    },
+    "AG": {
+      "rows": 30,
+      "distinct_values": 29,
+      "zero_change_ratio": 0.034482758620689655,
+      "excluded": false,
+      "last_spot": 16877.67,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "AL": {
+      "rows": 30,
+      "distinct_values": 25,
+      "zero_change_ratio": 0.13793103448275862,
+      "excluded": false,
+      "last_spot": 23936.67,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "AU": {
+      "rows": 30,
+      "distinct_values": 28,
+      "zero_change_ratio": 0.06896551724137931,
+      "excluded": false,
+      "last_spot": 998.35,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "BR": {
+      "rows": 30,
+      "distinct_values": 25,
+      "zero_change_ratio": 0.1724137931034483,
+      "excluded": false,
+      "last_spot": 14710.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "BU": {
+      "rows": 30,
+      "distinct_values": 24,
+      "zero_change_ratio": 0.10344827586206896,
+      "excluded": false,
+      "last_spot": 4757.5,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "BZ": {
+      "rows": 30,
+      "distinct_values": 23,
+      "zero_change_ratio": 0.20689655172413793,
+      "excluded": false,
+      "last_spot": 8017.67,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "C": {
+      "rows": 30,
+      "distinct_values": 10,
+      "zero_change_ratio": 0.5517241379310345,
+      "excluded": true,
+      "last_spot": 2245.71,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "CF": {
+      "rows": 30,
+      "distinct_values": 29,
+      "zero_change_ratio": 0.034482758620689655,
+      "excluded": false,
+      "last_spot": 18263.83,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "CU": {
+      "rows": 30,
+      "distinct_values": 30,
+      "zero_change_ratio": 0.0,
+      "excluded": false,
+      "last_spot": 109661.67,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "CY": {
+      "rows": 30,
+      "distinct_values": 5,
+      "zero_change_ratio": 0.8620689655172413,
+      "excluded": true,
+      "last_spot": 24875.0,
+      "last_date": "20260828",
+      "sticky_5d": true
+    },
+    "EB": {
+      "rows": 30,
+      "distinct_values": 18,
+      "zero_change_ratio": 0.3103448275862069,
+      "excluded": false,
+      "last_spot": 9040.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "EG": {
+      "rows": 30,
+      "distinct_values": 25,
+      "zero_change_ratio": 0.13793103448275862,
+      "excluded": false,
+      "last_spot": 5680.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "FG": {
+      "rows": 30,
+      "distinct_values": 9,
+      "zero_change_ratio": 0.7241379310344828,
+      "excluded": true,
+      "last_spot": 956.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "FU": {
+      "rows": 30,
+      "distinct_values": 14,
+      "zero_change_ratio": 0.3793103448275862,
+      "excluded": false,
+      "last_spot": 6412.5,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "HC": {
+      "rows": 30,
+      "distinct_values": 26,
+      "zero_change_ratio": 0.034482758620689655,
+      "excluded": false,
+      "last_spot": 3382.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "I": {
+      "rows": 30,
+      "distinct_values": 27,
+      "zero_change_ratio": 0.0,
+      "excluded": false,
+      "last_spot": 714.78,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "J": {
+      "rows": 30,
+      "distinct_values": 8,
+      "zero_change_ratio": 0.7586206896551724,
+      "excluded": true,
+      "last_spot": 1905.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "JD": {
+      "rows": 30,
+      "distinct_values": 21,
+      "zero_change_ratio": 0.20689655172413793,
+      "excluded": false,
+      "last_spot": 5350.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "JM": {
+      "rows": 30,
+      "distinct_values": 8,
+      "zero_change_ratio": 0.7586206896551724,
+      "excluded": true,
+      "last_spot": 2248.75,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "L": {
+      "rows": 30,
+      "distinct_values": 26,
+      "zero_change_ratio": 0.06896551724137931,
+      "excluded": false,
+      "last_spot": 8506.67,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "LC": {
+      "rows": 30,
+      "distinct_values": 16,
+      "zero_change_ratio": 0.1724137931034483,
+      "excluded": false,
+      "last_spot": 153000.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "LH": {
+      "rows": 30,
+      "distinct_values": 25,
+      "zero_change_ratio": 0.0,
+      "excluded": false,
+      "last_spot": 10880.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "M": {
+      "rows": 30,
+      "distinct_values": 24,
+      "zero_change_ratio": 0.06896551724137931,
+      "excluded": false,
+      "last_spot": 3238.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "MA": {
+      "rows": 30,
+      "distinct_values": 30,
+      "zero_change_ratio": 0.0,
+      "excluded": false,
+      "last_spot": 2921.67,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "NI": {
+      "rows": 30,
+      "distinct_values": 29,
+      "zero_change_ratio": 0.0,
+      "excluded": false,
+      "last_spot": 128550.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "OI": {
+      "rows": 30,
+      "distinct_values": 25,
+      "zero_change_ratio": 0.10344827586206896,
+      "excluded": false,
+      "last_spot": 10730.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "P": {
+      "rows": 30,
+      "distinct_values": 28,
+      "zero_change_ratio": 0.0,
+      "excluded": false,
+      "last_spot": 9826.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "PB": {
+      "rows": 30,
+      "distinct_values": 25,
+      "zero_change_ratio": 0.06896551724137931,
+      "excluded": false,
+      "last_spot": 16162.5,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "PF": {
+      "rows": 30,
+      "distinct_values": 29,
+      "zero_change_ratio": 0.034482758620689655,
+      "excluded": false,
+      "last_spot": 7744.82,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "PG": {
+      "rows": 30,
+      "distinct_values": 23,
+      "zero_change_ratio": 0.06896551724137931,
+      "excluded": false,
+      "last_spot": 6262.5,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "PL": {
+      "rows": 30,
+      "distinct_values": 29,
+      "zero_change_ratio": 0.034482758620689655,
+      "excluded": false,
+      "last_spot": 8721.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "PP": {
+      "rows": 30,
+      "distinct_values": 22,
+      "zero_change_ratio": 0.13793103448275862,
+      "excluded": false,
+      "last_spot": 9246.67,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "PR": {
+      "rows": 30,
+      "distinct_values": 27,
+      "zero_change_ratio": 0.10344827586206896,
+      "excluded": false,
+      "last_spot": 7751.5,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "PS": {
+      "rows": 30,
+      "distinct_values": 4,
+      "zero_change_ratio": 0.896551724137931,
+      "excluded": true,
+      "last_spot": 32000.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "PX": {
+      "rows": 30,
+      "distinct_values": 2,
+      "zero_change_ratio": 0.9655172413793104,
+      "excluded": true,
+      "last_spot": 8500.0,
+      "last_date": "20260828",
+      "sticky_5d": true
+    },
+    "RB": {
+      "rows": 30,
+      "distinct_values": 27,
+      "zero_change_ratio": 0.034482758620689655,
+      "excluded": false,
+      "last_spot": 3136.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "RM": {
+      "rows": 30,
+      "distinct_values": 21,
+      "zero_change_ratio": 0.1724137931034483,
+      "excluded": false,
+      "last_spot": 2466.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "RU": {
+      "rows": 30,
+      "distinct_values": 28,
+      "zero_change_ratio": 0.034482758620689655,
+      "excluded": false,
+      "last_spot": 17958.33,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "SA": {
+      "rows": 30,
+      "distinct_values": 6,
+      "zero_change_ratio": 0.8275862068965517,
+      "excluded": true,
+      "last_spot": 1087.14,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "SF": {
+      "rows": 30,
+      "distinct_values": 19,
+      "zero_change_ratio": 0.3103448275862069,
+      "excluded": false,
+      "last_spot": 5647.14,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "SH": {
+      "rows": 30,
+      "distinct_values": 3,
+      "zero_change_ratio": 0.9310344827586207,
+      "excluded": true,
+      "last_spot": 639.0,
+      "last_date": "20260828",
+      "sticky_5d": true
+    },
+    "SI": {
+      "rows": 30,
+      "distinct_values": 8,
+      "zero_change_ratio": 0.7241379310344828,
+      "excluded": true,
+      "last_spot": 9430.0,
+      "last_date": "20260828",
+      "sticky_5d": true
+    },
+    "SM": {
+      "rows": 30,
+      "distinct_values": 26,
+      "zero_change_ratio": 0.06896551724137931,
+      "excluded": false,
+      "last_spot": 5786.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "SN": {
+      "rows": 30,
+      "distinct_values": 30,
+      "zero_change_ratio": 0.0,
+      "excluded": false,
+      "last_spot": 421762.5,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "SP": {
+      "rows": 30,
+      "distinct_values": 15,
+      "zero_change_ratio": 0.3103448275862069,
+      "excluded": false,
+      "last_spot": 4850.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "SR": {
+      "rows": 30,
+      "distinct_values": 20,
+      "zero_change_ratio": 0.20689655172413793,
+      "excluded": false,
+      "last_spot": 5183.33,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "SS": {
+      "rows": 30,
+      "distinct_values": 13,
+      "zero_change_ratio": 0.5517241379310345,
+      "excluded": true,
+      "last_spot": 14533.33,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "TA": {
+      "rows": 30,
+      "distinct_values": 30,
+      "zero_change_ratio": 0.0,
+      "excluded": false,
+      "last_spot": 6213.25,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "UR": {
+      "rows": 30,
+      "distinct_values": 16,
+      "zero_change_ratio": 0.3103448275862069,
+      "excluded": false,
+      "last_spot": 1715.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "V": {
+      "rows": 30,
+      "distinct_values": 26,
+      "zero_change_ratio": 0.034482758620689655,
+      "excluded": false,
+      "last_spot": 4435.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "WR": {
+      "rows": 30,
+      "distinct_values": 20,
+      "zero_change_ratio": 0.20689655172413793,
+      "excluded": false,
+      "last_spot": 3337.5,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "Y": {
+      "rows": 30,
+      "distinct_values": 29,
+      "zero_change_ratio": 0.0,
+      "excluded": false,
+      "last_spot": 8992.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    },
+    "ZN": {
+      "rows": 30,
+      "distinct_values": 30,
+      "zero_change_ratio": 0.0,
+      "excluded": false,
+      "last_spot": 26248.0,
+      "last_date": "20260828",
+      "sticky_5d": false
+    }
+  }
+}

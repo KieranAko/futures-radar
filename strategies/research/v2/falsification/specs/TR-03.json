@@ -1,0 +1,39 @@
+{
+  "specId": "TR-03",
+  "strategyId": "TR-03",
+  "description": "趋势回踩续势（趋势 + OU 噪声分解）walk-forward 证伪 spec — 按库 TR-03 falsificationTests/dataContract 构建",
+  "library": { "sourceFile": "strategies/strategy-library-v2.json", "entryId": "TR-03" },
+  "universe": { "symbols": ["A0","AG0","AL0","AO0","AP0","AU0","B0","BC0","BR0","BU0","C0","CF0","CJ0","CS0","CU0","EB0","EC0","EG0","FG0","FU0","HC0","I0","J0","JD0","JM0","L0","LC0","LH0","LU0","M0","MA0","NI0","NR0","OI0","P0","PB0","PF0","PG0","PK0","PP0","PX0","RB0","RM0","RU0","SA0","SC0","SF0","SH0","SI0","SM0","SN0","SP0","SR0","SS0","TA0","UR0","V0","Y0","ZN0"], "sectors": [], "macro": [] },
+  "data": { "daily": true, "derived": ["atr5", "ma20", "ma60", "volumeRatio", "hv20"], "sector": [], "macro": [], "calendar": false, "rollJumps": true, "tradableSet": false },
+  "period": { "start": "2015-01-01", "end": "2026-08-28" },
+  "warmupBars": 120,
+  "folds": { "mode": "purged-expanding", "testPeriod": "year", "purgeBars": 5 },
+  "execution": { "entryOffsetBars": 1, "pathPriority": "stop-first", "cost": { "roundtripBps": 7, "legs": 1 } },
+  "strategyLevel": {
+    "minTrades": 200,
+    "pfThreshold": 1.2,
+    "ci": { "level": 0.95, "method": "bootstrap-percentile", "mustExcludeZero": true },
+    "majorityYearsPositive": true,
+    "baselines": ["always-long", "always-short", "random"],
+    "random": { "mode": "same-entries-flipped-side", "runs": 1, "seed": 20260828 },
+    "theoryFalsifiedState": "retired"
+  },
+  "theoryLevel": { "hypothesis": "噪声耗尽确认有效（θ 定价正确）", "engine": "adapter" },
+  "machineKillRules": [
+    { "id": "tr03-min-trades", "metric": "n", "op": "lt", "value": 200, "onTrigger": "suspended", "note": "样本不足 → designed" },
+    { "id": "tr03-pf", "metric": "pf", "op": "lt", "value": 1.2, "onTrigger": "suspended", "note": "PF < 1.2 → suspended" },
+    { "id": "tr03-consec-fold-hit", "metric": "custom.maxConsecFoldHitFail", "op": "gte", "value": 2, "onTrigger": "suspended", "note": "连续 2 个滚动窗口命中率 < 50% → suspended（库 killRules）" }
+  ],
+  "signal": { "adapter": "TR-03" },
+  "params": {
+    "mode": "confirm-required",
+    "bandAtrMult": 0.25,
+    "volBand": [0.8, 1.5],
+    "volFail": 1.5,
+    "stopDistanceMaxAtr": 1.5,
+    "t2R": 2,
+    "trailAtrMult": 1,
+    "timeExitBars": 8,
+    "gapAbandonFactor": 0.75
+  }
+}

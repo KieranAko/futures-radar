@@ -1,0 +1,295 @@
+{
+  "schema": "futures-radar-ga7-policy-calendar/1",
+  "maintainedAt": "2026-08-28",
+  "maintainer": "data-engineer-2",
+  "description": "政策日历 v0 最小集（年份级事件窗口 + 重要月度发布日排期）",
+  "discipline": "F9：证伪测试只允许使用 event.date <= 锚点日 的事件；本日历只记录\"发生了什么/日程上有什么\"，\n不提供市场反应；禁止从价格反推事件后标注为真实事件；每条事件必须带 source；\nverified=false 的条目为官方惯例排期（schedule），只能当预期使用，不能当已核实结果；\n年份级窗口（date=窗口起点，end=窗口终点）仅用于样本分段/单列报告与联动暂停标注，不用于择时入场。\n",
+  "events": [
+    {
+      "id": "ga7-bk-2016",
+      "date": "2016-02-04",
+      "end": "2017-12-31",
+      "type": "policy_window",
+      "sector": "black",
+      "title": "钢铁行业供给侧结构性改革（化解过剩产能，去产能 1-1.5 亿吨）",
+      "scope": [
+        "RB0",
+        "HC0",
+        "I0",
+        "J0",
+        "JM0",
+        "SF0",
+        "SM0",
+        "black"
+      ],
+      "verified": true,
+      "source": "https://www.gov.cn/zhengce/zhengceku/2016-02/04/content_5039353.htm",
+      "note": "国发〔2016〕6 号《关于钢铁行业化解过剩产能实现脱困发展的意见》；FS-04(d) 政策窗口检验 2016-2017 段"
+    },
+    {
+      "id": "ga7-bk-2021",
+      "date": "2021-04-01",
+      "end": "2021-12-31",
+      "type": "policy_window",
+      "sector": "black",
+      "title": "2021 年粗钢产量压减（确保全国粗钢产量同比下降）",
+      "scope": [
+        "RB0",
+        "HC0",
+        "I0",
+        "J0",
+        "JM0",
+        "SF0",
+        "SM0",
+        "black"
+      ],
+      "verified": true,
+      "source": "https://wap.miit.gov.cn/jgsj/ycls/gt/art/2021/art_6618ea3ec1634d29a158e6b0c1c74374.html",
+      "note": "发改委、工信部就 2021 年钢铁去产能\"回头看\"、粗钢产量压减等工作研究部署（2021-04-01）；FS-04(d) 2021 段"
+    },
+    {
+      "id": "ga7-bk-2025",
+      "date": "2025-03-05",
+      "end": "2025-12-31",
+      "type": "policy_window",
+      "sector": "black",
+      "title": "2025 年持续实施粗钢产量调控（政府工作报告）",
+      "scope": [
+        "RB0",
+        "HC0",
+        "I0",
+        "J0",
+        "JM0",
+        "SF0",
+        "SM0",
+        "black"
+      ],
+      "verified": true,
+      "source": "https://www.xhby.net/content/s67d14edae4b06b14f8cdf133.html",
+      "note": "2025-03-05 李强总理作政府工作报告：持续实施粗钢产量调控；FS-04(d) 2025 段（年份级窗口，配套 2025-04 发改委产能置换新办法另行补充）"
+    },
+    {
+      "id": "ga7-ag-2019",
+      "date": "2019-03-01",
+      "end": "2019-12-31",
+      "type": "policy_window",
+      "sector": "agriculture",
+      "title": "海关总署加强进口加拿大油菜籽检疫（多家加企注册资格被暂停）",
+      "scope": [
+        "RM0",
+        "M0",
+        "A0",
+        "C0",
+        "Y0",
+        "agriculture"
+      ],
+      "verified": true,
+      "source": "https://ca.china-embassy.gov.cn/zjwl/2023zjwl/201903/t20190307_4719311.htm",
+      "note": "2019-03 起加拿大油菜籽进口受限；FS-05(c) 2019 段结构断裂窗口"
+    },
+    {
+      "id": "ga7-ag-2024ad",
+      "date": "2024-09-09",
+      "end": "2025-12-31",
+      "type": "policy_window",
+      "sector": "agriculture",
+      "title": "商务部对原产于加拿大的进口油菜籽反倾销立案调查",
+      "scope": [
+        "RM0",
+        "M0",
+        "A0",
+        "C0",
+        "Y0",
+        "agriculture"
+      ],
+      "verified": true,
+      "source": "https://news.cnr.cn/native/gd/kx/20240909/t20240909_526895321.shtml",
+      "note": "商务部公告 2024 年第 37 号（2024-09-09 立案）；库文案已对齐（2026-08-28 修订）。原库文案曾记 2023，已按实证 2024-09-09 更正。walk-forward 开窗以本条实证日期为准。"
+    },
+    {
+      "id": "ga7-ag-reserve",
+      "date": "2016-01-01",
+      "end": "2026-12-31",
+      "type": "reserve_window",
+      "sector": "agriculture",
+      "title": "国储/中储粮大豆等收抛储常态化窗口",
+      "scope": [
+        "A0",
+        "C0",
+        "M0",
+        "Y0",
+        "P0",
+        "agriculture"
+      ],
+      "verified": false,
+      "schedule": "recurring",
+      "source": "https://www.grain.gov.cn/",
+      "note": "收抛储为常态化机制；具体轮次以国家粮食交易中心竞价销售公告为准（例：中储粮油脂公司国产大豆竞价销售公告，见 chinasoybean.org.cn 转发）；年份级窗口仅供样本分段"
+    },
+    {
+      "id": "ga7-en-2020opec",
+      "date": "2020-04-12",
+      "end": "2020-04-30",
+      "type": "policy_window",
+      "sector": "energy_chemical",
+      "title": "OPEC+ 历史性减产协议（首轮两个月日均减 970 万桶）",
+      "scope": [
+        "SC0",
+        "FU0",
+        "LU0",
+        "BU0",
+        "energy_chemical"
+      ],
+      "verified": true,
+      "source": "https://www.thepaper.cn/newsDetail_forward_6947321",
+      "note": "2020-04-12 达成、2020-05-01 起执行；与 2020-04-20 负油价同属 2020 供给事件簇"
+    },
+    {
+      "id": "ga7-en-2020oil",
+      "date": "2020-04-20",
+      "end": "2020-04-21",
+      "type": "structural_event",
+      "sector": "energy_chemical",
+      "title": "WTI 2005 合约结算 -37.63 美元/桶（负油价）",
+      "scope": [
+        "SC0",
+        "FU0",
+        "LU0",
+        "BU0",
+        "energy_chemical",
+        "macro"
+      ],
+      "verified": true,
+      "source": "https://www.reuters.com/article/global-oil-contracts-cme-grp-idUSL1N2C82MD/",
+      "note": "CME 2020-04-20 结算记录（CME Group 声明见 Reuters）；EC-01(c)：该期样本单列报告、不参与参数估计，与事件日历联动暂停"
+    },
+    {
+      "id": "ga7-en-2022ru",
+      "date": "2022-02-24",
+      "end": "2022-03-31",
+      "type": "structural_event",
+      "sector": "energy_chemical",
+      "title": "俄乌冲突爆发（能源供给冲击起点）",
+      "scope": [
+        "SC0",
+        "FU0",
+        "LU0",
+        "BU0",
+        "energy_chemical",
+        "macro"
+      ],
+      "verified": true,
+      "source": "https://news.un.org/zh/story/2022/02/1099722",
+      "note": "2022-02-24 起；EC-01(c)：该期样本单列报告、不参与参数估计，与事件日历联动暂停"
+    }
+  ],
+  "schedules": [
+    {
+      "type": "china_pmi",
+      "title": "中国官方 PMI（制造业/非制造业）",
+      "rule": "每月最后一日或次月首个工作日",
+      "scope": [
+        "RB0",
+        "black",
+        "macro"
+      ],
+      "source": "https://www.stats.gov.cn/sj/fbrc/bnxxfb/"
+    },
+    {
+      "type": "china_cpi_ppi",
+      "title": "中国 CPI/PPI",
+      "rule": "每月 9-10 日左右（统计局发布日程）",
+      "scope": [
+        "RB0",
+        "black",
+        "macro"
+      ],
+      "source": "https://www.stats.gov.cn/sj/fbrc/bnxxfb/"
+    },
+    {
+      "type": "china_lpr",
+      "title": "中国 LPR 报价",
+      "rule": "每月 20 日（遇节假日顺延）",
+      "scope": [
+        "RB0",
+        "black",
+        "macro"
+      ],
+      "source": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/125440/index.html"
+    },
+    {
+      "type": "china_finance_data",
+      "title": "中国金融数据（社融/M2/新增贷款）",
+      "rule": "每月 10-15 日左右",
+      "scope": [
+        "RB0",
+        "black",
+        "macro"
+      ],
+      "source": "https://www.pbc.gov.cn/diaochatongjisi/116219/index.html"
+    },
+    {
+      "type": "fomc",
+      "title": "FOMC 议息会议",
+      "rule": "每年 8 次会议（按美联储官方日历）",
+      "scope": [
+        "SC0",
+        "macro",
+        "black"
+      ],
+      "source": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+    },
+    {
+      "type": "wasde",
+      "title": "USDA WASDE 月度供需报告",
+      "rule": "每月 10 日前后",
+      "scope": [
+        "M0",
+        "RM0",
+        "Y0",
+        "P0",
+        "C0",
+        "A0",
+        "agriculture"
+      ],
+      "source": "https://www.usda.gov/about-usda/general-information/staff-offices/office-chief-economist/commodity-markets/wasde-report"
+    },
+    {
+      "type": "mpob",
+      "title": "MPOB 马来西亚棕榈油月度数据",
+      "rule": "每月 10 日前后",
+      "scope": [
+        "P0",
+        "Y0",
+        "M0",
+        "agriculture"
+      ],
+      "source": "https://www.mpob.gov.my/"
+    },
+    {
+      "type": "eia_weekly",
+      "title": "EIA 周度原油库存",
+      "rule": "每周（北京时间周三/四）",
+      "scope": [
+        "SC0",
+        "FU0",
+        "LU0",
+        "BU0"
+      ],
+      "source": "https://www.eia.gov/"
+    },
+    {
+      "type": "opec_meeting",
+      "title": "OPEC+ 会议/产量决定",
+      "rule": "不定期（按 OPEC 官方日程）",
+      "scope": [
+        "SC0",
+        "FU0",
+        "LU0",
+        "BU0"
+      ],
+      "source": "https://www.opec.org/"
+    }
+  ],
+  "yamlSha256": "a762d27c33558f8cf49c31a8efbec971bf41e31ab5b0fbcc27c6718aed2d7ada"
+}

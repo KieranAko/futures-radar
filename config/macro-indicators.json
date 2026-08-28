@@ -2,7 +2,7 @@
   "version": "1.0.0",
   "description": "Phase 3 阶段一宏观锚点（5 个冻结，缅因猫精简版）。每个锚点快照只保留 value/change5d/asOf/fetchedAt/source/status；不计算 change1d/change20d/z20/regime，不生成宏观评分，不参与筛选。",
   "marketCutoffRule": "signalDate 由 raw.json 各合约最新日期的最大值确定；各锚点 asOf 必须 <= signalDate（含当日），取 <= signalDate 的最后一根已完成日线，禁止使用盘中未完成 bar",
-  "change5dRule": "相对百分比变化 change5d = (v_t / v_{t-5} - 1) * 100，v_{t-5} 为 asOf 前第 5 个交易日的收盘值；序列不足 6 根时 change5d = null",
+  "change5dRule": "相对百分比变化 change5d = (v_t / v_{t-5} - 1) * 100，v_{t-5} 为 asOf 前第 5 个交易日的收盘值；序列不足 6 根时优先回退宏历史序列（recordings/v5/macro-history.json 同指标 series，change5dSource=macro-history）；回退亦不可得时显式降级标注（change5dStatus=unavailable + degradedReason，status 降 stale，F2 降权路径），不输出裸 null",
   "freshnessRule": "asOf == signalDate → fresh；asOf < signalDate 且取到数据 → stale；无数据 → missing（禁止伪造，禁止用近似源顶替）",
   "dataSourceDiscipline": "仅使用现有允许数据源（akshare/sina 同源族 + 本 run raw.json）；不使用 ttfund/Wind/iFinD；WebSearch 不补写日频数值；SC0 复用 raw.json 具体合约序列，不重复抓取",
   "indicators": {
