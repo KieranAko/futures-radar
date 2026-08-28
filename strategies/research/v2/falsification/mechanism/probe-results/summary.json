@@ -1,6 +1,6 @@
 {
   "schema": "futures-strategy-mechanism-probe-summary/1",
-  "generatedAt": "2026-08-28T19:25:51.305Z",
+  "generatedAt": "2026-08-28",
   "protocolRef": "strategies/research/v2/falsification/24-preregistration-protocol.md",
   "results": {
     "H-MECH-01": {

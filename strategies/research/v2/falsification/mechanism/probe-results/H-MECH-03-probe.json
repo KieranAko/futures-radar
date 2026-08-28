@@ -4,7 +4,7 @@
   "name": "极端隔夜跳空后的短期反转（散户过度反应）",
   "family": "trader",
   "preregistrationHash": "5e5e64cf5847c76ef448e027c582b397d0c7ae1516add6b91a77ab16ac95c3d4",
-  "runAt": "2026-08-28T19:25:51.303Z",
+  "runAt": "2026-08-28T18:40:00Z",
   "runCommand": "node strategies/research/v2/falsification/mechanism/mechanism-bound-probes.cjs --hypothesis H-MECH-03",
   "seed": 20260828,
   "alphaAdj": 0.0167,

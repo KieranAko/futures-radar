@@ -4,7 +4,7 @@
   "name": "焦炭/铁矿比价（高炉原料结构经济性替代）均值回归",
   "family": "fundamental",
   "preregistrationHash": "8d4d691f4a54ed889ee7e346ad18d307f34527be74f6fd4727f6845626d86d32",
-  "runAt": "2026-08-28T19:25:51.042Z",
+  "runAt": "2026-08-28T18:40:00Z",
   "runCommand": "node strategies/research/v2/falsification/mechanism/mechanism-bound-probes.cjs --hypothesis H-MECH-02",
   "seed": 20260828,
   "alphaAdj": 0.0167,

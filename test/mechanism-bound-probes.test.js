@@ -70,10 +70,7 @@ describe('mechanism hypothesis generation (round 1)', () => {
     runner.main();
     for (const id of ids) {
       const after = JSON.parse(fs.readFileSync(path.join(MECH, 'probe-results', `${id}-probe.json`), 'utf8'));
-      assert.equal(after.decision, before[id].decision, `${id} decision drifted`);
-      assert.deepEqual(after.primary, before[id].primary, `${id} primary drifted`);
-      assert.deepEqual(after.secondary, before[id].secondary, `${id} secondary drifted`);
-      assert.deepEqual(after.powerReport, before[id].powerReport, `${id} powerReport drifted`);
+      assert.deepEqual(after, before[id], `${id} result drifted on re-run`);
     }
   });
 

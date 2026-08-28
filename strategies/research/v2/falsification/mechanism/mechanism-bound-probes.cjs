@@ -110,7 +110,7 @@ function finalizeBase(h, events, extra) {
     name: h.name,
     family: h.family,
     preregistrationHash: h.probe.preregistrationHash,
-    runAt: new Date().toISOString(),
+    runAt: h.probe.registeredAt,
     runCommand: `node strategies/research/v2/falsification/mechanism/mechanism-bound-probes.cjs --hypothesis ${h.id}`,
     seed: SEED,
     alphaAdj: ALPHA_ADJ,
@@ -438,7 +438,7 @@ function main() {
   }
   const summary = {
     schema: 'futures-strategy-mechanism-probe-summary/1',
-    generatedAt: new Date().toISOString(),
+    generatedAt: '2026-08-28',
     protocolRef: 'strategies/research/v2/falsification/24-preregistration-protocol.md',
     results: Object.fromEntries(Object.entries(results).map(([id, r]) => [id, {
       name: r.name,

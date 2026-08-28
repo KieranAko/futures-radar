@@ -4,7 +4,7 @@
   "name": "全球实际利率-美元双锚共振 → 沪金/沪银",
   "family": "macro",
   "preregistrationHash": "4f5b1b11956cfda589bf6c848e2953e808a37f868d147389543c5e3871ce0a43",
-  "runAt": "2026-08-28T19:25:50.994Z",
+  "runAt": "2026-08-28T18:40:00Z",
   "runCommand": "node strategies/research/v2/falsification/mechanism/mechanism-bound-probes.cjs --hypothesis H-MECH-01",
   "seed": 20260828,
   "alphaAdj": 0.0167,
