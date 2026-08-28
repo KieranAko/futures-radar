@@ -2,7 +2,7 @@
   "schema": "futures-radar-experiment-line-blueprint/1",
   "architectureRef": "strategies/research/v2/experiment-line-architecture.md",
   "architectureVersion": "v6",
-  "createdAt": "2026-08-28T21:26:12.076Z",
+  "createdAt": "2026-08-28T21:42:26.575Z",
   "policy": {
     "promoteUnit": "whole-stage-segment",
     "hotUpdateWhitelist": false,
@@ -104,7 +104,14 @@
           "analysis-json"
         ]
       },
-      "candidate": null
+      "candidate": [
+        {
+          "id": "analyze-mechanism-identification-v1",
+          "name": "FinCoT 推理增加机制识别步骤（从机制目录匹配，替代纯 BP-* 启发式自选）",
+          "status": "registered",
+          "theoryRef": "04-ilmanen-expected-returns.md §一 R1/R2（收益来源族必填）；02-term-structure.md §一（期货第一性机制优先）"
+        }
+      ]
     },
     {
       "id": "probability",
@@ -148,7 +155,14 @@
           "report"
         ]
       },
-      "candidate": null
+      "candidate": [
+        {
+          "id": "report-trust-model-v1",
+          "name": "三层可信度模型（族级证据 × 状态匹配 × 实现保真）",
+          "status": "registered",
+          "theoryRef": "01-chan-quantitative-trading.md §一 L3（可信度来自审判证据）；04-ilmanen-expected-returns.md §一 R2（按族管理证据）"
+        }
+      ]
     },
     {
       "id": "publish-current",

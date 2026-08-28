@@ -1,0 +1,19 @@
+{
+  "schema": "futures-radar-experiment-line-candidate/1",
+  "id": "analyze-mechanism-identification-v1",
+  "stage": "analyze",
+  "name": "FinCoT 推理增加机制识别步骤（从机制目录匹配，替代纯 BP-* 启发式自选）",
+  "status": "registered",
+  "registeredAt": "2026-08-29",
+  "theoryRef": "04-ilmanen-expected-returns.md §一 R1/R2（收益来源族必填）；02-term-structure.md §一（期货第一性机制优先）",
+  "design": {
+    "input": "evidence packet + sector-driver 结论 + 机制目录（experiment-line/registry）",
+    "step": "在 BP-* 选择前，先输出 family + 机制 id + applicableStates 匹配结论；无匹配则声明 unknown 并降级观察",
+    "output": "reasoning-results 增加 mechanismRef 字段（family/mechanismId/matchStatus）",
+    "notImplemented": "本阶段只登记配置形态，不改生产 analyze"
+  },
+  "verdictRules": {
+    "reviewPeriod": "monthly",
+    "promoteCriteria": "影子期：机制识别字段与 BP-* 自选的一致性 ≥ 阈值，且携带机制 ref 的计划在后续归因中方向正确率不低于无 ref 计划（具体阈值在影子预注册时写死）"
+  }
+}

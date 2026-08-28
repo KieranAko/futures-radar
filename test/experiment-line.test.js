@@ -60,6 +60,43 @@ describe('experiment-line v6 (full mirror of production)', () => {
     assert.equal(plan.status, 'pass');
   });
 
+  it('blueprint attaches registered candidates to their stages', () => {
+    const b = JSON.parse(fs.readFileSync(path.join(EL, 'blueprint.json'), 'utf8'));
+    const analyze = b.stages.find((s) => s.id === 'analyze');
+    assert.ok(analyze.candidate.some((c) => c.id === 'analyze-mechanism-identification-v1'));
+    const r5c = b.stages.find((s) => s.id === 'report-5c');
+    assert.ok(r5c.candidate.some((c) => c.id === 'report-trust-model-v1'));
+  });
+
+  it('trust model rates by family/match/fidelity and infers family by keyword rule', () => {
+    const trust = require(path.join(EL, 'trust-model.cjs'));
+    assert.equal(trust.familyScore('carry'), 2); // g1 + positive preview
+    assert.equal(trust.familyScore('value'), 0); // not_evaluable_or_falsified
+    assert.equal(trust.familyScore('volatility'), 0);
+    assert.equal(trust.rate({ fs: 3, ms: 2, xs: 2 }), 'A');
+    assert.equal(trust.rate({ fs: 2, ms: 1, xs: 1 }), 'B');
+    assert.equal(trust.rate({ fs: 1, ms: 0, xs: 0 }), 'C');
+    assert.equal(trust.rate({ fs: 0, ms: 2, xs: 2 }), 'D');
+    assert.equal(trust.inferFamily('基差深度贴水后回归'), 'carry');
+    assert.equal(trust.inferFamily('趋势延续，突破确认'), 'momentum');
+    assert.equal(trust.inferFamily('无明确驱动'), 'none');
+  });
+
+  it('shadow framework snapshots evidence immutably and records reviews', () => {
+    const prodRunId = '20260827-2159-auto';
+    const replayFile = path.join(EL, 'results', `${prodRunId}-replay.json`);
+    if (!fs.existsSync(replayFile)) return;
+    const shadow = require(path.join(EL, 'shadow.cjs'));
+    const recFile = path.join(shadow.SHADOW_DIR, 'report-trust-model-v1.json');
+    fs.rmSync(recFile, { force: true });
+    const rec = shadow.cmdInit('report-trust-model-v1');
+    assert.equal(rec.status, 'observing');
+    const rec2 = shadow.cmdReview('report-trust-model-v1', prodRunId);
+    assert.equal(rec2.reviews.length, 1);
+    const snap = JSON.parse(fs.readFileSync(rec2.reviews[0].snapshotRef, 'utf8'));
+    assert.match(snap.evidence[`${prodRunId}-replay.json`].sha256, /^[0-9a-f]{64}$/);
+  });
+
   it('g1 register validates required mechanism fields and rejects missing theoryRef', () => {
     const tmp = path.join(EL, 'registry-src', '_tmp-g1-test.json');
     const bad = { id: 'TMP-01', name: 'x', family: 'carry' };

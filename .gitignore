@@ -58,3 +58,5 @@ Thumbs.db
 /experiment-line/runs/
 /experiment-line/results/
 /experiment-line/registry/
+
+/experiment-line/shadow/

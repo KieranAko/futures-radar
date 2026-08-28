@@ -1,0 +1,56 @@
+{
+  "schema": "futures-radar-experiment-line-family-evidence/1",
+  "updatedAt": "2026-08-29",
+  "source": "experiment-line/evidence-ledger.md + falsification 27/17/18/19 reports + G1 results",
+  "families": {
+    "carry": {
+      "level": "g1",
+      "conclusion": "G1 层不支持单腿事件回归形态（两个预注册形态均 timeout 退役）；月度横截面分层为唯一正向前哨，待独立 G2 预注册",
+      "entries": [
+        { "id": "TH-CARRY-01", "form": "symmetric z>=1.5 event, 20d", "n": 870, "meanPct": -0.236955, "ci": [-0.680847, 0.194476], "status": "retired_at_g1", "note": "long leg +0.446 (n=438), short leg -0.929 (n=432)" },
+        { "id": "TH-CARRY-02", "form": "long-only z<=-1.5 event, 5d", "n": 1045, "meanPct": 0.002786, "ci": [-0.188828, 0.192905], "status": "retired_at_g1" }
+      ],
+      "previews": [
+        { "id": "carry-tercile-preview", "form": "monthly cross-section br terciles, long top/short bottom, 20d", "nMonths": 151, "meanPct": 0.811348, "ci": [-0.477047, 2.124997], "status": "preview_not_preregistered" }
+      ],
+      "halfLife": { "medianDays": 3.5, "perSymbolNote": "M 42d, RM 30d, RB 16d, metals/precious 1-5d" }
+    },
+    "momentum": {
+      "level": "instance_gate_failed",
+      "conclusion": "确认机制理论存活（confirmed -0.0084R vs no-confirm -0.0231R）但完整实例 strategy_gate_failed；族内两个实例均为负",
+      "entries": [
+        { "id": "TR-01", "form": "trend+volume-confirmation instance (fidelity v2)", "n": 2036, "meanR": -0.00843, "pf": 0.972449, "ci": [-0.041911, 0.025385], "status": "strategy_gate_failed", "note": "6/12 years positive; no edge vs random-flipped baseline" },
+        { "id": "TR-03", "form": "trend pullback continuation", "n": null, "pf": 0.374, "ci": "strictly negative", "status": "falsified" }
+      ]
+    },
+    "value": {
+      "level": "not_evaluable_or_falsified",
+      "conclusion": "能化 ECM 已证伪；黑色利润与农产品价差实验设置缺陷未重审；族内无可用证据",
+      "entries": [
+        { "id": "EC-01", "form": "energy-chemical cost-anchor ECM", "status": "falsified" },
+        { "id": "FS-04", "form": "black-chain profit z-score", "status": "not_evaluable" },
+        { "id": "FS-05", "form": "agricultural cointegration pairs", "status": "not_evaluable" }
+      ]
+    },
+    "event": {
+      "level": "not_evaluable",
+      "conclusion": "事件识别器未实现（TR-06）；流动性冲击样本不足（M1）",
+      "entries": [
+        { "id": "TR-06", "form": "event shock decomposition", "status": "not_evaluable" },
+        { "id": "M1", "form": "DR007 liquidity shock", "status": "insufficient_sample" }
+      ]
+    },
+    "volatility": {
+      "level": "none",
+      "conclusion": "未测；theory-base 04 吸收报告将该族（做空波动率）标注为不适用（涨跌停/长假尾部）"
+    },
+    "liquidity": {
+      "level": "none",
+      "conclusion": "未测；无独立预注册实验"
+    },
+    "behavioral-friction": {
+      "level": "none",
+      "conclusion": "未测；无独立预注册实验"
+    }
+  }
+}
