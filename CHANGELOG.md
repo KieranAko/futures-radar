@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.18（2026-08-28）
+
+- **V8 生产 strategy-plan 执行引擎**：新增 `runner-v8.cjs`——只读 `recordings/v7/strategy-plans/*.json` 的生产计划字段执行，完成“FinCoT 分析 → 策略库适配 → 按策略执行”闭环。支持 `T+1 开盘执行`（PB-03/PB-08）与 `T+1 收盘确认`（PB-07）两种 triggerTiming；按 plan 的 trigger/stop/targets/invalidation/maxHoldingDays 执行，跳空阈值按 execution 文本（0.5/0.75×ATR5），目标从概率锥/R 口径代理解析
+- **V8 试点结果（30 计划，inSample）**：12 executable → 3 trigger_miss + 7 gap_skip + **2 成交**；方向正确率 50.00%，毛 -0.01%/净 -0.35%。分品种：RB0 1 笔 target1 兑现（毛 +1.39%/净 +1.05%）、M0 1 笔止损（-1.41%/-1.76%）、SC0 0 executable。T+1 开盘语义下 7 笔跳空放弃——生产 plan 的开盘执行口径天然比收盘确认更严格，报告如实记录
+- **版本对齐**：VERSION.md / package.json / SKILL.md / README.md / pipeline banner 统一为 0.1.18；新增 `npm run signal:backtest:v8`
+- 新增 signal-backtest-v8 测试 2 条（生产 plan 执行状态/仅 executable 执行/字段完备）；全量测试 634 → 636（120 → 121 套件）
+
 ## 0.1.17（2026-08-28）
 
 - **V7 生产策略适配器（FinCoT 只做分析，策略库负责交易计划）**：新增 `strategies/signal-backtest/adapters/strategy-plan-adapter.cjs`——把每个锚点的证据包 + V7 FinCoT 六问包装成生产 run 目录形状（report-model/thesis、analysis.json、macro/sector/probability/raw/main-series），**原样调用 `strategies/lib/strategy-matcher.cjs`**，不修改生产匹配引擎、不调用 LLM
