@@ -12,6 +12,22 @@
 - 状态：RM0（executable，T+1 收盘确认）→ **triggered_pending_entry**（08-28 收盘已触发，等待 08-29 T+2 开盘入场数据）；AP0/MA0 watch → not_executable；
 - 前向记录计数：**0 → 1**。后续每个生产 run 都按此路径追加。
 
+## analyze candidate v2 验证（2026-08-29）
+
+### 历史回放一致率预检（2 runs × 3 品种）
+
+- 方向一致率 **100%（6/6）**、置信一致率 100%（6/6）；目标 ≥90% 达标。
+- 约束：回放环境无当日 WebSearch；prev-analysis 缓存对同日回放禁用（无未来信息）；pass→neutral 按生产口径。
+- 结果：`experiment-line/results/analyze-v2-replay-consistency.json`（可重建）。
+
+### 影子验证 N=1（T+1 = 2026-08-28）
+
+- 口径：方向判断 vs 次日单日收益（bullish→ret>0，bearish→ret<0）。
+- 结果：生产 **1/5（20%）**，candidate v2 **1/5（20%）**——**与生产同分，不比生产差**。
+- 解读：T+1 单日方向命中率低是报告方向判断的真实基线（与可信度 C/D 一致），不是 v2 的退化；计划级验证（触发/持有 5 日）仍需更长前向窗口。
+- 验收线汇总：LLM 调用 2≤3 ✓；六问等价 ✓；grounding ✓；方向一致率 100% ✓；影子不比生产差 ✓。
+- promote 决策：按 v6 由队长拍板（analyze 环节整段搬迁）。
+
 ---
 ## 2026-08-29
 
