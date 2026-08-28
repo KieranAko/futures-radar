@@ -70,7 +70,7 @@ describe('experiment-line v6 (full mirror of production)', () => {
 
   it('trust model rates by family/match/fidelity and infers family by keyword rule', () => {
     const trust = require(path.join(EL, 'trust-model.cjs'));
-    assert.equal(trust.familyScore('carry'), 2); // g1 + positive preview
+    assert.equal(trust.familyScore('carry'), 1); // g1 closed, all three forms retired, no active preview
     assert.equal(trust.familyScore('value'), 0); // not_evaluable_or_falsified
     assert.equal(trust.familyScore('volatility'), 0);
     assert.equal(trust.rate({ fs: 3, ms: 2, xs: 2 }), 'A');
