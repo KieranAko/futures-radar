@@ -1,0 +1,24 @@
+{
+  "id": "TH-CARRY-02",
+  "name": "基差深度贴水后非对称回归（5 日持有，贴水端 only）",
+  "family": "carry",
+  "theoryRef": "02-term-structure.md §一 T3-T4；04-ilmanen-expected-returns.md §一 R3（溢价时变/方向不对称）",
+  "proposition": {
+    "H0": "滚动 180d 基差率 z≤−1.5（深度贴水）后，5 日做多期货净收益 mean(net) ≤ 0",
+    "H1": "深度贴水后 5 日做多期货净收益 > 0（收敛主要由贴水端期货腿承担）"
+  },
+  "whyItWorks": "TH-CARRY-01 G1 观察：贴水端 +0.446%（n=438）vs 升水端 −0.929%（n=432）；11 品种 br 半衰期中位数 3.5 天。持有期 5 天匹配半衰期下界，只取有回归迹象的贴水端。",
+  "applicableStates": {
+    "basisState": "滚动 180d z≤−1.5，非主力切换日",
+    "instrumentState": "GA-8 基差库 11 品种；升水端（z≥+1.5）不交易"
+  },
+  "timeScale": "持有 5 交易日（半衰期中位数 3.5d 的下界，TH-CARRY-01 观察 2）",
+  "invalidation": "结构性失效：交割制度/政策窗口改变基差均衡；状态性失灵：主力切换、现货粘性超标年份",
+  "g1Runner": "experiment-line/probes/carry-basis-g1.cjs",
+  "g1Args": ["--hold", "5", "--long-only", "1"],
+  "g1Decision": {
+    "promote": "promote",
+    "discard": ["discard"],
+    "pending": { "maxRounds": 1 }
+  }
+}

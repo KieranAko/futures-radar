@@ -68,6 +68,21 @@ describe('experiment-line v6 (full mirror of production)', () => {
     const noTheory = { ...bad, theoryRef: 'nope', proposition: {}, whyItWorks: 'x', applicableStates: {}, timeScale: '1d', invalidation: 'x', probeRef: 'x', g1Decision: { promote: 'promote', discard: [] } };
     fs.writeFileSync(tmp, JSON.stringify(noTheory));
     assert.throws(() => g1.cmdRegister(tmp), /theoryRef/);
+    const noRunner = { ...noTheory, theoryRef: '02-term-structure.md §一 T1' };
+    delete noRunner.probeRef;
+    fs.writeFileSync(tmp, JSON.stringify(noRunner));
+    assert.throws(() => g1.cmdRegister(tmp), /probeRef.*g1Runner/);
     fs.rmSync(tmp, { force: true });
+  });
+
+  it('carry G1 half-life estimator recovers known AR(1) persistence', () => {
+    const { estimateHalfLife } = require(path.join(EL, 'probes', 'carry-basis-g1.cjs'));
+    const rows = [{ br: 0.01 }];
+    for (let i = 1; i < 500; i++) {
+      rows.push({ br: 0.5 * rows[i - 1].br });
+    }
+    const hl = estimateHalfLife(rows);
+    assert.ok(Math.abs(hl.phi - 0.5) < 0.001, `phi ${hl.phi}`);
+    assert.ok(Math.abs(hl.halfLifeDays - 1) < 0.05, `halfLife ${hl.halfLifeDays}`);
   });
 });

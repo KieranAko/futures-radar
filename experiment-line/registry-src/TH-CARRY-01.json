@@ -1,0 +1,23 @@
+{
+  "id": "TH-CARRY-01",
+  "name": "基差极端回归 + carry 分层（期限结构第一性）",
+  "family": "carry",
+  "theoryRef": "02-term-structure.md §一 T1-T4（基差=库存影子价格；收益主要来自展期分层；极端后向中枢回归）",
+  "proposition": {
+    "H0": "滚动 180d 基差率 z 分位 |z|≥1.5 后，20 日方向化期货净收益 mean(net) ≤ 0",
+    "H1": "极端贴水（z≤−1.5）后做多期货、极端升水（z≥+1.5）后做空期货，20 日净收益 > 0"
+  },
+  "whyItWorks": "现货-期货在交割日收敛，期货腿承担收敛；中国个人户不可交割形成套利限制（04 R1 friction），偏离不会被立即套利掉；主力合约切换与政策窗口是结构断裂源（02 适用边界）。",
+  "applicableStates": {
+    "basisState": "滚动 180d z 分位 |z|≥1.5，且非主力切换日",
+    "instrumentState": "GA-8 基差库 11 品种（RB/M/RM/CU/AL/ZN/NI/SN/PB/AG/AU），距交割月过滤在 G2 实例层实现"
+  },
+  "timeScale": "先估半衰期（G1 报告），持有期暂用库内冻结值 20 日；G2 按半衰期重定",
+  "invalidation": "结构性失效：交割制度改变/政策窗口改变基差均衡；状态性失灵：主力切换、现货粘性超标年份",
+  "g1Runner": "experiment-line/probes/carry-basis-g1.cjs",
+  "g1Decision": {
+    "promote": "promote",
+    "discard": ["discard"],
+    "pending": { "maxRounds": 1 }
+  }
+}

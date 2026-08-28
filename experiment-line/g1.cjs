@@ -27,7 +27,7 @@ const PROBE_RESULTS_DIR = path.join(ROOT, 'strategies', 'research', 'v2', 'falsi
 
 const REQUIRED = [
   'id', 'name', 'family', 'theoryRef', 'proposition', 'whyItWorks',
-  'applicableStates', 'timeScale', 'invalidation', 'probeRef', 'g1Decision',
+  'applicableStates', 'timeScale', 'invalidation', 'g1Decision',
 ];
 
 function nowIso() {
@@ -55,6 +55,9 @@ function cmdRegister(file) {
   if (!mech.theoryRef || !/^0\d/.test(String(mech.theoryRef || ''))) {
     throw new Error('theoryRef must reference theory-base report (e.g. 02-term-structure.md §一 T1)');
   }
+  if (!mech.probeRef && !mech.g1Runner) {
+    throw new Error('either probeRef (default mechanism probe) or g1Runner (experiment-line probe script) is required');
+  }
   if (!mech.g1Decision.promote || !Array.isArray(mech.g1Decision.discard)) {
     throw new Error('g1Decision must have promote and discard[]');
   }
@@ -75,19 +78,39 @@ function cmdProbe(id) {
   const regFile = path.join(REGISTRY_DIR, `${id}.json`);
   if (!fs.existsSync(regFile)) throw new Error(`mechanism not registered: ${id}`);
   const reg = readJson(regFile);
-  const res = spawnSync('node', [path.join(ROOT, PROBE_RUNNER), '--hypothesis', id], {
-    cwd: ROOT,
-    encoding: 'utf8',
-    timeout: 600000,
-  });
-  if (res.status !== 0) {
-    reg.g1 = { ranAt: nowIso(), status: 'error', detail: String(res.stderr || res.stdout || '').slice(-2000) };
-    reg.status = 'g1_error';
-    writeJson(regFile, reg);
-    throw new Error(`probe failed (exit ${res.status}):\n${reg.g1.detail}`);
+
+  let resultFile;
+  if (reg.g1Runner) {
+    // 实验线自有 G1 探针：写标准结果到 experiment-line/results/g1/<id>-result.json
+    const runnerPath = path.join(ROOT, reg.g1Runner);
+    const extra = (reg.g1Args || []).map(String);
+    const res = spawnSync('node', [runnerPath, '--id', id, ...extra], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      timeout: 600000,
+    });
+    if (res.status !== 0) {
+      reg.g1 = { ranAt: nowIso(), status: 'error', detail: String(res.stderr || res.stdout || '').slice(-2000) };
+      reg.status = 'g1_error';
+      writeJson(regFile, reg);
+      throw new Error(`g1 runner failed (exit ${res.status}):\n${reg.g1.detail}`);
+    }
+    resultFile = path.join(__dirname, 'results', 'g1', `${id}-result.json`);
+  } else {
+    const res = spawnSync('node', [path.join(ROOT, PROBE_RUNNER), '--hypothesis', id], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      timeout: 600000,
+    });
+    if (res.status !== 0) {
+      reg.g1 = { ranAt: nowIso(), status: 'error', detail: String(res.stderr || res.stdout || '').slice(-2000) };
+      reg.status = 'g1_error';
+      writeJson(regFile, reg);
+      throw new Error(`probe failed (exit ${res.status}):\n${reg.g1.detail}`);
+    }
+    resultFile = path.join(PROBE_RESULTS_DIR, `${id}-probe.json`);
   }
-  const resultFile = path.join(PROBE_RESULTS_DIR, `${id}-probe.json`);
-  if (!fs.existsSync(resultFile)) throw new Error(`probe result not found: ${resultFile}`);
+  if (!fs.existsSync(resultFile)) throw new Error(`g1 result not found: ${resultFile}`);
   const result = readJson(resultFile);
   const decision = result.decision;
   const d = reg.g1Decision;
@@ -112,12 +135,13 @@ function cmdProbe(id) {
     ranAt: nowIso(),
     decision,
     verdict,
-    resultRef: `strategies/research/v2/falsification/mechanism/probe-results/${id}-probe.json`,
+    resultRef: resultFile.replace(`${__dirname}/`, 'experiment-line/').replace(/\\/g, '/'),
     result: {
-      n: result.primary?.n,
+      n: result.primary?.n ?? result.n,
       meanNetPct: result.primary?.meanNetPct,
       ciLo: result.primary?.ci?.lo,
       ciHi: result.primary?.ci?.hi,
+      halfLifeDays: result.secondary?.halfLife?.median ?? result.secondary?.halfLife ?? null,
     },
   };
   reg.status = status;
