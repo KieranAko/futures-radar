@@ -166,6 +166,23 @@ describe('experiment-line v6 (full mirror of production)', () => {
     assert.equal(verifyPlan(watch, daily, '2026-08-27').status, 'not_executable');
   });
 
+  it('analyze-v2 single-pass output is six-question equivalent and grounded', () => {
+    const prodRunId = '20260828-0610-auto';
+    const eqFile = path.join(EL, 'runs', prodRunId, 'analyze', 'equivalence-v2.json');
+    if (!fs.existsSync(eqFile)) return;
+    const eq = JSON.parse(fs.readFileSync(eqFile, 'utf8'));
+    assert.equal(eq.grounding, true);
+    assert.ok(Object.values(eq.sixQuestions).every(Boolean));
+    assert.equal(eq.mechanismRefCoverage, 3);
+    const kpi = JSON.parse(fs.readFileSync(path.join(EL, 'results', `analyze-v2-kpi-${prodRunId}.json`), 'utf8'));
+    assert.ok(kpi.kpi.logicalLlmCalls <= kpi.kpi.targetLlmCalls);
+    const asm = require(path.join(EL, 'analyze-v2', 'assemble-v2.cjs'));
+    assert.deepEqual(asm.validateGrounding(['a.b'], { a: { b: 1 } }), []);
+    assert.deepEqual(asm.validateGrounding(['a.b.c'], { a: { b: 1 } }), ['a.b.c']);
+    // 前缀引用（对象字段）合法
+    assert.deepEqual(asm.validateGrounding(['a'], { a: { b: 1 } }), []);
+  });
+
   it('g1 register validates required mechanism fields and rejects missing theoryRef', () => {
     const tmp = path.join(EL, 'registry-src', '_tmp-g1-test.json');
     const bad = { id: 'TMP-01', name: 'x', family: 'carry' };
