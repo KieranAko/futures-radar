@@ -598,12 +598,13 @@
         "data/daily/*.json"
       ],
       "falsificationStatus": "suspended",
-      "statusNote": "t8 walk-forward 证伪（seed=20260828，17/18/19 号报告）：n=1756、meanR +0.0095R、PF 1.034<1.2、95% CI [−0.025,0.044] 含 0 → suspended。理论级确认机制未证伪（确认 +0.0095R vs 无确认 −0.0158R），edge 强度不足以覆盖成本；保留 re_evaluation 路径（needs-clarify：N1 同品种并发 260/1756、N2 时间止损语义近似）。\n[实验完整性重分类 2026-08-28] adapter 保真度不足（EMA20 近似、加仓未实现、T2 取 2R 下界）；PF 1.034 接近门槛。证伪结论暂停，待保真复跑。\n[实验线关闭 2026-08-28] 实验线关闭：确认机制微弱存活，但当前模型不值得保真复跑；等待机制假设重生成。",
-      "evidenceTier": "not_evaluable",
+      "statusNote": "t8 walk-forward 证伪（seed=20260828，17/18/19 号报告）：n=1756、meanR +0.0095R、PF 1.034<1.2、95% CI [−0.025,0.044] 含 0 → suspended。理论级确认机制未证伪（确认 +0.0095R vs 无确认 −0.0158R），edge 强度不足以覆盖成本；保留 re_evaluation 路径（needs-clarify：N1 同品种并发 260/1756、N2 时间止损语义近似）。\n[实验完整性重分类 2026-08-28] adapter 保真度不足（EMA20 近似、加仓未实现、T2 取 2R 下界）；PF 1.034 接近门槛。证伪结论暂停，待保真复跑。\n[实验线关闭 2026-08-28] 实验线关闭：确认机制微弱存活，但当前模型不值得保真复跑；等待机制假设重生成。\n[保真复跑 2026-08-29] fidelity-v2（27-tr01-fidelity-rerun.md）：n=2036、meanR −0.0084R、PF 0.972<1.2、95% CI [−0.042,0.025] 含 0、6/12 年为正、与随机镜像基线无优势（−0.040R，CI 含 0）。理论级确认机制未证伪（确认 −0.0084R vs 无确认 −0.0231R，+0.015R）。判定 strategy_gate_failed：保真实现下完整策略无正期望 → suspended，不 retired；关闭复跑通道。",
+      "evidenceTier": "strategy_gate_failed",
       "fidelityAudit": {
-        "status": "closed_no_rerun",
+        "status": "fidelity_v2_passed",
+        "checkedAgainst": "strategies/research/v2/falsification/27-tr01-fidelity-rerun.md",
         "blockingForFalsification": false,
-        "reason": "实验线关闭：确认机制微弱存活，但当前模型不值得保真复跑；等待机制假设重生成。"
+        "reason": "F-A..F-H 保真检查通过（F-E 唯一 not_implemented：空头距涨停禁开，数据契约无涨跌停幅度，已提请队长裁定豁免）；结论有效：策略级门禁未过，理论级未证伪。"
       }
     },
     {
@@ -2550,12 +2551,14 @@
   },
   "experimentIntegrity": {
     "schema": "futures-strategy-experiment-integrity/1",
-    "updatedAt": "2026-08-28T18:27:00.893Z",
+    "updatedAt": "2026-08-29T04:00:00Z",
     "rule": "在 adapter 保真度验收通过前，任何策略不得新产生 retired/suspended 证伪结论；现有 not_evaluable 状态为临时标记。",
     "taxonomy": {
       "falsified": "证据可靠，保持 retired",
       "not_evaluable": "实验设置缺陷导致结论无效，待保真复跑",
-      "untested": "数据前置未满足，未执行"
+      "untested": "数据前置未满足，未执行",
+      "insufficient_sample": "实现保真但样本不足，不得 retired",
+      "strategy_gate_failed": "保真实现 + 策略级门禁未过 + 理论级未证伪 → suspended，不 retired（TR-01 保真复跑 2026-08-29）"
     },
     "adapterFidelityChecklist": "strategies/research/v2/falsification/23-fidelity-review.md",
     "preregistrationProtocol": "strategies/research/v2/falsification/24-preregistration-protocol.md",
@@ -2564,6 +2567,21 @@
     ],
     "direction": "mechanism-hypothesis-generation",
     "directionNote": "关闭旧策略线；下一阶段=机制假设生成 + 绑定式廉价探针 + FS-02 PIT 基差数据管线。",
+    "tr01FidelityRerun": {
+      "decidedAt": "2026-08-29",
+      "report": "strategies/research/v2/falsification/27-tr01-fidelity-rerun.md",
+      "verdict": "strategy_gate_failed",
+      "state": "suspended",
+      "keyStats": {
+        "n": 2036,
+        "meanR": -0.00843,
+        "pf": 0.972449,
+        "ci95": [-0.041911, 0.025385],
+        "majorityYearsPositive": "6/12",
+        "theoryConfirmedVsNoConfirm": "0.0147R (存活, 未证伪)"
+      },
+      "unimplementedClause": "F-E 空头距涨停<1×ATR5 禁开（数据契约无涨跌停幅度字段），待队长裁定豁免"
+    },
     "mechanismProbes": {
       "round": 1,
       "registeredAt": "2026-08-28",

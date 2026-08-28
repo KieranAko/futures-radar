@@ -248,6 +248,58 @@ test('sim: time exit at close of timeExitBars-th bar', () => {
   approx(t.legs[0].exit, 102);
 });
 
+test('sim: onFill recomputes bracket against actual T+1 open', () => {
+  const f = simFixture();
+  f.bars.open[3] = 101; // fill 101 instead of signal close 100
+  const intent = {
+    signalDate: f.dates[2], direction: +1,
+    legs: [{ symbol: 'X', side: +1, stop: 95, target: 110, weight: 0.5 },
+           { symbol: 'X', side: +1, stop: 95, target: 115, weight: 0.5 }],
+    sizeR: 1, timeExitBars: null, gapAbandon: null, gapAtrValues: null, tags: {},
+    onFill(trade) {
+      const entry = trade.legs[0].entry;
+      trade.legs[0].stop = entry - 5;
+      trade.legs[0].riskDist = 5;
+      trade.legs[0].target = entry + 10;
+      trade.legs[1].stop = entry - 5;
+      trade.legs[1].riskDist = 5;
+      trade.legs[1].target = entry + 15;
+    },
+  };
+  const sim = runSim(f, intent);
+  const t = sim.trades[0];
+  approx(t.legs[0].stop, 96);
+  approx(t.legs[0].riskDist, 5);
+  approx(t.legs[0].target, 111);
+  ok(t.legs[0].stopInit === 95, 'stopInit keeps the fill-time initial bracket');
+});
+
+test('sim: manage decision.add fills add-on leg at next open and participates in R accounting', () => {
+  const f = simFixture();
+  let addOnce = false;
+  const intent = {
+    signalDate: f.dates[2], direction: +1,
+    legs: [{ symbol: 'X', side: +1, stop: 90, target: 150, weight: 0.5 },
+           { symbol: 'X', side: +1, stop: 90, target: 150, weight: 0.5 }],
+    sizeR: 1, timeExitBars: null, gapAbandon: null, gapAtrValues: null, tags: {},
+    manage({ trade, date, barInfo }) {
+      if (addOnce || !barInfo.X || trade.legs.length >= 3) return null;
+      addOnce = true;
+      return { add: { symbol: 'X', side: +1, stop: 90, target: 150, addR: 0.5, addNo: 1 } };
+    },
+  };
+  const sim = runSim(f, intent);
+  const t = sim.trades[0];
+  ok(t.legs.length === 3, `legs after add ${t.legs.length}`);
+  const addLeg = t.legs[2];
+  ok(addLeg.addOn === true, 'add leg flagged');
+  approx(addLeg.entry, f.bars.open[4]); // manage ran at bar idx3 → add fills at idx4 open
+  approx(addLeg.weight, 0.5); // 0.5R / sizeRBase(1)
+  ok(t.exitReason === 'end-of-fold', `exit ${t.exitReason}`);
+  const expected = t.legs[0].netR * 0.5 + t.legs[1].netR * 0.5 + t.legs[2].netR * 0.5;
+  approx(t.netR, expected, 1e-5, 'netR sums initial halves + add half');
+});
+
 test('sim: cost model exact (7bp roundtrip, 1 leg)', () => {
   const f = simFixture();
   f.bars.high[4] = 111; f.bars.low[4] = 97;

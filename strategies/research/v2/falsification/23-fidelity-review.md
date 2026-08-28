@@ -24,6 +24,10 @@
 - F-C/F-D：T2 目标按 2R 下界替代“3R 或 3d p95 先到者”；加仓未实现；
 - F-G：理论级确认测试已做，但策略级 PF 1.034 受上述近似影响，结论不能定案。
 
+> **v2 更新（2026-08-29）**：以上三项已保真修复并按 specs/TR-01.json 原样重跑，结论 `strategy_gate_failed`
+> （n=2036，PF 0.972，CI 含 0，理论级未证伪）→ suspended，不 retired。详见
+> `27-tr01-fidelity-rerun.md`；唯一 not_implemented 条款（空头距涨停禁开）已提请队长裁定豁免。
+
 ### TR-03 趋势回踩 —— falsified（保留 retired）
 - F-A/F-C/F-G 通过复核；理论②执行集代理虽为近似，但收紧重跑仍 PF 0.374，且 12/12 折负、CI 严格为负，多重证据独立成立。
 

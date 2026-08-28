@@ -54,7 +54,21 @@ class TradeSim {
       }
     }
     this.pending = still;
-    // 2) manage open trades with today's bars
+    // 2) fill pending add-on legs due today (first date > addSignalDate where symbol has a bar),
+    //    so the new leg participates in the same day's stop/target checks below
+    for (const t of this.open.slice()) {
+      if (!t._pendingAdds || !t._pendingAdds.length) continue;
+      const still = [];
+      for (const a of t._pendingAdds) {
+        if (date > a.signalDate && barIndexBySymbol[a.symbol].has(date)) {
+          this._tryAddFill(t, a, date, barIndexBySymbol);
+        } else {
+          still.push(a);
+        }
+      }
+      t._pendingAdds = still;
+    }
+    // 3) manage open trades with today's bars (may enqueue further add-on intents)
     for (const t of this.open.slice()) {
       this._manageTrade(t, date, barIndexBySymbol);
     }
@@ -118,6 +132,7 @@ class TradeSim {
       id: this._tradeSeq++,
       direction: intent.direction,
       sizeR: intent.sizeR || 1,
+      _sizeRBase: intent.sizeR || 1, // add-on legs are denominated in R units (TR-01 position rule)
       timeExitBars: intent.timeExitBars ?? null,
       entryDate: date,
       entryBarIndexes: Object.fromEntries(legs.map((lg, i) => [lg.symbol, barIndexBySymbol[lg.symbol].get(date)])),
@@ -125,10 +140,48 @@ class TradeSim {
       legs,
       tags: intent.tags || {},
       manage: intent.manage || null,
+      _pendingAdds: [],
       open: true,
       _meta: p.meta,
     };
+    // optional fill-time hook: recompute stop/target/R against the ACTUAL T+1 open
+    // (library stop rules priced from entry price, e.g. TR-01 F3)
+    if (intent.onFill) intent.onFill(trade, barIndexBySymbol);
     this.open.push(trade);
+  }
+
+  // add-on leg fill (TR-01 position rule: +0.5 unit on continuation, T+1 open execution)
+  _tryAddFill(trade, add, date, barIndexBySymbol) {
+    if (!trade.open) return;
+    if (this._isJumpDate(add.symbol, date)) {
+      this.abandons.push({ signalDate: add.signalDate, date, reason: 'roll-jump-bar-addon', symbol: add.symbol });
+      return;
+    }
+    const idx = barIndexBySymbol[add.symbol].get(date);
+    if (idx === undefined || idx === 0) return;
+    const bars = this._barsFor(add.symbol, trade);
+    const entry = bars.open[idx];
+    const stop = add.stop;
+    if (!isFiniteNum(entry) || !isFiniteNum(stop) || stop === entry) return; // add skipped (no valid bracket)
+    const sizeRBase = trade._sizeRBase || 1;
+    const leg = {
+      symbol: add.symbol,
+      side: add.side,
+      entry,
+      stop,
+      target: add.target ?? null,
+      stopInit: stop,
+      targetInit: add.target ?? null,
+      weight: (add.addR ?? 0.5) / sizeRBase,
+      riskDist: Math.abs(entry - stop),
+      exit: null,
+      exitDate: null,
+      exitReason: null,
+      addOn: true,
+      addNo: add.addNo ?? null,
+    };
+    trade.legs.push(leg);
+    trade.tags = { ...(trade.tags || {}), addOns: (trade.tags?.addOns || 0) + 1 };
   }
 
   _manageTrade(trade, date, barIndexBySymbol) {
@@ -157,7 +210,10 @@ class TradeSim {
         return;
       }
       if (decision && decision.adjust) {
-        for (const [sym, upd] of Object.entries(decision.adjust)) {
+        const updates = Array.isArray(decision.adjust)
+          ? decision.adjust.map((u) => ({ sym: u.symbol, upd: u }))
+          : Object.entries(decision.adjust).map(([sym, upd]) => ({ sym, upd }));
+        for (const { sym, upd } of updates) {
           const lg = upd.legIndex !== undefined ? trade.legs[upd.legIndex] : trade.legs.find((l) => l.symbol === sym);
           if (lg) {
             if (upd.stop === 'disable') lg.stop = null;
@@ -165,6 +221,19 @@ class TradeSim {
             if (isFiniteNum(upd.target)) lg.target = upd.target;
           }
         }
+      }
+      if (decision && decision.add) {
+        // add-on intent: T+1 open execution (filled in onGlobalDate step 3)
+        const a = decision.add;
+        trade._pendingAdds.push({
+          signalDate: date,
+          symbol: a.symbol,
+          side: a.side,
+          stop: a.stop,
+          target: a.target ?? null,
+          addR: a.addR ?? 0.5,
+          addNo: a.addNo ?? null,
+        });
       }
     }
     // fixed-price stop/target resolution, stop-first path priority (conservative)

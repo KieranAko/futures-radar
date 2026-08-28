@@ -84,7 +84,7 @@ describe('mechanism hypothesis generation (round 1)', () => {
     assert.equal(mp.decisions['H-MECH-03'], 'screen_pending');
     const oldStates = lib.strategies.map((s) => `${s.id}:${s.status}:${s.evidenceTier}`);
     assert.deepEqual(oldStates, [
-      'TR-01:suspended:not_evaluable',
+      'TR-01:suspended:strategy_gate_failed',
       'TR-03:retired:falsified',
       'TR-06:suspended:not_evaluable',
       'FS-02:designed:untested',

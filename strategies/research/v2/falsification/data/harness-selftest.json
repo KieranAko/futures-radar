@@ -1,8 +1,8 @@
 {
   "schema": "falsification-harness-selftest/1",
-  "generatedAt": "2026-08-28T10:36:47.048Z",
-  "total": 22,
-  "passed": 22,
+  "generatedAt": "2026-08-28T20:00:50.997Z",
+  "total": 24,
+  "passed": 24,
   "failed": 0,
   "durationMs": 131,
   "results": [
@@ -31,21 +31,21 @@
       "name": "stats: paired diff CI positive when x = y + 0.3",
       "status": "PASS",
       "detail": "",
-      "ms": 4,
+      "ms": 3,
       "extra": null
     },
     {
       "name": "stats: OLS exact on line",
       "status": "PASS",
       "detail": "",
-      "ms": 0,
+      "ms": 1,
       "extra": null
     },
     {
       "name": "stats: ADF rejects unit root for AR(1) phi=0.5, fails to reject for RW",
       "status": "PASS",
       "detail": "",
-      "ms": 1,
+      "ms": 0,
       "extra": null
     },
     {
@@ -80,18 +80,32 @@
       "name": "sim: target hit when only target touched",
       "status": "PASS",
       "detail": "",
-      "ms": 0,
+      "ms": 1,
       "extra": null
     },
     {
       "name": "sim: gap through stop → exit at open",
       "status": "PASS",
       "detail": "",
-      "ms": 1,
+      "ms": 0,
       "extra": null
     },
     {
       "name": "sim: time exit at close of timeExitBars-th bar",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "sim: onFill recomputes bracket against actual T+1 open",
+      "status": "PASS",
+      "detail": "",
+      "ms": 0,
+      "extra": null
+    },
+    {
+      "name": "sim: manage decision.add fills add-on leg at next open and participates in R accounting",
       "status": "PASS",
       "detail": "",
       "ms": 0,
@@ -129,7 +143,7 @@
       "name": "engine: lookahead guard throws on future bar access",
       "status": "PASS",
       "detail": "",
-      "ms": 0,
+      "ms": 1,
       "extra": null
     },
     {
@@ -143,7 +157,7 @@
       "name": "engine: demo smoke on real RB0 data (2015–2026), no violations",
       "status": "PASS",
       "detail": "",
-      "ms": 25,
+      "ms": 22,
       "extra": {
         "trades": 83,
         "gate": [
@@ -175,14 +189,14 @@
       "name": "engine: random-flipped baseline discriminates against strategy edge",
       "status": "PASS",
       "detail": "",
-      "ms": 13,
+      "ms": 14,
       "extra": null
     },
     {
       "name": "gates: sample insufficiency stays designed; theory falsified retires",
       "status": "PASS",
       "detail": "",
-      "ms": 24,
+      "ms": 26,
       "extra": null
     }
   ]
