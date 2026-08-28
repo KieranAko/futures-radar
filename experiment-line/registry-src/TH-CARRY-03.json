@@ -1,0 +1,24 @@
+{
+  "id": "TH-CARRY-03",
+  "name": "carry 分层：月度横截面基差率三分层，多贴水层/空升水层",
+  "family": "carry",
+  "theoryRef": "02-term-structure.md §一 T4（收益主要来自展期分层，GHR 分层证据）",
+  "proposition": {
+    "H0": "月度横截面 br 排序分层（多最高层/空最低层）后 20 日净收益 mean(net) ≤ 0",
+    "H1": "分层多空组合 20 日净收益 > 0"
+  },
+  "whyItWorks": "展期收益/基差是商品期货期望收益最稳定的组成部分（02-T4）；横截面分层比单品种事件更接近该理论的原始证据形态。TH-CARRY-01 分层前哨 +0.811%（151 月，CI 含 0）是本预注册的依据，主检验从 preview 升级为独立预注册。",
+  "applicableStates": {
+    "basisState": "月度首个交易日的横截面 br 排序，顶层与底层各 1/3 品种",
+    "instrumentState": "GA-8 基差库 11 品种；T+1 开盘执行，20 日持有"
+  },
+  "timeScale": "月度调仓，持有 20 交易日",
+  "invalidation": "结构性失效：主力切换日、政策窗口改变基差均衡（G2 分段处理）；状态性失灵：现货粘性超标年份",
+  "g1Runner": "experiment-line/probes/carry-basis-g1.cjs",
+  "g1Args": ["--mode", "layers", "--hold", "20"],
+  "g1Decision": {
+    "promote": "promote",
+    "discard": ["discard"],
+    "pending": { "maxRounds": 1 }
+  }
+}

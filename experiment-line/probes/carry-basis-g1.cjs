@@ -63,6 +63,7 @@ function main() {
   const id = flag('--id', 'TH-CARRY-01');
   const holdDays = Number(flag('--hold', HOLD_DAYS));
   const longOnly = flag('--long-only', '0') === '1';
+  const mode = flag('--mode', 'events'); // events（默认）| layers（月度横截面分层主检验）
   const jumps = loadRollJumps().bySymbol;
 
   const halfLives = {};
@@ -87,7 +88,8 @@ function main() {
     const zs = basisLib.basisZSeries(rows, { window: WINDOW, minObs: WINDOW });
 
     let cooldown = 0;
-    for (let t = 0; t < rows.length; t++) {
+    if (mode === 'events') {
+      for (let t = 0; t < rows.length; t++) {
       cooldown = Math.max(0, cooldown - 1);
       const r = rows[t];
       const zr = zs[t];
@@ -116,6 +118,7 @@ function main() {
         netPct: round(net, 4),
         policyWindow: false, // ga7 分段在 v6 G1 阶段只记录窗口标记，不剔除（后续 G2 处理）
       });
+      }
     }
   }
 
@@ -165,16 +168,17 @@ function main() {
     }
   }
 
-  const nets = events.map((e) => e.netPct);
-  const n = nets.length;
-  const meanNet = S.mean(nets);
-  const ci = S.bootstrapMeanCI(nets, { level: 0.95, B: 10000, seed: SEED });
+  const layerNets = layerRows.map((x) => x.spreadNetPct);
+  const eventNets = events.map((e) => e.netPct);
+  const primaryNets = mode === 'layers' ? layerNets : eventNets;
+  const n = primaryNets.length;
+  const meanNet = S.mean(primaryNets);
+  const ci = S.bootstrapMeanCI(primaryNets, { level: 0.95, B: 10000, seed: SEED });
   let decision = 'screen_pending';
   if (n < 100) decision = 'insufficient_sample';
   else if (meanNet > 0 && ci.lo > 0) decision = 'promote';
   else if (ci.hi < 0) decision = 'discard';
 
-  const layerNets = layerRows.map((x) => x.spreadNetPct);
   const hlVals = Object.values(halfLives).map((x) => x.halfLifeDays).filter((v) => v != null).sort((a, b) => a - b);
   const result = {
     schema: 'futures-radar-g1-result/1',
@@ -182,6 +186,7 @@ function main() {
     family: 'carry',
     theoryRef: '02-term-structure.md §一 T1-T4',
     seed: SEED,
+    mode,
     holdDays,
     longOnly,
     decision,
@@ -189,7 +194,7 @@ function main() {
       meanNetPct: round(meanNet, 6),
       ci: { lo: round(ci.lo, 6), hi: round(ci.hi, 6), level: 0.95, B: 10000, seed: SEED, method: ci.method },
       n,
-      sigmaPct: round(S.std(nets, 1), 6),
+      sigmaPct: round(S.std(primaryNets, 1), 6),
     },
     secondary: {
       halfLife: {
@@ -201,10 +206,12 @@ function main() {
         nMonths: layerRows.length,
         meanSpreadNetPct: round(S.mean(layerNets), 6),
         ci: layerNets.length >= 5 ? { lo: round(S.bootstrapMeanCI(layerNets, { level: 0.95, B: 10000, seed: SEED }).lo, 6), hi: round(S.bootstrapMeanCI(layerNets, { level: 0.95, B: 10000, seed: SEED }).hi, 6) } : null,
-        note: 'monthly cross-section br terciles, long top/short bottom, 20d, both legs 7bp; forward-looking preview only, not part of G1 verdict',
+        note: 'monthly cross-section br terciles, long top/short bottom, 20d, both legs 7bp',
       },
     },
-    events: events.map((e) => ({ symbol: e.symbol, date: e.date, direction: e.direction, z: e.z, netPct: e.netPct })),
+    events: mode === 'layers'
+      ? layerRows.map((x) => ({ month: x.month, direction: 0, netPct: x.spreadNetPct }))
+      : events.map((e) => ({ symbol: e.symbol, date: e.date, direction: e.direction, z: e.z, netPct: e.netPct })),
   };
   const outDir = path.join(__dirname, '..', 'results', 'g1');
   fs.mkdirSync(outDir, { recursive: true });

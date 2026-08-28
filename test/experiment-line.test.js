@@ -97,6 +97,26 @@ describe('experiment-line v6 (full mirror of production)', () => {
     assert.match(snap.evidence[`${prodRunId}-replay.json`].sha256, /^[0-9a-f]{64}$/);
   });
 
+  it('mechanism identification emits family + registry match for mirror run', () => {
+    const prodRunId = '20260827-2159-auto';
+    const modelFile = path.join(EL, 'runs', prodRunId, 'report-model.json');
+    if (!fs.existsSync(modelFile)) return;
+    const mi = require(path.join(EL, 'mechanism-identify.cjs'));
+    const out = mi.main(prodRunId);
+    assert.equal(out.rows.length, 3);
+    assert.ok(out.rows.every((r) => r.family && r.matchStatus));
+  });
+
+  it('g2 refuses mechanisms that did not pass the G1 gate', () => {
+    const g1mod = require(path.join(EL, 'g1.cjs'));
+    g1mod.cmdRegister(path.join(EL, 'registry-src', 'TH-CARRY-03.json'));
+    const g2 = require(path.join(EL, 'g2.cjs'));
+    const out = g2.assess('TH-CARRY-03');
+    assert.equal(out.eligible, false);
+    assert.match(out.reason, /G1 gate not passed/);
+    assert.equal(g2.maxDrawdown([1, -2, 3, -1]), -2);
+  });
+
   it('g1 register validates required mechanism fields and rejects missing theoryRef', () => {
     const tmp = path.join(EL, 'registry-src', '_tmp-g1-test.json');
     const bad = { id: 'TMP-01', name: 'x', family: 'carry' };
