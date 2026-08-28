@@ -1,0 +1,708 @@
+{
+  "symbol": "M0",
+  "schemaVersion": "fincot/2",
+  "generatedAt": "2026-08-28T04:40:50Z",
+  "entries": [
+    {
+      "anchorDate": "2026-06-11",
+      "mode": "fresh",
+      "blueprintId": "BP-TREND",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "macroSupport": "bearish",
+      "sectorSupport": "bearish",
+      "eventRisk": "medium",
+      "thinking": "BP-TREND 步骤：趋势位势看 p.M0.c 与 p.M0.m20、p.M0.m60 相对位置；动量看 p.M0.chg5 与 p.M0.vol；板块同侧看 sect.r5 与 sect.br；宏观看 macro.DXY、macro.DR007、macro.SC0 同向，macro.US10Y、macro.USDCNH 反向；确认路径为反抽 p.M0.m20 滞涨，失效为反向越过均线；风险看 nxt 与 p.M0.a5。",
+      "selfCheck": {
+        "unitCheck": "pass",
+        "evidenceCheck": "pass",
+        "opposingCheck": "pass"
+      },
+      "q": {
+        "q1_driver": {
+          "text": "价格 2939 低于 m20 2968.5 与 m60 2982.3，板块 r5 -0.65 同向偏空；宏观 DXY +0.27、DR007 +6.89、SC0 -3.56 偏空，US10Y -0.45、USDCNH -0.20 反向；evt 中 06-10 CPI/PPI 已核实，nxt.fomc 为 7 日内日程。驱动偏空但宏观存在反向项。",
+          "evidenceRefs": [
+            "macro.DXY",
+            "macro.DR007",
+            "macro.SC0",
+            "sect.r5",
+            "nxt"
+          ]
+        },
+        "q2_trend": {
+          "text": "趋势结构：c 低于 m20 与 m60，m20<m60 空头排列；chg5 -0.14 动量近零，vol 0.97 量能平淡，a5 30 波动中性，属弱势趋势而非脉冲。",
+          "structureRefs": [
+            "p.M0.c",
+            "p.M0.m20",
+            "p.M0.m60",
+            "p.M0.chg5",
+            "p.M0.vol",
+            "p.M0.a5"
+          ]
+        },
+        "q3_odds": {
+          "text": "空头赔率来自价格在双均线下方、板块 r5 同向、宏观 DXY/DR007/SC0 偏空；但 US10Y 与 USDCNH 反向、板块 r1 +0.44 当日反弹，赔率受制。",
+          "opposingRefs": [
+            "macro.US10Y",
+            "macro.USDCNH",
+            "sect.r1"
+          ]
+        },
+        "q4_confirmation": {
+          "type": "pullback",
+          "levelType": "ma20_relative",
+          "level": 2968.5
+        },
+        "q5_invalidation": {
+          "levelType": "fixed",
+          "level": 2982.3,
+          "reason": "收盘站上 m60 则空头趋势失效"
+        },
+        "q6_risk": {
+          "text": "FOMC 日程前波动放大，空头需防 US10Y 下行与板块反弹；轻仓、快进快出。",
+          "riskExecution": {
+            "positionScale": 0.5,
+            "weekendRule": "hold",
+            "maxAdverseExcursionR": 1.0
+          }
+        }
+      },
+      "reusedFrom": null,
+      "provenance": "llm-recorded"
+    },
+    {
+      "anchorDate": "2026-06-18",
+      "mode": "fresh",
+      "blueprintId": "BP-TREND",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "macroSupport": "bearish",
+      "sectorSupport": "bearish",
+      "eventRisk": "low",
+      "thinking": "BP-TREND 步骤：趋势位势 p.M0.c 低于 p.M0.m20、p.M0.m60；动量 p.M0.chg5 无方向、p.M0.vol 中性；板块 sect.r5 同侧、sect.br 未确认；宏观 macro.DXY、macro.US10Y、macro.SC0 同向偏空，macro.USDCNH、macro.DR007 跟随；事件 evt 落地、nxt 为日程；确认路径反抽 p.M0.m20 滞涨，失效反向越过 p.M0.m60；风险看 p.M0.a5 与事件。",
+      "selfCheck": {
+        "unitCheck": "pass",
+        "evidenceCheck": "pass",
+        "opposingCheck": "pass"
+      },
+      "q": {
+        "q1_driver": {
+          "text": "价格 2942 低于 m20 2953.8 与 m60 2973.6；宏观 DXY +1.10、US10Y +0.22、SC0 -12.64 同向偏空，DR007 +1.18、USDCNH +0.21 亦偏空；板块 r5 -0.50 同向，r20 +0.16 与 br 0.6 未确认走弱；evt.fomc 已落地，nxt.china_lpr 为日程。",
+          "evidenceRefs": [
+            "macro.DXY",
+            "macro.US10Y",
+            "macro.SC0",
+            "sect.r5",
+            "evt",
+            "nxt"
+          ]
+        },
+        "q2_trend": {
+          "text": "趋势结构：c 低于双均线，m20<m60 空头排列；chg5 +0.10、vol 1.01、a5 25.6 收缩，属空头趋势中的低波动整理。",
+          "structureRefs": [
+            "p.M0.c",
+            "p.M0.m20",
+            "p.M0.m60",
+            "p.M0.chg5",
+            "p.M0.vol",
+            "p.M0.a5"
+          ]
+        },
+        "q3_odds": {
+          "text": "空头赔率来自宏观三因子同向与价格弱势；反面证据是 sect.r20 +0.16 与 sect.br 0.6，板块未确认走弱。",
+          "opposingRefs": [
+            "sect.r20",
+            "sect.br"
+          ]
+        },
+        "q4_confirmation": {
+          "type": "pullback",
+          "levelType": "ma20_relative",
+          "level": 2953.8
+        },
+        "q5_invalidation": {
+          "levelType": "fixed",
+          "level": 2973.6,
+          "reason": "收盘站上 m60 则空头趋势失效"
+        },
+        "q6_risk": {
+          "text": "低波动后若放量下破可顺势，否则易假突破；板块未确认限制赔率。",
+          "riskExecution": {
+            "positionScale": 0.5,
+            "weekendRule": "hold",
+            "maxAdverseExcursionR": 1.0
+          }
+        }
+      },
+      "reusedFrom": null,
+      "provenance": "llm-recorded"
+    },
+    {
+      "anchorDate": "2026-06-26",
+      "mode": "fresh",
+      "blueprintId": "BP-BREAK",
+      "direction": "bullish",
+      "confidence": "low",
+      "regime": "transition",
+      "edge": "breakout",
+      "macroSupport": "conflict",
+      "sectorSupport": "neutral",
+      "eventRisk": "medium",
+      "thinking": "BP-BREAK 步骤：关键位看 p.M0.m60 与 p.M0.m20；量能看 p.M0.vol；板块共振看 sect.br、sect.co；宏观冲突看 macro.DXY、macro.SC0 与 macro.US10Y 反向；事件看 nxt；确认路径为次日收盘守住 p.M0.m60，假突破证伪为跌回 p.M0.m20 下方；风险看 p.M0.a5 与事件。",
+      "selfCheck": {
+        "unitCheck": "pass",
+        "evidenceCheck": "pass",
+        "opposingCheck": "pass"
+      },
+      "q": {
+        "q1_driver": {
+          "text": "价格 2974 放量站上 m60 2973.2，vol 1.24；宏观冲突：DXY +0.60、SC0 -8.12 偏空，US10Y -1.79 偏多，USDCNH +0.33 偏空；板块 r5 +0.08、r20 -0.35 中性；nxt.china_pmi 为日程。突破尝试但驱动不纯。",
+          "evidenceRefs": [
+            "p.M0.c",
+            "p.M0.m60",
+            "p.M0.vol",
+            "macro.DXY",
+            "macro.SC0",
+            "macro.US10Y",
+            "sect.r5",
+            "nxt"
+          ]
+        },
+        "q2_trend": {
+          "text": "结构：c 站上 m60，但 m20<m60 未修复；chg5 +1.09、vol 1.24 放量反弹，属转势尝试/突破初段。",
+          "structureRefs": [
+            "p.M0.c",
+            "p.M0.m20",
+            "p.M0.m60",
+            "p.M0.chg5",
+            "p.M0.vol",
+            "p.M0.a5"
+          ]
+        },
+        "q3_odds": {
+          "text": "多头赔率来自放量站上 m60 与 US10Y 回落；反面证据是 m20<m60 未修复、DXY 与 SC0 偏空、sect.r20 -0.35。",
+          "opposingRefs": [
+            "macro.DXY",
+            "macro.SC0",
+            "sect.r20"
+          ]
+        },
+        "q4_confirmation": {
+          "type": "breakout",
+          "levelType": "fixed",
+          "level": 2973.2
+        },
+        "q5_invalidation": {
+          "levelType": "fixed",
+          "level": 2947.1,
+          "reason": "收盘跌回 m20 下方则突破失败"
+        },
+        "q6_risk": {
+          "text": "转势初期假突破概率高，PMI 日程前宜轻仓观察量能持续性。",
+          "riskExecution": {
+            "positionScale": 0.25,
+            "weekendRule": "hold",
+            "maxAdverseExcursionR": 0.5
+          }
+        }
+      },
+      "reusedFrom": null,
+      "provenance": "llm-recorded"
+    },
+    {
+      "anchorDate": "2026-07-03",
+      "mode": "fresh",
+      "blueprintId": "BP-RANGE",
+      "direction": "neutral",
+      "confidence": "low",
+      "regime": "range",
+      "edge": "range_fade",
+      "macroSupport": "conflict",
+      "sectorSupport": "neutral",
+      "eventRisk": "high",
+      "thinking": "BP-RANGE 步骤：区间上下沿看 p.M0.m20 与 p.M0.m60；当前位置看 p.M0.c；板块质量看 sect.br、sect.co、sect.r5；宏观冲突看 macro.DXY、macro.US10Y、macro.SC0、macro.DR007；事件看 nxt；确认路径为上沿滞涨或下沿企稳，证伪为任一边界失守；风险看 p.M0.a5 与事件。",
+      "selfCheck": {
+        "unitCheck": "pass",
+        "evidenceCheck": "pass",
+        "opposingCheck": "pass"
+      },
+      "q": {
+        "q1_driver": {
+          "text": "价格 2962 位于 m20 2944 与 m60 2976.1 之间；板块质量弱：br 0.2、co 0.44，r5 +0.45 勉强为正；宏观冲突：DXY -0.48 偏多，US10Y +2.05、SC0 -5.54 偏空；nxt.wasde 与 nxt.china_cpi_ppi 双事件。区间中位且事件密集，abstain 原因：conflict_unresolved + event_dense。",
+          "evidenceRefs": [
+            "sect.br",
+            "sect.co",
+            "macro.DXY",
+            "macro.US10Y",
+            "macro.SC0",
+            "nxt"
+          ]
+        },
+        "q2_trend": {
+          "text": "结构：c 夹在 m20 与 m60 之间，m20<m60 未修复；chg5 -0.40、vol 0.82 缩量，属区间震荡而非趋势。",
+          "structureRefs": [
+            "p.M0.c",
+            "p.M0.m20",
+            "p.M0.m60",
+            "p.M0.chg5",
+            "p.M0.vol",
+            "p.M0.a5"
+          ]
+        },
+        "q3_odds": {
+          "text": "多头靠 DXY 回落与 r5 为正；空头靠 US10Y/SC0 偏空与板块广度弱；两侧均无合力，赔率中性。",
+          "opposingRefs": [
+            "macro.US10Y",
+            "macro.SC0"
+          ]
+        },
+        "q4_confirmation": {
+          "type": "stall",
+          "levelType": "fixed",
+          "level": 2976.1
+        },
+        "q5_invalidation": {
+          "levelType": "fixed",
+          "level": 2976.1,
+          "reason": "收盘站上 m60 或跌破 m20 则区间中性失效"
+        },
+        "q6_risk": {
+          "text": "双事件前波动放大，区间中部不持仓；若边界反向操作也需防假突破。",
+          "riskExecution": {
+            "positionScale": 0.25,
+            "weekendRule": "exit_if_mfe_below_1R",
+            "maxAdverseExcursionR": 0.5
+          }
+        }
+      },
+      "reusedFrom": null,
+      "provenance": "llm-recorded"
+    },
+    {
+      "anchorDate": "2026-07-10",
+      "mode": "fresh",
+      "blueprintId": "BP-TREND",
+      "direction": "bullish",
+      "confidence": "high",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "macroSupport": "neutral",
+      "sectorSupport": "bullish",
+      "eventRisk": "low",
+      "thinking": "BP-TREND 步骤：趋势位势 p.M0.c 高于 p.M0.m20、p.M0.m60；动量 p.M0.chg5 同向、p.M0.vol 温和；板块 sect.r5、sect.r20、sect.br 同侧；宏观 macro.SC0、macro.DR007 偏多，macro.US10Y 反向；事件 evt 落地、nxt 为空；确认路径回调 p.M0.m20 企稳，失效跌破 p.M0.m20；风险看 p.M0.a5 与事件。",
+      "selfCheck": {
+        "unitCheck": "pass",
+        "evidenceCheck": "pass",
+        "opposingCheck": "pass"
+      },
+      "q": {
+        "q1_driver": {
+          "text": "价格 3049 站上 m20 2976.4 与 m60 2982.3；板块 r5 +0.68、r20 +0.71、br 0.6 同向；宏观 SC0 +6.78、DR007 -0.53 偏多，US10Y +1.56 反向；evt.wasde、evt.mpob 已落地，nxt 为空。多头驱动占优。",
+          "evidenceRefs": [
+            "macro.SC0",
+            "macro.DR007",
+            "macro.US10Y",
+            "sect.r5",
+            "sect.r20",
+            "sect.br",
+            "evt",
+            "nxt"
+          ]
+        },
+        "q2_trend": {
+          "text": "结构：c 高于双均线，m20 即将上穿 m60；chg5 +2.94、vol 0.79 温和，a5 33，属趋势恢复的温和上攻。",
+          "structureRefs": [
+            "p.M0.c",
+            "p.M0.m20",
+            "p.M0.m60",
+            "p.M0.chg5",
+            "p.M0.vol",
+            "p.M0.a5"
+          ]
+        },
+        "q3_odds": {
+          "text": "多头赔率来自价格双均线上方与板块共振；反面证据是 macro.US10Y +1.56 与 vol 0.79 量能不足。",
+          "opposingRefs": [
+            "macro.US10Y",
+            "p.M0.vol"
+          ]
+        },
+        "q4_confirmation": {
+          "type": "pullback",
+          "levelType": "ma20_relative",
+          "level": 2976.4
+        },
+        "q5_invalidation": {
+          "levelType": "fixed",
+          "level": 2976.4,
+          "reason": "收盘跌破 m20 则多头趋势失效"
+        },
+        "q6_risk": {
+          "text": "量能不足限制突破延续性；回踩确认前控制仓位。",
+          "riskExecution": {
+            "positionScale": 1.0,
+            "weekendRule": "hold",
+            "maxAdverseExcursionR": 1.0
+          }
+        }
+      },
+      "reusedFrom": null,
+      "provenance": "llm-recorded"
+    },
+    {
+      "anchorDate": "2026-07-17",
+      "mode": "fresh",
+      "blueprintId": "BP-PULL",
+      "direction": "bullish",
+      "confidence": "low",
+      "regime": "trend",
+      "edge": "pullback",
+      "macroSupport": "bullish",
+      "sectorSupport": "bearish",
+      "eventRisk": "medium",
+      "thinking": "BP-PULL 步骤：主趋势看 p.M0.c 与 p.M0.m20、p.M0.m60；回调位看 p.M0.m20；板块背离看 sect.r5、sect.br、sect.co；宏观支撑看 macro.SC0、macro.US10Y；事件看 nxt；确认路径次日收回 p.M0.m20 同侧，证伪为跌破 p.M0.m60；风险看 p.M0.a5 与事件。",
+      "selfCheck": {
+        "unitCheck": "pass",
+        "evidenceCheck": "pass",
+        "opposingCheck": "pass"
+      },
+      "q": {
+        "q1_driver": {
+          "text": "价格 3061 仍高于 m20 3004.8 与 m60 2989.3；但板块 r5 -1.91、br 0.2 明显转弱，co 0.81 显示分歧；宏观 SC0 +8.34、US10Y -0.22 偏多；nxt.china_lpr 为日程。主趋势偏多但板块背离，按回调蓝图处理。",
+          "evidenceRefs": [
+            "macro.SC0",
+            "macro.US10Y",
+            "sect.r5",
+            "sect.br",
+            "sect.co",
+            "nxt"
+          ]
+        },
+        "q2_trend": {
+          "text": "结构：c 高于双均线，m20>m60 多头排列；chg5 +0.39 动能放缓，vol 0.97，a5 38.4 放大，属趋势中的高位整理/回调。",
+          "structureRefs": [
+            "p.M0.c",
+            "p.M0.m20",
+            "p.M0.m60",
+            "p.M0.chg5",
+            "p.M0.vol",
+            "p.M0.a5"
+          ]
+        },
+        "q3_odds": {
+          "text": "多头赔率来自均线多头与宏观偏多；反面证据是 sect.r5 -1.91、sect.br 0.2 板块转弱，拖累 M0。",
+          "opposingRefs": [
+            "sect.r5",
+            "sect.br"
+          ]
+        },
+        "q4_confirmation": {
+          "type": "pullback",
+          "levelType": "ma20_relative",
+          "level": 3004.8
+        },
+        "q5_invalidation": {
+          "levelType": "fixed",
+          "level": 2989.3,
+          "reason": "收盘跌破 m60 则回调逻辑失效"
+        },
+        "q6_risk": {
+          "text": "板块与价格背离，回调若失守 m20 易转弱；LPR 前轻仓。",
+          "riskExecution": {
+            "positionScale": 0.25,
+            "weekendRule": "hold",
+            "maxAdverseExcursionR": 0.5
+          }
+        }
+      },
+      "reusedFrom": null,
+      "provenance": "llm-recorded"
+    },
+    {
+      "anchorDate": "2026-07-24",
+      "mode": "fresh",
+      "blueprintId": "BP-TREND",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "macroSupport": "conflict",
+      "sectorSupport": "bullish",
+      "eventRisk": "high",
+      "thinking": "BP-TREND 步骤：趋势位势 p.M0.c 远离 p.M0.m20、p.M0.m60；动量 p.M0.chg5 强劲、p.M0.vol 中性；板块 sect.r5、sect.br 同侧；宏观冲突 macro.DXY、macro.US10Y 偏空，macro.SC0 偏多；事件看 nxt；确认路径突破 p.M0.c 或回调 p.M0.m20 企稳，失效跌破 p.M0.m20；风险看 p.M0.a5 与事件。",
+      "selfCheck": {
+        "unitCheck": "pass",
+        "evidenceCheck": "pass",
+        "opposingCheck": "pass"
+      },
+      "q": {
+        "q1_driver": {
+          "text": "价格 3225 远离 m20 3057.7 与 m60 3003.4；板块 r5 +1.12、br 0.8 同向；宏观冲突：DXY +0.70、US10Y +3.08 偏空，SC0 +15.46 偏多；nxt.fomc、nxt.china_pmi 双事件。趋势强但宏观与事件压制。",
+          "evidenceRefs": [
+            "sect.r5",
+            "sect.br",
+            "macro.DXY",
+            "macro.US10Y",
+            "macro.SC0",
+            "nxt"
+          ]
+        },
+        "q2_trend": {
+          "text": "结构：c 远高于双均线，chg5 +5.36、a5 53.8 高波动，vol 1.03 量能未超常，属趋势加速段。",
+          "structureRefs": [
+            "p.M0.c",
+            "p.M0.m20",
+            "p.M0.m60",
+            "p.M0.chg5",
+            "p.M0.vol",
+            "p.M0.a5"
+          ]
+        },
+        "q3_odds": {
+          "text": "多头赔率来自强趋势与板块共振；反面证据是 DXY/US10Y 同步上行与双事件临近，追高风险大。",
+          "opposingRefs": [
+            "macro.DXY",
+            "macro.US10Y"
+          ]
+        },
+        "q4_confirmation": {
+          "type": "breakout",
+          "levelType": "fixed",
+          "level": 3225.0
+        },
+        "q5_invalidation": {
+          "levelType": "fixed",
+          "level": 3057.7,
+          "reason": "收盘跌破 m20 则多头趋势失效"
+        },
+        "q6_risk": {
+          "text": "双事件前高波动，追高需防假突破与滑点；确认前轻仓。",
+          "riskExecution": {
+            "positionScale": 0.5,
+            "weekendRule": "exit_if_mfe_below_1R",
+            "maxAdverseExcursionR": 1.2
+          }
+        }
+      },
+      "reusedFrom": null,
+      "provenance": "llm-recorded"
+    },
+    {
+      "anchorDate": "2026-07-31",
+      "mode": "fresh",
+      "blueprintId": "BP-BREAK",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "transition",
+      "edge": "breakout",
+      "macroSupport": "conflict",
+      "sectorSupport": "bearish",
+      "eventRisk": "low",
+      "thinking": "BP-BREAK 步骤：关键位看 p.M0.m20；量能看 p.M0.vol；板块共振看 sect.r5、sect.r20、sect.br、sect.co；宏观冲突看 macro.DXY、macro.US10Y、macro.SC0；事件 evt 落地、nxt 为空；确认路径次日收破 p.M0.c，假突破证伪为收回 p.M0.m20 上方；风险看 p.M0.a5 与事件。",
+      "selfCheck": {
+        "unitCheck": "pass",
+        "evidenceCheck": "pass",
+        "opposingCheck": "pass"
+      },
+      "q": {
+        "q1_driver": {
+          "text": "价格 3071 跌破 m20 3092.9；板块 r5 -2.15、r20 -2.28、br 0、co 0.88 一致转空；宏观冲突：DXY -1.65 偏多，US10Y +1.28、SC0 -7.35 偏空；evt.fomc、evt.china_pmi 已落地，nxt 为空。板块驱动偏空。",
+          "evidenceRefs": [
+            "sect.r5",
+            "sect.r20",
+            "sect.br",
+            "sect.co",
+            "macro.DXY",
+            "macro.US10Y",
+            "macro.SC0",
+            "evt",
+            "nxt"
+          ]
+        },
+        "q2_trend": {
+          "text": "结构：c 跌破 m20 但仍高于 m60；chg5 -4.78 急跌，vol 0.53 缩量，a5 47 高波动，属高位急跌脉冲。",
+          "structureRefs": [
+            "p.M0.c",
+            "p.M0.m20",
+            "p.M0.m60",
+            "p.M0.chg5",
+            "p.M0.vol",
+            "p.M0.a5"
+          ]
+        },
+        "q3_odds": {
+          "text": "空头赔率来自板块广度归零与价格破 m20；反面证据是 vol 0.53 缩量、macro.DXY -1.65 偏多、m60 仍为支撑。",
+          "opposingRefs": [
+            "macro.DXY",
+            "p.M0.vol"
+          ]
+        },
+        "q4_confirmation": {
+          "type": "breakout",
+          "levelType": "fixed",
+          "level": 3071.0
+        },
+        "q5_invalidation": {
+          "levelType": "fixed",
+          "level": 3092.9,
+          "reason": "收盘收复 m20 则空头破位失效"
+        },
+        "q6_risk": {
+          "text": "缩量急跌易反抽；空头需防 DXY 续跌与 m60 支撑。",
+          "riskExecution": {
+            "positionScale": 0.5,
+            "weekendRule": "hold",
+            "maxAdverseExcursionR": 1.0
+          }
+        }
+      },
+      "reusedFrom": null,
+      "provenance": "llm-recorded"
+    },
+    {
+      "anchorDate": "2026-08-07",
+      "mode": "fresh",
+      "blueprintId": "BP-TREND",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "macroSupport": "bullish",
+      "sectorSupport": "bullish",
+      "eventRisk": "medium",
+      "thinking": "BP-TREND 步骤：趋势位势 p.M0.c 高于 p.M0.m20、p.M0.m60；动量 p.M0.chg5 同向、p.M0.vol 放量；板块 sect.r5、sect.br、sect.co 同侧；宏观 macro.DXY、macro.US10Y、macro.DR007 偏多，macro.SC0 反向；事件看 nxt；确认路径突破 p.M0.c 或回调 p.M0.m20 企稳，失效跌破 p.M0.m20；风险看 p.M0.a5 与事件。",
+      "selfCheck": {
+        "unitCheck": "pass",
+        "evidenceCheck": "pass",
+        "opposingCheck": "pass"
+      },
+      "q": {
+        "q1_driver": {
+          "text": "价格 3154 高于 m20 3112.4 与 m60 3019.1；板块 r5 +1.77、br 0.8、co 0.75 健康；宏观 DXY -0.19、US10Y -2.11、DR007 -4.83 偏多，SC0 -2.69 反向；nxt.china_cpi_ppi、nxt.mpob 为未核实日程。多头共振。",
+          "evidenceRefs": [
+            "macro.DXY",
+            "macro.US10Y",
+            "macro.DR007",
+            "macro.SC0",
+            "sect.r5",
+            "sect.br",
+            "sect.co",
+            "nxt"
+          ]
+        },
+        "q2_trend": {
+          "text": "结构：c 高于双均线，chg5 +2.70、vol 1.11 温和放量，a5 41.2 偏高，趋势恢复量价健康。",
+          "structureRefs": [
+            "p.M0.c",
+            "p.M0.m20",
+            "p.M0.m60",
+            "p.M0.chg5",
+            "p.M0.vol",
+            "p.M0.a5"
+          ]
+        },
+        "q3_odds": {
+          "text": "多头赔率来自宏观与板块共振；反面证据是 macro.SC0 -2.69 商品能源偏弱、sect.r20 -1.22 与 nxt 双日程。",
+          "opposingRefs": [
+            "macro.SC0",
+            "sect.r20"
+          ]
+        },
+        "q4_confirmation": {
+          "type": "breakout",
+          "levelType": "fixed",
+          "level": 3154.0
+        },
+        "q5_invalidation": {
+          "levelType": "fixed",
+          "level": 3112.4,
+          "reason": "收盘跌破 m20 则多头失效"
+        },
+        "q6_risk": {
+          "text": "双日程未核实，事件前轻仓；SC0 若续弱会拖累商品情绪。",
+          "riskExecution": {
+            "positionScale": 0.5,
+            "weekendRule": "hold",
+            "maxAdverseExcursionR": 0.8
+          }
+        }
+      },
+      "reusedFrom": null,
+      "provenance": "llm-recorded"
+    },
+    {
+      "anchorDate": "2026-08-14",
+      "mode": "fresh",
+      "blueprintId": "BP-TREND",
+      "direction": "bullish",
+      "confidence": "low",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "macroSupport": "neutral",
+      "sectorSupport": "bullish",
+      "eventRisk": "low",
+      "thinking": "BP-TREND 步骤：趋势位势 p.M0.c 高于 p.M0.m20、p.M0.m60；动量 p.M0.chg5 放缓、p.M0.vol 中性；板块 sect.r5、sect.r20、sect.br 同侧；宏观 macro.US10Y 反向，macro.SC0 偏多，macro.DXY 中性；事件 evt 与 nxt 为空/低影响；确认路径突破 p.M0.c，失效跌破 p.M0.m20；风险看 p.M0.a5 与事件。",
+      "selfCheck": {
+        "unitCheck": "pass",
+        "evidenceCheck": "pass",
+        "opposingCheck": "pass"
+      },
+      "q": {
+        "q1_driver": {
+          "text": "价格 3165 高于 m20 3135.1 与 m60 3031.2；板块 r5 +1.06、r20 +1.77、br 1.0 健康；宏观 US10Y +0.65 偏空、SC0 +4.67 偏多、DXY +0.04 中性；evt 仅未核实日历，nxt 为空。趋势仍在但动量不足。",
+          "evidenceRefs": [
+            "sect.r5",
+            "sect.r20",
+            "sect.br",
+            "macro.US10Y",
+            "macro.SC0",
+            "evt",
+            "nxt"
+          ]
+        },
+        "q2_trend": {
+          "text": "结构：c 高于双均线多头排列；chg5 +0.35、vol 1.01、a5 30.8 收缩，属高位整理而非趋势加速。",
+          "structureRefs": [
+            "p.M0.c",
+            "p.M0.m20",
+            "p.M0.m60",
+            "p.M0.chg5",
+            "p.M0.vol",
+            "p.M0.a5"
+          ]
+        },
+        "q3_odds": {
+          "text": "多头赔率来自均线多头与板块广度 1.0；反面证据是 macro.US10Y +0.65 与 p.M0.chg5 动能不足。",
+          "opposingRefs": [
+            "macro.US10Y",
+            "p.M0.chg5"
+          ]
+        },
+        "q4_confirmation": {
+          "type": "breakout",
+          "levelType": "fixed",
+          "level": 3165.0
+        },
+        "q5_invalidation": {
+          "levelType": "fixed",
+          "level": 3135.1,
+          "reason": "收盘跌破 m20 则多头趋势失效"
+        },
+        "q6_risk": {
+          "text": "波动率收缩后方向选择，假突破概率高；宜轻仓等待确认。",
+          "riskExecution": {
+            "positionScale": 0.25,
+            "weekendRule": "hold",
+            "maxAdverseExcursionR": 0.5
+          }
+        }
+      },
+      "reusedFrom": null,
+      "provenance": "llm-recorded"
+    }
+  ]
+}

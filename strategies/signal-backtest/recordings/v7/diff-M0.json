@@ -1,0 +1,94 @@
+{
+  "schema": "futures-radar-context-diff/1",
+  "symbol": "M0",
+  "rows": [
+    {
+      "date": "2026-06-11",
+      "changed": true,
+      "reasons": [
+        "macro_flips:DR007,SC0"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-06-18",
+      "changed": true,
+      "reasons": [
+        "new_event:fomc"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-06-26",
+      "changed": true,
+      "reasons": [
+        "price_ma20_cross"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-07-03",
+      "changed": true,
+      "reasons": [
+        "macro_flips:US10Y,DR007"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-07-10",
+      "changed": true,
+      "reasons": [
+        "momentum_flip:chg5"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-07-17",
+      "changed": true,
+      "reasons": [
+        "sector_flip:r5"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-07-24",
+      "changed": true,
+      "reasons": [
+        "macro_flips:DXY,US10Y,DR007",
+        "sector_flip:r5"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-07-31",
+      "changed": true,
+      "reasons": [
+        "macro_flips:DXY,DR007,SC0",
+        "sector_flip:r5",
+        "price_ma20_cross",
+        "momentum_flip:chg5",
+        "new_event:fomc"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-08-07",
+      "changed": true,
+      "reasons": [
+        "macro_flips:US10Y,DR007",
+        "sector_flip:r5",
+        "price_ma20_cross",
+        "momentum_flip:chg5"
+      ],
+      "reusedFrom": null
+    },
+    {
+      "date": "2026-08-14",
+      "changed": true,
+      "reasons": [
+        "macro_flips:US10Y,SC0"
+      ],
+      "reusedFrom": null
+    }
+  ]
+}

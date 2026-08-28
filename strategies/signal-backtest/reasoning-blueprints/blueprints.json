@@ -1,0 +1,76 @@
+{
+  "schema": "futures-radar-reasoning-blueprint/1",
+  "description": "FinCoT 领域专家工作流蓝图（对齐 arXiv:2506.16123）。每个蓝图=分步工作流+触发条件+模板默认执行参数。蓝图只规定‘先检查什么、后检查什么’，不预设结论。",
+  "blueprints": {
+    "BP-TREND": {
+      "name": "趋势延续",
+      "whenToUse": "价格位于 MA20 同侧、板块 r5 同向、regime=trend",
+      "steps": [
+        "1 确认趋势位势：close 与 ma20/ma60 的相对位置",
+        "2 确认动量：chg5 方向与趋势一致且无极端透支（|chg5|<8）",
+        "3 确认板块：sect.r5/r20 与方向同侧",
+        "4 选择确认路径：突破触发（close±k*ATR）或回调至 m20 滞涨/企稳",
+        "5 设定失效：价格反向越过 m20 或板块 r5 翻转",
+        "6 检查风险：周末/事件/波动率"
+      ],
+      "mermaid": "flowchart TD\n  A[趋势位势] --> B[动量确认]\n  B --> C[板块同侧]\n  C --> D[突破或回调路径]\n  D --> E[失效价]\n  E --> F[风险检查]",
+      "planTemplate": { "triggerType": "breakout", "triggerAtrMult": 0.5, "stopAtrMult": 1.5, "targetR": 2, "targetCapAtr": 2, "stopCapAtr": 2, "timeStopDays": 3, "breakevenAfterR": 1.0, "trailingAfterR": 1.5 }
+    },
+    "BP-BREAK": {
+      "name": "突破",
+      "whenToUse": "关键位（m20/前高前低/平台）附近，量比确认",
+      "steps": [
+        "1 识别关键位：m20/m60 或近期平台",
+        "2 量能确认：volRatio 支持突破方向",
+        "3 板块共振：sect.br/co 同侧",
+        "4 确认路径：T+1 收盘越过触发价且不回落到关键位内",
+        "5 假突破证伪：收盘回到关键位反向侧",
+        "6 检查风险：假突破滑点/事件"
+      ],
+      "mermaid": "flowchart TD\n  A[关键位] --> B[量能]\n  B --> C[板块共振]\n  C --> D[T+1 确认]\n  D --> E[假突破证伪]\n  E --> F[滑点与事件风险]",
+      "planTemplate": { "triggerType": "breakout", "triggerAtrMult": 0.5, "stopAtrMult": 1.5, "targetR": 2, "targetCapAtr": 2, "stopCapAtr": 2, "timeStopDays": 3, "breakevenAfterR": 1.0, "trailingAfterR": 1.5 }
+    },
+    "BP-PULL": {
+      "name": "回调/均值回归",
+      "whenToUse": "趋势方向明确但价格短期偏离（回撤至 m20/支撑压力）",
+      "steps": [
+        "1 确认主趋势：m20/m60 位势与板块 r5",
+        "2 识别回调位：m20 或结构支撑/压力",
+        "3 确认回调未破坏趋势：回调带内且失效价未破",
+        "4 触发路径：T+1 收盘回到回调位同侧",
+        "5 证伪：价格突破失效价或回调位失守",
+        "6 检查风险：回归失败/波动率"
+      ],
+      "mermaid": "flowchart TD\n  A[主趋势] --> B[回调位]\n  B --> C[趋势未破坏]\n  C --> D[T+1 回到同侧]\n  D --> E[失效价]\n  E --> F[回归失败风险]",
+      "planTemplate": { "triggerType": "pullback", "triggerAtrMult": null, "stopAtrMult": 1.5, "targetR": 2, "targetCapAtr": 2, "stopCapAtr": 2, "timeStopDays": 3, "breakevenAfterR": 1.0, "trailingAfterR": 1.5 }
+    },
+    "BP-RANGE": {
+      "name": "区间",
+      "whenToUse": "regime=range，价格在可识别区间内",
+      "steps": [
+        "1 识别区间上下沿",
+        "2 判断当前处于区间位置（上沿/下沿/中部）",
+        "3 中部不交易；边界反向操作",
+        "4 触发路径：T+1 收盘离开边界或回到区间内",
+        "5 证伪：收盘突破区间反向边界",
+        "6 检查风险：假突破"
+      ],
+      "mermaid": "flowchart TD\n  A[区间上下沿] --> B[当前位置]\n  B --> C{中部?}\n  C -->|是| D[不交易]\n  C -->|边界| E[T+1 反向触发]\n  E --> F[假突破证伪]",
+      "planTemplate": { "triggerType": "pullback", "triggerAtrMult": null, "stopAtrMult": 1.5, "targetR": 2, "targetCapAtr": 2, "stopCapAtr": 2, "timeStopDays": 3, "breakevenAfterR": 1.0, "trailingAfterR": 1.5 }
+    },
+    "BP-SHOCK": {
+      "name": "冲击/事件",
+      "whenToUse": "regime=shock 或 |chg5|>=8 或高影响事件刚落地",
+      "steps": [
+        "1 识别冲击源：事件日历 + 宏观/板块是否同向",
+        "2 判断情绪位置：|chg5| 与 ATR 是否已透支",
+        "3 三层共振检查：宏观、板块、价格是否同侧",
+        "4 冲突时禁止追单：macro 反向 → 不执行",
+        "5 触发路径：只允许回调确认，不追突破",
+        "6 证伪与风险：修复路径 + 半仓 + 事件风险"
+      ],
+      "mermaid": "flowchart TD\n  A[冲击源] --> B[情绪位置]\n  B --> C{三层共振?}\n  C -->|否| D[禁止追单]\n  C -->|是| E[只做回调确认]\n  E --> F[修复路径证伪]",
+      "planTemplate": { "triggerType": "pullback", "triggerAtrMult": null, "stopAtrMult": 1.5, "targetR": 2, "targetCapAtr": 2, "stopCapAtr": 2, "timeStopDays": 3, "breakevenAfterR": 1.0, "trailingAfterR": 1.5, "riskExecution": { "positionScale": 0.5, "weekendRule": "exit_if_mfe_below_1R" } }
+    }
+  }
+}

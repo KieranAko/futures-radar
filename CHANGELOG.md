@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.16（2026-08-28）
+
+- **信号质量回测 V7（FinCoT 蓝图版 10 锚点试点）**：按 `contract-v7.md`（已对齐 arXiv:2506.16123）落地——`reasoning-blueprints/blueprints.json` 五个领域蓝图（BP-TREND/BP-BREAK/BP-PULL/BP-RANGE/BP-SHOCK，各含分步工作流 + Mermaid + 模板默认执行参数）；T1 FinCoT 严格按论文结构输出 `blueprintId + thinking + selfCheck(unit/evidence/opposing) + 结构化 q1-q6`；T2 为确定性模板计划（`build-plans-v7.cjs`，无 LLM 数值生成）；L3 复用 v6.1 安全执行引擎
+- **V7 试点结果（10 锚点 × 3 品种，inSample）**：C-v7 47 信号→4 执行→3 成交，方向正确率 66.67%，毛 +0.57%/净 -0.31%；同窗口对照 v5-C 3 笔 33.33%/+0.60%，v6.1-C 1 笔 100%/+0.20%。闸跳过 28（G2 确认距离为主），v5 反事实成交 0 笔。FinCoT fresh 27 / reused 3；蓝图分布 BP-TREND 13、BP-SHOCK 6、BP-BREAK 5、BP-RANGE 3、BP-PULL 3
+- **框架可运行性验证**：`recordings/v7/`（evidence + diff + fincot-v7 + plans-v7）、`runner-v7.cjs`、`signal-quality-baseline-v7.md/json`；`riskExecution` 已记录但引擎仍固定 1 手；本轮只验证框架链路，不作为策略证据
+- **版本对齐**：VERSION.md / package.json / SKILL.md / README.md / pipeline banner 统一为 0.1.16；新增 `npm run signal:backtest:v7`
+- 新增 signal-backtest-v7 测试 3 条（FinCoT 结构/selfCheck、T2 模板确定性重建、v7 artifact）；全量测试 629 → 632（116 → 119 套件）
+
 ## 0.1.15（2026-08-28）
 
 - **信号质量回测 v6.1（硬约束修正版）**：按 `v6-optimization-plan.md` 的 P1/P2/P3/P5/P6/P7/P8/P9/P10 修复 `runner-v6-1.cjs`——G1 只作用于 B/C（A 臂无上下文字段时闸门放弃判定）；三集合口径 + `skippedCF` 闸门成本；前 10 校准 / 后 10 验证拆分并剔除 4 笔归因交易；止损帽保证 R≥1；G2 三层共振改用信号日 sector br/co；失效价带宽校验（不在 (stop, trigger] 带内则 G5 放弃）；0.25R 成本净收益口径；证据方向 linter；diff 阈值敏感性只报告不选优

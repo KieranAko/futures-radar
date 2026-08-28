@@ -1,0 +1,555 @@
+{
+  "schema": "futures-radar-signal-plan-v7/1",
+  "arm": "C",
+  "symbol": "RB0",
+  "generatedAt": "2026-08-28T04:46:50.060Z",
+  "note": "T2 确定性模板：蓝图默认执行参数 + FinCoT 结构化字段，无 LLM 数值生成",
+  "anchors": [
+    {
+      "date": "2026-06-11",
+      "direction": "bearish",
+      "confidence": "low",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.5,
+      "stopAtrMult": 1.5,
+      "targetR": 2,
+      "maxHoldDays": 3,
+      "pullbackLevel": null,
+      "invalidationLevel": 3174.1,
+      "qualityFlags": [],
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "executionStatus": "executable",
+      "blueprintId": "BP-TREND",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "finCotAlignment": "aligned",
+      "finCotMode": "fresh",
+      "finCotReusedFrom": null,
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "q6",
+        "macro.DR007",
+        "macro.SC0"
+      ],
+      "contextRefs": [
+        "macro.DR007",
+        "macro.SC0",
+        "sect.r5",
+        "p.RB0.close",
+        "p.RB0.ma20",
+        "p.RB0.ma60",
+        "p.RB0.atr5"
+      ],
+      "thesis": "趋势延续蓝图：资金面与能源端边际转弱（macro.DR007、macro.SC0），叠加黑色板块短周期走弱（sect.r5），构成偏空驱动；但价格动量未明显放大。",
+      "driver": "资金面与能源端边际转弱（macro.DR007、macro.SC0），叠加黑色板块短周期走弱（sect.r5），构成偏空驱动；但价格动量未明显放大。",
+      "rationale": "thinking=BP-TREND：(1) 趋势位势：当前价格行显示收盘位于均线下方，方向偏空；(2) 动量：动量项方向一致且未透支；(3) 板块：sect.r5 与方向同侧，sect.br 偏弱，sect.r20 仍正形成反向约束；(4) 确认路径：反弹至均线滞涨再确认；(5) 失效：反向站回均线上方；(6) 风险：macro.DR007 与 macro.SC0 异动，nxt 有事件日程。; selfCheck={\"unitCheck\":\"pass\",\"evidenceCheck\":\"pass\",\"opposingCheck\":\"pass\"}",
+      "invalidationReason": "收盘站回 m20 上方则空头结构失效。",
+      "q4Confirmation": {
+        "level": 3174.1,
+        "levelType": "ma20_relative",
+        "type": "pullback"
+      }
+    },
+    {
+      "date": "2026-06-18",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "shock",
+      "edge": "pullback",
+      "triggerType": "pullback",
+      "triggerAtrMult": null,
+      "stopAtrMult": 1.5,
+      "targetR": 2,
+      "maxHoldDays": 3,
+      "pullbackLevel": 3164.8,
+      "invalidationLevel": 3164.8,
+      "qualityFlags": [],
+      "macroBias": "bearish",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "executionStatus": "executable",
+      "blueprintId": "BP-SHOCK",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "finCotAlignment": "aligned",
+      "finCotMode": "fresh",
+      "finCotReusedFrom": null,
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "q6",
+        "evt",
+        "macro.SC0"
+      ],
+      "contextRefs": [
+        "evt",
+        "macro.SC0",
+        "macro.DXY",
+        "sect.r5",
+        "p.RB0.close",
+        "p.RB0.ma20",
+        "p.RB0.ma60",
+        "p.RB0.atr5"
+      ],
+      "thesis": "冲击/事件蓝图：高影响事件刚落地（evt），能源端与美元同步施压（macro.SC0、macro.DXY），板块短周期走弱（sect.r5），偏空驱动明确。",
+      "driver": "高影响事件刚落地（evt），能源端与美元同步施压（macro.SC0、macro.DXY），板块短周期走弱（sect.r5），偏空驱动明确。",
+      "rationale": "thinking=BP-SHOCK：(1) 冲击源：evt 显示高影响事件刚落地，macro.SC0 与 macro.DXY 构成外部压力；(2) 情绪位置：价格行动量未透支但宏观端偏离明显；(3) 三层共振：macro 与 sect.r5、sect.r1 同侧偏空；(4) 不追突破，等待反弹至均线滞涨；(5) 触发路径：只做反弹滞涨确认；(6) 证伪与风险：反向站回均线上方证伪，nxt 仍有事件。; selfCheck={\"unitCheck\":\"pass\",\"evidenceCheck\":\"pass\",\"opposingCheck\":\"pass\"}",
+      "invalidationReason": "反弹站回 m20 上方则冲击空头证伪。",
+      "q4Confirmation": {
+        "level": 3164.8,
+        "levelType": "ma20_relative",
+        "type": "pullback"
+      }
+    },
+    {
+      "date": "2026-06-26",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "shock",
+      "edge": "pullback",
+      "triggerType": "pullback",
+      "triggerAtrMult": null,
+      "stopAtrMult": 1.5,
+      "targetR": 2,
+      "maxHoldDays": 3,
+      "pullbackLevel": 3150.8,
+      "invalidationLevel": 3150.8,
+      "qualityFlags": [],
+      "macroBias": "bearish",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "executionStatus": "executable",
+      "blueprintId": "BP-SHOCK",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "finCotAlignment": "aligned",
+      "finCotMode": "reused",
+      "finCotReusedFrom": "2026-06-18",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "q6"
+      ],
+      "contextRefs": [],
+      "thesis": "冲击/事件蓝图：（继承 2026-06-18）",
+      "driver": "（继承 2026-06-18）",
+      "rationale": "thinking=沿用 2026-06-18 FinCoT 语义；Q4/Q5 已按当前证据行确定性重投影。; selfCheck={\"unitCheck\":\"pass\",\"evidenceCheck\":\"pass\",\"opposingCheck\":\"pass\"}",
+      "invalidationReason": "（继承，按当前 m20 重投影）",
+      "q4Confirmation": {
+        "level": 3150.8,
+        "levelType": "ma20_relative",
+        "type": "pullback"
+      }
+    },
+    {
+      "date": "2026-07-03",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.5,
+      "stopAtrMult": 1.5,
+      "targetR": 2,
+      "maxHoldDays": 3,
+      "pullbackLevel": null,
+      "invalidationLevel": 3127.7,
+      "qualityFlags": [],
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "executionStatus": "executable",
+      "blueprintId": "BP-TREND",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "finCotAlignment": "aligned",
+      "finCotMode": "fresh",
+      "finCotReusedFrom": null,
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "q6",
+        "macro.US10Y",
+        "macro.SC0"
+      ],
+      "contextRefs": [
+        "macro.US10Y",
+        "macro.SC0",
+        "sect.r20",
+        "macro.DXY",
+        "p.RB0.close",
+        "p.RB0.ma20",
+        "p.RB0.ma60",
+        "p.RB0.chg5"
+      ],
+      "thesis": "趋势延续蓝图：利率端与能源端偏空（macro.US10Y、macro.SC0），板块中期走弱（sect.r20），趋势空头驱动延续；但美元端反向。",
+      "driver": "利率端与能源端偏空（macro.US10Y、macro.SC0），板块中期走弱（sect.r20），趋势空头驱动延续；但美元端反向。",
+      "rationale": "thinking=BP-TREND：(1) 趋势位势：当前价格行显示收盘位于均线下方，均线排列偏空；(2) 动量：动量项方向一致且未透支；(3) 板块：sect.r20 与方向同侧，sect.br 改善但仍弱；(4) 确认路径：反弹至均线滞涨确认；(5) 失效：反向站回均线上方；(6) 风险：macro.US10Y 与 macro.SC0 偏空，macro.DXY 反向，evt 与 nxt 有数据日程。; selfCheck={\"unitCheck\":\"pass\",\"evidenceCheck\":\"pass\",\"opposingCheck\":\"pass\"}",
+      "invalidationReason": "收盘站回 m20 上方则趋势空头失效。",
+      "q4Confirmation": {
+        "level": 3127.7,
+        "levelType": "ma20_relative",
+        "type": "pullback"
+      }
+    },
+    {
+      "date": "2026-07-10",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.5,
+      "stopAtrMult": 1.5,
+      "targetR": 2,
+      "maxHoldDays": 3,
+      "pullbackLevel": null,
+      "invalidationLevel": 3107.7,
+      "qualityFlags": [],
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "executionStatus": "executable",
+      "blueprintId": "BP-TREND",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "finCotAlignment": "aligned",
+      "finCotMode": "reused",
+      "finCotReusedFrom": "2026-07-03",
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "q6"
+      ],
+      "contextRefs": [],
+      "thesis": "趋势延续蓝图：（继承 2026-07-03）",
+      "driver": "（继承 2026-07-03）",
+      "rationale": "thinking=沿用 2026-07-03 FinCoT 语义；Q4/Q5 已按当前证据行确定性重投影。; selfCheck={\"unitCheck\":\"pass\",\"evidenceCheck\":\"pass\",\"opposingCheck\":\"pass\"}",
+      "invalidationReason": "（继承，按当前 m20 重投影）",
+      "q4Confirmation": {
+        "level": 3107.7,
+        "levelType": "ma20_relative",
+        "type": "pullback"
+      }
+    },
+    {
+      "date": "2026-07-17",
+      "direction": "neutral",
+      "confidence": "low",
+      "regime": "transition",
+      "edge": null,
+      "triggerType": null,
+      "triggerAtrMult": null,
+      "stopAtrMult": null,
+      "targetR": null,
+      "maxHoldDays": null,
+      "pullbackLevel": null,
+      "invalidationLevel": null,
+      "qualityFlags": [],
+      "macroBias": "bullish",
+      "sectorBias": "neutral",
+      "eventRisk": "medium",
+      "executionStatus": "watch",
+      "blueprintId": "BP-BREAK",
+      "finCotAlignment": "aligned",
+      "finCotMode": "fresh",
+      "finCotReusedFrom": null,
+      "thesis": "FinCoT neutral（宏观与能源端偏多（macro.SC0）但黑色板块未共振（sect.r5、sect.co），价格虽上穿均线但量能不足，abstain。）",
+      "driver": "无方向",
+      "rationale": "宏观与能源端偏多（macro.SC0）但黑色板块未共振（sect.r5、sect.co），价格虽上穿均线但量能不足，abstain。",
+      "invalidationReason": "收盘跌破 m20 则突破尝试失败，回归偏空结构。",
+      "contextRefs": [],
+      "finCotRefs": []
+    },
+    {
+      "date": "2026-07-24",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.5,
+      "stopAtrMult": 1.5,
+      "targetR": 2,
+      "maxHoldDays": 3,
+      "pullbackLevel": null,
+      "invalidationLevel": 3085.7,
+      "qualityFlags": [],
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "high",
+      "executionStatus": "executable",
+      "blueprintId": "BP-TREND",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "finCotAlignment": "aligned",
+      "finCotMode": "fresh",
+      "finCotReusedFrom": null,
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "q6",
+        "macro.DXY",
+        "macro.US10Y"
+      ],
+      "contextRefs": [
+        "macro.DXY",
+        "macro.US10Y",
+        "sect.r5",
+        "nxt",
+        "p.RB0.close",
+        "p.RB0.ma20",
+        "p.RB0.ma60",
+        "p.RB0.atr5"
+      ],
+      "thesis": "趋势延续蓝图：美元与利率端同向偏空（macro.DXY、macro.US10Y），价格重回均线下方，趋势空头恢复；能源端反向形成制约。",
+      "driver": "美元与利率端同向偏空（macro.DXY、macro.US10Y），价格重回均线下方，趋势空头恢复；能源端反向形成制约。",
+      "rationale": "thinking=BP-TREND：(1) 趋势位势：当前价格行显示收盘重回均线下方，均线排列偏空；(2) 动量：动量项方向与偏空一致；(3) 板块：sect.r5 与方向同侧，sect.r20 仍弱；(4) 确认路径：反弹至均线滞涨确认；(5) 失效：反向站回均线上方；(6) 风险：nxt 有高影响事件日程，macro.US10Y 与 macro.DXY 同向偏空，macro.SC0 反向。; selfCheck={\"unitCheck\":\"pass\",\"evidenceCheck\":\"pass\",\"opposingCheck\":\"pass\"}",
+      "invalidationReason": "收盘站回 m20 上方则空头趋势重投影失效。",
+      "q4Confirmation": {
+        "level": 3085.7,
+        "levelType": "ma20_relative",
+        "type": "pullback"
+      }
+    },
+    {
+      "date": "2026-07-31",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "shock",
+      "edge": "pullback",
+      "triggerType": "pullback",
+      "triggerAtrMult": null,
+      "stopAtrMult": 1.5,
+      "targetR": 2,
+      "maxHoldDays": 3,
+      "pullbackLevel": 3077.7,
+      "invalidationLevel": 3077.7,
+      "qualityFlags": [],
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "high",
+      "executionStatus": "executable",
+      "blueprintId": "BP-SHOCK",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "finCotAlignment": "aligned",
+      "finCotMode": "fresh",
+      "finCotReusedFrom": null,
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "q6",
+        "evt",
+        "macro.SC0"
+      ],
+      "contextRefs": [
+        "evt",
+        "macro.SC0",
+        "macro.US10Y",
+        "sect.r5",
+        "p.RB0.close",
+        "p.RB0.ma20",
+        "p.RB0.ma60",
+        "p.RB0.atr5",
+        "p.RB0.chg5"
+      ],
+      "thesis": "冲击/事件蓝图：高影响事件刚落地（evt），能源端与利率端同向偏空（macro.SC0、macro.US10Y），板块加速走弱（sect.r5），偏空驱动占优。",
+      "driver": "高影响事件刚落地（evt），能源端与利率端同向偏空（macro.SC0、macro.US10Y），板块加速走弱（sect.r5），偏空驱动占优。",
+      "rationale": "thinking=BP-SHOCK：(1) 冲击源：evt 显示高影响事件刚落地，macro.SC0 与 macro.US10Y 同向偏空；(2) 情绪位置：价格行动量放大但未透支；(3) 三层共振：macro 内部冲突（macro.DXY 反向），sect.r5 与方向同侧；(4) 冲突处理：macro 反向时不追突破，只做反弹确认；(5) 触发路径：只做反弹滞涨确认；(6) 证伪与风险：反向站回均线上方证伪，nxt 空窗但事件刚落地。; selfCheck={\"unitCheck\":\"pass\",\"evidenceCheck\":\"pass\",\"opposingCheck\":\"pass\"}",
+      "invalidationReason": "反弹站回 m20 上方则冲击空头证伪。",
+      "q4Confirmation": {
+        "level": 3077.7,
+        "levelType": "ma20_relative",
+        "type": "pullback"
+      }
+    },
+    {
+      "date": "2026-08-07",
+      "direction": "bullish",
+      "confidence": "low",
+      "regime": "range",
+      "edge": "range_fade",
+      "triggerType": "pullback",
+      "triggerAtrMult": null,
+      "stopAtrMult": 1.5,
+      "targetR": 2,
+      "maxHoldDays": 3,
+      "pullbackLevel": 3055.5,
+      "invalidationLevel": 3008,
+      "qualityFlags": [],
+      "macroBias": "bullish",
+      "sectorBias": "bullish",
+      "eventRisk": "medium",
+      "executionStatus": "executable",
+      "blueprintId": "BP-RANGE",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "finCotAlignment": "aligned",
+      "finCotMode": "fresh",
+      "finCotReusedFrom": null,
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "q6",
+        "macro.DR007",
+        "macro.US10Y"
+      ],
+      "contextRefs": [
+        "macro.DR007",
+        "macro.US10Y",
+        "sect.r5",
+        "sect.br",
+        "p.RB0.close",
+        "p.RB0.ma20",
+        "p.RB0.atr5"
+      ],
+      "thesis": "区间蓝图：资金面宽松与板块情绪回暖（macro.DR007、sect.r5、sect.br），价格在区间下沿获支撑，偏多驱动；能源端偏空制约。",
+      "driver": "资金面宽松与板块情绪回暖（macro.DR007、sect.r5、sect.br），价格在区间下沿获支撑，偏多驱动；能源端偏空制约。",
+      "rationale": "thinking=BP-RANGE：(1) 区间边界：当前价格行显示价格贴近区间下沿，均线构成上沿；(2) 当前位置：贴近下沿，sect.br 与 sect.r5 显著改善；(3) 边界反向操作：下沿不做空，等待回升确认；(4) 触发路径：T+1 收盘离开下沿或重回区间内；(5) 证伪：收盘跌破下沿；(6) 风险：macro.SC0 偏空、nxt 有事件日程。; selfCheck={\"unitCheck\":\"pass\",\"evidenceCheck\":\"pass\",\"opposingCheck\":\"pass\"}",
+      "invalidationReason": "收盘跌破区间下沿（当前收盘）则 range_fade 证伪。",
+      "q4Confirmation": {
+        "level": 3055.5,
+        "levelType": "ma20_relative",
+        "type": "pullback"
+      }
+    },
+    {
+      "date": "2026-08-14",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "transition",
+      "edge": "breakout",
+      "triggerType": "breakout",
+      "triggerAtrMult": 0.5,
+      "stopAtrMult": 1.5,
+      "targetR": 2,
+      "maxHoldDays": 3,
+      "pullbackLevel": null,
+      "invalidationLevel": 3015,
+      "qualityFlags": [],
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "executionStatus": "executable",
+      "blueprintId": "BP-BREAK",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "finCotAlignment": "aligned",
+      "finCotMode": "fresh",
+      "finCotReusedFrom": null,
+      "finCotRefs": [
+        "q4",
+        "q5",
+        "q6",
+        "macro.SC0",
+        "sect.r5"
+      ],
+      "contextRefs": [
+        "macro.SC0",
+        "sect.r5",
+        "sect.r20",
+        "sect.br",
+        "p.RB0.close",
+        "p.RB0.ma20",
+        "p.RB0.ma60",
+        "p.RB0.volRatio"
+      ],
+      "thesis": "突破蓝图：板块中期翻正（sect.r5、sect.r20），能源端走强（macro.SC0），价格接近均线关键位，偏多驱动；利率端仍偏空。",
+      "driver": "板块中期翻正（sect.r5、sect.r20），能源端走强（macro.SC0），价格接近均线关键位，偏多驱动；利率端仍偏空。",
+      "rationale": "thinking=BP-BREAK：(1) 关键位：当前价格行显示收盘接近均线，构成关键位；(2) 量能：量比项支持突破方向；(3) 板块共振：sect.r5 与 sect.r20 同侧偏多，sect.br 尚可；(4) T+1 确认：收盘越过关键位且不回落则确认；(5) 假突破证伪：收盘跌回当前收盘下方证伪；(6) 风险：macro.US10Y 偏空，nxt 空窗。; selfCheck={\"unitCheck\":\"pass\",\"evidenceCheck\":\"pass\",\"opposingCheck\":\"pass\"}",
+      "invalidationReason": "收盘跌回当前收盘下方则突破尝试证伪。",
+      "q4Confirmation": {
+        "level": 3033.2,
+        "levelType": "ma20_relative",
+        "type": "breakout"
+      }
+    }
+  ]
+}

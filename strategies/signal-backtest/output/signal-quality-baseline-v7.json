@@ -1,0 +1,1897 @@
+{
+  "schema": "futures-radar-signal-backtest/7",
+  "meta": {
+    "generatedAt": "2026-08-28T04:47:49.498Z",
+    "arm": "C",
+    "universe": [
+      "RB0",
+      "M0",
+      "SC0"
+    ],
+    "anchorsPerSymbol": 10,
+    "anchorDates": [
+      "2026-06-11",
+      "2026-06-18",
+      "2026-06-26",
+      "2026-07-03",
+      "2026-07-10",
+      "2026-07-17",
+      "2026-07-24",
+      "2026-07-31",
+      "2026-08-07",
+      "2026-08-14"
+    ],
+    "engine": "v6.1-safe + FinCoT-blueprints",
+    "inSample": true,
+    "costPerTradeR": 0.25,
+    "barsSource": "data-store daily merged（500 bars）"
+  },
+  "aggregate": {
+    "signalCount": 47,
+    "triggerRate": 8.51,
+    "executedCount": 4,
+    "verifiedCount": 3,
+    "gapSkipCount": 1,
+    "triggerMissCount": 15,
+    "stopRate": 33.33,
+    "target1Rate": 0,
+    "timeExitRate": 33.33,
+    "directionCorrectRate": 66.67,
+    "avgPnlPct": 0.57,
+    "byConfidence": {
+      "high": {
+        "n": 1,
+        "directionCorrectRate": 100,
+        "avgPnlPct": 0.65
+      },
+      "medium": {
+        "n": 1,
+        "directionCorrectRate": 0,
+        "avgPnlPct": 0
+      },
+      "low": {
+        "n": 1,
+        "directionCorrectRate": 100,
+        "avgPnlPct": 1.05
+      }
+    },
+    "gateSkippedCount": 28,
+    "invalidationExits": 0,
+    "invalidationNotApplicable": 8,
+    "timeStop3dExits": 1,
+    "targetCapped": 47,
+    "stopCapped": 0,
+    "avgMfePct": 2.11,
+    "avgMaePct": 0.74,
+    "avgNetPnlPct": -0.31,
+    "lintWarningsCount": 13
+  },
+  "comparison": {
+    "v5C": {
+      "signalCount": 26,
+      "triggerRate": 15.38,
+      "executedCount": 4,
+      "verifiedCount": 3,
+      "gapSkipCount": 1,
+      "triggerMissCount": 22,
+      "stopRate": 0,
+      "target1Rate": 0,
+      "timeExitRate": 100,
+      "directionCorrectRate": 33.33,
+      "avgPnlPct": 0.6,
+      "byConfidence": {
+        "high": {
+          "n": 2,
+          "directionCorrectRate": 50,
+          "avgPnlPct": 3.27
+        },
+        "medium": {
+          "n": 1,
+          "directionCorrectRate": 0,
+          "avgPnlPct": -4.73
+        },
+        "low": {
+          "n": 0,
+          "directionCorrectRate": 0,
+          "avgPnlPct": 0
+        }
+      },
+      "gateSkippedCount": 0,
+      "invalidationExits": 0,
+      "invalidationNotApplicable": 0,
+      "timeStop3dExits": 0,
+      "targetCapped": 0,
+      "stopCapped": 0,
+      "avgMfePct": 0,
+      "avgMaePct": 0,
+      "avgNetPnlPct": -0.63,
+      "lintWarningsCount": 0
+    },
+    "v61C": {
+      "signalCount": 30,
+      "triggerRate": 6.67,
+      "executedCount": 2,
+      "verifiedCount": 1,
+      "gapSkipCount": 1,
+      "triggerMissCount": 9,
+      "stopRate": 0,
+      "target1Rate": 0,
+      "timeExitRate": 0,
+      "directionCorrectRate": 100,
+      "avgPnlPct": 0.2,
+      "byConfidence": {
+        "high": {
+          "n": 1,
+          "directionCorrectRate": 100,
+          "avgPnlPct": 0.2
+        },
+        "medium": {
+          "n": 0,
+          "directionCorrectRate": 0,
+          "avgPnlPct": 0
+        },
+        "low": {
+          "n": 0,
+          "directionCorrectRate": 0,
+          "avgPnlPct": 0
+        }
+      },
+      "gateSkippedCount": 19,
+      "invalidationExits": 0,
+      "invalidationNotApplicable": 11,
+      "timeStop3dExits": 1,
+      "targetCapped": 0,
+      "stopCapped": 0,
+      "avgMfePct": 0.55,
+      "avgMaePct": 0.42,
+      "avgNetPnlPct": -0.13,
+      "lintWarningsCount": 14
+    }
+  },
+  "skippedCF": {
+    "gated": 28,
+    "v5Trades": 0,
+    "correct": 0,
+    "savedPnl": 0,
+    "costPnl": 0,
+    "netBenefit": 0
+  },
+  "fincotStats": {
+    "fresh": 27,
+    "reused": 3,
+    "blueprints": {
+      "BP-TREND": 13,
+      "BP-SHOCK": 6,
+      "BP-BREAK": 5,
+      "BP-RANGE": 3,
+      "BP-PULL": 3
+    }
+  },
+  "gateReasons": [
+    "g2_confirmation_too_far:3.01ATR",
+    "g2_confirmation_too_far:3.26ATR",
+    "g2_confirmation_too_far:1.76ATR",
+    "g2_confirmation_too_far:1.98ATR",
+    "g2_confirmation_too_far:2.67ATR",
+    "g2_confirmation_too_far:3.1ATR",
+    "g2_confirmation_too_far:1.54ATR",
+    "g2_confirmation_too_far:1.52ATR",
+    "g2_confirmation_too_far:2.91ATR",
+    "g2_confirmation_too_far:2.75ATR",
+    "g2_confirmation_too_far:3.2ATR",
+    "g2_confirmation_too_far:3.06ATR",
+    "g2_confirmation_too_far:1.55ATR",
+    "g2_confirmation_too_far:2.42ATR",
+    "g2_confirmation_too_far:2.58ATR",
+    "g2_confirmation_too_far:3.17ATR",
+    "g2_confirmation_too_far:2.5ATR",
+    "g2_confirmation_too_far:3.11ATR",
+    "g2_confirmation_too_far:3.68ATR",
+    "g2_confirmation_too_far:4.24ATR",
+    "g1_extreme_momentum_breakout_forbidden",
+    "g2_confirmation_too_far:5.61ATR",
+    "g2_confirmation_too_far:3.49ATR",
+    "g1_extreme_momentum_breakout_forbidden",
+    "g2_confirmation_too_far:3.14ATR",
+    "g2_confirmation_too_far:2.83ATR",
+    "g2_confirmation_too_far:3.68ATR",
+    "g2_confirmation_too_far:3.97ATR"
+  ],
+  "falsification": [
+    "C-v7（10 锚点）：3 笔成交，方向正确率 66.67%，毛 0.57% / 净 -0.31%；闸跳过 28，其中 v5 反事实成交 0 笔，saved 0% / cost 0%。",
+    "对照（同 10 锚点）：v5 原引擎 3 笔 33.33%（0.6%）；v6.1 1 笔 100%（0.2%）。",
+    "FinCoT 统计：fresh 27、reused 3；蓝图分布 {\"BP-TREND\":13,\"BP-SHOCK\":6,\"BP-BREAK\":5,\"BP-RANGE\":3,\"BP-PULL\":3}。",
+    "本轮仍为 inSample 试点（10 锚点曾参与 v5/v6 校准），只验证框架可运行，不作为策略证据。riskExecution 已记录但本引擎仍固定 1 手。"
+  ],
+  "signals": [
+    {
+      "symbol": "RB0",
+      "anchorDate": "2026-06-11",
+      "signalDate": "2026-06-17",
+      "status": "verified",
+      "direction": "bearish",
+      "confidence": "low",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [],
+      "triggerLevel": 3141.2,
+      "stopPrice": 3182.6,
+      "target1Level": 3086,
+      "entryDate": "2026-06-22",
+      "entryPrice": 3131,
+      "exitDate": "2026-06-25",
+      "exitPrice": 3098,
+      "exitType": "time_exit",
+      "directionCorrect": true,
+      "pnlPct": 1.05,
+      "costPct": 0.41,
+      "netPnlPct": 0.64,
+      "mfePct": 1.28,
+      "maePct": 0.06,
+      "invalidationApplicable": true
+    },
+    {
+      "symbol": "RB0",
+      "anchorDate": "2026-07-03",
+      "signalDate": "2026-07-06",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:3.01ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3060.9,
+      "stopPrice": 3094.2,
+      "target1Level": 3016.5,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "RB0",
+      "anchorDate": "2026-07-03",
+      "signalDate": "2026-07-07",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:3.26ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3057.2,
+      "stopPrice": 3089.6,
+      "target1Level": 3014,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "RB0",
+      "anchorDate": "2026-07-03",
+      "signalDate": "2026-07-08",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:1.76ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3083.4,
+      "stopPrice": 3121.2,
+      "target1Level": 3033,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "RB0",
+      "anchorDate": "2026-07-03",
+      "signalDate": "2026-07-09",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:1.98ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3078.6,
+      "stopPrice": 3115.8,
+      "target1Level": 3029,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "RB0",
+      "anchorDate": "2026-07-10",
+      "signalDate": "2026-07-13",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "reused",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:2.67ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3041.6,
+      "stopPrice": 3078.8,
+      "target1Level": 2992,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "RB0",
+      "anchorDate": "2026-07-10",
+      "signalDate": "2026-07-14",
+      "status": "trigger_miss",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "reused",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [],
+      "triggerLevel": 3074.1,
+      "stopPrice": 3121.8,
+      "target1Level": 3010.5,
+      "invalidationApplicable": true
+    },
+    {
+      "symbol": "RB0",
+      "anchorDate": "2026-07-24",
+      "signalDate": "2026-07-27",
+      "status": "verified",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "high",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [],
+      "triggerLevel": 3065.3,
+      "stopPrice": 3103.4,
+      "target1Level": 3014.5,
+      "entryDate": "2026-07-29",
+      "entryPrice": 3060,
+      "exitDate": "2026-07-30",
+      "exitPrice": 3060,
+      "exitType": "stopped_out",
+      "directionCorrect": false,
+      "pnlPct": 0,
+      "costPct": 0.35,
+      "netPnlPct": -0.35,
+      "mfePct": 1.7,
+      "maePct": 0.69,
+      "invalidationApplicable": true
+    },
+    {
+      "symbol": "RB0",
+      "anchorDate": "2026-07-24",
+      "signalDate": "2026-07-30",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "high",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:3.1ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3000.2,
+      "stopPrice": 3041.6,
+      "target1Level": 2945,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "RB0",
+      "anchorDate": "2026-08-14",
+      "signalDate": "2026-08-20",
+      "status": "trigger_miss",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "transition",
+      "edge": "breakout",
+      "triggerType": "breakout",
+      "blueprintId": "BP-BREAK",
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [],
+      "triggerLevel": 3045.9,
+      "stopPrice": 3004.2,
+      "target1Level": 3101.5,
+      "invalidationApplicable": true
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-06-11",
+      "signalDate": "2026-06-12",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "bearish",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:1.54ATR"
+      ],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:DR007"
+      ],
+      "triggerLevel": 2927.8,
+      "stopPrice": 2967.4,
+      "target1Level": 2875,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-06-11",
+      "signalDate": "2026-06-15",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "bearish",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:1.52ATR"
+      ],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:DR007"
+      ],
+      "triggerLevel": 2927.5,
+      "stopPrice": 2968,
+      "target1Level": 2873.5,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-06-11",
+      "signalDate": "2026-06-16",
+      "status": "trigger_miss",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "bearish",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:DR007"
+      ],
+      "triggerLevel": 2932.4,
+      "stopPrice": 2970.2,
+      "target1Level": 2882,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-06-18",
+      "signalDate": "2026-06-22",
+      "status": "trigger_miss",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "bearish",
+      "sectorBias": "bearish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:US10Y"
+      ],
+      "triggerLevel": 2921.3,
+      "stopPrice": 2959.4,
+      "target1Level": 2870.5,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-06-18",
+      "signalDate": "2026-06-23",
+      "status": "trigger_miss",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "bearish",
+      "sectorBias": "bearish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:US10Y"
+      ],
+      "triggerLevel": 2934.2,
+      "stopPrice": 2972.6,
+      "target1Level": 2883,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-06-26",
+      "signalDate": "2026-06-29",
+      "status": "trigger_miss",
+      "direction": "bullish",
+      "confidence": "low",
+      "regime": "transition",
+      "edge": "breakout",
+      "triggerType": "breakout",
+      "blueprintId": "BP-BREAK",
+      "macroBias": "conflict",
+      "sectorBias": "neutral",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.25,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 0.5
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [],
+      "triggerLevel": 2981.9,
+      "stopPrice": 2937.2,
+      "target1Level": 3041.5,
+      "invalidationApplicable": true
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-06-26",
+      "signalDate": "2026-07-01",
+      "status": "trigger_miss",
+      "direction": "bullish",
+      "confidence": "low",
+      "regime": "transition",
+      "edge": "breakout",
+      "triggerType": "breakout",
+      "blueprintId": "BP-BREAK",
+      "macroBias": "conflict",
+      "sectorBias": "neutral",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.25,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 0.5
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [],
+      "triggerLevel": 2984.5,
+      "stopPrice": 2926,
+      "target1Level": 3062.5,
+      "invalidationApplicable": true
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-06-26",
+      "signalDate": "2026-07-02",
+      "status": "trigger_miss",
+      "direction": "bullish",
+      "confidence": "low",
+      "regime": "transition",
+      "edge": "breakout",
+      "triggerType": "breakout",
+      "blueprintId": "BP-BREAK",
+      "macroBias": "conflict",
+      "sectorBias": "neutral",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.25,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 0.5
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [],
+      "triggerLevel": 2994.3,
+      "stopPrice": 2942.4,
+      "target1Level": 3063.5,
+      "invalidationApplicable": true
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-07-10",
+      "signalDate": "2026-07-13",
+      "status": "gate_skipped",
+      "direction": "bullish",
+      "confidence": "high",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 1,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:2.91ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3065.3,
+      "stopPrice": 3019.4,
+      "target1Level": 3126.5,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-07-10",
+      "signalDate": "2026-07-14",
+      "status": "gate_skipped",
+      "direction": "bullish",
+      "confidence": "high",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 1,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:2.75ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3065.1,
+      "stopPrice": 3016.8,
+      "target1Level": 3129.5,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-07-10",
+      "signalDate": "2026-07-15",
+      "status": "gate_skipped",
+      "direction": "bullish",
+      "confidence": "high",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 1,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:3.2ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3082.6,
+      "stopPrice": 3032.8,
+      "target1Level": 3149,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-07-10",
+      "signalDate": "2026-07-16",
+      "status": "gate_skipped",
+      "direction": "bullish",
+      "confidence": "high",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 1,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:3.06ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3084.7,
+      "stopPrice": 3031.6,
+      "target1Level": 3155.5,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-07-24",
+      "signalDate": "2026-07-27",
+      "status": "trigger_miss",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bullish",
+      "eventRisk": "high",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [],
+      "triggerLevel": 3190.5,
+      "stopPrice": 3111,
+      "target1Level": 3296.5,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-07-24",
+      "signalDate": "2026-07-28",
+      "status": "gate_skipped",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bullish",
+      "eventRisk": "high",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:1.55ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3131.2,
+      "stopPrice": 3040.6,
+      "target1Level": 3252,
+      "invalidationApplicable": true
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-07-24",
+      "signalDate": "2026-07-29",
+      "status": "trigger_miss",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bullish",
+      "eventRisk": "high",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [],
+      "triggerLevel": 3138.4,
+      "stopPrice": 3050.2,
+      "target1Level": 3256,
+      "invalidationApplicable": true
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-07-31",
+      "signalDate": "2026-08-03",
+      "status": "trigger_miss",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "transition",
+      "edge": "breakout",
+      "triggerType": "breakout",
+      "blueprintId": "BP-BREAK",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [],
+      "triggerLevel": 3046.4,
+      "stopPrice": 3108.2,
+      "target1Level": 2964,
+      "invalidationApplicable": true
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-08-07",
+      "signalDate": "2026-08-10",
+      "status": "trigger_miss",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "bullish",
+      "sectorBias": "bullish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 0.8
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:US10Y",
+        "macro_ref_conflicts_with_claimed_bias:DR007",
+        "macro_ref_conflicts_with_claimed_bias:SC0"
+      ],
+      "triggerLevel": 3166.8,
+      "stopPrice": 3110.4,
+      "target1Level": 3242,
+      "invalidationApplicable": true
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-08-07",
+      "signalDate": "2026-08-11",
+      "status": "trigger_miss",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "bullish",
+      "sectorBias": "bullish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 0.8
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:US10Y",
+        "macro_ref_conflicts_with_claimed_bias:DR007",
+        "macro_ref_conflicts_with_claimed_bias:SC0"
+      ],
+      "triggerLevel": 3153.8,
+      "stopPrice": 3112.4,
+      "target1Level": 3209,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-08-07",
+      "signalDate": "2026-08-12",
+      "status": "trigger_miss",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "bullish",
+      "sectorBias": "bullish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 0.8
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:US10Y",
+        "macro_ref_conflicts_with_claimed_bias:DR007",
+        "macro_ref_conflicts_with_claimed_bias:SC0"
+      ],
+      "triggerLevel": 3156.3,
+      "stopPrice": 3113.4,
+      "target1Level": 3213.5,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-08-07",
+      "signalDate": "2026-08-13",
+      "status": "trigger_miss",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "bullish",
+      "sectorBias": "bullish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 0.8
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:US10Y",
+        "macro_ref_conflicts_with_claimed_bias:DR007",
+        "macro_ref_conflicts_with_claimed_bias:SC0"
+      ],
+      "triggerLevel": 3168.2,
+      "stopPrice": 3119.6,
+      "target1Level": 3233,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-08-14",
+      "signalDate": "2026-08-17",
+      "status": "gap_skip",
+      "direction": "bullish",
+      "confidence": "low",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.25,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 0.5
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [],
+      "triggerLevel": 3191.4,
+      "stopPrice": 3145.2,
+      "target1Level": 3253,
+      "entryDate": "2026-08-19",
+      "entryPrice": 3242,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-08-14",
+      "signalDate": "2026-08-18",
+      "status": "gate_skipped",
+      "direction": "bullish",
+      "confidence": "low",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.25,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 0.5
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:2.42ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3260.8,
+      "stopPrice": 3201.4,
+      "target1Level": 3340,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-08-14",
+      "signalDate": "2026-08-19",
+      "status": "gate_skipped",
+      "direction": "bullish",
+      "confidence": "low",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.25,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 0.5
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:2.58ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3265.5,
+      "stopPrice": 3207,
+      "target1Level": 3343.5,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "M0",
+      "anchorDate": "2026-08-14",
+      "signalDate": "2026-08-20",
+      "status": "gate_skipped",
+      "direction": "bullish",
+      "confidence": "low",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.25,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 0.5
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:3.17ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 3286.1,
+      "stopPrice": 3228.8,
+      "target1Level": 3362.5,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-06-11",
+      "signalDate": "2026-06-12",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:2.5ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 537.8,
+      "stopPrice": 584.9,
+      "target1Level": 475,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-06-11",
+      "signalDate": "2026-06-15",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:3.11ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 514.4,
+      "stopPrice": 563.5,
+      "target1Level": 448.9,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-06-11",
+      "signalDate": "2026-06-16",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:3.68ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 513.5,
+      "stopPrice": 555.4,
+      "target1Level": 457.6,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-06-11",
+      "signalDate": "2026-06-17",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "medium",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "bearish",
+      "eventRisk": "medium",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "exit_if_mfe_below_1R",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:4.24ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 496,
+      "stopPrice": 538.6,
+      "target1Level": 439.2,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-07-03",
+      "signalDate": "2026-07-06",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "low",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "neutral",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g1_extreme_momentum_breakout_forbidden"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 431.7,
+      "stopPrice": 452.4,
+      "target1Level": 404,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-07-03",
+      "signalDate": "2026-07-07",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "low",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "neutral",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:5.61ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 436.2,
+      "stopPrice": 456.5,
+      "target1Level": 409.2,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-07-03",
+      "signalDate": "2026-07-08",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "low",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "neutral",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:3.49ATR"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 459.2,
+      "stopPrice": 481.9,
+      "target1Level": 429,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-07-03",
+      "signalDate": "2026-07-09",
+      "status": "gate_skipped",
+      "direction": "bearish",
+      "confidence": "low",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "conflict",
+      "sectorBias": "neutral",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 0.5,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g1_extreme_momentum_breakout_forbidden"
+      ],
+      "lintWarnings": [],
+      "triggerLevel": 465.3,
+      "stopPrice": 490.2,
+      "target1Level": 432.1,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-07-17",
+      "signalDate": "2026-07-20",
+      "status": "gate_skipped",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "transition",
+      "edge": "breakout",
+      "triggerType": "breakout",
+      "blueprintId": "BP-BREAK",
+      "macroBias": "bullish",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 1,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:3.14ATR"
+      ],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:US10Y"
+      ],
+      "triggerLevel": 562.2,
+      "stopPrice": 520.7,
+      "target1Level": 617.6,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-07-17",
+      "signalDate": "2026-07-21",
+      "status": "gate_skipped",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "transition",
+      "edge": "breakout",
+      "triggerType": "breakout",
+      "blueprintId": "BP-BREAK",
+      "macroBias": "bullish",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 1,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:2.83ATR"
+      ],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:US10Y"
+      ],
+      "triggerLevel": 542.9,
+      "stopPrice": 507.2,
+      "target1Level": 590.6,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-07-17",
+      "signalDate": "2026-07-22",
+      "status": "gate_skipped",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "transition",
+      "edge": "breakout",
+      "triggerType": "breakout",
+      "blueprintId": "BP-BREAK",
+      "macroBias": "bullish",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 1,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:3.68ATR"
+      ],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:US10Y"
+      ],
+      "triggerLevel": 572.6,
+      "stopPrice": 533,
+      "target1Level": 625.5,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-07-17",
+      "signalDate": "2026-07-23",
+      "status": "gate_skipped",
+      "direction": "bullish",
+      "confidence": "medium",
+      "regime": "transition",
+      "edge": "breakout",
+      "triggerType": "breakout",
+      "blueprintId": "BP-BREAK",
+      "macroBias": "bullish",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 1,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [
+        "g2_confirmation_too_far:3.97ATR"
+      ],
+      "lintWarnings": [
+        "macro_ref_conflicts_with_claimed_bias:DXY",
+        "macro_ref_conflicts_with_claimed_bias:US10Y"
+      ],
+      "triggerLevel": 587,
+      "stopPrice": 544.9,
+      "target1Level": 643.2,
+      "invalidationApplicable": false
+    },
+    {
+      "symbol": "SC0",
+      "anchorDate": "2026-08-14",
+      "signalDate": "2026-08-17",
+      "status": "verified",
+      "direction": "bullish",
+      "confidence": "high",
+      "regime": "trend",
+      "edge": "trend_continuation",
+      "triggerType": "breakout",
+      "blueprintId": "BP-TREND",
+      "macroBias": "neutral",
+      "sectorBias": "bullish",
+      "eventRisk": "low",
+      "finCotMode": "fresh",
+      "riskExecution": {
+        "positionScale": 1,
+        "weekendRule": "hold",
+        "maxAdverseExcursionR": 1.2
+      },
+      "exitManagement": {
+        "timeStopDays": 3,
+        "breakevenAfterR": 1,
+        "trailingAfterR": 1.5,
+        "invalidationExit": true
+      },
+      "gateReasons": [],
+      "lintWarnings": [],
+      "triggerLevel": 572.3,
+      "stopPrice": 540.1,
+      "target1Level": 615.3,
+      "entryDate": "2026-08-19",
+      "entryPrice": 584,
+      "exitDate": "2026-08-24",
+      "exitPrice": 587.8,
+      "exitType": "time_stop_3d",
+      "directionCorrect": true,
+      "pnlPct": 0.65,
+      "costPct": 1.88,
+      "netPnlPct": -1.23,
+      "mfePct": 3.36,
+      "maePct": 1.47,
+      "invalidationApplicable": true
+    }
+  ]
+}

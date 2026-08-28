@@ -168,6 +168,9 @@ function makeSafeSignal(symbol, anchor, s, bars, conf) {
   sig.macroBias = anchor.macroBias ?? null;
   sig.sectorBias = anchor.sectorBias ?? null;
   sig.eventRisk = anchor.eventRisk ?? null;
+  sig.blueprintId = anchor.blueprintId ?? null;
+  sig.riskExecution = anchor.riskExecution ?? null;
+  sig.exitManagement = anchor.exitManagement ?? null;
   sig.finCotAlignment = anchor.finCotAlignment ?? 'not_applicable';
   sig.finCotMode = anchor.finCotMode ?? null;
   sig.finCotReusedFrom = anchor.finCotReusedFrom ?? null;
