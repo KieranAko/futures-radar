@@ -148,8 +148,10 @@ function main() {
   const runId = i >= 0 ? args[i + 1] : null;
   if (!runId) throw new Error('--runId required');
 
-  const planFile = path.join(ROOT, 'output', 'runs', runId, 'strategy-plan.json');
-  if (!fs.existsSync(planFile)) throw new Error(`production strategy-plan not found: ${planFile}`);
+  const planFile = fs.existsSync(path.join(EL, 'runs', runId, 'strategy-plan.json'))
+    ? path.join(EL, 'runs', runId, 'strategy-plan.json')
+    : path.join(ROOT, 'output', 'runs', runId, 'strategy-plan.json');
+  if (!fs.existsSync(planFile)) throw new Error(`strategy-plan not found for ${runId} (experiment-line or production)`);
   const planDoc = readJson(planFile);
   const signalDate = planDoc.meta?.signalDate || null;
   const rows = [];

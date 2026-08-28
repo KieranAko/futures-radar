@@ -23,14 +23,15 @@ function buildAppendix(runId) {
   const mechFile = path.join(EL, 'results', 'mechanism-identify', `${runId}.json`);
   const fwdFile = path.join(EL, 'results', 'forward', `${runId}.json`);
   const replayFile = path.join(EL, 'results', `${runId}-replay.json`);
-  const missing = [trustFile, mechFile, fwdFile, replayFile].filter((f) => !fs.existsSync(f));
+  const missing = [trustFile, mechFile, fwdFile].filter((f) => !fs.existsSync(f));
   if (missing.length) {
     throw new Error(`missing experiment-line results: ${missing.join(', ')} (run mirror replay / trust-model / mechanism-identify / forward-verify first)`);
   }
   const trust = readJson(trustFile);
   const mech = readJson(mechFile);
   const fwd = readJson(fwdFile);
-  const replay = readJson(replayFile);
+  // 实验线自产 run 没有生产对照回放；镜像回放章节标记 self-generated
+  const replay = fs.existsSync(replayFile) ? readJson(replayFile) : null;
 
   const L = [];
   L.push('## 附：实验线状态（实验线增量，不影响上方报告）');
@@ -59,10 +60,14 @@ function buildAppendix(runId) {
   }
   L.push('');
 
-  const s = replay.summary;
+  const s = replay ? replay.summary : null;
   L.push('### 镜像回放（stable 基线）');
   L.push('');
-  L.push(`环节 ${s.total}：一致 ${s.ok}；真实差异 ${s.diff}；版本漂移 ${s.versionDrift}；错误 ${s.error}。策略适配回放：**${(replay.checks.find((c) => c.stage === 'strategy-plan') || {}).status}**。`);
+  if (s) {
+    L.push(`环节 ${s.total}：一致 ${s.ok}；真实差异 ${s.diff}；版本漂移 ${s.versionDrift}；错误 ${s.error}。策略适配回放：**${(replay.checks.find((c) => c.stage === 'strategy-plan') || {}).status}**。`);
+  } else {
+    L.push('本 run 为**实验线自产新报告**（实验线完整采集/分析/渲染），无生产对照回放；生产镜像回放仅适用于生产已有 run。');
+  }
   L.push('');
 
   const shadowDir = path.join(EL, 'shadow', 'report-trust-model-v1', 'snapshots');

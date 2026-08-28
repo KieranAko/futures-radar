@@ -67,7 +67,7 @@ function main() {
   const reportModel = readJson(path.join(EL, 'runs', runId, 'report-model.json'));
   const replayFile = path.join(EL, 'results', `${runId}-replay.json`);
   const replay = fs.existsSync(replayFile) ? readJson(replayFile) : null;
-  if (!replay) throw new Error(`replay baseline missing: ${replayFile} (run mirror.cjs replay first)`);
+  // 实验线自产 run：无生产对照回放 → 实现保真 unknown（强制降档路径，P9）
 
   let registry = {};
   const regDir = path.join(EL, 'registry');
