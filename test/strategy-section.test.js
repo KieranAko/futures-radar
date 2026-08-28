@@ -142,4 +142,17 @@ describe('strategy-section: 确定性', () => {
     const b = renderStrategySection(plan, library);
     assert.equal(a, b);
   });
+
+  it('族级证据状态行只读展示、不改变方向与置信度', () => {
+    const fam = {
+      updatedAt: '2026-08-29',
+      families: { carry: { level: 'g1' }, momentum: { level: 'instance_gate_failed' } },
+    };
+    const withFam = renderStrategySection(plan, library, null, fam);
+    const withoutFam = renderStrategySection(plan, library, null, null);
+    assert.ok(withFam.includes('族级证据状态（实验线 2026-08-29）'));
+    assert.ok(!withoutFam.includes('族级证据状态'));
+    // 族级证据行不得引入收益/胜率数字
+    assert.ok(!/(收益|回报|胜率)\s*[+＋]?\d+(\.\d+)?\s*%/.test(withFam.split('族级证据状态')[1] || ''));
+  });
 });

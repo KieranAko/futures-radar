@@ -51,7 +51,7 @@ function evidenceUrls(strategyId, library) {
 }
 
 // ── 章节渲染 ──────────────────────────────────────────────────
-function renderStrategySection(plan, library, feedback = null) {
+function renderStrategySection(plan, library, feedback = null, familyEvidence = null) {
   const lines = [];
   lines.push('## 五、交易策略板块（执行参考）');
   lines.push('');
@@ -61,6 +61,15 @@ function renderStrategySection(plan, library, feedback = null) {
     const recorded = feedback.meta.recorded == null ? '—' : feedback.meta.recorded;
     const verified = feedback.meta.verified == null ? 0 : feedback.meta.verified;
     lines.push(`> 证伪反馈机制：本期冻结 ${recorded} 个可执行计划；本次验证往期计划 ${verified} 个。`);
+  }
+  // 族级证据状态（实验线 promote 的负面结论，不改变方向/置信度，只提示证据充分程度）
+  if (familyEvidence && familyEvidence.families) {
+    const closed = Object.entries(familyEvidence.families)
+      .filter(([, f]) => ['g1', 'instance_gate_failed', 'not_evaluable_or_falsified', 'not_evaluable'].includes(f.level))
+      .map(([name]) => name);
+    if (closed.length) {
+      lines.push(`> 族级证据状态（实验线 ${familyEvidence.updatedAt || ''}）：${closed.join('、')} 族当前证据不足以支持完整策略；本板块仍为执行参考，可信度评级见 experiment-line/results/trust/。`);
+    }
   }
   lines.push('');
 

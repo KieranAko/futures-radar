@@ -361,7 +361,9 @@ if (fs.existsSync(strategyPlanPath)) {
       const library = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'strategies', 'strategy-library.json'), 'utf8'));
       const feedbackPath = path.join(RUN_DIR, 'strategy-feedback.json');
       const feedback = fs.existsSync(feedbackPath) ? JSON.parse(fs.readFileSync(feedbackPath, 'utf8')) : null;
-      strategySection = renderStrategySection(strategyPlan, library, feedback);
+      const familyEvidencePath = path.join(__dirname, '..', 'strategies', 'family-evidence.json');
+      const familyEvidence = fs.existsSync(familyEvidencePath) ? JSON.parse(fs.readFileSync(familyEvidencePath, 'utf8')) : null;
+      strategySection = renderStrategySection(strategyPlan, library, feedback, familyEvidence);
       console.log(`  ✓ 交易策略板块: rendered (${strategyPlan.plans.length} plans, ${strategySection.length} chars)`);
     } else {
       console.log('  - 交易策略板块: strategy-plan.json 为空，跳过');

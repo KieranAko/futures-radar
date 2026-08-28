@@ -87,7 +87,7 @@ describe('mechanism hypothesis generation (round 1)', () => {
       'TR-01:suspended:strategy_gate_failed',
       'TR-03:retired:falsified',
       'TR-06:suspended:not_evaluable',
-      'FS-02:designed:untested',
+      'FS-02:designed:family_g1_closed',
       'FS-04:suspended:not_evaluable',
       'FS-05:suspended:not_evaluable',
       'M1:suspended:insufficient_sample',

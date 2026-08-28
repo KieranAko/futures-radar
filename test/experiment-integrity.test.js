@@ -16,8 +16,8 @@ describe('V9 experiment integrity reclassification', () => {
     for (const s of j.strategies) {
       count[s.evidenceTier] = (count[s.evidenceTier] || 0) + 1;
       assert.ok(s.fidelityAudit && typeof s.fidelityAudit.blockingForFalsification === 'boolean', s.id);
-      if (s.fidelityAudit.status === 'closed_no_rerun' || s.fidelityAudit.status === 'fidelity_v2_passed') {
-        // 实验线关闭 / 保真复跑已出结论：不阻塞新结论
+      if (s.fidelityAudit.status === 'closed_no_rerun' || s.fidelityAudit.status === 'fidelity_v2_passed' || s.fidelityAudit.status === 'family_g1_closed') {
+        // 实验线关闭 / 保真复跑已出结论 / 族级 G1 关闭：不阻塞新结论
         assert.equal(s.fidelityAudit.blockingForFalsification, false, s.id);
       } else if (s.fidelityAudit.status === 'needs_rework') {
         // 保真度前置未过：继续阻塞新 retired/suspended 结论
@@ -26,9 +26,10 @@ describe('V9 experiment integrity reclassification', () => {
     }
     assert.equal(count.falsified, 2);
     assert.equal(count.not_evaluable, 3);
-    assert.equal(count.untested, 1);
+    assert.equal(count.untested || 0, 0);
     assert.equal(count.insufficient_sample, 1);
     assert.equal(count.strategy_gate_failed, 1);
+    assert.equal(count.family_g1_closed, 1);
     assert.equal(j.experimentIntegrity.rule.length > 0, true);
   });
 

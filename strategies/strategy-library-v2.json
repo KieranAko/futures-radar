@@ -1223,12 +1223,13 @@
         "data/daily/*.json"
       ],
       "falsificationStatus": "designed",
-      "statusNote": "t8：数据前置未满足（2011+ PIT dom_basis_rate 基差历史采集器未运行，实测仅 GA-6 单次快照 2026-07-10..2026-08-28）→ blocked 未执行证伪，非证伪失败 → 保持 designed。needs-clarify：PIT 逐日快照采集器先行（基差统一口径 br=(S−F)/S），再重跑证伪。\n[实验完整性重分类 2026-08-28] 2011+ PIT 基差历史未建成，未执行证伪。",
-      "evidenceTier": "untested",
+      "statusNote": "t8：数据前置未满足（2011+ PIT dom_basis_rate 基差历史采集器未运行，实测仅 GA-6 单次快照 2026-07-10..2026-08-28）→ blocked 未执行证伪，非证伪失败 → 保持 designed。needs-clarify：PIT 逐日快照采集器先行（基差统一口径 br=(S−F)/S），再重跑证伪。\n[实验完整性重分类 2026-08-28] 2011+ PIT 基差历史未建成，未执行证伪。\n[v6 实验线传导 2026-08-29] GA-8 基差历史已建成（11 品种 2014-2026，33,214 行，verify ok）；carry 族三个预注册形态（TH-CARRY-01/02/03）在 G1 全部退役，无 G2 对象——本条目作为 carry 族实例档案，实例复跑通道关闭；证据见 experiment-line/evidence/family-evidence.json 与 evidence-ledger.md。",
+      "evidenceTier": "family_g1_closed",
       "fidelityAudit": {
-        "status": "needs_rework",
-        "checkedAgainst": "23-fidelity-review.md",
-        "blockingForFalsification": true
+        "status": "family_g1_closed",
+        "checkedAgainst": "strategies/family-evidence.json",
+        "blockingForFalsification": false,
+        "reason": "carry 族 G1 三个预注册形态全部退役（证据不足，非理论证伪）；完整实例复跑通道关闭，除非新预注册形态通过 G1。"
       }
     },
     {
@@ -2558,7 +2559,8 @@
       "not_evaluable": "实验设置缺陷导致结论无效，待保真复跑",
       "untested": "数据前置未满足，未执行",
       "insufficient_sample": "实现保真但样本不足，不得 retired",
-      "strategy_gate_failed": "保真实现 + 策略级门禁未过 + 理论级未证伪 → suspended，不 retired（TR-01 保真复跑 2026-08-29）"
+      "strategy_gate_failed": "保真实现 + 策略级门禁未过 + 理论级未证伪 → suspended，不 retired（TR-01 保真复跑 2026-08-29）",
+      "family_g1_closed": "机制族在 G1 层全部预注册形态退役（证据不足，非理论证伪），实例复跑通道关闭（FS-02 carry 族 2026-08-29）"
     },
     "adapterFidelityChecklist": "strategies/research/v2/falsification/23-fidelity-review.md",
     "preregistrationProtocol": "strategies/research/v2/falsification/24-preregistration-protocol.md",
@@ -2567,6 +2569,13 @@
     ],
     "direction": "mechanism-hypothesis-generation",
     "directionNote": "关闭旧策略线；下一阶段=机制假设生成 + 绑定式廉价探针 + FS-02 PIT 基差数据管线。",
+    "familyEvidencePromotion": {
+      "promotedAt": "2026-08-29",
+      "type": "family-evidence-closure",
+      "evidenceFile": "strategies/family-evidence.json",
+      "conclusion": "carry 族 G1 三个预注册形态全部退役（证据不足）；库 FS-02 同步为 family_g1_closed；生产报告策略板块开始引用族级证据状态。",
+      "promotionRecord": "experiment-line/promotions/（运行时记录，promote.cjs 生成）"
+    },
     "tr01FidelityRerun": {
       "decidedAt": "2026-08-29",
       "report": "strategies/research/v2/falsification/27-tr01-fidelity-rerun.md",

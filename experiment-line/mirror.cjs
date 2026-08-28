@@ -79,6 +79,8 @@ function normalize(value, prodRunId, mirrorRunId, opts = {}) {
     s = s.replace(/# (期货投机机会雷达) — \d{4}-\d{2}-\d{2}/g, '# $1 — <DATE>');
     // 管道版本是代码版本，历史 run 与当前代码回放之间的预期漂移
     s = s.replace(/管道版本：[\d.]+/g, '管道版本：<PIPELINE>');
+    // 族级证据状态行是 2026-08-29 promote 的稳定配置新增（历史 run 无此行 → 两侧删除后比较）
+    s = s.replace(/^> 族级证据状态[^\n]*\n/gm, '');
     return s;
   }
   return value;
@@ -134,6 +136,15 @@ function runScript(script, runId, label) {
 }
 
 function cmdInit() {
+  const candidatesDir = path.join(__dirname, 'candidates');
+  const candidates = {};
+  if (fs.existsSync(candidatesDir)) {
+    for (const f of fs.readdirSync(candidatesDir).filter((x) => x.endsWith('.json'))) {
+      const c = readJson(path.join(candidatesDir, f));
+      candidates[c.stage] = candidates[c.stage] || [];
+      candidates[c.stage].push({ id: c.id, name: c.name, status: c.status, theoryRef: c.theoryRef });
+    }
+  }
   const blueprint = {
     schema: 'futures-radar-experiment-line-blueprint/1',
     architectureRef: 'strategies/research/v2/experiment-line-architecture.md',
@@ -155,7 +166,7 @@ function cmdInit() {
       stable: s.script
         ? { script: s.script, outputs: s.outputs || [] }
         : { manual: true, outputs: s.outputs || [] },
-      candidate: null,
+      candidate: candidates[s.id] || null,
     })),
   };
   writeJson(BLUEPRINT_FILE, blueprint);
