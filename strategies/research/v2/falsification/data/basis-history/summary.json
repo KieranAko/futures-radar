@@ -1,0 +1,67 @@
+{
+  "schema": "futures-radar-basis-history-summary/1",
+  "verifiedAt": "2026-08-28T21:31:55Z",
+  "universeSize": 11,
+  "symbolsCovered": 11,
+  "totalRows": 33214,
+  "revisionEvents": 0,
+  "perSymbol": {
+    "RB": {
+      "rows": 3074,
+      "first": "20140102",
+      "last": "20260827"
+    },
+    "M": {
+      "rows": 3074,
+      "first": "20140102",
+      "last": "20260827"
+    },
+    "RM": {
+      "rows": 3072,
+      "first": "20140102",
+      "last": "20260827"
+    },
+    "CU": {
+      "rows": 3074,
+      "first": "20140102",
+      "last": "20260827"
+    },
+    "AL": {
+      "rows": 3074,
+      "first": "20140102",
+      "last": "20260827"
+    },
+    "ZN": {
+      "rows": 3074,
+      "first": "20140102",
+      "last": "20260827"
+    },
+    "NI": {
+      "rows": 2775,
+      "first": "20150327",
+      "last": "20260827"
+    },
+    "SN": {
+      "rows": 2775,
+      "first": "20150327",
+      "last": "20260827"
+    },
+    "PB": {
+      "rows": 3074,
+      "first": "20140102",
+      "last": "20260827"
+    },
+    "AG": {
+      "rows": 3074,
+      "first": "20140102",
+      "last": "20260827"
+    },
+    "AU": {
+      "rows": 3074,
+      "first": "20140102",
+      "last": "20260827"
+    }
+  },
+  "issues": [],
+  "ok": true
+}
