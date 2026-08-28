@@ -51,6 +51,40 @@ function evidenceUrls(strategyId, library) {
 }
 
 // ── 章节渲染 ──────────────────────────────────────────────────
+// 可信度（三层合成，生产侧固定：状态匹配 unknown、实现保真 high[matcher 确定性]）
+// 族级证据分数：validated=3；g1 且有正向前瞻=2；g1/instance_gate_failed=1；其余=0。
+function familyScore(family, familyEvidence) {
+  const f = familyEvidence && familyEvidence.families && familyEvidence.families[family];
+  if (!f) return 0;
+  if (f.level === 'validated') return 3;
+  if (f.level === 'g1' && (f.previews || []).length) return 2;
+  if (f.level === 'g1' || f.level === 'instance_gate_failed') return 1;
+  return 0;
+}
+
+function inferFamilyFromPlan(p) {
+  const text = [
+    (p.matchedStrategies || []).map((m) => `${m.strategyId} ${m.name || ''}`).join(' '),
+    (p.supportingEvidence || []).map((s) => `${s.strategyId} ${s.name || ''}`).join(' '),
+    p.playbook?.playbookId || '',
+  ].join(' ');
+  if (/基差|贴水|升水|展期|期限结构|carry/i.test(text)) return 'carry';
+  if (/趋势|动量|突破|均线|momentum|trend/i.test(text)) return 'momentum';
+  if (/价差|利润|回归|均值|协整|value/i.test(text)) return 'value';
+  if (/事件|政策|冲击|event|shock|供给冲击/i.test(text)) return 'event';
+  return 'none';
+}
+
+function trustRating(family, familyEvidence) {
+  const fs = familyScore(family, familyEvidence);
+  const match = 1; // 生产侧无机制识别输入 → unknown
+  const fidelity = 2; // 生产 matcher 确定性实现 → high
+  if (fs >= 3 && match === 2 && fidelity === 2) return { grade: 'A', why: '族级证据已验证 + 状态匹配 + 保真' };
+  if (fs >= 2 && match >= 1 && fidelity >= 1) return { grade: 'B', why: '族级证据较强（状态匹配 unknown）' };
+  if (fs >= 1) return { grade: 'C', why: '族级证据不足（该族历史验证未达标）' };
+  return { grade: 'D', why: '无族级证据' };
+}
+
 function renderStrategySection(plan, library, feedback = null, familyEvidence = null) {
   const lines = [];
   lines.push('## 五、交易策略板块（执行参考）');
@@ -76,12 +110,15 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
   // 策略总览
   lines.push('### 策略总览');
   lines.push('');
-  lines.push('| 品种 | 锚定合约 | 方向 | 置信度 | 主策略/模板 | 状态 |');
-  lines.push('|------|---------|------|--------|-------------|------|');
+  lines.push('| 品种 | 锚定合约 | 方向 | 置信度 | 主策略/模板 | 状态 | 可信度 |');
+  lines.push('|------|---------|------|--------|-------------|------|--------|');
   for (const p of plan.plans) {
     const primary = p.matchedStrategies[0];
-    lines.push(`| ${p.symbol} ${p.name} | ${p.contract || '—'} | ${directionLabel(p.reportBaseline.direction)} | ${confidenceLabel(p.reportBaseline.confidence)} | ${primary.strategyId} + ${p.playbook.playbookId} | ${statusBadge(p.executionStatus)} |`);
+    const t = trustRating(inferFamilyFromPlan(p), familyEvidence);
+    lines.push(`| ${p.symbol} ${p.name} | ${p.contract || '—'} | ${directionLabel(p.reportBaseline.direction)} | ${confidenceLabel(p.reportBaseline.confidence)} | ${primary.strategyId} + ${p.playbook.playbookId} | ${statusBadge(p.executionStatus)} | ${t.grade} |`);
   }
+  lines.push('');
+  lines.push('> 可信度 = 族级证据 × 状态匹配 × 实现保真（实验线三层合成）；不是胜率/收益预期，只表示证据充分程度。');
   lines.push('');
 
   // 每品种小节：只保留可执行关键信息
@@ -94,6 +131,10 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
     lines.push(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract || '—'}）`);
     lines.push('');
     lines.push(`- **报告基准**: ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信；主策略 ${primary.strategyId} ${primary.name}；执行模板 ${p.playbook.playbookId}`);
+    {
+      const t = trustRating(inferFamilyFromPlan(p), familyEvidence);
+      lines.push(`- **实验线可信度**: ${t.grade}（${t.why}）`);
+    }
     lines.push(`- **入场机会点**: ${p.entry.trigger}（触发价 ${triggerLevel}）`);
     lines.push(`- **触发/执行时点**: ${p.entry.triggerTiming}`);
     lines.push(`- **执行口径**: ${p.playbook.executionConvention}`);
