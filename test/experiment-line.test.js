@@ -109,12 +109,30 @@ describe('experiment-line v6 (full mirror of production)', () => {
 
   it('g2 refuses mechanisms that did not pass the G1 gate', () => {
     const g1mod = require(path.join(EL, 'g1.cjs'));
+    const regFile = path.join(g1mod.REGISTRY_DIR, 'TH-CARRY-03.json');
+    const original = fs.existsSync(regFile) ? fs.readFileSync(regFile, 'utf8') : null;
     g1mod.cmdRegister(path.join(EL, 'registry-src', 'TH-CARRY-03.json'));
     const g2 = require(path.join(EL, 'g2.cjs'));
     const out = g2.assess('TH-CARRY-03');
     assert.equal(out.eligible, false);
     assert.match(out.reason, /G1 gate not passed/);
     assert.equal(g2.maxDrawdown([1, -2, 3, -1]), -2);
+    // 恢复真实 registry 状态（本测试只验证门槛，不污染运行状态）
+    if (original) fs.writeFileSync(regFile, original);
+    else fs.rmSync(regFile, { force: true });
+  });
+
+  it('experiment-line report assembles real report + appendix', () => {
+    const prodRunId = '20260827-2159-auto';
+    const baseFile = path.join(EL, 'runs', prodRunId, 'report.md');
+    if (!fs.existsSync(baseFile)) return;
+    const report = require(path.join(EL, 'report.cjs'));
+    const out = report.main(prodRunId);
+    const md = fs.readFileSync(out.file, 'utf8');
+    assert.ok(md.includes('## 五、交易策略板块（执行参考）'), 'real report body preserved');
+    assert.ok(md.includes('## 附：实验线状态（实验线增量，不影响上方报告）'));
+    assert.ok(md.includes('### 可信度评级'));
+    assert.ok(md.includes('### 前向验证'));
   });
 
   it('forward verifier applies T+1 semantics with frozen plan parameters', () => {
