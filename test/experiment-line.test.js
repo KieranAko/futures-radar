@@ -184,6 +184,44 @@ describe('experiment-line v6 (full mirror of production)', () => {
     assert.deepEqual(asm.validateGrounding(['a'], { a: { b: 1 } }), []);
   });
 
+  it('assemble-v2 --as-production maps v2 sector output to production sector-driver contract', () => {
+    const asm = require(path.join(ROOT, 'analyze', 'v2', 'assemble-v2.cjs'));
+    const sectors = asm.buildProductionSectorSectors({
+      signalDate: '2026-08-28',
+      v2Sectors: {
+        agriculture: { direction: 'up', driver: { primary: '黑海粮道扰动→蛋白粕', confidence: 'medium' } },
+        precious: { direction: 'up', driver: { primary: '宏观避险与利率博弈', confidence: 'medium' } },
+        energy_chemical: { direction: 'up', driver: { primary: 'unknown', confidence: 'low' } },
+      },
+      sectorSnapshot: {
+        sectors: {
+          agriculture: { direction: 'up', members: 16 },
+          precious: { direction: 'up', members: 2 },
+          energy_chemical: { direction: 'up', members: 22 },
+          black: { direction: 'up', members: 9 },
+          shipping: { direction: 'down', members: 1 },
+        },
+      },
+    });
+    assert.equal(sectors.agriculture.status, 'analyzed');
+    assert.equal(sectors.agriculture.driver.primary, '黑海粮道扰动→蛋白粕');
+    assert.equal(sectors.agriculture.reason, null);
+    // 无聚焦覆盖且成员充足 → unknown；成员不足 → abstain_insufficient
+    assert.equal(sectors.black.status, 'unknown');
+    assert.equal(sectors.black.driver, null);
+    // v2 P1 聚焦板块（即使成员仅 2 个）→ 保留驱动，映射为 analyzed
+    assert.equal(sectors.precious.status, 'analyzed');
+    assert.equal(sectors.precious.driver.primary, '宏观避险与利率博弈');
+    assert.equal(sectors.shipping.status, 'abstain_insufficient');
+    assert.equal(sectors.shipping.member_structure, 'not_enough_members');
+    // v2 明确 abstain（driver=unknown）→ 生产状态 unknown
+    assert.equal(sectors.energy_chemical.status, 'unknown');
+    assert.equal(sectors.energy_chemical.driver, null);
+    // 全板块覆盖，且 relation 固定 context_only
+    assert.deepEqual(Object.keys(sectors).sort(), ['agriculture', 'black', 'energy_chemical', 'precious', 'shipping']);
+    for (const entry of Object.values(sectors)) assert.equal(entry.relation_to_individual, 'context_only');
+  });
+
   it('analyze-v2 replay consistency precheck meets direction target', () => {
     const p = path.join(EL, 'results', 'analyze-v2-replay-consistency.json');
     if (!fs.existsSync(p)) return;

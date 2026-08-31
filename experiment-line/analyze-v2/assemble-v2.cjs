@@ -41,6 +41,65 @@ function validateGrounding(evidenceIds, packet) {
   return evidenceIds.filter((id) => !fields.has(id) && ![...fields].some((f) => f.startsWith(id + '.')));
 }
 
+// 生产 sector-driver 契约适配（只影响 --as-production）：
+//   - v2 P1 的 status='ok' 映射为生产渲染器认识的 'analyzed'
+//   - v2 P1 只覆盖聚焦板块，非聚焦板块补齐为 'unknown' / 'abstain_insufficient'
+//     （成员不足 3 个按生产门禁 abstain），保证驱动线索列不再出现空白 '—'
+function buildProductionSectorSectors({ signalDate, v2Sectors = {}, sectorSnapshot = {} }) {
+  const normDir = (d) => (['up', 'down', 'flat'].includes(d) ? d : 'flat');
+  const allIds = new Set([
+    ...Object.keys((sectorSnapshot && sectorSnapshot.sectors) || {}),
+    ...Object.keys(v2Sectors || {}),
+  ]);
+  const sectors = {};
+  for (const name of allIds) {
+    const s = v2Sectors[name] || null;
+    const snap = ((sectorSnapshot && sectorSnapshot.sectors) || {})[name] || {};
+    const primary = s && s.driver ? s.driver.primary : null;
+    const hasDriver = typeof primary === 'string' && primary.trim() !== '' && primary.trim() !== 'unknown';
+    const memberCount = Number.isFinite(snap.members)
+      ? snap.members
+      : Array.isArray(snap.members)
+        ? snap.members.length
+        : null;
+    if (hasDriver) {
+      sectors[name] = {
+        sector: name,
+        signalDate,
+        status: 'analyzed',
+        direction_observed: normDir(s.direction),
+        member_structure: 'broad_based',
+        driver: { primary, confidence: s.driver.confidence || 'medium' },
+        reason: null,
+        relation_to_individual: 'context_only',
+      };
+    } else if (memberCount != null && memberCount < 3) {
+      sectors[name] = {
+        sector: name,
+        signalDate,
+        status: 'abstain_insufficient',
+        direction_observed: normDir(snap.direction || (s && s.direction)),
+        member_structure: 'not_enough_members',
+        driver: null,
+        reason: `板块成员仅 ${memberCount} 个（不足 3 个），按门禁不做板块级归因`,
+        relation_to_individual: 'context_only',
+      };
+    } else {
+      sectors[name] = {
+        sector: name,
+        signalDate,
+        status: 'unknown',
+        direction_observed: normDir(snap.direction || (s && s.direction)),
+        member_structure: 'broad_based',
+        driver: null,
+        reason: '非本 run 聚焦板块（analyze v2 P1 未覆盖），无板块级驱动证据，不强行归因',
+        relation_to_individual: 'context_only',
+      };
+    }
+  }
+  return sectors;
+}
+
 function main() {
   const args = process.argv.slice(2);
   const i = args.indexOf('--runId');
@@ -147,20 +206,14 @@ function main() {
       meta: { runId, signalDate, generatedAt: new Date().toISOString(), mode: 'analyze-v2' },
       packets,
     });
+    const sectorSnapshot = readJson(path.join(runPath, 'sector-snapshot.json'));
     const sectorDriver = {
-      meta: { runId, signalDate, generatedAt: new Date().toISOString(), mode: 'daily-v2' },
-      sectors: Object.fromEntries(
-        Object.entries(outputs2.sectors || {}).map(([name, s]) => [name, {
-          sector: name,
-          signalDate,
-          status: 'ok',
-          direction_observed: s.direction,
-          member_structure: 'v2 板块批量输出',
-          driver: { primary: s.driver?.primary || 'unknown', confidence: s.driver?.confidence || 'low' },
-          reason: s.reason || '只解释板块整体',
-          relation_to_individual: 'context_only',
-        }])
-      ),
+      meta: { runId, signalDate, generatedAt: new Date().toISOString(), mode: 'sector-driver' },
+      sectors: buildProductionSectorSectors({
+        signalDate,
+        v2Sectors: outputs2.sectors || {},
+        sectorSnapshot,
+      }),
     };
     writeJson(path.join(runPath, 'sector-driver.json'), sectorDriver);
   }
@@ -189,4 +242,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { main, validateGrounding };
+module.exports = { main, validateGrounding, buildProductionSectorSectors };
