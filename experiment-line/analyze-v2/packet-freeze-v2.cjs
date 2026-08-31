@@ -120,6 +120,20 @@ function buildPacket(raw, sym, signalDate, macroSnapshot, sectorSnapshot, regist
   };
 }
 
+function latestPriorProductionRun(runsRoot, currentRunId) {
+  if (!fs.existsSync(runsRoot)) return null;
+  const names = [];
+  for (const name of fs.readdirSync(runsRoot)) {
+    // 只认生产 run（YYYYMMDD-HHMM-auto），排除 mirror-/回测等实验线 run
+    if (!/^\d{8}-\d{4}-auto$/.test(name)) continue;
+    if (name >= currentRunId) continue;
+    if (!fs.existsSync(path.join(runsRoot, name, 'analysis.json'))) continue;
+    names.push(name);
+  }
+  names.sort();
+  return names.length ? path.join(runsRoot, names[names.length - 1]) : null;
+}
+
 function main() {
   const args = process.argv.slice(2);
   const i = args.indexOf('--runId');
@@ -142,10 +156,10 @@ function main() {
     }
   }
 
-  // 昨日结论卡（增量上下文 O5）：仅当目标 run 严格晚于上一生产 run 时注入（防未来信息）
+  // 昨日结论卡（增量上下文 O5）：只注入严格早于本 run 的最近一期生产 run 结论（防未来信息）
   const prevAnalysis = {};
-  const prevRunDir = path.join(ROOT, 'output', 'runs', '20260827-2159-auto');
-  if (signalDate > '2026-08-27' && fs.existsSync(path.join(prevRunDir, 'analysis.json'))) {
+  const prevRunDir = latestPriorProductionRun(path.join(ROOT, 'output', 'runs'), runId);
+  if (prevRunDir) {
     const prev = readJson(path.join(prevRunDir, 'analysis.json'));
     for (const a of prev.analyses || []) {
       prevAnalysis[a.symbol] = { runId: prev.meta.runId, direction: a.direction, confidence: a.confidence, q1_driver: a.q1_driver, q5_invalidation: a.q5_invalidation };
@@ -173,4 +187,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { main, buildPacket, atr5 };
+module.exports = { main, buildPacket, atr5, latestPriorProductionRun };

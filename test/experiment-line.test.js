@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -220,6 +221,27 @@ describe('experiment-line v6 (full mirror of production)', () => {
     // 全板块覆盖，且 relation 固定 context_only
     assert.deepEqual(Object.keys(sectors).sort(), ['agriculture', 'black', 'energy_chemical', 'precious', 'shipping']);
     for (const entry of Object.values(sectors)) assert.equal(entry.relation_to_individual, 'context_only');
+  });
+
+  it('packet-freeze-v2 picks the latest prior production run for prevAnalysisCache', () => {
+    const { latestPriorProductionRun } = require(path.join(ROOT, 'analyze', 'v2', 'packet-freeze-v2.cjs'));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-prevrun-'));
+    try {
+      const touch = (name) => {
+        const d = path.join(root, name);
+        fs.mkdirSync(d, { recursive: true });
+        fs.writeFileSync(path.join(d, 'analysis.json'), '{}');
+      };
+      touch('20260827-1910-auto');
+      touch('20260828-0719-auto');
+      touch('mirror-20260828-0719-auto'); // 实验线 run：排除
+      fs.mkdirSync(path.join(root, '20260830-0600-auto')); // 无 analysis.json → 排除
+      fs.mkdirSync(path.join(root, '20260831-1616-auto')); // 当前 run：不早于自身 → 排除
+      const got = latestPriorProductionRun(root, '20260831-1616-auto');
+      assert.equal(path.basename(got), '20260828-0719-auto');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it('analyze-v2 replay consistency precheck meets direction target', () => {

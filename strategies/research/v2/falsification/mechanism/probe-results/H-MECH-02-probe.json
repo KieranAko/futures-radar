@@ -44,8 +44,8 @@
       "note": "探索性分段；promote 后须政策窗口内保真复跑"
     },
     "baselineSpreadReturn": {
-      "n": 2633,
-      "meanNetPct": -0.018868,
+      "n": 2634,
+      "meanNetPct": -0.015386,
       "note": "全样本 10 日两腿对数收益 − 0.14（无信号对照，仅报告）"
     }
   },

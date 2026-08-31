@@ -223,6 +223,33 @@ for (let i = 0; i < keeps.length; i++) {
       historyBars = await fetchContractHistory(dominantContract, signalDate, { bars: 120 });
       historySource = 'history spawn (fallback)';
     }
+    // 收盘状态完整性：具体合约接口偶发缺当日 bar（如 sina 对个别月份合约当日延迟），
+    // 若主导合约序列最后一根早于 signalDate，且主力连续序列最近 3 根与该合约一致
+    // （主力连续就是该主导合约的代理），则用 raw.json 的 signalDate bar 补齐，保证 15:00 收盘口径。
+    if (historyBars.length > 0 && historyBars[historyBars.length - 1].date < signalDate) {
+      const co = rawData.contracts[symbol] && rawData.contracts[symbol].ohlcv;
+      const idx = co && co.dates ? co.dates.indexOf(signalDate) : -1;
+      const tail = historyBars.slice(-3);
+      const proxyAligned = idx >= 3 && tail.length === 3 && tail.every((b, i) =>
+        b.date === co.dates[idx - 3 + i] && Math.abs(b.close - co.close[idx - 3 + i]) < 1e-6
+      );
+      if (idx >= 0 && proxyAligned) {
+        historyBars.push({
+          date: signalDate,
+          open: co.open[idx],
+          high: co.high[idx],
+          low: co.low[idx],
+          close: co.close[idx],
+          volume: co.volume[idx],
+          hold: co.openInterest != null ? co.openInterest[idx] : null,
+          settle: co.settle != null ? co.settle[idx] : null,
+        });
+        historySource += ` + raw.json ${signalDate} patch (specific-contract bar missing)`;
+        console.log(`  ⚠️  ${dominantContract} 具体合约接口缺 ${signalDate} bar，已用主力连续同日 bar 补齐`);
+      } else {
+        console.log(`  ⚠️  ${dominantContract} 具体合约接口缺 ${signalDate} bar，且主力连续代理校验未通过，保留旧序列`);
+      }
+    }
     const historyFetchedAt = new Date().toISOString();
     const override = overrideWithCleanSeries(raw, dominantContract, historyBars, historyFetchedAt);
     if (override.ok) {
