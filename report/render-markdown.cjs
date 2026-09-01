@@ -108,12 +108,10 @@ function costAnchorLines(symbol) {
   const conf = confidenceLabel(entry.confidence);
   const routes = Array.isArray(entry.routes) && entry.routes.length > 0 ? entry.routes : [];
   if (routes.length > 0) {
-    lines.push(`**成本锚**（asOf ${entry.asOf}, ${conf}置信）: ${entry.indicator}`);
-    for (const r of routes) {
-      lines.push(r.status === 'unknown'
-        ? `- ${r.route}: 未知`
-        : `- ${r.route}: ${fmt(r.valueLow, 0)}–${fmt(r.valueHigh, 0)}${r.unit || entry.unit || ''}${r.confidence ? `（${confidenceLabel(r.confidence)}置信）` : ''}`);
-    }
+    const parts = routes.map((r) => r.status === 'unknown'
+      ? `${r.route} unknown`
+      : `${r.route} ${fmt(r.valueLow, 0)}–${fmt(r.valueHigh, 0)}${r.unit || entry.unit || ''}${r.confidence ? `（${confidenceLabel(r.confidence)}）` : ''}`);
+    lines.push(`**成本锚**（asOf ${entry.asOf}, ${conf}置信）: ${entry.indicator} | ${parts.join(' | ')}`);
   } else {
     const range = Number.isFinite(entry.valueLow) && Number.isFinite(entry.valueHigh)
       ? `${fmt(entry.valueLow, 0)}–${fmt(entry.valueHigh, 0)}${entry.unit || ''}`
@@ -122,7 +120,7 @@ function costAnchorLines(symbol) {
   }
   const problems = Array.isArray(entry.problems) ? entry.problems : [];
   if (problems.length > 0) {
-    const codes = problems.map((p) => `${p.code}${p.detail ? `(${p.detail})` : ''}`).join('；');
+    const codes = problems.map((p) => p.code).join('；');
     lines.push(`> ⚠️ 成本锚结构问题: ${codes}。该区间不是单一成本线，已保留原始证据供判断。`);
   }
   return lines;
@@ -236,22 +234,15 @@ for (const opp of model.opportunities) {
   ch3.push(`### ${opp.symbol} ${opp.name}\n`);
   ch3.push(`**方向**: ${directionLabel(thesis.finalDirection)} | **置信度**: ${confidenceLabel(thesis.finalConfidence)}置信\n`);
 
-  // 置信度推理说明（终稿方案：支持/反向/不确定三类；历史 run 无 rationale 时跳过）
+  // 置信度推理说明（终稿方案：支持/反向/不确定三类，集中一行式展示；历史 run 无 rationale 时跳过）
   const rationale = thesis.confidenceRationale;
-  if (rationale && Array.isArray(rationale.supportingFactors) && rationale.supportingFactors.length > 0) {
-    ch3.push('**支持**:');
-    for (const f of rationale.supportingFactors) ch3.push(`- ${f.note}`);
-    ch3.push('');
-  }
-  if (rationale && Array.isArray(rationale.opposingFactors) && rationale.opposingFactors.length > 0) {
-    ch3.push('**反向**:');
-    for (const f of rationale.opposingFactors) ch3.push(`- ${f.note}`);
-    ch3.push('');
-  }
-  if (rationale && Array.isArray(rationale.uncertainties) && rationale.uncertainties.length > 0) {
-    ch3.push('**不确定**:');
-    for (const u of rationale.uncertainties) ch3.push(`- ${u}`);
-    ch3.push('');
+  if (rationale) {
+    const notes = (arr) => (Array.isArray(arr) ? arr.map((f) => f.note).join('；') : '');
+    if (notes(rationale.supportingFactors)) ch3.push(`**支持**: ${notes(rationale.supportingFactors)}\n`);
+    if (notes(rationale.opposingFactors)) ch3.push(`**反向**: ${notes(rationale.opposingFactors)}\n`);
+    if (Array.isArray(rationale.uncertainties) && rationale.uncertainties.length > 0) {
+      ch3.push(`**不确定**: ${rationale.uncertainties.join('；')}\n`);
+    }
   }
 
   // 锚定合约（Analyze 阶段冻结的主导合约）
@@ -445,13 +436,6 @@ const nWatch = [...planMap.values()].filter((p) => p.executionStatus === 'watch'
 const nSkip = [...planMap.values()].filter((p) => p.executionStatus === 'skip').length;
 summaryAndNav.push(`\n**本期**: 深挖 ${model.opportunities.length} 个品种；可执行 ${nExec}，观察 ${nWatch}，跳过 ${nSkip}。`);
 summaryAndNav.push('> 详细证据见第三章，执行计划见第四章，方法说明见第五章。\n');
-summaryAndNav.push('## 阅读导航\n');
-summaryAndNav.push('- 结论速览');
-summaryAndNav.push('- 一、市场环境');
-summaryAndNav.push('- 二、候选筛选');
-summaryAndNav.push('- 三、重点机会分析');
-summaryAndNav.push('- 四、交易策略板块');
-summaryAndNav.push('- 五、方法与数据说明\n');
 
 const baseReport = [...header, ...freshnessCard, ...summaryAndNav, ...ch1, ...ch2, ...ch3, ...ch4].join('\n');
 const report = strategySection ? composeReportWithStrategy(baseReport, strategySection) : baseReport;

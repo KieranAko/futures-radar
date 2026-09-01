@@ -161,14 +161,17 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
     if (done.length > 0) {
       lines.push('### 上一期策略证伪反馈');
       lines.push('');
-      lines.push('| 计划 | 信号日 | 验证结果 | 归因 |');
-      lines.push('|------|--------|---------|------|');
+      lines.push('| 计划 | 品种 | 方向/置信度 | 策略 | 信号日 | 验证结果 | 归因 |');
+      lines.push('|------|------|------------|------|--------|---------|------|');
       for (const r of done) {
         const resultLabel = r.status === 'verified'
           ? `${r.exitType === 'stopped_out' ? '止损离场' : r.exitType === 'target1_hit' ? '目标1兑现' : '时间离场'}${r.directionCorrect ? '（方向正确）' : '（方向错误）'}`
           : r.status === 'invalidated_not_triggered' ? '未触发，计划作废' : r.status;
         const attr = (r.attribution || []).map(a => `${a.code}: ${a.detail}`).join('；');
-        lines.push(`| ${r.recordId} | ${r.signalDate} | ${resultLabel} | ${attr} |`);
+        const symbolCell = `${r.name || r.symbol || '—'} (${r.symbol || '—'})`;
+        const dirConfCell = `${r.direction ? directionLabel(r.direction) : '—'}/${r.confidence ? confidenceLabel(r.confidence) : '—'}`;
+        const strategyCell = `${r.strategyId || '—'} + ${r.playbookId || '—'}`;
+        lines.push(`| ${r.recordId} | ${symbolCell} | ${dirConfCell} | ${strategyCell} | ${r.signalDate || '—'} | ${resultLabel} | ${attr} |`);
       }
       lines.push('');
     }

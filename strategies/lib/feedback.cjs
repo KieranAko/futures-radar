@@ -252,6 +252,13 @@ function verifyPlans(currentRunId, raw, rootOverride = null) {
         if (rec.runId === currentRunId) continue; // 当期只记录，下期验证
         const res = verifyRecord(rec, raw, currentRunId);
         res.verifiedRunId = currentRunId;
+        // 报告可读性：把计划主体信息带进验证结果（品种/策略/方向/置信度）
+        res.symbol = rec.symbol;
+        res.name = rec.name || rec.symbol;
+        res.strategyId = rec.strategyId;
+        res.playbookId = rec.playbookId;
+        res.direction = rec.direction;
+        res.confidence = rec.confidence;
         results.push(res);
         if (res.status !== 'pending_data') verifiedIds.add(rec.recordId);
       }

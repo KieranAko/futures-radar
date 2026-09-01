@@ -99,7 +99,7 @@ function normalize(value, prodRunId, mirrorRunId, opts = {}) {
     // 方向置信度定义（终稿方案新增；历史 run 无该节 → 两侧删除后比较）
     s = s.replace(/### 置信度定义\n+(?:- [^\n]*\n)+/g, '');
     // 报告框架终稿：章节重编号/改名、速览与导航为新增（历史 run 无 → 两侧删除后比较）
-    s = s.replace(/## 结论速览\n[\s\S]*?(?=## 阅读导航)/g, '');
+    s = s.replace(/## 结论速览\n[\s\S]*?(?=## 一、市场环境)/g, '');
     s = s.replace(/## 阅读导航\n+(?:- [^\n]*\n)+/g, '');
     s = s.replace(/^> 未入选品种及其理由见上表[^\n]*\n/gm, '');
     s = s.replace(/\n\n## 一、市场环境/g, '\n## 一、市场环境');
@@ -112,6 +112,8 @@ function normalize(value, prodRunId, mirrorRunId, opts = {}) {
     s = s.replace(/---\n\n\n---/g, '---');
     s = s.replace(/^## 价格区间方法说明\n/gm, '## 五、方法与数据说明\n### 价格区间方法说明\n');
     s = s.replace(/## 五、方法与数据说明\n\n### 价格区间方法说明/g, '## 五、方法与数据说明\n### 价格区间方法说明');
+    // 证伪反馈表（新增列：品种/策略；历史 run 无该表 → 两侧删除后比较）
+    s = s.replace(/### 上一期策略证伪反馈\n[\s\S]*?(?=\n### |\n## |\n---\n)/g, '');
     s = s.replace(/#### /g, '### ');
     // 删除新增附录节后遗留的空行（仅在最终免责声明前的 --- 分隔线处归一）
     s = s.replace(/\n{2,}---\n\n\*免责声明/g, '\n---\n\n*免责声明');
