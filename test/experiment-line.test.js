@@ -244,6 +244,25 @@ describe('experiment-line v6 (full mirror of production)', () => {
     }
   });
 
+  it('packet-freeze-v2 derives signalDate from KEEP bars, not the runId date', () => {
+    const { deriveSignalDate } = require(path.join(ROOT, 'analyze', 'v2', 'packet-freeze-v2.cjs'));
+    const raw = {
+      contracts: {
+        SA0: { ohlcv: { dates: ['2026-08-28', '2026-08-31'] } },
+        RM0: { ohlcv: { dates: ['2026-08-28', '2026-08-31'] } },
+      },
+    };
+    const filtered = { meta: { runId: '20260901-1018-auto' }, candidates: [
+      { symbol: 'SA0', decision: 'KEEP' },
+      { symbol: 'RM0', decision: 'DROP' },
+    ] };
+    assert.equal(deriveSignalDate(raw, filtered), '2026-08-31');
+    // 多品种最后 bar 不一致必须 fail-closed
+    raw.contracts.RM0.ohlcv.dates.push('2026-09-01');
+    filtered.candidates[1].decision = 'KEEP';
+    assert.throws(() => deriveSignalDate(raw, filtered), /inconsistent last-bar dates/);
+  });
+
   it('analyze-v2 replay consistency precheck meets direction target', () => {
     const p = path.join(EL, 'results', 'analyze-v2-replay-consistency.json');
     if (!fs.existsSync(p)) return;

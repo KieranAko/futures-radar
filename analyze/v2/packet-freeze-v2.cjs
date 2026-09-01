@@ -134,6 +134,21 @@ function latestPriorProductionRun(runsRoot, currentRunId) {
   return names.length ? path.join(runsRoot, names[names.length - 1]) : null;
 }
 
+function deriveSignalDate(raw, filtered) {
+  const keep = (filtered.candidates || []).filter((c) => c.decision === 'KEEP');
+  const dates = keep.map((c) => {
+    const o = raw.contracts && raw.contracts[c.symbol] ? raw.contracts[c.symbol].ohlcv : null;
+    return o && o.dates && o.dates.length ? o.dates[o.dates.length - 1] : null;
+  });
+  if (dates.length === 0 || dates.some((d) => !d)) {
+    throw new Error('FATAL: KEEP candidates missing last bar date in raw.json');
+  }
+  if (dates.some((d) => d !== dates[0])) {
+    throw new Error(`FATAL: inconsistent last-bar dates across KEEP symbols: ${JSON.stringify(dates)}`);
+  }
+  return dates[0];
+}
+
 function main() {
   const args = process.argv.slice(2);
   const i = args.indexOf('--runId');
@@ -145,7 +160,9 @@ function main() {
   const filtered = readJson(path.join(runPath, 'filtered.json'));
   const macroSnapshot = readJson(path.join(runPath, 'macro-snapshot.json'));
   const sectorSnapshot = readJson(path.join(runPath, 'sector-snapshot.json'));
-  const signalDate = filtered.meta?.runId?.slice(0, 8).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+  // signalDate 取 KEEP 品种行情最后一根 bar 日期（收盘状态），而不是 runId 日期
+  //（例如 09-01 早晨运行的 run，分析对象仍是 08-31 收盘数据）
+  const signalDate = deriveSignalDate(raw, filtered);
 
   // 机制目录（registry 运行状态；无文件时为空）
   const registry = {};
@@ -187,4 +204,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { main, buildPacket, atr5, latestPriorProductionRun };
+module.exports = { main, buildPacket, atr5, latestPriorProductionRun, deriveSignalDate };

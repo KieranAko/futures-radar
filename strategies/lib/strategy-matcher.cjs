@@ -1061,7 +1061,8 @@ function buildStrategyPlan({ runId, equityCny = 100000 }) {
   const tops = top3Opportunities(artifacts.reportModel);
   if (tops.length === 0) throw new Error(`run ${runId}: no TOP3 opportunities`);
 
-  const signalDate = (artifacts.reportModel.meta?.generatedAt || artifacts.analysis.meta?.analyzedAt || '').slice(0, 10) || runId.slice(0, 8).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+  // signalDate 以 analysis.json 的分析日为准（行情收盘日），report-model.generatedAt 可能晚于行情日
+  const signalDate = (artifacts.analysis.meta?.analyzedAt || artifacts.reportModel.meta?.generatedAt || '').slice(0, 10) || runId.slice(0, 8).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
   const inputFiles = [
     { name: 'report-model.json', p: path.join(runPath, 'report-model.json') },
     { name: 'probability.json', p: path.join(runPath, 'probability.json') },
