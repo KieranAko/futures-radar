@@ -70,23 +70,69 @@ function freshness(record, signalDate, ctx = {}) {
 }
 
 /**
- * 从来源层级/独立来源数/价差推导置信度（确定性，不依赖 LLM 感觉）。
+ * 从来源层级/独立来源数/价差推导置信度。
+ * 与 policy.json 严格一致：
+ *   - S/A 才具备 high/medium 资格；B 只能到 low；C/forbidden 不参与；
+ *   - 独立来源按 sources[].url 的域名去重（无 URL 明细时视为 1 个来源，不得虚增）。
  */
+function countIndependentSources(record) {
+  const sources = Array.isArray(record.sources) ? record.sources : [];
+  if (sources.length > 0) {
+    const hosts = new Set();
+    for (const s of sources) {
+      if (!s || !s.url) continue;
+      try {
+        hosts.add(new URL(s.url).hostname);
+      } catch {
+        hosts.add(String(s.url));
+      }
+    }
+    return hosts.size;
+  }
+  const tiers = Array.isArray(record.sourceTiers) ? record.sourceTiers : [];
+  return tiers.some((t) => t === 'S' || t === 'A' || t === 'B') ? 1 : 0;
+}
+
+function spreadPct(record) {
+  if (!Number.isFinite(record.valueLow) || !Number.isFinite(record.valueHigh) || record.valueHigh <= 0) return null;
+  return ((record.valueHigh - record.valueLow) / record.valueHigh) * 100;
+}
+
 function deriveConfidence(record, policy) {
   const p = policy || loadPolicy();
   const tiers = Array.isArray(record.sourceTiers) ? record.sourceTiers : [];
-  const valid = tiers.filter((t) => p.sourceTiers && p.sourceTiers[t]);
-  const spreadPct = Number.isFinite(record.valueLow) && Number.isFinite(record.valueHigh) && record.valueHigh > 0
-    ? ((record.valueHigh - record.valueLow) / record.valueHigh) * 100
-    : null;
-  if (valid.length === 0) return 'unknown';
-  const hasS = valid.includes('S');
-  const hasA = valid.includes('A');
-  const independent = Math.max(valid.length, Array.isArray(record.sourceDates) ? record.sourceDates.length : 0);
-  if (independent >= 2 && (hasS || hasA) && spreadPct != null && spreadPct < 15) return 'high';
-  if (independent >= 2 && spreadPct != null && spreadPct < 20) return 'medium';
-  if (independent >= 1 && spreadPct != null && spreadPct <= 50) return 'low';
+  const evidenceTiers = tiers.filter((t) => t === 'S' || t === 'A' || t === 'B');
+  if (evidenceTiers.length === 0) return 'unknown';
+  const hasS = tiers.includes('S');
+  const hasA = tiers.includes('A');
+  const independent = countIndependentSources(record);
+  const spread = spreadPct(record);
+  if (independent >= 2 && (hasS || hasA) && spread != null && spread < 15) return 'high';
+  if (independent >= 2 && (hasS || hasA) && spread != null && spread < 20) return 'medium';
+  if (independent >= 1 && spread != null && spread <= 50) return 'low';
   return 'unknown';
 }
 
-module.exports = { loadPolicy, loadGoldenSources, loadQueryTemplates, anchorTypePolicy, freshness, deriveConfidence, asOfFullDate };
+/**
+ * 手工提供的置信度也不能越级：只 B 来源最多 low；无 S/A/B 来源只能 unknown。
+ */
+function capProvidedConfidence(confidence, record) {
+  const tiers = Array.isArray(record.sourceTiers) ? record.sourceTiers : [];
+  const hasEvidenceTier = tiers.some((t) => t === 'S' || t === 'A' || t === 'B');
+  if (!hasEvidenceTier) return 'unknown';
+  if (!tiers.some((t) => t === 'S' || t === 'A') && (confidence === 'high' || confidence === 'medium')) return 'low';
+  return confidence;
+}
+
+module.exports = {
+  loadPolicy,
+  loadGoldenSources,
+  loadQueryTemplates,
+  anchorTypePolicy,
+  freshness,
+  deriveConfidence,
+  capProvidedConfidence,
+  countIndependentSources,
+  spreadPct,
+  asOfFullDate
+};

@@ -49,6 +49,7 @@ function normalizeResearchResult(raw, ctx) {
       valueLow: toNumber(r.valueLow),
       valueHigh: toNumber(r.valueHigh),
       unit: r.unit || raw.unit || '元/吨',
+      confidence: r.confidence || null,
       sources: Array.isArray(r.sources) ? r.sources : []
     })) : undefined,
     missingRoutes: Array.isArray(raw.missingRoutes) ? raw.missingRoutes : undefined,

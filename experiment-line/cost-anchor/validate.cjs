@@ -6,7 +6,7 @@
 //     保留数据并写入 problems[]，报告必须展示，不得拒绝输出。
 'use strict';
 
-const { loadPolicy, deriveConfidence } = require('./policy.cjs');
+const { loadPolicy, deriveConfidence, capProvidedConfidence } = require('./policy.cjs');
 
 const REQUIRED_LEGAL = ['anchorType', 'indicator', 'unit', 'asOf', 'sourceDates', 'sourceTiers'];
 const ALLOWED_CONFIDENCE = ['high', 'medium', 'low', 'unknown'];
@@ -115,7 +115,11 @@ function validateRecord(record, signalDate, policy = loadPolicy()) {
 
   if (errors.length > 0) return { ok: false, errors, record: null };
 
-  if (!record.confidence) record.confidence = deriveConfidence(record, policy);
+  if (!record.confidence) {
+    record.confidence = deriveConfidence(record, policy);
+  } else {
+    record.confidence = capProvidedConfidence(record.confidence, record);
+  }
   assessStructure(record, policy);
   // 结构性异常不拒绝，但置信度不得超过 low（暴露给报告）
   if (record.problems.length > 0 && !['low', 'unknown'].includes(record.confidence)) {

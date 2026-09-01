@@ -112,7 +112,7 @@ function costAnchorLines(symbol) {
     for (const r of routes) {
       lines.push(r.status === 'unknown'
         ? `- ${r.route}: 未知`
-        : `- ${r.route}: ${fmt(r.valueLow, 0)}–${fmt(r.valueHigh, 0)}${r.unit || entry.unit || ''}`);
+        : `- ${r.route}: ${fmt(r.valueLow, 0)}–${fmt(r.valueHigh, 0)}${r.unit || entry.unit || ''}${r.confidence ? `（${confidenceLabel(r.confidence)}置信）` : ''}`);
     }
   } else {
     const range = Number.isFinite(entry.valueLow) && Number.isFinite(entry.valueHigh)

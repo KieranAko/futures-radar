@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const EL = path.join(ROOT, 'experiment-line', 'cost-anchor');
 
-const { loadPolicy, freshness, deriveConfidence } = require(path.join(EL, 'policy.cjs'));
+const { loadPolicy, freshness, deriveConfidence, capProvidedConfidence, countIndependentSources } = require(path.join(EL, 'policy.cjs'));
 const { validateRecord, validateResearchBatch } = require(path.join(EL, 'validate.cjs'));
 const { normalizeResearchResult } = require(path.join(EL, 'extract.cjs'));
 const { fillTemplate } = require(path.join(EL, 'research-runner.cjs'));
@@ -91,10 +91,54 @@ describe('cost-anchor 模块（theory-base/05 实现）', () => {
     assert.equal(q, '铜 C1 cash cost 2026 成本曲线');
   });
 
-  it('deriveConfidence 不信任单一来源', () => {
+  it('deriveConfidence 严格按来源层级与独立来源数', () => {
     const policy = loadPolicy();
-    assert.equal(deriveConfidence({ sourceTiers: [], sourceDates: [] }, policy), 'unknown');
-    assert.equal(deriveConfidence({ sourceTiers: ['B'], sourceDates: ['x'], valueLow: 100, valueHigh: 110 }, policy), 'low');
+    const base = { valueLow: 100, valueHigh: 110 };
+    // 无有效来源层级 → unknown
+    assert.equal(deriveConfidence({ ...base, sourceTiers: [], sourceDates: [] }, policy), 'unknown');
+    assert.equal(deriveConfidence({ ...base, sourceTiers: ['C'], sourceDates: ['x'] }, policy), 'unknown');
+    // 单一 B 级来源 → low
+    assert.equal(deriveConfidence({ ...base, sourceTiers: ['B'], sourceDates: ['x'] }, policy), 'low');
+    // 两个独立 B 来源也不得 medium（文档：medium 必须有 S/A）
+    const twoB = {
+      ...base,
+      sourceTiers: ['B', 'B'],
+      sources: [
+        { url: 'https://a.example.com/r1', title: 'a' },
+        { url: 'https://b.example.com/r2', title: 'b' }
+      ]
+    };
+    assert.equal(deriveConfidence(twoB, policy), 'low');
+    // 两个独立 A 来源 + spread<15 → high
+    const twoA = {
+      ...base,
+      sourceTiers: ['A', 'A'],
+      sources: [
+        { url: 'https://a.example.com/r1', title: 'a' },
+        { url: 'https://b.example.com/r2', title: 'b' }
+      ]
+    };
+    assert.equal(deriveConfidence(twoA, policy), 'high');
+    // A+B 两个独立来源 + 15%≤spread<20% → medium
+    const ab = { ...base, valueHigh: 118, sourceTiers: ['A', 'B'], sources: twoB.sources };
+    assert.equal(deriveConfidence(ab, policy), 'medium');
+    // 同域名不同 URL 不虚增独立来源
+    const sameHost = {
+      ...twoA,
+      sources: [
+        { url: 'https://a.example.com/r1', title: 'a' },
+        { url: 'https://a.example.com/r2', title: 'a2' }
+      ]
+    };
+    assert.equal(countIndependentSources(sameHost), 1);
+    assert.equal(deriveConfidence(sameHost, policy), 'low');
+  });
+
+  it('手工提供的置信度不能越级（capProvidedConfidence）', () => {
+    assert.equal(capProvidedConfidence('high', { sourceTiers: ['B', 'B'] }), 'low');
+    assert.equal(capProvidedConfidence('medium', { sourceTiers: ['B'] }), 'low');
+    assert.equal(capProvidedConfidence('medium', { sourceTiers: ['A', 'B'] }), 'medium');
+    assert.equal(capProvidedConfidence('high', { sourceTiers: ['C'] }), 'unknown');
   });
 
   it('FinCoT costAnchorRef 必须 grounding 到 packet.cost_anchor 证据', () => {

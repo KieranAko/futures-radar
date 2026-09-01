@@ -5,13 +5,13 @@
       "maxStaleDays": 30,
       "deviationRefreshPct": 15,
       "minSources": 2,
-      "confidenceRule": ">=2 A/S 且价差<15% → high；>=2 且至少1个A级、价差<20% → medium；其余 low/unknown"
+      "confidenceRule": "独立来源按 URL 域名去重；S/A 才有 high/medium 资格：≥2 独立 S/A 且价差<15% → high；≥2 独立来源且至少1个S/A、价差<20% → medium；≥1 S/A/B 且价差≤50% → low；其余 unknown（C/forbidden 不参与）"
     },
     "processing_margin": {
       "maxStaleDays": 7,
       "deviationRefreshPct": 5,
       "minSources": 2,
-      "confidenceRule": "同上"
+      "confidenceRule": "同 extraction"
     },
     "import_parity": {
       "maxStaleDays": 1,
