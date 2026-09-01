@@ -22,8 +22,8 @@ const section = renderStrategySection(plan, library);
 const sectionBody = section.replace(plan.disclaimer, '');
 
 describe('strategy-section: 板块存在与策略适配（acceptance 1/2）', () => {
-  it('渲染片段含「五、交易策略板块（执行参考）」章节标题', () => {
-    assert.ok(section.includes('## 五、交易策略板块（执行参考）'));
+  it('渲染片段含「四、交易策略板块（执行参考）」章节标题', () => {
+    assert.ok(section.includes('## 四、交易策略板块（执行参考）'));
   });
 
   it('策略总览表包含每个 TOP3 品种（每个 TOP3 ≥1 策略）', () => {
@@ -98,21 +98,19 @@ describe('strategy-section: 四章+附录不变（composeReportWithStrategy）',
     '',
     '## 一、市场雷达',
     '内容A',
-    '## 二、候选品种筛选',
+    '## 二、候选筛选',
     '内容B',
     '## 三、重点机会分析',
     '内容C',
-    '## 四、今日不做什么',
-    '内容D',
-    '---',
-    '## 价格区间方法说明',
+    '## 五、方法与数据说明',
+    '### 价格区间方法说明',
     '附录内容',
     '---',
     '*免责声明：本报告由 AI 生成*'
   ].join('\n');
 
   it('插入后原四章与附录所有行原样保留（逐行顺序不变）', () => {
-    const out = composeReportWithStrategy(base, '## 五、交易策略板块（执行参考）\n板块内容');
+    const out = composeReportWithStrategy(base, '## 四、交易策略板块（执行参考）\n板块内容');
     const baseLines = base.split('\n');
     const outLines = out.split('\n');
     let i = 0;
@@ -122,16 +120,16 @@ describe('strategy-section: 四章+附录不变（composeReportWithStrategy）',
     assert.equal(i, baseLines.length, 'base lines must be a subsequence in order');
   });
 
-  it('新章节位于第四章之后、附录之前', () => {
-    const out = composeReportWithStrategy(base, '## 五、交易策略板块（执行参考）\n板块内容');
-    const idx4 = out.indexOf('## 四、今日不做什么');
-    const idx5 = out.indexOf('## 五、交易策略板块（执行参考）');
-    const idxA = out.indexOf('## 价格区间方法说明');
-    assert.ok(idx4 < idx5 && idx5 < idxA);
+  it('新章节位于重点机会之后、方法与数据说明之前', () => {
+    const out = composeReportWithStrategy(base, '## 四、交易策略板块（执行参考）\n板块内容');
+    const idx3 = out.indexOf('## 三、重点机会分析');
+    const idx4 = out.indexOf('## 四、交易策略板块（执行参考）');
+    const idxA = out.indexOf('## 五、方法与数据说明');
+    assert.ok(idx3 < idx4 && idx4 < idxA);
   });
 
   it('无附录锚点时回退为末尾追加', () => {
-    const out = composeReportWithStrategy('# 标题\n正文', '## 五、交易策略板块（执行参考）\n板块内容');
+    const out = composeReportWithStrategy('# 标题\n正文', '## 四、交易策略板块（执行参考）\n板块内容');
     assert.ok(out.endsWith('板块内容\n'));
   });
 });

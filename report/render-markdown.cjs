@@ -134,7 +134,7 @@ console.log('[2/5] Rendering Chapter 1: 市场雷达...');
 const macro = model.macro;
 
 const ch1 = [];
-ch1.push('## 一、市场雷达\n');
+ch1.push('## 一、市场环境\n');
 ch1.push('### 宏观锚点');
 if (macro && macro.available) {
   const asOf = (macro.meta && macro.meta.signalDate) || '—';
@@ -200,7 +200,7 @@ console.log(`  ✓ Chapter 1: ${ch1.length} lines`);
 console.log('[3/5] Rendering Chapter 2: 候选品种筛选...');
 
 const ch2 = [];
-ch2.push('## 二、候选品种筛选\n');
+ch2.push('## 二、候选筛选\n');
 ch2.push('### Top 10 异动排名\n');
 ch2.push('| # | 品种 | 代码 | 得分 | ATR% | Vol%ile | Vol× | 5dΔ | 方向 | 趋势(vs20/60) |');
 ch2.push('|---|------|------|------|------|---------|------|-----|------|---------------|');
@@ -221,7 +221,7 @@ for (const dec of model.screening.decisions) {
   ch2.push(`| ${dec.symbol} ${dec.name} | ${badge} | ${reason} |`);
 }
 
-ch2.push('');
+ch2.push('\n> 未入选品种及其理由见上表「❌ DROP」列，不再单列章节。\n');
 console.log(`  ✓ Chapter 2: ${ch2.length} lines`);
 
 // ── Chapter 3: 重点机会分析 ──────────────────────────────────
@@ -341,23 +341,15 @@ for (const opp of model.opportunities) {
 
 console.log(`  ✓ Chapter 3: ${ch3.length} lines`);
 
-// ── Chapter 4: 今日不做什么 + Appendix ───────────────────────
-console.log('[5/5] Rendering Chapter 4 + Appendix...');
+// ── Chapter 5: 方法与数据说明 ────────────────────────────────
+console.log('[5/5] Rendering Chapter 5 + Appendix...');
 
 const ch4 = [];
-ch4.push('## 四、今日不做什么\n');
-ch4.push('| 品种 | 为什么不碰 |');
-ch4.push('|------|-----------|');
-
-for (const rej of model.rejected.slice(0, 3)) {
-  ch4.push(`| ${rej.symbol} ${rej.name} | ${rej.reason} |`);
-}
-
-ch4.push('\n---\n');
 
 // Appendix (copied from template.md, static content)
-ch4.push('## 价格区间方法说明\n');
-ch4.push('### HV 概率锥（统计置信区间）\n');
+ch4.push('## 五、方法与数据说明\n');
+ch4.push('### 价格区间方法说明\n');
+ch4.push('#### HV 概率锥（统计置信区间）\n');
 ch4.push('**计算方法**: 基于 Yang-Zhang 20日历史波动率（HV）的几何布朗运动（GBM）闭式解。68% 对应 1σ，95% 对应 1.96σ。\n');
 ch4.push('**数学基础**:');
 ch4.push('- 上沿 = close × exp(z × σ_daily × √days)');
@@ -366,25 +358,24 @@ ch4.push('- σ_daily = HV_annual / √242（242为中国期货年交易日）\n'
 ch4.push('**性质**: 统计学置信区间，表示"假设价格服从对数正态分布，有 68%/95% 概率落在区间内"。\n');
 ch4.push('**数据来源**: `close` = 最新收盘价，`HV` = 20日 Yang-Zhang 波动率（含隔夜跳空），`percentile` = HV 在 90日历史中的分位数。\n');
 ch4.push('**估算器**: Yang-Zhang（优先）> Garman-Klass（缺 Open）> Close-to-Close（仅 Close）。若 OHLC 数据修正率 >20%，标记 `degraded=true`。\n');
-ch4.push('### ATR 通道（经验波动带）\n');
+ch4.push('#### ATR 通道（经验波动带）\n');
 ch4.push('**计算公式**: `上轨 = close + 2×ATR5`, `下轨 = close - 2×ATR5`\n');
 ch4.push('**性质**: 基于历史波动幅度的经验波动带，不是统计学置信区间。2×ATR 表示价格在该通道外波动属于"显著偏离历史常态"，但不等同于"95% 概率覆盖"。\n');
 ch4.push('**数据来源**: `close` = 当前收盘价，`ATR5` = 5日平均真实波动幅度（来自 probability.json）\n');
-ch4.push('### 偏差分析\n');
+ch4.push('#### 偏差分析\n');
 ch4.push('**计算**: |ATR通道宽度 - HV 95%区间宽度| / HV 95%区间宽度 × 100%\n');
 ch4.push('**解释**:');
 ch4.push('- <10%: 两种方法区间基本一致，波动率模型稳定 ✅');
 ch4.push('- 10-20%: 两种方法区间存在差异，波动率结构可能变化 ⚠️');
 ch4.push('- >20%: 两种方法区间严重背离，波动率模型不稳定 ❌\n');
-ch4.push('### 使用建议\n');
+ch4.push('#### 使用建议\n');
 ch4.push('1. ✅ **HV 概率锥作为主参考**: 统计学基础更严谨，提供 68%/95% 置信区间');
 ch4.push('2. ✅ **ATR 通道作为辅助**: 经验波动带，结合日内波动特征');
 ch4.push('3. ⚠️ **偏差 <10% 时可信度更高**: 两种方法一致时，价格区间参考价值更大');
 ch4.push('4. ⚠️ **偏差 >20% 时谨慎使用**: 波动结构剧变期，历史波动率失效');
 ch4.push('5. ⚠️ **突发事件失效**: 地缘政治、政策变化等黑天鹅事件会使两种方法同时失效');
 ch4.push('6. ⚠️ **品种差异**: EC0（集运）等超高波动品种需特殊解读（HV 可达 200-400%）\n');
-ch4.push('### 置信度定义\n');
-ch4.push('- 置信度是 LLM 对整条证据链（数值+文本）的方向支撑强度与矛盾程度的综合判断，分 high/medium/low 三个序数等级');
+ch4.push('### 置信度定义\n');ch4.push('- 置信度是 LLM 对整条证据链（数值+文本）的方向支撑强度与矛盾程度的综合判断，分 high/medium/low 三个序数等级');
 ch4.push('- 它是判断参考标签，不是概率或胜率；等级之间允许容错，不使用证据计数或分值计算');
 ch4.push('- high：证据链实质收敛、无实质性未解决矛盾；medium：方向成立但存在可容忍的反向或不确定；low：支撑不足、矛盾未解决或驱动不可验证\n');
 if (costAnchor) {
@@ -398,7 +389,7 @@ ch4.push('---\n');
 ch4.push('*免责声明：本报告由 AI 生成，仅为投机机会发现工具，不构成投资建议。所有交易决策需自行判断。*');
 ch4.push(`*数据来源：akshare (行情) | 波动率方法：Yang-Zhang HV + 2×ATR5 | 管道版本：${model.meta.pipelineVersion}*`);
 
-console.log(`  ✓ Chapter 4 + Appendix: ${ch4.length} lines`);
+console.log(`  ✓ Chapter 5: ${ch4.length} lines`);
 
 // ── Assemble final report ────────────────────────────────────
 const reportDate = new Date(model.meta.generatedAt).toISOString().slice(0, 10);
@@ -410,15 +401,14 @@ const header = [
 // 数据时效说明卡片（v0.1.2）：header 之后、第一章之前；旧 run 无 freshness 时跳过
 const freshnessCard = model.freshness ? renderFreshnessCard(model.freshness) : [];
 
-// ── 交易策略板块（t9）：可选章节「五、交易策略板块（执行参考）」 ──
-// 契约 strategies/report-strategy-section.md §3.2：strategy-plan.json 存在且非空时，
-// 在第四章之后、附录「价格区间方法说明」之前插入；缺失/为空时跳过，四章+附录不变。
+// ── 交易策略板块（终稿：第四章「交易策略板块」，插在附录「五、方法与数据说明」之前）──
 const { renderStrategySection, composeReportWithStrategy } = require('./render-strategy-section.cjs');
 let strategySection = null;
+let strategyPlan = null;
 const strategyPlanPath = path.join(RUN_DIR, 'strategy-plan.json');
 if (fs.existsSync(strategyPlanPath)) {
   try {
-    const strategyPlan = JSON.parse(fs.readFileSync(strategyPlanPath, 'utf8'));
+    strategyPlan = JSON.parse(fs.readFileSync(strategyPlanPath, 'utf8'));
     if (strategyPlan && Array.isArray(strategyPlan.plans) && strategyPlan.plans.length > 0) {
       const library = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'strategies', 'strategy-library.json'), 'utf8'));
       const feedbackPath = path.join(RUN_DIR, 'strategy-feedback.json');
@@ -439,7 +429,31 @@ if (fs.existsSync(strategyPlanPath)) {
   console.log('  - 交易策略板块: strategy-plan.json 不存在，跳过');
 }
 
-const baseReport = [...header, ...freshnessCard, ...ch1, ...ch2, ...ch3, ...ch4].join('\n');
+// 结论速览与阅读导航（新增，只做摘要与锚点，不替代正文）
+const planMap = new Map((strategyPlan && Array.isArray(strategyPlan.plans) ? strategyPlan.plans : []).map((p) => [p.symbol, p]));
+const executionLabel = (s) => (s === 'executable' ? '✅ 可执行' : s === 'watch' ? '👀 观察' : s === 'skip' ? '⛔ 跳过' : '—');
+const summaryAndNav = [];
+summaryAndNav.push('## 结论速览\n');
+summaryAndNav.push('| 品种 | 锚定合约 | 方向 | 置信度 | 执行状态 |');
+summaryAndNav.push('|------|---------|------|--------|---------|');
+for (const opp of model.opportunities) {
+  const p = planMap.get(opp.symbol);
+  summaryAndNav.push(`| ${opp.symbol} ${opp.name} | ${opp.contract || '—'} | ${directionLabel(opp.thesis.finalDirection)} | ${confidenceLabel(opp.thesis.finalConfidence)} | ${p ? executionLabel(p.executionStatus) : '—'} |`);
+}
+const nExec = [...planMap.values()].filter((p) => p.executionStatus === 'executable').length;
+const nWatch = [...planMap.values()].filter((p) => p.executionStatus === 'watch').length;
+const nSkip = [...planMap.values()].filter((p) => p.executionStatus === 'skip').length;
+summaryAndNav.push(`\n**本期**: 深挖 ${model.opportunities.length} 个品种；可执行 ${nExec}，观察 ${nWatch}，跳过 ${nSkip}。`);
+summaryAndNav.push('> 详细证据见第三章，执行计划见第四章，方法说明见第五章。\n');
+summaryAndNav.push('## 阅读导航\n');
+summaryAndNav.push('- 结论速览');
+summaryAndNav.push('- 一、市场环境');
+summaryAndNav.push('- 二、候选筛选');
+summaryAndNav.push('- 三、重点机会分析');
+summaryAndNav.push('- 四、交易策略板块');
+summaryAndNav.push('- 五、方法与数据说明\n');
+
+const baseReport = [...header, ...freshnessCard, ...summaryAndNav, ...ch1, ...ch2, ...ch3, ...ch4].join('\n');
 const report = strategySection ? composeReportWithStrategy(baseReport, strategySection) : baseReport;
 
 // ── Write report.md ──────────────────────────────────────────

@@ -70,7 +70,7 @@ function planTrust(p, familyEvidence) {
 
 function renderStrategySection(plan, library, feedback = null, familyEvidence = null, forwardLedger = null) {
   const lines = [];
-  lines.push('## 五、交易策略板块（执行参考）');
+  lines.push('## 四、交易策略板块（执行参考）');
   lines.push('');
   lines.push(`> 运行 ID: ${plan.meta.runId} | 信号日: ${plan.meta.signalDate} | 示例权益: ${plan.meta.equityCny} CNY`);
   lines.push('> 确定性生成，仅作执行参考；**不改变报告方向与置信度**。');
@@ -193,7 +193,7 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
 
 // ── 插入点（t7 §3.2）：第四章之后、附录「价格区间方法说明」之前 ──
 function composeReportWithStrategy(baseReport, sectionMarkdown) {
-  const anchor = '\n## 价格区间方法说明';
+  const anchor = '\n## 五、方法与数据说明';
   const idx = baseReport.indexOf(anchor);
   if (idx === -1) return `${baseReport}\n\n${sectionMarkdown}\n`;
   return `${baseReport.slice(0, idx)}\n${sectionMarkdown}\n${baseReport.slice(idx)}`;
