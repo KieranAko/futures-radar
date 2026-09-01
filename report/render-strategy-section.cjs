@@ -70,7 +70,7 @@ function planTrust(p, familyEvidence) {
 
 function renderStrategySection(plan, library, feedback = null, familyEvidence = null, forwardLedger = null, closeMap = null) {
   const lines = [];
-  lines.push('## 四、交易策略（执行参考）');
+  lines.push('## 四、交易策略');
   lines.push('');
   lines.push(`> 运行 ID: ${plan.meta.runId} | 信号日: ${plan.meta.signalDate} | 示例权益: ${plan.meta.equityCny} CNY`);
   lines.push('> 确定性生成，仅作执行参考；**不改变报告方向与置信度**。');
