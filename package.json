@@ -35,7 +35,9 @@
     "store:verify": "node data-store/index.cjs --verify",
     "store:stats": "node data-store/index.cjs --stats",
     "store:export": "node data-store/index.cjs --export",
-    "store:compact": "node data-store/index.cjs --compact"
+    "store:compact": "node data-store/index.cjs --compact",
+    "git:check": "node scripts/git-push-policy.cjs --check",
+    "git:push": "node scripts/git-push-policy.cjs --push"
   },
   "keywords": [
     "futures",
