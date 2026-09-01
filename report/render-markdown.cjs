@@ -236,6 +236,24 @@ for (const opp of model.opportunities) {
   ch3.push(`### ${opp.symbol} ${opp.name}\n`);
   ch3.push(`**方向**: ${directionLabel(thesis.finalDirection)} | **置信度**: ${confidenceLabel(thesis.finalConfidence)}置信\n`);
 
+  // 置信度推理说明（终稿方案：支持/反向/不确定三类；历史 run 无 rationale 时跳过）
+  const rationale = thesis.confidenceRationale;
+  if (rationale && Array.isArray(rationale.supportingFactors) && rationale.supportingFactors.length > 0) {
+    ch3.push('**支持**:');
+    for (const f of rationale.supportingFactors) ch3.push(`- ${f.note}`);
+    ch3.push('');
+  }
+  if (rationale && Array.isArray(rationale.opposingFactors) && rationale.opposingFactors.length > 0) {
+    ch3.push('**反向**:');
+    for (const f of rationale.opposingFactors) ch3.push(`- ${f.note}`);
+    ch3.push('');
+  }
+  if (rationale && Array.isArray(rationale.uncertainties) && rationale.uncertainties.length > 0) {
+    ch3.push('**不确定**:');
+    for (const u of rationale.uncertainties) ch3.push(`- ${u}`);
+    ch3.push('');
+  }
+
   // 锚定合约（Analyze 阶段冻结的主导合约）
   if (opp.contract) {
     ch3.push(`**锚定合约**: ${opp.contract}\n`);
@@ -365,6 +383,10 @@ ch4.push('3. ⚠️ **偏差 <10% 时可信度更高**: 两种方法一致时，
 ch4.push('4. ⚠️ **偏差 >20% 时谨慎使用**: 波动结构剧变期，历史波动率失效');
 ch4.push('5. ⚠️ **突发事件失效**: 地缘政治、政策变化等黑天鹅事件会使两种方法同时失效');
 ch4.push('6. ⚠️ **品种差异**: EC0（集运）等超高波动品种需特殊解读（HV 可达 200-400%）\n');
+ch4.push('### 置信度定义\n');
+ch4.push('- 置信度是 LLM 对整条证据链（数值+文本）的方向支撑强度与矛盾程度的综合判断，分 high/medium/low 三个序数等级');
+ch4.push('- 它是判断参考标签，不是概率或胜率；等级之间允许容错，不使用证据计数或分值计算');
+ch4.push('- high：证据链实质收敛、无实质性未解决矛盾；medium：方向成立但存在可容忍的反向或不确定；low：支撑不足、矛盾未解决或驱动不可验证\n');
 if (costAnchor) {
   ch4.push('### 成本锚方法说明\n');
   ch4.push('- **理论依据**: `theory-base/05-cost-anchor-marginal-producer.md`（边际生产者/加工利润/进口平价/生产成本）');

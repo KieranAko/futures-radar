@@ -75,11 +75,20 @@ function main() {
     L.push(`- prefill q2: ${pf.q2.judgment}/${pf.q2.priceAlignment}; q4long=${JSON.stringify(pf.q4.long)}; q5long=${JSON.stringify(pf.q5.long)}; q6=${JSON.stringify(pf.q6)}`);
     L.push('');
   }
+  L.push('');
+  L.push('## 置信度判定（整链综合推理，不计数）');
+  L.push('');
+  L.push('置信度是对整条证据链（数值+文本）的方向支撑强度与矛盾程度的综合判断，只有 high/medium/low 三个序数等级；不是概率、不是胜率。');
+  L.push('- high：证据链在方向上实质收敛，没有实质性未解决矛盾');
+  L.push('- medium：方向成立，但存在可识别、可容忍的反向或不确定性');
+  L.push('- low：支撑不足、矛盾未解决或驱动不可验证');
+  L.push('禁止用证据域数量、分值或加权计算置信度。必须同时输出 confidenceRationale：supportingFactors（支持）、opposingFactors（反向）、uncertainties（不确定）。');
+  L.push('');
   L.push('输出 JSON（数组，每品种一条）：');
   L.push('```json');
-  L.push(`[{"symbol":"...","direction":"long|short|pass","confidence":"high|medium|low","q1_driver":{"primary":"...","secondary":"...","evidence":"引用 packet 数值或前日同源线索","source":"..."},"q3_odds":{"bias":"bullish|bearish|neutral","longCase":["..."],"shortCase":["..."],"summary":"..."},"q4_confirmations":{"selected":"long|short","signals":["..."]},"q5_invalidation":{"conditions":["..."]},"mechanismRef":{"family":"carry|value|event|momentum|none","mechanismId":"候选机制或 null","matchStatus":"matched|unknown"},"costAnchorRef":{"used":true,"routeRefs":["天然碱法","氨碱法"],"evidenceIds":["cost_anchor.routes"]},"selfCheck":{"unitCheck":{"pass":true,"note":"..."},"evidenceCheck":{"pass":true,"evidenceIds":["price_data.close_60d","term_structure.br","cost_anchor.routes"]},"opposingCheck":{"pass":true,"opposing":["..."]}}}]`);
+  L.push(`[{"symbol":"...","direction":"long|short|pass","confidence":"high|medium|low","confidenceRationale":{"supportingFactors":[{"type":"numeric|text","ref":"packet字段或q1_driver/q3_odds","note":"为什么支持"}],"opposingFactors":[{"type":"numeric|text","ref":"...","note":"为什么反向"}],"uncertainties":["..."]},"q1_driver":{"primary":"...","secondary":"...","evidence":"引用 packet 数值或前日同源线索","source":"..."},"q3_odds":{"bias":"bullish|bearish|neutral","longCase":["..."],"shortCase":["..."],"summary":"..."},"q4_confirmations":{"selected":"long|short","signals":["..."]},"q5_invalidation":{"conditions":["..."]},"mechanismRef":{"family":"carry|value|event|momentum|none","mechanismId":"候选机制或 null","matchStatus":"matched|unknown"},"costAnchorRef":{"used":true,"routeRefs":["天然碱法","氨碱法"],"evidenceIds":["cost_anchor.routes"]},"selfCheck":{"unitCheck":{"pass":true,"note":"..."},"evidenceCheck":{"pass":true,"evidenceIds":["price_data.close_60d","term_structure.br","cost_anchor.routes"]},"opposingCheck":{"pass":true,"opposing":["..."]}}}]`);
   L.push('```');
-  L.push('约束：evidenceCheck.evidenceIds 只能引用 packet 字段；方向必须与 prefill 结构一致或显式说明 override；pass 时给出 data_insufficient/model_abstain/conflict_unresolved 原因。cost_anchor 是成本上下文证据，只可进入 q1_driver.evidence/q3_odds 的推理，不得单独决定方向。若推理中使用了 cost_anchor，必须输出 costAnchorRef.used=true 且 evidenceIds 至少包含一个 cost_anchor.* 字段；未使用则 costAnchorRef.used=false。');
+  L.push('约束：evidenceCheck.evidenceIds 只能引用 packet 字段；方向必须与 prefill 结构一致或显式说明 override；pass 时给出 data_insufficient/model_abstain/conflict_unresolved 原因。cost_anchor 是成本上下文证据，只可进入 q1_driver.evidence/q3_odds 的推理，不得单独决定方向。若推理中使用了 cost_anchor，必须输出 costAnchorRef.used=true 且 evidenceIds 至少包含一个 cost_anchor.* 字段；未使用则 costAnchorRef.used=false。q1_driver.primary=unknown 时 confidence 不得为 high。');
 
   const outFile = path.join(runPath, 'analyze', 'prompts-v2.md');
   fs.writeFileSync(outFile, L.join('\n'), 'utf8');

@@ -33,6 +33,9 @@ const TIMESTAMP_KEYS = new Set([
   'scannedAt', 'filteredAt', 'processedAt', 'refreshedAt', 'renderedAt',
 ]);
 
+// 历史 baseline 未冻结的新增字段：回放比对时两侧删除（新增字段由专门测试覆盖）
+const HISTORICAL_BASELINE_DROP_KEYS = new Set(['confidenceRationale']);
+
 const NETWORK_STAGES = new Set(['source-probe', 'collect', 'sector', 'macro']);
 const MANUAL_STAGES = new Set(['filter-llm', 'analyze', 'publish-current']);
 
@@ -62,6 +65,7 @@ function normalize(value, prodRunId, mirrorRunId, opts = {}) {
     const out = {};
     for (const [k, v] of Object.entries(value)) {
       if (TIMESTAMP_KEYS.has(k)) continue;
+      if (HISTORICAL_BASELINE_DROP_KEYS.has(k)) continue;
       if (dropKeys.includes(k)) continue;
       if (k === 'runId' && typeof v === 'string') {
         out[k] = '<RUNID>';
@@ -92,6 +96,10 @@ function normalize(value, prodRunId, mirrorRunId, opts = {}) {
     s = s.replace(/^> 板块集中度提示：[^\n]*\n/gm, '');
     // 可信度说明行删除后遗留的空行（历史 run 无该行）
     s = s.replace(/\n\n\n### /g, '\n\n### ');
+    // 方向置信度定义（终稿方案新增；历史 run 无该节 → 两侧删除后比较）
+    s = s.replace(/### 置信度定义\n+(?:- [^\n]*\n)+/g, '');
+    // 删除新增附录节后遗留的空行（仅在最终免责声明前的 --- 分隔线处归一）
+    s = s.replace(/\n{2,}---\n\n\*免责声明/g, '\n---\n\n*免责声明');
     return s;
   }
   return value;

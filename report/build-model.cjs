@@ -198,6 +198,7 @@ for (const opp of reportFacts.opportunities) {
     },
     finalDirection: analysisEntry.direction,
     finalConfidence: analysisEntry.confidence,
+    confidenceRationale: analysisEntry.confidenceRationale || null,
     assessmentChanged: (
       opp.screening.initialDirection !== analysisEntry.direction ||
       opp.screening.initialConfidence !== analysisEntry.confidence

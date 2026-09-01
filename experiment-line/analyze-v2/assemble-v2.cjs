@@ -41,6 +41,47 @@ function validateGrounding(evidenceIds, packet) {
   return evidenceIds.filter((id) => !fields.has(id) && ![...fields].some((f) => f.startsWith(id + '.')));
 }
 
+const CONFIDENCE_VALUES = ['high', 'medium', 'low'];
+const TEXT_REF_PREFIXES = ['q1_driver', 'q3_odds', 'cost_anchor', 'prevAnalysisCache', 'mechanismRef'];
+
+/**
+ * 方向置信度护栏（终稿方案）：
+ *   - 等级只由 LLM 整链判断；确定性只校验枚举、pass、driver=unknown、rationale 完整性/grounding。
+ *   - 旧 run 无 rationale → 允许（标记 legacy），但输出不携带 rationale。
+ */
+function validateConfidenceRationale(output, packet) {
+  const errors = [];
+  const rationale = output && output.confidenceRationale ? output.confidenceRationale : null;
+  const symbol = output && output.symbol ? output.symbol : '?';
+  if (output.direction !== 'pass') {
+    if (!CONFIDENCE_VALUES.includes(output.confidence)) {
+      errors.push(`${symbol}: invalid confidence ${output.confidence}`);
+    }
+    if (output.confidence === 'high' && output.q1_driver && output.q1_driver.primary === 'unknown') {
+      errors.push(`${symbol}: q1_driver.primary=unknown 不得为 high`);
+    }
+  }
+  if (!rationale) return { rationale: null, errors };
+
+  for (const key of ['supportingFactors', 'opposingFactors', 'uncertainties']) {
+    if (!Array.isArray(rationale[key])) errors.push(`${symbol}: confidenceRationale.${key} must be array`);
+  }
+  const factors = [...(rationale.supportingFactors || []), ...(rationale.opposingFactors || [])];
+  if (factors.length === 0) errors.push(`${symbol}: confidenceRationale 支持/反向至少一侧非空`);
+  for (const f of factors) {
+    if (!f || !f.note || typeof f.note !== 'string') errors.push(`${symbol}: confidence factor needs note`);
+    if (f.type !== 'numeric' && f.type !== 'text') errors.push(`${symbol}: confidence factor type must be numeric|text`);
+    if (!f.ref || typeof f.ref !== 'string') errors.push(`${symbol}: confidence factor needs ref`);
+    else if (f.type === 'numeric') {
+      const bad = validateGrounding([f.ref], packet);
+      if (bad.length) errors.push(`${symbol}: confidence factor ref grounding failed for ${f.ref}`);
+    } else if (!TEXT_REF_PREFIXES.some((p) => f.ref === p || f.ref.startsWith(`${p}.`))) {
+      errors.push(`${symbol}: text ref ${f.ref} 不在允许范围`);
+    }
+  }
+  return { rationale, errors };
+}
+
 /**
  * 把 FinCoT 输出中的 costAnchorRef 绑定到 packet.cost_anchor 证据链。
  * used=true 时必须给出可 grounding 的 evidenceIds（cost_anchor.*）。
@@ -160,6 +201,12 @@ function main() {
     }
     const pf = prefill[o.symbol];
     const direction = o.direction === 'long' ? 'bullish' : o.direction === 'short' ? 'bearish' : 'neutral';
+    const confCheck = validateConfidenceRationale(o, p);
+    if (confCheck.errors.length) {
+      console.error('FATAL: confidence guardrails failed:');
+      for (const e of confCheck.errors) console.error(`  - ${e}`);
+      process.exit(1);
+    }
     const costAnchor = buildCostAnchorRef(o, p);
     if (costAnchor.error) issues.push(costAnchor.error);
     // 六问组装（Q2/Q6 确定性预填 + LLM 写 Q1/Q3/Q4/Q5）
@@ -171,6 +218,7 @@ function main() {
       reasoningRef: { artifactId: 'reasoning-results-v2-json', packetHash: sha256(JSON.stringify(p)), arm: 'fincot' },
       direction,
       confidence: direction === 'neutral' ? 'low' : o.confidence,
+      confidenceRationale: confCheck.rationale,
       override: null,
       costAnchorRef: costAnchor.ref,
       q1_driver: o.q1_driver,
@@ -283,4 +331,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { main, validateGrounding, buildProductionSectorSectors, buildCostAnchorRef };
+module.exports = { main, validateGrounding, buildProductionSectorSectors, buildCostAnchorRef, validateConfidenceRationale };

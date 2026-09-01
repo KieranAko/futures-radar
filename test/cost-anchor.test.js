@@ -141,6 +141,34 @@ describe('cost-anchor 模块（theory-base/05 实现）', () => {
     assert.equal(capProvidedConfidence('high', { sourceTiers: ['C'] }), 'unknown');
   });
 
+  it('方向置信度护栏：legacy 放行、枚举/ref/unknown 约束 fail-closed', () => {
+    const asm = require(path.join(ROOT, 'analyze', 'v2', 'assemble-v2.cjs'));
+    const packet = { price_data: { change5dPct: 0.66, volMultiplier: 1.1 }, volume_oi: { oiChange5dPct: 8.72 }, sector_context: { advanceRatio1d: 95.5 }, cost_anchor: { routes: [{ route: 'x', valueLow: 1, valueHigh: 2 }], problems: [] } };
+    const valid = {
+      symbol: 'SA0', direction: 'long', confidence: 'medium',
+      q1_driver: { primary: '检修预期' },
+      confidenceRationale: {
+        supportingFactors: [
+          { type: 'numeric', ref: 'volume_oi.oiChange5dPct', note: '增仓' },
+          { type: 'text', ref: 'q1_driver', note: '检修' }
+        ],
+        opposingFactors: [{ type: 'numeric', ref: 'price_data.volMultiplier', note: '量能温和' }],
+        uncertainties: ['检修未确认']
+      }
+    };
+    assert.deepEqual(asm.validateConfidenceRationale(valid, packet).errors, []);
+    // 旧 run 无 rationale → 放行
+    const legacy = { symbol: 'SA0', direction: 'long', confidence: 'medium', q1_driver: { primary: 'x' } };
+    assert.deepEqual(asm.validateConfidenceRationale(legacy, packet).errors, []);
+    // 非法枚举 / unknown 却 high / numeric ref 不存在 / 支持反向都为空
+    assert.match(asm.validateConfidenceRationale({ ...valid, confidence: 'high', q1_driver: { primary: 'unknown' } }, packet).errors.join('|'), /unknown 不得为 high/);
+    assert.match(asm.validateConfidenceRationale({ ...valid, confidence: 'nope' }, packet).errors.join('|'), /invalid confidence/);
+    const badRef = { ...valid, confidenceRationale: { ...valid.confidenceRationale, supportingFactors: [{ type: 'numeric', ref: 'price_data.nope', note: 'x' }], opposingFactors: [], uncertainties: [] } };
+    assert.match(asm.validateConfidenceRationale(badRef, packet).errors.join('|'), /grounding failed/);
+    const empty = { ...valid, confidenceRationale: { supportingFactors: [], opposingFactors: [], uncertainties: [] } };
+    assert.match(asm.validateConfidenceRationale(empty, packet).errors.join('|'), /至少一侧非空/);
+  });
+
   it('FinCoT costAnchorRef 必须 grounding 到 packet.cost_anchor 证据', () => {
     const asm = require(path.join(ROOT, 'analyze', 'v2', 'assemble-v2.cjs'));
     const packet = {
