@@ -84,11 +84,15 @@ function projectSnapshot(runId, signalDate) {
       reused: true,
       anchorType: record.anchorType,
       indicator: record.indicator,
+      structure: record.structure || (Array.isArray(record.routes) && record.routes.length > 0 ? 'route_curve' : 'single_range'),
       valueLow: record.valueLow,
       valueHigh: record.valueHigh,
       unit: record.unit,
       asOf: record.asOf,
       confidence: record.confidence,
+      routes: Array.isArray(record.routes) ? record.routes : [],
+      fallbackRange: record.fallbackRange || null,
+      problems: Array.isArray(record.problems) ? record.problems : [],
       sources: record.sources || []
     };
   });

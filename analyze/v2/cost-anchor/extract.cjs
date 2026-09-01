@@ -42,6 +42,22 @@ function normalizeResearchResult(raw, ctx) {
     sources: Array.isArray(raw.sources) ? raw.sources : [],
     confidence: raw.confidence || 'low',
     reason: raw.reason || null,
+    structure: raw.structure || null,
+    routes: Array.isArray(raw.routes) ? raw.routes.map((r) => ({
+      route: r.route,
+      status: r.status || 'known',
+      valueLow: toNumber(r.valueLow),
+      valueHigh: toNumber(r.valueHigh),
+      unit: r.unit || raw.unit || '元/吨',
+      sources: Array.isArray(r.sources) ? r.sources : []
+    })) : undefined,
+    missingRoutes: Array.isArray(raw.missingRoutes) ? raw.missingRoutes : undefined,
+    fallbackRange: raw.fallbackRange ? {
+      valueLow: toNumber(raw.fallbackRange.valueLow),
+      valueHigh: toNumber(raw.fallbackRange.valueHigh),
+      unit: raw.fallbackRange.unit || raw.unit || '元/吨'
+    } : undefined,
+    problems: Array.isArray(raw.problems) ? raw.problems : undefined,
     signalDate: ctx.signalDate
   };
 }

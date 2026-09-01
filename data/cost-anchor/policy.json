@@ -42,6 +42,10 @@
   "validation": {
     "maxSourceAgeDays": 365,
     "maxCrossSourceSpreadPct": 20,
-    "requiredFields": ["anchorType", "indicator", "valueLow", "valueHigh", "unit", "asOf", "sourceDates", "sourceTiers", "confidence"]
+    "maxMeaningfulRangeWidthPct": 30,
+    "requiredFields": ["anchorType", "indicator", "valueLow", "valueHigh", "unit", "asOf", "sourceDates", "sourceTiers", "confidence"],
+    "routesAllowed": true,
+    "note": "合法性错误 fail-closed（无来源/无日期/未来数据）；结构性异常 fail-visible（range_width/multi_process_collapsed/missing_routes 等 problems[] 必须保留并展示，不得拒绝输出）",
+    "structuralCodes": ["multi_process_collapsed", "range_width_pct", "missing_routes", "source_tier_only_b", "fallback_range_only"]
   }
 }

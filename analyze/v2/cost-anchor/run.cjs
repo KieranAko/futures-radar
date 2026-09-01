@@ -31,9 +31,10 @@ function main() {
   const i = args.indexOf('--runId');
   const runId = i >= 0 ? args[i + 1] : null;
   if (!runId) throw new Error('--runId required');
+  const force = args.includes('--force');
 
   const resolved = resolveFromLibrary(runId, freshness);
-  const pending = resolved.symbols.filter((s) => !s.reused);
+  const pending = force ? resolved.symbols : resolved.symbols.filter((s) => !s.reused);
   if (pending.length === 0) {
     const out = projectSnapshot(runId, resolved.signalDate);
     console.log(`cost-anchor: all ${resolved.symbols.length} cache-hit; snapshot projected`);

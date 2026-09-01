@@ -62,7 +62,16 @@ function main() {
     const cand = Object.entries(p.mechanism_candidates || {}).map(([f, ms]) => `${f}=[${ms.map((m) => `${m.id}(${m.status})`).join(',')}]`).join('; ');
     L.push(`- mechanism_candidates: ${cand || '无'}`);
     L.push(`- prevAnalysis: ${p.prevAnalysisCache ? `${p.prevAnalysisCache.direction}/${p.prevAnalysisCache.confidence}（${p.prevAnalysisCache.q1}）` : '无'}`);
-    L.push(`- cost_anchor: ${p.cost_anchor ? `${p.cost_anchor.indicator}=${p.cost_anchor.valueLow}-${p.cost_anchor.valueHigh}${p.cost_anchor.unit} (asOf ${p.cost_anchor.asOf}, ${p.cost_anchor.confidence})` : '不可用'}`);
+    L.push(`- cost_anchor: ${p.cost_anchor ? (() => {
+      const a = p.cost_anchor;
+      if (Array.isArray(a.routes) && a.routes.length > 0) {
+        const parts = a.routes.map((r) => r.status === 'unknown' ? `${r.route}=unknown` : `${r.route}=${r.valueLow}-${r.valueHigh}${a.unit || ''}`);
+        const problems = (a.problems || []).map((x) => x.code).join(',');
+        return `${a.indicator} routes[${parts.join('; ')}] (asOf ${a.asOf}, ${a.confidence})${problems ? ` problems[${problems}]` : ''}`;
+      }
+      const problems = (a.problems || []).map((x) => x.code).join(',');
+      return `${a.indicator}=${a.valueLow}-${a.valueHigh}${a.unit} (asOf ${a.asOf}, ${a.confidence})${problems ? ` problems[${problems}]` : ''}`;
+    })() : '不可用'}`);
     L.push(`- prefill q2: ${pf.q2.judgment}/${pf.q2.priceAlignment}; q4long=${JSON.stringify(pf.q4.long)}; q5long=${JSON.stringify(pf.q5.long)}; q6=${JSON.stringify(pf.q6)}`);
     L.push('');
   }

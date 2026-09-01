@@ -45,6 +45,28 @@ describe('cost-anchor 模块（theory-base/05 实现）', () => {
     assert.equal(validateRecord({ ...ok, valueLow: null, valueHigh: null, confidence: 'unknown' }, '2026-08-31').ok, true);
   });
 
+  it('结构异常 fail-visible：宽区间不拒绝，而是写入 problems[]', () => {
+    const wide = {
+      symbol: 'SA0', anchorType: 'processing_margin', indicator: '分工艺完全成本',
+      valueLow: 550, valueHigh: 1554, unit: '元/吨', asOf: '2026-08',
+      sourceDates: ['2026-08-31'], sourceTiers: ['B', 'B'], confidence: 'low',
+      routes: [
+        { route: '天然碱法', valueLow: 550, valueHigh: 679 },
+        { route: '联碱法', status: 'unknown' },
+        { route: '氨碱法', valueLow: 1386, valueHigh: 1554 }
+      ],
+      missingRoutes: ['联碱法'],
+      fallbackRange: { valueLow: 550, valueHigh: 1554, unit: '元/吨' }
+    };
+    const check = validateRecord(wide, '2026-08-31');
+    assert.equal(check.ok, true, '结构性异常不得拒绝记录');
+    assert.equal(check.record.structure, 'route_curve');
+    const codes = check.record.problems.map((p) => p.code);
+    assert.ok(codes.includes('multi_process_collapsed'));
+    assert.ok(codes.includes('missing_routes'));
+    assert.ok(codes.includes('source_tier_only_b'));
+  });
+
   it('normalizeResearchResult 支持 unknown 墓碑记录', () => {
     const tomb = normalizeResearchResult({ symbol: 'SA0', status: 'unknown', reason: '无来源' }, { runId: 'r', signalDate: '2026-08-31' });
     assert.equal(tomb.confidence, 'unknown');

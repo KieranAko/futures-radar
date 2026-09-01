@@ -99,15 +99,33 @@ console.log(`  ✓ Loaded ${model.opportunities.length} opportunities`);
 // 成本锚快照（由文件库主档投影，见 analyze/v2/cost-anchor/；缺失时行内不展示）
 const costAnchorPath = path.join(RUN_DIR, 'cost-anchor.json');
 const costAnchor = fs.existsSync(costAnchorPath) ? readJSON(costAnchorPath) : null;
-function costAnchorLine(symbol) {
+function costAnchorLines(symbol) {
   const entry = costAnchor && Array.isArray(costAnchor.symbols)
     ? costAnchor.symbols.find((s) => s.symbol === symbol)
     : null;
-  if (!entry || entry.status === 'unavailable' || entry.confidence === 'unknown') return null;
-  const range = Number.isFinite(entry.valueLow) && Number.isFinite(entry.valueHigh)
-    ? `${fmt(entry.valueLow, 0)}–${fmt(entry.valueHigh, 0)}${entry.unit || ''}`
-    : '—';
-  return `**成本锚**（asOf ${entry.asOf}, ${confidenceLabel(entry.confidence)}置信）: ${entry.indicator} ${range}（来源主档 ${entry.recordId}）`;
+  if (!entry || entry.status === 'unavailable' || entry.confidence === 'unknown') return [];
+  const lines = [];
+  const conf = confidenceLabel(entry.confidence);
+  const routes = Array.isArray(entry.routes) && entry.routes.length > 0 ? entry.routes : [];
+  if (routes.length > 0) {
+    lines.push(`**成本锚**（asOf ${entry.asOf}, ${conf}置信）: ${entry.indicator}`);
+    for (const r of routes) {
+      lines.push(r.status === 'unknown'
+        ? `- ${r.route}: 未知`
+        : `- ${r.route}: ${fmt(r.valueLow, 0)}–${fmt(r.valueHigh, 0)}${r.unit || entry.unit || ''}`);
+    }
+  } else {
+    const range = Number.isFinite(entry.valueLow) && Number.isFinite(entry.valueHigh)
+      ? `${fmt(entry.valueLow, 0)}–${fmt(entry.valueHigh, 0)}${entry.unit || ''}`
+      : '—';
+    lines.push(`**成本锚**（asOf ${entry.asOf}, ${conf}置信）: ${entry.indicator} ${range}（来源主档 ${entry.recordId}）`);
+  }
+  const problems = Array.isArray(entry.problems) ? entry.problems : [];
+  if (problems.length > 0) {
+    const codes = problems.map((p) => `${p.code}${p.detail ? `(${p.detail})` : ''}`).join('；');
+    lines.push(`> ⚠️ 成本锚结构问题: ${codes}。该区间不是单一成本线，已保留原始证据供判断。`);
+  }
+  return lines;
 }
 
 // ── Chapter 1: 市场雷达 ──────────────────────────────────────
@@ -286,8 +304,7 @@ for (const opp of model.opportunities) {
   }
 
   // 6-question analysis
-  const costLine = costAnchorLine(opp.symbol);
-  if (costLine) ch3.push(`${costLine}\n`);
+  for (const line of costAnchorLines(opp.symbol)) ch3.push(`${line}\n`);
   ch3.push(`**驱动 (Q1)**: ${thesis.driver.primary}；${thesis.driver.secondary}。${thesis.driver.evidence.substring(0, 100)}... (来源: ${thesis.driver.source})\n`);
   ch3.push(`**趋势/脉冲 (Q2)**: ${thesis.trendOrImpulse.assessment}\n`);
   ch3.push(`**赔率 (Q3)**: ${thesis.odds.reasoning} → ${thesis.odds.bias}\n`);
@@ -352,7 +369,8 @@ if (costAnchor) {
   ch4.push('### 成本锚方法说明\n');
   ch4.push('- **理论依据**: `theory-base/05-cost-anchor-marginal-producer.md`（边际生产者/加工利润/进口平价/生产成本）');
   ch4.push('- **存储**: 主档 `data/cost-anchor/<symbol>.json`；本期 `cost-anchor.json` 为文件库投影快照');
-  ch4.push('- **纪律**: 成本锚是证据上下文，不是支撑位，不单独决定方向；无来源/过期一律显示不可用\n');
+  ch4.push('- **纪律**: 成本锚是证据上下文，不是支撑位，不单独决定方向；无来源/过期一律显示不可用');
+  ch4.push('- **门禁**: 合法性错误 fail-closed；结构性异常（区间过宽/多工艺合并/缺失路线）fail-visible，problems[] 必须展示\n');
 }
 ch4.push('---\n');
 ch4.push('*免责声明：本报告由 AI 生成，仅为投机机会发现工具，不构成投资建议。所有交易决策需自行判断。*');

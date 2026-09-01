@@ -117,7 +117,20 @@ function buildPacket(raw, sym, signalDate, macroSnapshot, sectorSnapshot, regist
       ? { runId: prev.runId, direction: prev.direction, confidence: prev.confidence, q1: prev.q1_driver?.primary, q5: prev.q5_invalidation?.conditions }
       : null,
     cost_anchor: costAnchor && costAnchor.confidence !== 'unknown'
-      ? { recordId: costAnchor.recordId, anchorType: costAnchor.anchorType, indicator: costAnchor.indicator, valueLow: costAnchor.valueLow, valueHigh: costAnchor.valueHigh, unit: costAnchor.unit, asOf: costAnchor.asOf, confidence: costAnchor.confidence }
+      ? {
+          recordId: costAnchor.recordId,
+          anchorType: costAnchor.anchorType,
+          indicator: costAnchor.indicator,
+          valueLow: costAnchor.valueLow,
+          valueHigh: costAnchor.valueHigh,
+          unit: costAnchor.unit,
+          asOf: costAnchor.asOf,
+          confidence: costAnchor.confidence,
+          structure: costAnchor.structure || null,
+          routes: Array.isArray(costAnchor.routes) ? costAnchor.routes : [],
+          fallbackRange: costAnchor.fallbackRange || null,
+          problems: Array.isArray(costAnchor.problems) ? costAnchor.problems : []
+        }
       : null,
     source: `raw.json ${n} bars + GA-8 + macro/sector snapshot + registry`,
   };

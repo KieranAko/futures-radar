@@ -602,7 +602,10 @@ function ingestCostAnchor({ runId, symbol, record }) {
   if (!runId || !symbol || !record) return { runId, symbol, written: false, reason: 'missing runId/symbol/record' };
   const missing = COST_ANCHOR_REQUIRED.filter((k) => {
     if (record[k] === undefined) return true;
-    if (record[k] === null && !(record.confidence === 'unknown' && (k === 'valueLow' || k === 'valueHigh'))) return true;
+    if (record[k] === null && !(record.confidence === 'unknown' && (k === 'valueLow' || k === 'valueHigh'))) {
+      if (Array.isArray(record.routes) && record.routes.length > 0 && (k === 'valueLow' || k === 'valueHigh')) return false;
+      return true;
+    }
     return false;
   });
   if (missing.length) return { runId, symbol, written: false, reason: `missing fields: ${missing.join(',')}` };
@@ -684,7 +687,9 @@ function verifyCostAnchors() {
       for (const k of COST_ANCHOR_REQUIRED) {
         if (r[k] === undefined) errors.push(`cost-anchor/${symbol}:${runId}: missing ${k}`);
         if (r[k] === null && !(r.confidence === 'unknown' && (k === 'valueLow' || k === 'valueHigh'))) {
-          errors.push(`cost-anchor/${symbol}:${runId}: null ${k}`);
+          if (!(Array.isArray(r.routes) && r.routes.length > 0 && (k === 'valueLow' || k === 'valueHigh'))) {
+            errors.push(`cost-anchor/${symbol}:${runId}: null ${k}`);
+          }
         }
       }
       if (!Array.isArray(r.sourceDates) || r.sourceDates.length === 0) {
@@ -693,7 +698,8 @@ function verifyCostAnchors() {
       if (!Array.isArray(r.sourceTiers) || r.sourceTiers.length === 0) {
         errors.push(`cost-anchor/${symbol}:${runId}: sourceTiers must be non-empty array`);
       }
-      if (r.confidence !== 'unknown' && (!Number.isFinite(r.valueLow) || !Number.isFinite(r.valueHigh) || r.valueLow > r.valueHigh)) {
+      const hasRoutes = Array.isArray(r.routes) && r.routes.length > 0;
+      if (r.confidence !== 'unknown' && !hasRoutes && (!Number.isFinite(r.valueLow) || !Number.isFinite(r.valueHigh) || r.valueLow > r.valueHigh)) {
         errors.push(`cost-anchor/${symbol}:${runId}: invalid value range`);
       }
       if (normAsOf(r.asOf) > todayStr()) {
