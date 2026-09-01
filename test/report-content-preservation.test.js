@@ -24,7 +24,7 @@ describe('report content preservation（信息完整优先）', () => {
   const strategyPlan = JSON.parse(fs.readFileSync(path.join(runDir, 'strategy-plan.json'), 'utf8'));
 
   it('五章框架 + 速览存在，且删除独立今日不做什么章节', () => {
-    for (const heading of ['## 结论速览', '## 一、市场环境', '## 二、候选筛选', '## 三、重点机会分析', '## 四、交易策略板块', '## 五、方法与数据说明']) {
+    for (const heading of ['## 结论速览', '## 一、市场环境', '## 二、候选筛选', '## 三、重点机会分析', '## 四、交易策略（执行参考）', '## 五、方法与数据说明']) {
       assert.ok(report.includes(heading), `missing ${heading}`);
     }
     assert.ok(!report.includes('## 阅读导航'));
@@ -68,7 +68,7 @@ describe('report content preservation（信息完整优先）', () => {
   });
 
   it('方法与数据说明完整保留', () => {
-    for (const block of ['价格区间方法说明', 'EWMA', 'GARCH', 'FHS', 'EVT-POT', 'ACI', '置信度定义', '成本锚方法说明']) {
+    for (const block of ['价格区间方法', 'EWMA', 'GARCH', 'FHS', 'EVT-POT', 'ACI', '置信度定义', '成本锚方法']) {
       assert.ok(report.includes(block), `missing appendix ${block}`);
     }
     for (const line of ['免责声明', '数据来源：akshare']) assert.ok(report.includes(line));

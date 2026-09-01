@@ -70,7 +70,7 @@ function planTrust(p, familyEvidence) {
 
 function renderStrategySection(plan, library, feedback = null, familyEvidence = null, forwardLedger = null, closeMap = null) {
   const lines = [];
-  lines.push('## 四、交易策略板块（执行参考）');
+  lines.push('## 四、交易策略（执行参考）');
   lines.push('');
   lines.push(`> 运行 ID: ${plan.meta.runId} | 信号日: ${plan.meta.signalDate} | 示例权益: ${plan.meta.equityCny} CNY`);
   lines.push('> 确定性生成，仅作执行参考；**不改变报告方向与置信度**。');
@@ -162,7 +162,7 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
   if (feedback && Array.isArray(feedback.results) && feedback.results.length > 0) {
     const done = feedback.results.filter(r => r.status !== 'pending_data');
     if (done.length > 0) {
-      lines.push('### 上一期策略证伪反馈');
+      lines.push('### 上一期证伪反馈');
       lines.push('');
       lines.push('| 计划 | 品种 | 方向/置信度 | 策略 | 信号日 | 验证结果 | 归因 |');
       lines.push('|------|------|------------|------|--------|---------|------|');

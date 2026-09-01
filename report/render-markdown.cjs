@@ -341,7 +341,7 @@ const ch4 = [];
 
 // Appendix (copied from template.md, static content)
 ch4.push('## 五、方法与数据说明\n');
-ch4.push('### 价格区间方法说明\n');
+ch4.push('### 价格区间方法\n');
 ch4.push('- 区间由五个条件型/自适应模型给出：EWMA（RiskMetrics 1996）、GARCH(1,1)（Bollerslev 1986）、FHS（Barone-Adesi et al. 1999）、EVT-POT（McNeil & Frey 2000）、ACI（Gibbs & Candès 2021，轻量近似）');
 ch4.push('- 报告表格列出全部模型与各自区间，✅ 标记当前状态更可能对的模型；参考区间采用该模型');
 ch4.push('- 当前适配只看当下状态：波动切换比、HV 分位、极端单日与收益肥尾，不做历史回测竞赛');
@@ -350,7 +350,7 @@ ch4.push('### 置信度定义\n');ch4.push('- 置信度是 LLM 对整条证据�
 ch4.push('- 它是判断参考标签，不是概率或胜率；等级之间允许容错，不使用证据计数或分值计算');
 ch4.push('- high：证据链实质收敛、无实质性未解决矛盾；medium：方向成立但存在可容忍的反向或不确定；low：支撑不足、矛盾未解决或驱动不可验证\n');
 if (costAnchor) {
-  ch4.push('### 成本锚方法说明\n');
+  ch4.push('### 成本锚方法\n');
   ch4.push('- **理论依据**: `theory-base/05-cost-anchor-marginal-producer.md`（边际生产者/加工利润/进口平价/生产成本）');
   ch4.push('- **存储**: 主档 `data/cost-anchor/<symbol>.json`；本期 `cost-anchor.json` 为文件库投影快照');
   ch4.push('- **纪律**: 成本锚是证据上下文，不是支撑位，不单独决定方向；无来源/过期一律显示不可用');

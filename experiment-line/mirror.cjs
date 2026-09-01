@@ -127,6 +127,7 @@ function normalize(value, prodRunId, mirrorRunId, opts = {}) {
     s = s.replace(/## 一、市场雷达/g, '## 一、市场环境');
     s = s.replace(/## 二、候选品种筛选/g, '## 二、候选筛选');
     s = s.replace(/## 五、交易策略板块（执行参考）/g, '## 四、交易策略板块（执行参考）');
+    s = s.replace(/## 四、交易策略板块（执行参考）/g, '## 四、交易策略（执行参考）');
     s = s.replace(/## 四、今日不做什么\n[\s\S]*?(?=\n---\n)/g, '');
     s = s.replace(/---\n\n\n---/g, '---');
     s = s.replace(/^## 价格区间方法说明\n/gm, '## 五、方法与数据说明\n### 价格区间方法说明\n');
@@ -150,7 +151,7 @@ function normalize(value, prodRunId, mirrorRunId, opts = {}) {
     // 价格区间：历史 run 与五模型参考格式不同 → 两侧整体删除后比较（模型表由专门测试覆盖）
     s = s.replace(/\*\*价格区间（五模型参考）\*\*:\n[\s\S]*?(?=\n\*\*驱动 \(Q1\)\*\*)/g, '');
     s = s.replace(/\*\*价格区间对比\*\*:\n[\s\S]*?(?=\n\*\*驱动 \(Q1\)\*\*)/g, '');
-    s = s.replace(/### 价格区间方法说明\n[\s\S]*?(?=\n---\n)/g, '');
+    s = s.replace(/### 价格区间方法(?:说明)?\n[\s\S]*?(?=\n---\n)/g, '');
     s = s.replace(/### HV 概率锥（统计置信区间）\n[\s\S]*?(?=\n---\n)/g, '');
     s = s.replace(/\*数据来源：[^\n]*/g, '*数据来源：<NORMALIZED>');
     s = s.replace(/#### /g, '### ');
