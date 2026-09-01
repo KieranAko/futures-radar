@@ -41,6 +41,41 @@ function validateGrounding(evidenceIds, packet) {
   return evidenceIds.filter((id) => !fields.has(id) && ![...fields].some((f) => f.startsWith(id + '.')));
 }
 
+/**
+ * 把 FinCoT 输出中的 costAnchorRef 绑定到 packet.cost_anchor 证据链。
+ * used=true 时必须给出可 grounding 的 evidenceIds（cost_anchor.*）。
+ */
+function buildCostAnchorRef(output, packet) {
+  const ref = output && output.costAnchorRef ? output.costAnchorRef : {};
+  const ca = packet && packet.cost_anchor ? packet.cost_anchor : null;
+  if (!ref.used && !ca) return { ref: null, error: null };
+  if (ref.used && !ca) {
+    return { ref: null, error: `${output.symbol}: costAnchorRef.used=true 但 packet.cost_anchor 缺失` };
+  }
+  if (!ref.used && ca) return { ref: null, error: null };
+  const evidenceIds = Array.isArray(ref.evidenceIds) ? ref.evidenceIds.filter((s) => typeof s === 'string') : [];
+  const routeRefs = Array.isArray(ref.routeRefs) ? ref.routeRefs : [];
+  if (evidenceIds.length === 0) {
+    return { ref: null, error: `${output.symbol}: costAnchorRef.used=true 但 evidenceIds 为空（必须引用 cost_anchor.*）` };
+  }
+  const bad = validateGrounding(evidenceIds, { cost_anchor: ca });
+  if (bad.length) {
+    return { ref: null, error: `${output.symbol}: costAnchorRef grounding failed for ${bad.join(',')}` };
+  }
+  return {
+    error: null,
+    ref: {
+      recordId: ca.recordId,
+      used: true,
+      routeRefs,
+      evidenceIds,
+      problems: Array.isArray(ca.problems) ? ca.problems.map((x) => x.code) : [],
+      confidence: ca.confidence,
+      asOf: ca.asOf
+    }
+  };
+}
+
 // 生产 sector-driver 契约适配（只影响 --as-production）：
 //   - v2 P1 的 status='ok' 映射为生产渲染器认识的 'analyzed'
 //   - v2 P1 只覆盖聚焦板块，非聚焦板块补齐为 'unknown' / 'abstain_insufficient'
@@ -125,6 +160,8 @@ function main() {
     }
     const pf = prefill[o.symbol];
     const direction = o.direction === 'long' ? 'bullish' : o.direction === 'short' ? 'bearish' : 'neutral';
+    const costAnchor = buildCostAnchorRef(o, p);
+    if (costAnchor.error) issues.push(costAnchor.error);
     // 六问组装（Q2/Q6 确定性预填 + LLM 写 Q1/Q3/Q4/Q5）
     const q4 = o.q4_confirmations || { selected: 'long', signals: [] };
     const q5 = o.q5_invalidation || { conditions: [] };
@@ -135,6 +172,7 @@ function main() {
       direction,
       confidence: direction === 'neutral' ? 'low' : o.confidence,
       override: null,
+      costAnchorRef: costAnchor.ref,
       q1_driver: o.q1_driver,
       q2_trendOrImpulse: {
         judgment: pf.q2.judgment,
@@ -180,6 +218,7 @@ function main() {
         invalidate_if: q5.conditions,
         branch_status: { regime: 'available', macro_fundamental: 'available', position_flow: 'available' },
         mechanismRef: o.mechanismRef || { family: 'none', mechanismId: null, matchStatus: 'unknown' },
+        cost_anchor_ref: costAnchor.ref,
       },
     });
   }
@@ -233,7 +272,9 @@ function main() {
     grounding: issues.length === 0,
     issues,
     mechanismRefCoverage: reasoningResults.filter((r) => r.result.mechanismRef?.family !== 'none').length,
-    note: '六问字段须能从四卡无损恢复；grounding fail-closed',
+    costAnchorCoverage: reasoningResults.filter((r) => r.result.cost_anchor_ref?.used).length,
+    costAnchorEvidenceGrounded: analyses.every((a) => !a.costAnchorRef || a.costAnchorRef.evidenceIds.length > 0),
+    note: '六问字段须能从四卡无损恢复；grounding fail-closed；costAnchorRef.used=true 时必须引用 cost_anchor.* 证据',
   };
   writeJson(path.join(outDir, 'equivalence-v2.json'), equivalence);
   console.log(`analysis-v2: ${analyses.length} symbols; grounding=${equivalence.grounding}; issues=${issues.length}`);
@@ -242,4 +283,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { main, validateGrounding, buildProductionSectorSectors };
+module.exports = { main, validateGrounding, buildProductionSectorSectors, buildCostAnchorRef };

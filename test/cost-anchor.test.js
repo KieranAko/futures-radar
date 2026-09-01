@@ -96,4 +96,34 @@ describe('cost-anchor 模块（theory-base/05 实现）', () => {
     assert.equal(deriveConfidence({ sourceTiers: [], sourceDates: [] }, policy), 'unknown');
     assert.equal(deriveConfidence({ sourceTiers: ['B'], sourceDates: ['x'], valueLow: 100, valueHigh: 110 }, policy), 'low');
   });
+
+  it('FinCoT costAnchorRef 必须 grounding 到 packet.cost_anchor 证据', () => {
+    const asm = require(path.join(ROOT, 'analyze', 'v2', 'assemble-v2.cjs'));
+    const packet = {
+      cost_anchor: {
+        recordId: 'SA0:r:1',
+        routes: [{ route: '天然碱法', valueLow: 550, valueHigh: 679 }],
+        valueLow: 550,
+        valueHigh: 1554,
+        problems: [{ code: 'multi_process_collapsed', detail: 'x' }],
+        confidence: 'low',
+        asOf: '2026-08'
+      }
+    };
+    const ref = asm.buildCostAnchorRef(
+      { symbol: 'SA0', costAnchorRef: { used: true, routeRefs: ['天然碱法'], evidenceIds: ['cost_anchor.routes', 'cost_anchor.problems'] } },
+      packet
+    );
+    assert.equal(ref.error, null);
+    assert.equal(ref.ref.recordId, 'SA0:r:1');
+    assert.equal(ref.ref.problems[0], 'multi_process_collapsed');
+    // used=true 但 packet 缺失
+    assert.match(asm.buildCostAnchorRef({ symbol: 'SA0', costAnchorRef: { used: true, evidenceIds: ['cost_anchor.routes'] } }, {}).error, /cost_anchor 缺失/);
+    // used=true 但 evidenceIds 为空
+    assert.match(asm.buildCostAnchorRef({ symbol: 'SA0', costAnchorRef: { used: true, evidenceIds: [] } }, packet).error, /evidenceIds 为空/);
+    // 引用不存在的字段 → grounding failed
+    assert.match(asm.buildCostAnchorRef({ symbol: 'SA0', costAnchorRef: { used: true, evidenceIds: ['cost_anchor.nope'] } }, packet).error, /grounding failed/);
+    // 未使用 → null
+    assert.equal(asm.buildCostAnchorRef({ symbol: 'SA0', costAnchorRef: { used: false } }, packet).ref, null);
+  });
 });

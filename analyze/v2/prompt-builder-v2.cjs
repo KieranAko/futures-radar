@@ -77,9 +77,9 @@ function main() {
   }
   L.push('输出 JSON（数组，每品种一条）：');
   L.push('```json');
-  L.push(`[{"symbol":"...","direction":"long|short|pass","confidence":"high|medium|low","q1_driver":{"primary":"...","secondary":"...","evidence":"引用 packet 数值或前日同源线索","source":"..."},"q3_odds":{"bias":"bullish|bearish|neutral","longCase":["..."],"shortCase":["..."],"summary":"..."},"q4_confirmations":{"selected":"long|short","signals":["..."]},"q5_invalidation":{"conditions":["..."]},"mechanismRef":{"family":"carry|value|event|momentum|none","mechanismId":"候选机制或 null","matchStatus":"matched|unknown"},"selfCheck":{"unitCheck":{"pass":true,"note":"..."},"evidenceCheck":{"pass":true,"evidenceIds":["price_data.close_60d","term_structure.br"]},"opposingCheck":{"pass":true,"opposing":["..."]}}}]`);
+  L.push(`[{"symbol":"...","direction":"long|short|pass","confidence":"high|medium|low","q1_driver":{"primary":"...","secondary":"...","evidence":"引用 packet 数值或前日同源线索","source":"..."},"q3_odds":{"bias":"bullish|bearish|neutral","longCase":["..."],"shortCase":["..."],"summary":"..."},"q4_confirmations":{"selected":"long|short","signals":["..."]},"q5_invalidation":{"conditions":["..."]},"mechanismRef":{"family":"carry|value|event|momentum|none","mechanismId":"候选机制或 null","matchStatus":"matched|unknown"},"costAnchorRef":{"used":true,"routeRefs":["天然碱法","氨碱法"],"evidenceIds":["cost_anchor.routes"]},"selfCheck":{"unitCheck":{"pass":true,"note":"..."},"evidenceCheck":{"pass":true,"evidenceIds":["price_data.close_60d","term_structure.br","cost_anchor.routes"]},"opposingCheck":{"pass":true,"opposing":["..."]}}}]`);
   L.push('```');
-  L.push('约束：evidenceCheck.evidenceIds 只能引用 packet 字段；方向必须与 prefill 结构一致或显式说明 override；pass 时给出 data_insufficient/model_abstain/conflict_unresolved 原因。cost_anchor 是成本上下文证据，只可进入 q1_driver.evidence/q3_odds 的推理，不得单独决定方向。');
+  L.push('约束：evidenceCheck.evidenceIds 只能引用 packet 字段；方向必须与 prefill 结构一致或显式说明 override；pass 时给出 data_insufficient/model_abstain/conflict_unresolved 原因。cost_anchor 是成本上下文证据，只可进入 q1_driver.evidence/q3_odds 的推理，不得单独决定方向。若推理中使用了 cost_anchor，必须输出 costAnchorRef.used=true 且 evidenceIds 至少包含一个 cost_anchor.* 字段；未使用则 costAnchorRef.used=false。');
 
   const outFile = path.join(runPath, 'analyze', 'prompts-v2.md');
   fs.writeFileSync(outFile, L.join('\n'), 'utf8');
