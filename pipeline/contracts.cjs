@@ -260,18 +260,34 @@ const stages = [
     note: 'Phase 5 implementation (auto/deterministic stage, not LLM). Applies filter/rules.json.'
   },
 
+  // ── Stage 3a2: Filter-Context（三问分诊上下文冻结）──
+  {
+    id: 'filter-context',
+    label: '初筛上下文冻结',
+    auto: true,
+    dependsOn: ['filter-hard'],
+    inputs: ['filtered-hard-json', 'candidates-json', 'raw-json', 'macro-snapshot-json', 'sector-snapshot-json'],
+    outputs: [],
+    validators: [],
+    failurePolicy: 'hard_fail',
+    rebuildCommand: 'node filter/filter-context.cjs --runId {runId}',
+    script: 'filter/filter-context.cjs',
+    args: (runId) => ['--runId', runId],
+    note: '为 filter-llm 冻结行情/量仓/OI变化/板块/宏观/成本锚上下文；不联网、不调用 LLM。'
+  },
+
   // ── Stage 3b: Filter-LLM (Manual) ──
   {
     id: 'filter-llm',
-    label: '软过滤 (LLM)',
+    label: '初筛 (LLM)',
     auto: false,
-    dependsOn: ['filter-hard'],
+    dependsOn: ['filter-context'],
     inputs: ['filtered-hard-json', 'candidates-json'],
     outputs: ['filtered-json'],
     validators: [],
     failurePolicy: 'hard_fail',
-    manualInstruction: 'LLM: read filter/blueprint.md. From filtered-hard.json, evaluate each candidate against 5 soft criteria. Downgrade/keep/mark观望. ≤3 candidates. ABSOLUTELY FORBIDDEN: resurrecting items removed by filter-hard. Output: filtered.json.',
-    note: 'LLM: read filter/blueprint.md. Evaluate each candidate from filtered-hard.json. Downgrade/keep/mark观望. ≤3. Do NOT resurrect hard-filtered items.'
+    manualInstruction: 'LLM: read filter/blueprint.md. Triage each passed candidate by three questions (行情/可验证线索/是否值得深挖). ≤3 KEEP, long/short both allowed. Do NOT output odds or direction conclusions. Do NOT resurrect hard-filtered items. Run filter/filter-validate.cjs before finalizing.',
+    note: 'LLM: read filter/blueprint.md. 三问分诊：有没有行情、有没有可验证线索、值不值得深挖。≤3 KEEP，多空均可。禁止赔率/方向结论，禁止复活硬过滤品种。'
   },
 
   // ── Stage 4: Analyze (Manual) ──

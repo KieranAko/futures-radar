@@ -261,6 +261,8 @@ function main() {
       decision: 'KEEP',
       initialConfidence: c.confidence,
       initialDirection: c.directionBias,
+      reason: c.reason || undefined,
+      informationGap: c.informationGap || undefined,
       provenance: {
         artifactId: 'filtered-json',
         runId: filtered.meta.runId,
@@ -281,6 +283,7 @@ function main() {
       initialDirection: null,
       reason: d.reason,
       note: d.note || undefined,
+      informationGap: d.informationGap || undefined,
       provenance: {
         artifactId: 'filtered-json',
         runId: filtered.meta.runId,

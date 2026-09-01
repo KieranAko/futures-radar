@@ -208,15 +208,15 @@ for (const item of model.screening.top10) {
 }
 
 ch2.push('\n### 过滤决策\n');
-ch2.push('| 品种 | 决定 | 理由 |');
-ch2.push('|------|------|------|');
+ch2.push('| 品种 | 决定 | 初判理由 | 待验证 |');
+ch2.push('|------|------|---------|--------|');
 
 for (const dec of model.screening.decisions) {
   const badge = dec.decision === 'KEEP' ? '✅ KEEP' : dec.decision === 'DOWNGRADE' ? '❌ DROP' : dec.decision;
-  const reason = dec.decision === 'KEEP'
-    ? `${directionLabel(dec.initialDirection)} | ${confidenceLabel(dec.initialConfidence)}置信`
-    : dec.reason;
-  ch2.push(`| ${dec.symbol} ${dec.name} | ${badge} | ${reason} |`);
+  const reason = dec.reason
+    || (dec.decision === 'KEEP' ? `${directionLabel(dec.initialDirection)} | ${confidenceLabel(dec.initialConfidence)}置信` : dec.note || '—');
+  const gap = dec.informationGap || '—';
+  ch2.push(`| ${dec.symbol} ${dec.name} | ${badge} | ${reason} | ${gap} |`);
 }
 
 ch2.push('\n> 未入选品种及其理由见上表「❌ DROP」列，不再单列章节。\n');
