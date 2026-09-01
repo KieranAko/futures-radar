@@ -68,7 +68,7 @@ function planTrust(p, familyEvidence) {
   return trustRating({ family: inferFamily(planFamilyText(p)), familyEvidence, match: 1, fidelity: 2 });
 }
 
-function renderStrategySection(plan, library, feedback = null, familyEvidence = null, forwardLedger = null) {
+function renderStrategySection(plan, library, feedback = null, familyEvidence = null, forwardLedger = null, closeMap = null) {
   const lines = [];
   lines.push('## 四、交易策略板块（执行参考）');
   lines.push('');
@@ -134,6 +134,9 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
     lines.push(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract || '—'}）`);
     lines.push('');
     lines.push(`- **报告基准**: ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信；主策略 ${primary.strategyId} ${primary.name}；执行模板 ${p.playbook.playbookId}`);
+    if (closeMap && closeMap[p.symbol] != null) {
+      lines.push(`- **收盘价基准**: ${fmt(closeMap[p.symbol], 0)}（锚定合约 ${p.contract || '—'}）`);
+    }
     {
       const t = planTrust(p, familyEvidence);
       lines.push(`- **实验线可信度**: ${t.grade}（${t.why}）`);

@@ -11,10 +11,13 @@ const ROOT = path.resolve(__dirname, '..');
 const { runtimeRoot } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
 
 describe('report content preservation（信息完整优先）', () => {
-  const runId = '20260901-1445-auto';
-  const runDir = path.join(runtimeRoot, 'runs', runId);
+  const runsRoot = path.join(runtimeRoot, 'runs');
+  const runId = fs.existsSync(runsRoot)
+    ? fs.readdirSync(runsRoot).filter((d) => fs.existsSync(path.join(runsRoot, d, 'report.md'))).sort().pop()
+    : null;
+  const runDir = runId ? path.join(runsRoot, runId) : null;
+  if (!runDir) return;
   const reportPath = path.join(runDir, 'report.md');
-  if (!fs.existsSync(reportPath)) return;
 
   const report = fs.readFileSync(reportPath, 'utf8');
   const model = JSON.parse(fs.readFileSync(path.join(runDir, 'report-model.json'), 'utf8'));
@@ -40,6 +43,7 @@ describe('report content preservation（信息完整优先）', () => {
     for (const opp of model.opportunities) {
       const t = opp.thesis;
       assert.ok(report.includes(`### ${opp.symbol} ${opp.name}`));
+      assert.ok(report.includes(`**锚定合约**: ${opp.contract}（收盘 ${opp.marketFacts.close}）`), `missing close for ${opp.symbol}`);
       for (const label of ['**驱动 (Q1)**', '**趋势/脉冲 (Q2)**', '**赔率 (Q3)**', '**确认信号 (Q4)**', '**失效条件 (Q5)**', '**风险 (Q6)**']) {
         assert.ok(report.includes(label), `missing ${label} for ${opp.symbol}`);
       }
@@ -55,6 +59,8 @@ describe('report content preservation（信息完整优先）', () => {
         assert.ok(report.includes(field), `missing ${field} for ${p.symbol}`);
       }
       if (p.executionStatus === 'watch') assert.ok(report.includes('- **转执行触发**'));
+      const close = (model.opportunities.find((o) => o.symbol === p.symbol) || {}).marketFacts?.close;
+      if (close != null) assert.ok(report.includes(`- **收盘价基准**: ${close}`), `missing strategy close for ${p.symbol}`);
     }
     if (report.includes('### 上一期策略证伪反馈')) {
       assert.ok(report.includes('| 计划 | 品种 | 方向/置信度 | 策略 | 信号日 | 验证结果 | 归因 |'));

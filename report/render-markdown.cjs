@@ -200,11 +200,11 @@ console.log('[3/5] Rendering Chapter 2: 候选品种筛选...');
 const ch2 = [];
 ch2.push('## 二、候选筛选\n');
 ch2.push('### Top 10 异动排名\n');
-ch2.push('| # | 品种 | 代码 | 得分 | ATR% | Vol%ile | Vol× | 5dΔ | 方向 | 趋势(vs20/60) |');
-ch2.push('|---|------|------|------|------|---------|------|-----|------|---------------|');
+ch2.push('| # | 品种 | 代码 | 收盘 | 得分 | ATR% | Vol%ile | Vol× | 5dΔ | 方向 | 趋势(vs20/60) |');
+ch2.push('|---|------|------|------|------|------|---------|------|-----|------|---------------|');
 
 for (const item of model.screening.top10) {
-  ch2.push(`| ${item.rank} | ${item.name} | ${item.symbol} | ${fmt(item.score, 1)} | ${fmtPct(item.indicators.atrPct)} | ${fmtPct(item.indicators.volPercentile, 0)} | ${fmt(item.indicators.volMultiplier, 2)}× | ${fmtPct(item.indicators.change5d)} | ${directionSymbol(item.trend.direction)} | ${fmtPct(item.trend.vsMA20)}/${fmtPct(item.trend.vsMA60)} |`);
+  ch2.push(`| ${item.rank} | ${item.name} | ${item.symbol} | ${fmt(item.trend.close, 0)} | ${fmt(item.score, 1)} | ${fmtPct(item.indicators.atrPct)} | ${fmtPct(item.indicators.volPercentile, 0)} | ${fmt(item.indicators.volMultiplier, 2)}× | ${fmtPct(item.indicators.change5d)} | ${directionSymbol(item.trend.direction)} | ${fmtPct(item.trend.vsMA20)}/${fmtPct(item.trend.vsMA60)} |`);
 }
 
 ch2.push('\n### 过滤决策\n');
@@ -247,7 +247,7 @@ for (const opp of model.opportunities) {
 
   // 锚定合约（Analyze 阶段冻结的主导合约）
   if (opp.contract) {
-    ch3.push(`**锚定合约**: ${opp.contract}\n`);
+    ch3.push(`**锚定合约**: ${opp.contract}（收盘 ${fmt(opp.marketFacts && opp.marketFacts.close, 0)}）\n`);
   }
 
   // Judgment change annotation
@@ -408,7 +408,8 @@ if (fs.existsSync(strategyPlanPath)) {
       const familyEvidence = fs.existsSync(familyEvidencePath) ? JSON.parse(fs.readFileSync(familyEvidencePath, 'utf8')) : null;
       const forwardLedgerPath = path.join(__dirname, '..', 'strategies', 'forward-ledger.json');
       const forwardLedger = fs.existsSync(forwardLedgerPath) ? JSON.parse(fs.readFileSync(forwardLedgerPath, 'utf8')) : null;
-      strategySection = renderStrategySection(strategyPlan, library, feedback, familyEvidence, forwardLedger);
+      const closeMap = Object.fromEntries(model.opportunities.map((o) => [o.symbol, o.marketFacts && o.marketFacts.close]));
+      strategySection = renderStrategySection(strategyPlan, library, feedback, familyEvidence, forwardLedger, closeMap);
       console.log(`  ✓ 交易策略板块: rendered (${strategyPlan.plans.length} plans, ${strategySection.length} chars)`);
     } else {
       console.log('  - 交易策略板块: strategy-plan.json 为空，跳过');
@@ -425,11 +426,11 @@ const planMap = new Map((strategyPlan && Array.isArray(strategyPlan.plans) ? str
 const executionLabel = (s) => (s === 'executable' ? '✅ 可执行' : s === 'watch' ? '👀 观察' : s === 'skip' ? '⛔ 跳过' : '—');
 const summaryAndNav = [];
 summaryAndNav.push('## 结论速览\n');
-summaryAndNav.push('| 品种 | 锚定合约 | 方向 | 置信度 | 执行状态 |');
-summaryAndNav.push('|------|---------|------|--------|---------|');
+summaryAndNav.push('| 品种 | 锚定合约 | 收盘价 | 方向 | 置信度 | 执行状态 |');
+summaryAndNav.push('|------|---------|--------|------|--------|---------|');
 for (const opp of model.opportunities) {
   const p = planMap.get(opp.symbol);
-  summaryAndNav.push(`| ${opp.symbol} ${opp.name} | ${opp.contract || '—'} | ${directionLabel(opp.thesis.finalDirection)} | ${confidenceLabel(opp.thesis.finalConfidence)} | ${p ? executionLabel(p.executionStatus) : '—'} |`);
+  summaryAndNav.push(`| ${opp.symbol} ${opp.name} | ${opp.contract || '—'} | ${fmt(opp.marketFacts && opp.marketFacts.close, 0)} | ${directionLabel(opp.thesis.finalDirection)} | ${confidenceLabel(opp.thesis.finalConfidence)} | ${p ? executionLabel(p.executionStatus) : '—'} |`);
 }
 const nExec = [...planMap.values()].filter((p) => p.executionStatus === 'executable').length;
 const nWatch = [...planMap.values()].filter((p) => p.executionStatus === 'watch').length;
