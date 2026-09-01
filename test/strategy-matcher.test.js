@@ -69,12 +69,12 @@ describe('strategy-matcher: 真实 run 复现（workedExample 关键值）', () 
     }
   });
 
-  it('RM0：CS-06=5.0 / MS-06=3.0 / MS-01=2.0（div27×0.5），PB-07(pending)，executable 1 手', () => {
+  it('RM0：CS-06=5.0 / MS-06=3.0 / MS-01=4.0（预测区间不再降级），PB-07(pending)，executable 1 手', () => {
     const p = bySym.RM0;
     const scores = Object.fromEntries(p.matchedStrategies.map(m => [m.strategyId, m.score]));
     assert.equal(scores['CS-06'], 5);
     assert.equal(scores['MS-06'], 3);
-    assert.equal(scores['MS-01'], 2);
+    assert.equal(scores['MS-01'], 4);
     assert.equal(p.playbook.playbookId, 'PB-07');
     assert.equal(p.playbook.gateStatus, 'pending');
     assert.equal(p.entry.triggerTiming, 'T+1 收盘确认；确认后下一交易日开盘执行');
@@ -87,7 +87,7 @@ describe('strategy-matcher: 真实 run 复现（workedExample 关键值）', () 
     assert.equal(p.riskAssessment.marginUtilizationPct, 1.88);
     assert.equal(p.riskAssessment.volContributionPctAnnual, 3.5);
     assert.equal(p.riskAssessment.stressRiskCny, 1174);
-    assert.ok(p.statusReasons.some(r => r.includes('区间模型失稳 divergencePct=27')));
+    assert.ok(!p.statusReasons.some(r => r.includes('区间模型失稳 divergence')));
   });
 
   it('EG0：MS-02=2.25（riskOff=3，2 个 stale 锚点），PB-08(pending)，watch', () => {

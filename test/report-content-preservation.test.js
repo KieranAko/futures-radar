@@ -68,7 +68,7 @@ describe('report content preservation（信息完整优先）', () => {
   });
 
   it('方法与数据说明完整保留', () => {
-    for (const block of ['价格区间方法说明', 'HV 概率锥', 'ATR 通道', '偏差分析', '使用建议', '置信度定义', '成本锚方法说明']) {
+    for (const block of ['价格区间方法说明', 'EWMA', 'GARCH', 'FHS', 'EVT-POT', 'ACI', '置信度定义', '成本锚方法说明']) {
       assert.ok(report.includes(block), `missing appendix ${block}`);
     }
     for (const line of ['免责声明', '数据来源：akshare']) assert.ok(report.includes(line));

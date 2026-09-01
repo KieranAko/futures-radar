@@ -472,17 +472,15 @@ function evalStrategy(strategy, ctx, ind, formulas) {
     return { matched: false, reason: `板块 ${ctx.rm.sector} 不在适用板块` };
   }
   if (strategy.id === 'MS-01') {
-    // t6：trendAlignment 公式替代文本匹配；divergence>20 → 降级 ×0.5
+    // t6：trendAlignment 公式匹配；预测区间不再作为趋势信号降级依据
     if (dir === 'neutral' || !trendAligned(dir, ind)) return { matched: false, reason: '趋势不对齐' };
-    const div = ctx.rm.priceRanges?.[0]?.divergence?.pct ?? 0;
-    const degradation = div > 20 ? 0.5 : 1;
-    const score = round2(strategy.match.weight * 1.0 * confMult(strategy.confidenceHint) * degradation);
+    const score = round2(strategy.match.weight * 1.0 * confMult(strategy.confidenceHint));
     // t13：证据串符号按方向——bullish 用 '>'、bearish 用 '<'
     const sign = dir === 'bullish' ? '>' : '<';
     const ma60Text = ind.ma60 != null ? ind.ma60.toFixed(1) : '—';
     const chgText = ind.change5d != null ? `${ind.change5d > 0 ? '+' : ''}${ind.change5d.toFixed(2)}%` : '—';
-    const evidence = `趋势对齐（close ${ind.close}${sign}MA20(${ind.ma20 != null ? ind.ma20.toFixed(1) : '—'})/MA60(${ma60Text}) 且 change5d ${chgText} 同向）${degradation === 0.5 ? '；divergencePct>20 → 降级 ×0.5' : ''}`;
-    return { matched: true, score, degradation: degradation === 0.5 ? 'divergencePct>20 → ×0.5' : null, evidence };
+    const evidence = `趋势对齐（close ${ind.close}${sign}MA20(${ind.ma20 != null ? ind.ma20.toFixed(1) : '—'})/MA60(${ma60Text}) 且 change5d ${chgText} 同向）`;
+    return { matched: true, score, degradation: null, evidence };
   }
   if (strategy.id === 'MS-02') {
     const { riskOn, riskOff, stale } = formulas.riskScores;
@@ -632,7 +630,6 @@ function playbookStateGate(pbId, ctx, ind) {
         : { pass: true, note: '事件日幅度未达标 → 触发 pending（转执行触发=Q4 确认信号）', pending: true };
     }
     case 'PB-08': {
-      if (divPct >= 20) return fail(`偏差分析 ${divPct}%≥20，当日弃用`);
       // 触发 pending：价格需位于 3d p68 沿 ±0.25×ATR5
       const cone3d = ctx.probEntry?.cone?.['3d'];
       const p68 = cone3d?.p68 || null;
@@ -640,8 +637,8 @@ function playbookStateGate(pbId, ctx, ind) {
       const buff = 0.25 * atr5;
       const triggered = near <= buff;
       return triggered
-        ? { pass: true, note: `divergencePct=${divPct}<20；价格位于 p68 沿 ±0.25×ATR5（触发）`, pending: false }
-        : { pass: true, note: `divergencePct=${divPct}<20；价格未触及 3d p68 ${dir === 'bullish' ? '下' : '上'}沿（${p68 ? (dir === 'bullish' ? p68[0].toFixed(1) : p68[1].toFixed(1)) : '—'}）±0.25×ATR5 → 触发 pending`, pending: true };
+        ? { pass: true, note: `价格位于 p68 沿 ±0.25×ATR5（触发）`, pending: false }
+        : { pass: true, note: `价格未触及 3d p68 ${dir === 'bullish' ? '下' : '上'}沿（${p68 ? (dir === 'bullish' ? p68[0].toFixed(1) : p68[1].toFixed(1)) : '—'}）±0.25×ATR5 → 触发 pending`, pending: true };
     }
     case 'PB-04': {
       const ok = (hvPct !== undefined && hvPct <= 30) || ind.nr7;
@@ -745,11 +742,11 @@ function riskLayer(ctx, ind, opts) {
       const needEq = (hv.annual * close * mult) / rc.volTargetPerPosition;
       reasons.push(`波动率目标否决（lotsVol=0，约 ${floor1(needEq / 10000)} 万权益起 1 手）`);
     }
-    // step 4：警示调整
-    if (hv.degraded || divPct >= rc.divergenceDegrade) {
+    // step 4：警示调整（预测区间由五模型参考区间给出，不再用 divergence 硬门禁）
+    if (hv.degraded) {
       const degradedVol = Math.floor(lotsVol * 0.5);
       lots = Math.min(lots, degradedVol);
-      reasons.push(`区间模型失稳 divergencePct=${divPct}≥20（vol cap ×0.5，手数仍由风险预算决定）`);
+      reasons.push('HV 数据降级（vol cap ×0.5，手数仍由风险预算决定）');
     }
     if (hv.percentile90d !== undefined && hv.percentile90d >= rc.volPercentileSkip) {
       lots = 0;

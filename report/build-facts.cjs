@@ -362,6 +362,9 @@ function main() {
         }
       },
       priceRanges,
+      intervalModels: probEntry.intervalModels || null,
+      currentState: probEntry.currentState || null,
+      referenceInterval: probEntry.referenceInterval || null,
       screening: {
         initialConfidence: keepCandidate.confidence,
         initialDirection: keepCandidate.directionBias,

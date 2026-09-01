@@ -10,6 +10,7 @@ const path = require('path');
 const { extractOHLC, getLatestClose } = require('./ohlc-reader.cjs');
 const { autoEstimateHV, hvPercentile } = require('./hv-estimators.js');
 const { probabilityCone, compareBands } = require('./probability-cone.js');
+const { computePredictionIntervals, logReturns } = require('./prediction-intervals.cjs');
 const dataStore = require('../data-store/index.cjs');
 
 /**
@@ -223,14 +224,54 @@ async function execute(runDir, artifacts) {
       console.log(`  3d 95% cone: [${cone['3d']['p95'][0]}, ${cone['3d']['p95'][1]}]`);
       console.log(`  5d 95% cone: [${cone['5d']['p95'][0]}, ${cone['5d']['p95'][1]}]`);
 
-      // Compare ATR band vs HV cone
+      // 五模型预测区间（有行情品种专用：条件型/自适应模型）
+      let finalCone = cone;
+      let intervalModels = null;
+      let currentState = null;
+      let referenceInterval = null;
+      let tailReturns = null;
+      try {
+        const historical = dataStore.loadHistoricalCache();
+        const hc = historical && historical.contracts && historical.contracts[symbol];
+        if (hc && hc.ohlcv && Array.isArray(hc.ohlcv.close) && hc.ohlcv.close.length >= 60) {
+          tailReturns = logReturns(hc.ohlcv.close);
+        }
+      } catch {
+        tailReturns = null;
+      }
+      try {
+        const pi = computePredictionIntervals({
+          bars: ohlcArray,
+          close,
+          hvAnnual: hvResult.hv,
+          atr5,
+          hvPercentile: percentile90d,
+          tailReturns
+        });
+        if (pi && pi.referenceInterval && pi.referenceInterval.cone) {
+          finalCone = pi.referenceInterval.cone;
+          intervalModels = pi.intervalModels;
+          currentState = pi.currentState;
+          referenceInterval = {
+            modelId: pi.referenceInterval.modelId,
+            modelName: pi.referenceInterval.modelName,
+            reason: pi.referenceInterval.reason
+          };
+          console.log(`  reference interval: ${referenceInterval.modelName} (${referenceInterval.modelId}) — ${referenceInterval.reason}`);
+        } else {
+          console.log('  ⚠️  prediction intervals unavailable → fallback GBM-HV cone');
+        }
+      } catch (err) {
+        console.log(`  ⚠️  prediction intervals failed (${err.message}) → fallback GBM-HV cone`);
+      }
+
+      // Compare ATR band vs reference interval
       const atrBand = [close - 2 * atr5, close + 2 * atr5];
-      const hvBand3d = cone['3d']['p95'];
+      const hvBand3d = finalCone['3d']['p95'];
       const comparison = compareBands(atrBand, hvBand3d);
 
       console.log(`  ATR 2× band: [${atrBand[0].toFixed(1)}, ${atrBand[1].toFixed(1)}]`);
-      console.log(`  Divergence: ${comparison.divergencePct}%`);
-      console.log(`  ${comparison.interpretation}`);
+      console.log(`  Reference divergence: ${comparison.divergencePct}%`);
 
       // Assemble probability entry
       probabilities.push({
@@ -246,7 +287,10 @@ async function execute(runDir, artifacts) {
           totalBars: ohlcArray.length,
           degraded: hvResult.degraded || false
         },
-        cone,
+        cone: finalCone,
+        intervalModels,
+        currentState,
+        referenceInterval,
         atrComparison: {
           atr5,
           atr2xBand: [Math.round(atrBand[0] * 10) / 10, Math.round(atrBand[1] * 10) / 10],

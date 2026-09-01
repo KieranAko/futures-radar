@@ -213,6 +213,9 @@ for (const opp of reportFacts.opportunities) {
     contract: opp.contract || null,
     marketFacts: opp.marketFacts,
     priceRanges: opp.priceRanges,
+    intervalModels: opp.intervalModels || null,
+    currentState: opp.currentState || null,
+    referenceInterval: opp.referenceInterval || null,
     screening: opp.screening,
     thesis
   });

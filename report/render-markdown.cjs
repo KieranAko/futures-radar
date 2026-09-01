@@ -280,28 +280,30 @@ for (const opp of model.opportunities) {
     ch3.push(`**板块背景（仅上下文，不作为本品种驱动证据）**: ${secObserved}；板块驱动：${sectorDriverClue(opp.sector)}\n`);
   }
 
-  // Price ranges table
-  ch3.push('**价格区间对比**:\n');
-  ch3.push('| 方法 | 3日 68% 区间 | 3日 95% 区间 | 说明 |');
-  ch3.push('|------|-------------|-------------|------|');
+  // 价格区间：五模型参考（条件型/自适应模型，✅ 当前更可能对）
+  ch3.push('**价格区间（五模型参考）**:\n');
+  ch3.push('| 模型 | 原理 | 3日95%区间 | 5日95%区间 | 当前判断 |');
+  ch3.push('|------|------|-----------|-----------|---------|');
 
-  const range3d = opp.priceRanges.find(r => r.period === '3d');
   const hv = opp.marketFacts.hv;
-
+  const range3d = opp.priceRanges.find(r => r.period === '3d');
+  const models = Array.isArray(opp.intervalModels) ? opp.intervalModels : [];
+  if (models.length > 0) {
+    for (const m of models) {
+      const i3 = (m.intervals || []).find(x => x.period === 3);
+      const i5 = (m.intervals || []).find(x => x.period === 5);
+      const adopted = opp.referenceInterval && opp.referenceInterval.modelId === m.id;
+      const current = adopted ? `✅ 当前更可能对：${opp.referenceInterval.reason}` : '—';
+      ch3.push(`| ${m.name} | ${m.principle} | ${i3 ? fmtRange(i3.p95) : '—'} | ${i5 ? fmtRange(i5.p95) : '—'} | ${current} |`);
+    }
+    if (opp.referenceInterval) {
+      ch3.push(`\n> 参考区间采用 ${opp.referenceInterval.modelName}（${opp.referenceInterval.reason}）。`);
+    }
+  } else if (range3d) {
+    ch3.push(`| HV概率锥 | 20日历史波动率对数正态外推 | ${fmtRange(range3d.hvCone.p68)} | ${fmtRange(range3d.hvCone.p95)} | — |`);
+  }
   if (range3d) {
-    // HV cone row
-    const hvRow = range3d.hvCone
-      ? `| HV概率锥 | ${fmtRange(range3d.hvCone.p68)} | ${fmtRange(range3d.hvCone.p95)} | HV ${fmtPct(hv.annual * 100, 1)} (P${hv.percentile90d || '—'}) ${hv.estimator}${hv.correctionCount > 0 ? ` ⚠️修正${hv.correctionCount}根` : ''} |`
-      : `| HV概率锥 | — | — | HV 数据不足，无法计算概率锥 |`;
-    ch3.push(hvRow);
-
-    // ATR row
-    ch3.push(`| ATR通道 | — | ${fmtRange(range3d.atrBand.band)} | ATR5=${fmt(range3d.atrBand.atr5)} (2×ATR) |`);
-
-    // Divergence row
-    const divPct = range3d.divergence.pct !== null ? fmtPct(range3d.divergence.pct) : '—';
-    const divInterpret = range3d.divergence.interpretation;
-    ch3.push(`| 偏差分析 | — | ${divPct} | ${divInterpret} |`);
+    ch3.push(`> ATR5=${fmt(range3d.atrBand.atr5)}，2×ATR 通道 [${fmtRange(range3d.atrBand.band)}] 仅作止损/跳空口径，不参与区间判断。`);
   }
 
   ch3.push('');
@@ -340,32 +342,10 @@ const ch4 = [];
 // Appendix (copied from template.md, static content)
 ch4.push('## 五、方法与数据说明\n');
 ch4.push('### 价格区间方法说明\n');
-ch4.push('#### HV 概率锥（统计置信区间）\n');
-ch4.push('**计算方法**: 基于 Yang-Zhang 20日历史波动率（HV）的几何布朗运动（GBM）闭式解。68% 对应 1σ，95% 对应 1.96σ。\n');
-ch4.push('**数学基础**:');
-ch4.push('- 上沿 = close × exp(z × σ_daily × √days)');
-ch4.push('- 下沿 = close × exp(-z × σ_daily × √days)');
-ch4.push('- σ_daily = HV_annual / √242（242为中国期货年交易日）\n');
-ch4.push('**性质**: 统计学置信区间，表示"假设价格服从对数正态分布，有 68%/95% 概率落在区间内"。\n');
-ch4.push('**数据来源**: `close` = 最新收盘价，`HV` = 20日 Yang-Zhang 波动率（含隔夜跳空），`percentile` = HV 在 90日历史中的分位数。\n');
-ch4.push('**估算器**: Yang-Zhang（优先）> Garman-Klass（缺 Open）> Close-to-Close（仅 Close）。若 OHLC 数据修正率 >20%，标记 `degraded=true`。\n');
-ch4.push('#### ATR 通道（经验波动带）\n');
-ch4.push('**计算公式**: `上轨 = close + 2×ATR5`, `下轨 = close - 2×ATR5`\n');
-ch4.push('**性质**: 基于历史波动幅度的经验波动带，不是统计学置信区间。2×ATR 表示价格在该通道外波动属于"显著偏离历史常态"，但不等同于"95% 概率覆盖"。\n');
-ch4.push('**数据来源**: `close` = 当前收盘价，`ATR5` = 5日平均真实波动幅度（来自 probability.json）\n');
-ch4.push('#### 偏差分析\n');
-ch4.push('**计算**: |ATR通道宽度 - HV 95%区间宽度| / HV 95%区间宽度 × 100%\n');
-ch4.push('**解释**:');
-ch4.push('- <10%: 两种方法区间基本一致，波动率模型稳定 ✅');
-ch4.push('- 10-20%: 两种方法区间存在差异，波动率结构可能变化 ⚠️');
-ch4.push('- >20%: 两种方法区间严重背离，波动率模型不稳定 ❌\n');
-ch4.push('#### 使用建议\n');
-ch4.push('1. ✅ **HV 概率锥作为主参考**: 统计学基础更严谨，提供 68%/95% 置信区间');
-ch4.push('2. ✅ **ATR 通道作为辅助**: 经验波动带，结合日内波动特征');
-ch4.push('3. ⚠️ **偏差 <10% 时可信度更高**: 两种方法一致时，价格区间参考价值更大');
-ch4.push('4. ⚠️ **偏差 >20% 时谨慎使用**: 波动结构剧变期，历史波动率失效');
-ch4.push('5. ⚠️ **突发事件失效**: 地缘政治、政策变化等黑天鹅事件会使两种方法同时失效');
-ch4.push('6. ⚠️ **品种差异**: EC0（集运）等超高波动品种需特殊解读（HV 可达 200-400%）\n');
+ch4.push('- 区间由五个条件型/自适应模型给出：EWMA（RiskMetrics 1996）、GARCH(1,1)（Bollerslev 1986）、FHS（Barone-Adesi et al. 1999）、EVT-POT（McNeil & Frey 2000）、ACI（Gibbs & Candès 2021，轻量近似）');
+ch4.push('- 报告表格列出全部模型与各自区间，✅ 标记当前状态更可能对的模型；参考区间采用该模型');
+ch4.push('- 当前适配只看当下状态：波动切换比、HV 分位、极端单日与收益肥尾，不做历史回测竞赛');
+ch4.push('- ATR 仅作止损与跳空口径，不参与区间判断；不同模型差异是正常的，不再判为"模型失效"\n');
 ch4.push('### 置信度定义\n');ch4.push('- 置信度是 LLM 对整条证据链（数值+文本）的方向支撑强度与矛盾程度的综合判断，分 high/medium/low 三个序数等级');
 ch4.push('- 它是判断参考标签，不是概率或胜率；等级之间允许容错，不使用证据计数或分值计算');
 ch4.push('- high：证据链实质收敛、无实质性未解决矛盾；medium：方向成立但存在可容忍的反向或不确定；low：支撑不足、矛盾未解决或驱动不可验证\n');
@@ -378,7 +358,7 @@ if (costAnchor) {
 }
 ch4.push('---\n');
 ch4.push('*免责声明：本报告由 AI 生成，仅为投机机会发现工具，不构成投资建议。所有交易决策需自行判断。*');
-ch4.push(`*数据来源：akshare (行情) | 波动率方法：Yang-Zhang HV + 2×ATR5 | 管道版本：${model.meta.pipelineVersion}*`);
+ch4.push(`*数据来源：akshare (行情) | 预测区间：五模型参考（EWMA/GARCH/FHS/EVT-POT/ACI） | 管道版本：${model.meta.pipelineVersion}*`);
 
 console.log(`  ✓ Chapter 5: ${ch4.length} lines`);
 

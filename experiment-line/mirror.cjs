@@ -34,7 +34,26 @@ const TIMESTAMP_KEYS = new Set([
 ]);
 
 // 历史 baseline 未冻结的新增字段：回放比对时两侧删除（新增字段由专门测试覆盖）
-const HISTORICAL_BASELINE_DROP_KEYS = new Set(['confidenceRationale']);
+const HISTORICAL_BASELINE_DROP_KEYS = new Set([
+  'confidenceRationale',
+  'intervalModels',
+  'currentState',
+  'referenceInterval',
+  'cone',
+  'hvCone',
+  'divergence',
+  'divergencePct',
+  'interpretation',
+  'hv95Band3d',
+  'matchEvidence',
+  'degradation',
+  'score',
+  'inputsSha',
+  'matchedStrategies',
+  'supportingEvidence',
+  'statusReasons',
+  'gateNote'
+]);
 
 const NETWORK_STAGES = new Set(['source-probe', 'collect', 'sector', 'macro']);
 const MANUAL_STAGES = new Set(['filter-llm', 'analyze', 'publish-current']);
@@ -128,6 +147,12 @@ function normalize(value, prodRunId, mirrorRunId, opts = {}) {
       s = s.replace(/\|------\|------\|---------\|--------\|/, '|------|------|------|');
       s = s.replace(/ \| — \|$/gm, ' |');
     }
+    // 价格区间：历史 run 与五模型参考格式不同 → 两侧整体删除后比较（模型表由专门测试覆盖）
+    s = s.replace(/\*\*价格区间（五模型参考）\*\*:\n[\s\S]*?(?=\n\*\*驱动 \(Q1\)\*\*)/g, '');
+    s = s.replace(/\*\*价格区间对比\*\*:\n[\s\S]*?(?=\n\*\*驱动 \(Q1\)\*\*)/g, '');
+    s = s.replace(/### 价格区间方法说明\n[\s\S]*?(?=\n---\n)/g, '');
+    s = s.replace(/### HV 概率锥（统计置信区间）\n[\s\S]*?(?=\n---\n)/g, '');
+    s = s.replace(/\*数据来源：[^\n]*/g, '*数据来源：<NORMALIZED>');
     s = s.replace(/#### /g, '### ');
     // 删除新增附录节后遗留的空行（仅在最终免责声明前的 --- 分隔线处归一）
     s = s.replace(/\n{2,}---\n\n\*免责声明/g, '\n---\n\n*免责声明');
