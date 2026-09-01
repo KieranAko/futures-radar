@@ -96,6 +96,20 @@ const modelPath = path.join(RUN_DIR, 'report-model.json');
 const model = readJSON(modelPath);
 console.log(`  ✓ Loaded ${model.opportunities.length} opportunities`);
 
+// 成本锚快照（由文件库主档投影，见 analyze/v2/cost-anchor/；缺失时行内不展示）
+const costAnchorPath = path.join(RUN_DIR, 'cost-anchor.json');
+const costAnchor = fs.existsSync(costAnchorPath) ? readJSON(costAnchorPath) : null;
+function costAnchorLine(symbol) {
+  const entry = costAnchor && Array.isArray(costAnchor.symbols)
+    ? costAnchor.symbols.find((s) => s.symbol === symbol)
+    : null;
+  if (!entry || entry.status === 'unavailable' || entry.confidence === 'unknown') return null;
+  const range = Number.isFinite(entry.valueLow) && Number.isFinite(entry.valueHigh)
+    ? `${fmt(entry.valueLow, 0)}–${fmt(entry.valueHigh, 0)}${entry.unit || ''}`
+    : '—';
+  return `**成本锚**（asOf ${entry.asOf}, ${confidenceLabel(entry.confidence)}置信）: ${entry.indicator} ${range}（来源主档 ${entry.recordId}）`;
+}
+
 // ── Chapter 1: 市场雷达 ──────────────────────────────────────
 console.log('[2/5] Rendering Chapter 1: 市场雷达...');
 
@@ -272,6 +286,8 @@ for (const opp of model.opportunities) {
   }
 
   // 6-question analysis
+  const costLine = costAnchorLine(opp.symbol);
+  if (costLine) ch3.push(`${costLine}\n`);
   ch3.push(`**驱动 (Q1)**: ${thesis.driver.primary}；${thesis.driver.secondary}。${thesis.driver.evidence.substring(0, 100)}... (来源: ${thesis.driver.source})\n`);
   ch3.push(`**趋势/脉冲 (Q2)**: ${thesis.trendOrImpulse.assessment}\n`);
   ch3.push(`**赔率 (Q3)**: ${thesis.odds.reasoning} → ${thesis.odds.bias}\n`);
@@ -332,6 +348,12 @@ ch4.push('3. ⚠️ **偏差 <10% 时可信度更高**: 两种方法一致时，
 ch4.push('4. ⚠️ **偏差 >20% 时谨慎使用**: 波动结构剧变期，历史波动率失效');
 ch4.push('5. ⚠️ **突发事件失效**: 地缘政治、政策变化等黑天鹅事件会使两种方法同时失效');
 ch4.push('6. ⚠️ **品种差异**: EC0（集运）等超高波动品种需特殊解读（HV 可达 200-400%）\n');
+if (costAnchor) {
+  ch4.push('### 成本锚方法说明\n');
+  ch4.push('- **理论依据**: `theory-base/05-cost-anchor-marginal-producer.md`（边际生产者/加工利润/进口平价/生产成本）');
+  ch4.push('- **存储**: 主档 `data/cost-anchor/<symbol>.json`；本期 `cost-anchor.json` 为文件库投影快照');
+  ch4.push('- **纪律**: 成本锚是证据上下文，不是支撑位，不单独决定方向；无来源/过期一律显示不可用\n');
+}
 ch4.push('---\n');
 ch4.push('*免责声明：本报告由 AI 生成，仅为投机机会发现工具，不构成投资建议。所有交易决策需自行判断。*');
 ch4.push(`*数据来源：akshare (行情) | 波动率方法：Yang-Zhang HV + 2×ATR5 | 管道版本：${model.meta.pipelineVersion}*`);

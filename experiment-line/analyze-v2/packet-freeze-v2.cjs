@@ -57,7 +57,7 @@ function latestBasis(libSymbol, signalDate) {
   return rows.length ? rows[rows.length - 1] : null;
 }
 
-function buildPacket(raw, sym, signalDate, macroSnapshot, sectorSnapshot, registry, prevAnalysis) {
+function buildPacket(raw, sym, signalDate, macroSnapshot, sectorSnapshot, registry, prevAnalysis, costAnchor) {
   const c = raw.contracts[sym];
   const o = c.ohlcv;
   const n = o.dates.length;
@@ -115,6 +115,9 @@ function buildPacket(raw, sym, signalDate, macroSnapshot, sectorSnapshot, regist
     mechanism_candidates: familyCandidates,
     prevAnalysisCache: prev
       ? { runId: prev.runId, direction: prev.direction, confidence: prev.confidence, q1: prev.q1_driver?.primary, q5: prev.q5_invalidation?.conditions }
+      : null,
+    cost_anchor: costAnchor && costAnchor.confidence !== 'unknown'
+      ? { recordId: costAnchor.recordId, anchorType: costAnchor.anchorType, indicator: costAnchor.indicator, valueLow: costAnchor.valueLow, valueHigh: costAnchor.valueHigh, unit: costAnchor.unit, asOf: costAnchor.asOf, confidence: costAnchor.confidence }
       : null,
     source: `raw.json ${n} bars + GA-8 + macro/sector snapshot + registry`,
   };
@@ -183,10 +186,20 @@ function main() {
     }
   }
 
+  // 成本锚：只从当期快照读取（快照由文件库主档投影，见 analyze/v2/cost-anchor/）
+  const costAnchorMap = {};
+  const costAnchorPath = path.join(runPath, 'cost-anchor.json');
+  if (fs.existsSync(costAnchorPath)) {
+    const ca = readJson(costAnchorPath);
+    for (const entry of ca.symbols || []) {
+      if (entry.status !== 'unavailable') costAnchorMap[entry.symbol] = entry;
+    }
+  }
+
   const keep = (filtered.candidates || []).filter((c) => c.decision === 'KEEP');
   const packets = {};
   for (const c of keep) {
-    packets[c.symbol] = buildPacket(raw, c.symbol, signalDate, macroSnapshot, sectorSnapshot, registry, prevAnalysis);
+    packets[c.symbol] = buildPacket(raw, c.symbol, signalDate, macroSnapshot, sectorSnapshot, registry, prevAnalysis, costAnchorMap[c.symbol]);
   }
   const out = {
     schema: 'futures-radar-analyze-v2-packets/1',

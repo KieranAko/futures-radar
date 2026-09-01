@@ -171,4 +171,30 @@ describe('data-store 文件库', () => {
     assert.deepEqual(dataStore.getContractBarsForRun('run-2', 'RB0'), { contract: 'RB2610', bars });
     assert.equal(dataStore.getContractBarsForRun('missing', 'RB0'), null);
   });
+
+  it('cost anchor 主档：ingest → asOf≤signalDate 查询 → 幂等覆盖 → 校验', () => {
+    const base = {
+      anchorType: 'processing_margin', indicator: '分工艺完全成本',
+      valueLow: 550, valueHigh: 1550, unit: '元/吨', asOf: '2026-08',
+      sourceDates: ['2026-08-31'], sourceTiers: ['A', 'B'], confidence: 'medium'
+    };
+    const res1 = dataStore.ingestCostAnchor({ runId: 'ca-run-1', symbol: 'SA0', record: base });
+    assert.equal(res1.written, true);
+    const rec = dataStore.getCostAnchor('SA0', '2026-08-31');
+    assert.equal(rec.recordId, res1.recordId);
+    assert.equal(rec.valueHigh, 1550);
+    // asOf 晚于 signalDate → 不可见（防未来）
+    assert.equal(dataStore.getCostAnchor('SA0', '2026-07-31'), null);
+    // 同 runId 幂等覆盖
+    const res2 = dataStore.ingestCostAnchor({ runId: 'ca-run-1', symbol: 'SA0', record: { ...base, valueHigh: 1600 } });
+    assert.equal(res2.recordId, res1.recordId);
+    assert.equal(dataStore.getCostAnchor('SA0', '2026-08-31').valueHigh, 1600);
+    assert.equal(dataStore.getCostAnchorHistory('SA0').runs['ca-run-1'].valueHigh, 1600);
+    assert.equal(dataStore.costAnchorStats().symbols, 1);
+    assert.equal(dataStore.verifyCostAnchors().ok, true);
+    // unknown 记录允许空区间
+    const tomb = { ...base, anchorType: 'unknown', confidence: 'unknown', valueLow: null, valueHigh: null };
+    assert.equal(dataStore.ingestCostAnchor({ runId: 'ca-run-2', symbol: 'SA0', record: tomb }).written, true);
+    assert.equal(dataStore.verifyCostAnchors().ok, true);
+  });
 });

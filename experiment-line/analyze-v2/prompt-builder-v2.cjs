@@ -62,6 +62,7 @@ function main() {
     const cand = Object.entries(p.mechanism_candidates || {}).map(([f, ms]) => `${f}=[${ms.map((m) => `${m.id}(${m.status})`).join(',')}]`).join('; ');
     L.push(`- mechanism_candidates: ${cand || '无'}`);
     L.push(`- prevAnalysis: ${p.prevAnalysisCache ? `${p.prevAnalysisCache.direction}/${p.prevAnalysisCache.confidence}（${p.prevAnalysisCache.q1}）` : '无'}`);
+    L.push(`- cost_anchor: ${p.cost_anchor ? `${p.cost_anchor.indicator}=${p.cost_anchor.valueLow}-${p.cost_anchor.valueHigh}${p.cost_anchor.unit} (asOf ${p.cost_anchor.asOf}, ${p.cost_anchor.confidence})` : '不可用'}`);
     L.push(`- prefill q2: ${pf.q2.judgment}/${pf.q2.priceAlignment}; q4long=${JSON.stringify(pf.q4.long)}; q5long=${JSON.stringify(pf.q5.long)}; q6=${JSON.stringify(pf.q6)}`);
     L.push('');
   }
@@ -69,7 +70,7 @@ function main() {
   L.push('```json');
   L.push(`[{"symbol":"...","direction":"long|short|pass","confidence":"high|medium|low","q1_driver":{"primary":"...","secondary":"...","evidence":"引用 packet 数值或前日同源线索","source":"..."},"q3_odds":{"bias":"bullish|bearish|neutral","longCase":["..."],"shortCase":["..."],"summary":"..."},"q4_confirmations":{"selected":"long|short","signals":["..."]},"q5_invalidation":{"conditions":["..."]},"mechanismRef":{"family":"carry|value|event|momentum|none","mechanismId":"候选机制或 null","matchStatus":"matched|unknown"},"selfCheck":{"unitCheck":{"pass":true,"note":"..."},"evidenceCheck":{"pass":true,"evidenceIds":["price_data.close_60d","term_structure.br"]},"opposingCheck":{"pass":true,"opposing":["..."]}}}]`);
   L.push('```');
-  L.push('约束：evidenceCheck.evidenceIds 只能引用 packet 字段；方向必须与 prefill 结构一致或显式说明 override；pass 时给出 data_insufficient/model_abstain/conflict_unresolved 原因。');
+  L.push('约束：evidenceCheck.evidenceIds 只能引用 packet 字段；方向必须与 prefill 结构一致或显式说明 override；pass 时给出 data_insufficient/model_abstain/conflict_unresolved 原因。cost_anchor 是成本上下文证据，只可进入 q1_driver.evidence/q3_odds 的推理，不得单独决定方向。');
 
   const outFile = path.join(runPath, 'analyze', 'prompts-v2.md');
   fs.writeFileSync(outFile, L.join('\n'), 'utf8');

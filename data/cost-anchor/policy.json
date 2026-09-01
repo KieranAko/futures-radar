@@ -1,0 +1,47 @@
+{
+  "schema": "futures-radar-cost-anchor-policy/1",
+  "anchorTypes": {
+    "extraction": {
+      "maxStaleDays": 30,
+      "deviationRefreshPct": 15,
+      "minSources": 2,
+      "confidenceRule": ">=2 A/S 且价差<15% → high；>=2 且至少1个A级、价差<20% → medium；其余 low/unknown"
+    },
+    "processing_margin": {
+      "maxStaleDays": 7,
+      "deviationRefreshPct": 5,
+      "minSources": 2,
+      "confidenceRule": "同上"
+    },
+    "import_parity": {
+      "maxStaleDays": 1,
+      "deviationRefreshPct": 0,
+      "minSources": 1,
+      "note": "进口平价由行情公式日算；检索只用于运费/关税/升贴水假设更新",
+      "confidenceRule": "公式确定性结果 medium；假设来源过期 → low"
+    },
+    "production_cost": {
+      "maxStaleDays": 180,
+      "deviationRefreshPct": 15,
+      "minSources": 1,
+      "confidenceRule": "USDA ERS/成本收益汇编 S 级单源可 medium；其余 low"
+    },
+    "none": {
+      "maxStaleDays": 0,
+      "minSources": 0,
+      "note": "无成本锚（如 EC0 运价指数）"
+    }
+  },
+  "sourceTiers": {
+    "S": "官方统计、公司公告/年报、交易所/行业协会",
+    "A": "SMM/Mysteel/隆众/百川/卓创公开页、IGC、安泰科",
+    "B": "券商/期货公司研报",
+    "C": "媒体转述（不作数字依据）",
+    "forbidden": "股吧/社交媒体，除非引用可回溯的 S/A 原文"
+  },
+  "validation": {
+    "maxSourceAgeDays": 365,
+    "maxCrossSourceSpreadPct": 20,
+    "requiredFields": ["anchorType", "indicator", "valueLow", "valueHigh", "unit", "asOf", "sourceDates", "sourceTiers", "confidence"]
+  }
+}

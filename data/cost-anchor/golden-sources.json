@@ -1,0 +1,19 @@
+{
+  "schema": "futures-radar-cost-anchor-sources/1",
+  "tiers": {
+    "S": ["USDA ERS", "国家统计局/发改委成本收益汇编", "World Gold Council", "上市公司公告/年报", "交易所", "行业协会"],
+    "A": ["SMM 上海有色网", "Mysteel 我的钢铁", "隆众资讯", "百川盈孚", "卓创资讯", "IGC 国际谷物理事会", "安泰科", "CRU", "Wood Mackenzie"],
+    "B": ["券商研报", "期货公司研报", "期货日报", "生意社"],
+    "C": ["财经媒体转述"],
+    "forbidden": ["股吧", "社交媒体", "自媒体"]
+  },
+  "bySector": {
+    "black": ["Mysteel", "SMM", "中钢协", "券商黑色研报"],
+    "nonferrous": ["SMM", "安泰科", "CRU", "Wood Mackenzie", "券商有色研报"],
+    "precious": ["World Gold Council", "矿企季报/年报", "券商贵金属研报"],
+    "energy_chemical": ["隆众资讯", "百川盈孚", "卓创资讯", "CCF 华瑞信息", "券商能化研报"],
+    "agriculture": ["USDA ERS", "成本收益汇编", "天下粮仓", "布瑞克", "我的农产品"],
+    "new_materials": ["SMM", "百川盈孚", "券商新材料研报"],
+    "shipping": []
+  }
+}

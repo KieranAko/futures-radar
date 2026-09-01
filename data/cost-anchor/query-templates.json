@@ -1,0 +1,34 @@
+{
+  "schema": "futures-radar-cost-anchor-query-templates/1",
+  "types": {
+    "extraction": {
+      "indicators": ["C1 cash cost", "AISC", "90th percentile incentive price", "现金成本曲线"],
+      "queries": [
+        "{name} {indicator} {year} 成本曲线",
+        "{name} 现金成本 2026 元/吨"
+      ]
+    },
+    "processing_margin": {
+      "indicators": ["加工费", "加工利润", "crack spread", "crush margin", "TC/RC"],
+      "queries": [
+        "{name} {indicator} {year} 元/吨",
+        "{name} 单耗 成本 2026"
+      ]
+    },
+    "import_parity": {
+      "indicators": ["进口利润", "盘面榨利", "内外价差", "import parity"],
+      "queries": [
+        "{name} {indicator} {year}",
+        "{name} 进口成本 运费 关税 2026"
+      ]
+    },
+    "production_cost": {
+      "indicators": ["完全成本", "break-even cost", "种植成本", "养殖完全成本"],
+      "queries": [
+        "{name} {indicator} {year} USDA ERS",
+        "{name} 成本收益 2026 元/吨"
+      ]
+    }
+  },
+  "defaultQueriesPerSymbol": 3
+}

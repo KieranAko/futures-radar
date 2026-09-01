@@ -36,6 +36,7 @@ const LEDGER_DIR = path.join(DATA_ROOT, 'ledger');
 const CONTRACT_BARS_DIR = path.join(DATA_ROOT, 'contract-bars');
 const MACRO_DIR = path.join(DATA_ROOT, 'macro');
 const SECTOR_DIR = path.join(DATA_ROOT, 'sector');
+const COST_ANCHOR_DIR = path.join(DATA_ROOT, 'cost-anchor');
 const EXPORT_DIR = path.join(DATA_ROOT, 'export');
 
 const DAILY_SCHEMA = 'futures-radar-daily/1';
@@ -43,6 +44,7 @@ const CONTRACT_SCHEMA = 'futures-radar-contract-bars/1';
 const MACRO_SCHEMA = 'futures-radar-macro-snapshot/1';
 const SECTOR_SCHEMA = 'futures-radar-sector-snapshot/1';
 const SECTOR_SERIES_SCHEMA = 'futures-radar-sector-series/1';
+const COST_ANCHOR_SCHEMA = 'futures-radar-cost-anchor-history/1';
 
 // 同日期多来源时的取舍：日线接口优先于收盘快照；具体合约序列只用于 contract-bars
 const SOURCE_PRIORITY = {
@@ -78,7 +80,7 @@ function appendJsonl(filePath, row) {
 }
 
 function ensureDirs() {
-  for (const dir of [DATA_ROOT, DAILY_DIR, LEDGER_DIR, CONTRACT_BARS_DIR, MACRO_DIR, SECTOR_DIR, EXPORT_DIR]) {
+  for (const dir of [DATA_ROOT, DAILY_DIR, LEDGER_DIR, CONTRACT_BARS_DIR, MACRO_DIR, SECTOR_DIR, COST_ANCHOR_DIR, EXPORT_DIR]) {
     fs.mkdirSync(dir, { recursive: true });
   }
 }
@@ -580,6 +582,128 @@ function getSectorSeries(sectorId) {
   return wrapper && wrapper.schema === SECTOR_SERIES_SCHEMA ? wrapper : null;
 }
 
+// ── 成本锚主档（theory-base/05；文件库唯一事实源）────────────
+const COST_ANCHOR_REQUIRED = [
+  'anchorType', 'indicator', 'valueLow', 'valueHigh', 'unit', 'asOf',
+  'sourceDates', 'sourceTiers', 'confidence'
+];
+
+function normAsOf(asOf) {
+  const s = String(asOf || '');
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? m[0] : s;
+}
+
+/**
+ * 幂等写入一个品种的成本锚记录。run 快照只能从主档投影。
+ */
+function ingestCostAnchor({ runId, symbol, record }) {
+  ensureDirs();
+  if (!runId || !symbol || !record) return { runId, symbol, written: false, reason: 'missing runId/symbol/record' };
+  const missing = COST_ANCHOR_REQUIRED.filter((k) => {
+    if (record[k] === undefined) return true;
+    if (record[k] === null && !(record.confidence === 'unknown' && (k === 'valueLow' || k === 'valueHigh'))) return true;
+    return false;
+  });
+  if (missing.length) return { runId, symbol, written: false, reason: `missing fields: ${missing.join(',')}` };
+
+  const filePath = path.join(COST_ANCHOR_DIR, `${symbol}.json`);
+  const wrapper = readJson(filePath, {
+    schema: COST_ANCHOR_SCHEMA,
+    symbol,
+    updatedAt: null,
+    runs: {}
+  });
+  const stored = {
+    ...record,
+    recordId: `${symbol}:${runId}:1`,
+    signalDate: record.signalDate || runId.slice(0, 8).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'),
+    ingestedAt: new Date().toISOString()
+  };
+  wrapper.symbol = symbol;
+  wrapper.updatedAt = stored.ingestedAt;
+  wrapper.runs[runId] = stored;
+  writeJsonAtomic(filePath, wrapper);
+  return { runId, symbol, recordId: stored.recordId, written: true };
+}
+
+/**
+ * 读取品种在 signalDate 可见的最新成本锚（asOf ≤ signalDate，防未来数据）。
+ */
+function getCostAnchor(symbol, signalDate) {
+  const wrapper = readJson(path.join(COST_ANCHOR_DIR, `${symbol}.json`));
+  if (!wrapper || wrapper.schema !== COST_ANCHOR_SCHEMA || !wrapper.runs) return null;
+  const target = normAsOf(signalDate);
+  const records = Object.values(wrapper.runs)
+    .map((r) => ({ ...r, _asOfKey: normAsOf(r.asOf) }))
+    .filter((r) => r._asOfKey <= target)
+    .sort((a, b) => b._asOfKey.localeCompare(a._asOfKey) || b.ingestedAt.localeCompare(a.ingestedAt));
+  if (records.length === 0) return null;
+  const picked = records[0];
+  const { _asOfKey, ...record } = picked;
+  return record;
+}
+
+function getCostAnchorHistory(symbol) {
+  const wrapper = readJson(path.join(COST_ANCHOR_DIR, `${symbol}.json`));
+  return wrapper && wrapper.schema === COST_ANCHOR_SCHEMA ? wrapper : null;
+}
+
+function costAnchorStats() {
+  ensureDirs();
+  const symbols = [];
+  let records = 0;
+  if (fs.existsSync(COST_ANCHOR_DIR)) {
+    for (const file of fs.readdirSync(COST_ANCHOR_DIR).sort()) {
+      if (!file.endsWith('.json')) continue;
+      const symbol = file.slice(0, -5);
+      const wrapper = readJson(path.join(COST_ANCHOR_DIR, file));
+      if (!wrapper || wrapper.schema !== COST_ANCHOR_SCHEMA) continue;
+      const runIds = Object.keys(wrapper.runs || {});
+      symbols.push({ symbol, records: runIds.length, latestRun: runIds.sort().pop() || null });
+      records += (wrapper.runs ? Object.keys(wrapper.runs).length : 0);
+    }
+  }
+  return { schema: COST_ANCHOR_SCHEMA, symbols: symbols.length, records };
+}
+
+function verifyCostAnchors() {
+  ensureDirs();
+  const errors = [];
+  if (!fs.existsSync(COST_ANCHOR_DIR)) return { ok: true, errors };
+  const CONFIG_FILES = new Set(['policy.json', 'golden-sources.json', 'query-templates.json', 'coverage.json']);
+  for (const file of fs.readdirSync(COST_ANCHOR_DIR).sort()) {
+    if (!file.endsWith('.json') || CONFIG_FILES.has(file)) continue;
+    const symbol = file.slice(0, -5);
+    const wrapper = readJson(path.join(COST_ANCHOR_DIR, file));
+    if (!wrapper || wrapper.schema !== COST_ANCHOR_SCHEMA) {
+      errors.push(`cost-anchor/${file}: bad schema`);
+      continue;
+    }
+    for (const [runId, r] of Object.entries(wrapper.runs || {})) {
+      for (const k of COST_ANCHOR_REQUIRED) {
+        if (r[k] === undefined) errors.push(`cost-anchor/${symbol}:${runId}: missing ${k}`);
+        if (r[k] === null && !(r.confidence === 'unknown' && (k === 'valueLow' || k === 'valueHigh'))) {
+          errors.push(`cost-anchor/${symbol}:${runId}: null ${k}`);
+        }
+      }
+      if (!Array.isArray(r.sourceDates) || r.sourceDates.length === 0) {
+        errors.push(`cost-anchor/${symbol}:${runId}: sourceDates must be non-empty array`);
+      }
+      if (!Array.isArray(r.sourceTiers) || r.sourceTiers.length === 0) {
+        errors.push(`cost-anchor/${symbol}:${runId}: sourceTiers must be non-empty array`);
+      }
+      if (r.confidence !== 'unknown' && (!Number.isFinite(r.valueLow) || !Number.isFinite(r.valueHigh) || r.valueLow > r.valueHigh)) {
+        errors.push(`cost-anchor/${symbol}:${runId}: invalid value range`);
+      }
+      if (normAsOf(r.asOf) > todayStr()) {
+        errors.push(`cost-anchor/${symbol}:${runId}: future asOf ${r.asOf}`);
+      }
+    }
+  }
+  return { ok: errors.length === 0, errors };
+}
+
 // ── 校验 / 统计 / seed / compact ────────────────────────────
 function verify() {
   ensureDirs();
@@ -670,6 +794,9 @@ function verify() {
     }
   }
 
+  const costAnchorCheck = verifyCostAnchors();
+  for (const e of costAnchorCheck.errors) errors.push(e);
+
   return { ok: errors.length === 0, errors, warnings, files, bars };
 }
 
@@ -701,6 +828,7 @@ function stats() {
     contracts: contractIndex && contractIndex.contracts ? Object.keys(contractIndex.contracts).length : 0,
     sectorRuns: sectorIndex && sectorIndex.runs ? Object.keys(sectorIndex.runs).length : 0,
     sectors: sectorIndex && sectorIndex.sectors ? Object.keys(sectorIndex.sectors).length : 0,
+    costAnchors: costAnchorStats(),
     perSymbol
   };
 }
@@ -839,11 +967,12 @@ function compact(symbol) {
 // ── CLI ─────────────────────────────────────────────────────
 function printUsage() {
   console.log('Usage: node data-store/index.cjs --init|--seed|--verify|--stats|--export|--compact [--symbol SYM]');
+  console.log('       node data-store/index.cjs --cost-anchor-stats|--cost-anchor-verify');
 }
 
 if (require.main === module) {
   const args = process.argv.slice(2);
-  const knownCommands = ['--init', '--seed', '--verify', '--stats', '--export', '--compact'];
+  const knownCommands = ['--init', '--seed', '--verify', '--stats', '--export', '--compact', '--cost-anchor-stats', '--cost-anchor-verify'];
   const command = knownCommands.find((c) => args.includes(c))
     || args.find((a) => !a.startsWith('--'))
     || null;
@@ -871,6 +1000,10 @@ if (require.main === module) {
         return { path: exportHistoricalCache() };
       case '--compact':
         return compact(flagVal('--symbol'));
+      case '--cost-anchor-stats':
+        return costAnchorStats();
+      case '--cost-anchor-verify':
+        return verifyCostAnchors();
       default:
         printUsage();
         process.exit(1);
@@ -894,6 +1027,7 @@ module.exports = {
   MACRO_DIR,
   SECTOR_DIR,
   EXPORT_DIR,
+  COST_ANCHOR_DIR,
   SOURCE_PRIORITY,
   init,
   seed,
@@ -905,6 +1039,11 @@ module.exports = {
   getSectorSeries,
   ingestContractBars,
   getContractBarsForRun,
+  ingestCostAnchor,
+  getCostAnchor,
+  getCostAnchorHistory,
+  costAnchorStats,
+  verifyCostAnchors,
   loadHistoricalCache,
   getLatestCache,
   exportHistoricalCache,
