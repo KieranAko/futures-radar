@@ -59,7 +59,9 @@ function main() {
     return { ok: false, phase: 'research_required', brief: brief.file, pending: pending.map((p) => p.symbol) };
   }
 
-  const batch = validateResearchBatch(results.results || results, pending.map((p) => p.symbol), resolved.signalDate);
+  const rawResults = results.results || results;
+  const normalizedInputs = rawResults.map((raw) => normalizeResearchResult(raw, { runId, signalDate: resolved.signalDate }));
+  const batch = validateResearchBatch(normalizedInputs, pending.map((p) => p.symbol), resolved.signalDate);
   if (!batch.ok) {
     console.error('cost-anchor research results validation FAILED:');
     for (const e of batch.errors) console.error(`  - ${e}`);
@@ -67,14 +69,13 @@ function main() {
     return { ok: false, phase: 'validation_failed', errors: batch.errors };
   }
   for (const [symbol, record] of Object.entries(batch.records)) {
-    const normalized = normalizeResearchResult(record, { runId, signalDate: resolved.signalDate });
-    const res = dataStore.ingestCostAnchor({ runId, symbol, record: normalized });
+    const res = dataStore.ingestCostAnchor({ runId, symbol, record });
     if (!res.written) {
       console.error(`  ingest failed ${symbol}: ${res.reason}`);
       process.exitCode = 1;
       return { ok: false, phase: 'ingest_failed', symbol, reason: res.reason };
     }
-    console.log(`  ingested ${symbol}: ${res.recordId} (${normalized.anchorType}, ${normalized.confidence})`);
+    console.log(`  ingested ${symbol}: ${res.recordId} (${record.anchorType}, ${record.confidence})`);
   }
   // 写回主档后必须从主档重新投影（不直接用检索结果写快照）
   const out = projectSnapshot(runId, resolved.signalDate);
