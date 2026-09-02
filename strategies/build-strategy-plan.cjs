@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { skillRoot, runDir } = require('../lib/workspace.cjs');
 const { buildStrategyPlan, validatePlan } = require('./lib/strategy-matcher.cjs');
-const { recordExecutablePlans, verifyPlans } = require('./lib/feedback.cjs');
+const { recordPlans, verifyIncremental } = require('./lib/feedback.cjs');
 
 const args = process.argv.slice(2);
 function flagVal(flag) {
@@ -48,12 +48,12 @@ if (!check.ok) {
 const outPath = path.join(runDir(runId), 'strategy-plan.json');
 fs.writeFileSync(outPath, JSON.stringify(plan, null, 2) + '\n', 'utf8');
 
-// 证伪反馈闭环：冻结本期 executable plans；用当期数据验证往期 pending plans
-const recorded = recordExecutablePlans(plan);
+// 证伪反馈闭环：冻结本期全部策略（executable/watch/skip）；只对非终态往期记录做增量验证
+const recorded = recordPlans(plan);
 const rawPath = path.join(runDir(runId), 'raw.json');
 const raw = fs.existsSync(rawPath) ? JSON.parse(fs.readFileSync(rawPath, 'utf8')) : { contracts: {} };
-const feedback = verifyPlans(runId, raw);
-feedback.meta.recorded = recorded;
+const feedback = verifyIncremental(runId, raw);
+feedback.meta.recordedThisRun = recorded;
 fs.writeFileSync(path.join(runDir(runId), 'strategy-feedback.json'), JSON.stringify(feedback, null, 2) + '\n', 'utf8');
 
 const lines = plan.plans.map(p =>
@@ -61,5 +61,5 @@ const lines = plan.plans.map(p =>
 );
 console.log(`Output: ${outPath}`);
 console.log(`Plans: ${plan.plans.length} | concentrationDecisions: ${plan.concentrationDecisions.length} | inputsSha: ${plan.meta.inputsSha.slice(0, 12)}…`);
-console.log(`Feedback: recorded ${recorded} executable plan(s); verified ${feedback.meta.verified} prior plan(s)`);
+console.log(`Feedback: recorded ${recorded} plan(s) for falsification; incremental verified ${feedback.meta.incrementalAttempted} pending record(s)`);
 console.log(lines.join('\n'));

@@ -36,6 +36,115 @@ function confidenceLabel(conf) {
   return conf === 'high' ? '高' : conf === 'medium' ? '中' : '低';
 }
 
+function feedbackStatusLabel(r) {
+  const status = r.status || '—';
+  if (status === 'verified') {
+    const r0 = r.lastResult || r;
+    const exit = r0.exitType === 'stopped_out' ? '止损离场' : r0.exitType === 'target1_hit' ? '目标1兑现' : '时间离场';
+    const dir = r0.directionCorrect === true ? '（方向正确）' : r0.directionCorrect === false ? '（方向错误）' : '';
+    return `${exit}${dir}`;
+  }
+  if (status === 'invalidated_not_triggered') return '未触发，计划作废';
+  if (status === 'skipped_gap') return '跳空放弃';
+  if (status === 'confirmed') return '确认信号兑现';
+  if (status === 'unverifiable') return '不可验证';
+  if (status === 'pending_data') return '待数据';
+  if (status === 'triggered_pending_entry') return '已触发待入场数据';
+  if (status === 'pending_verification') return '待验证';
+  return status;
+}
+
+function feedbackAttribution(r) {
+  const res = r.lastResult || r;
+  return ((res && res.attribution) || []).map((a) => `${a.code}: ${a.detail}`).join('；');
+}
+
+function feedbackDirectionConfidenceCell(r) {
+  return `${r.direction ? directionLabel(r.direction) : '—'}/${r.confidence ? confidenceLabel(r.confidence) : '—'}`;
+}
+
+/**
+ * v2 证伪反馈：近 3 期明细 + 历史全量汇总 + 统计口径说明。
+ * 只读展示，不修改报告方向与置信度。
+ */
+function renderFeedbackV2(feedback) {
+  const lines = [];
+  lines.push('### 证伪反馈（近3期明细 + 历史汇总）');
+  lines.push('');
+
+  const recent = Array.isArray(feedback.recentRuns) ? feedback.recentRuns : [];
+  if (recent.length > 0) {
+    lines.push('**近 3 期明细**');
+    lines.push('');
+    for (const run of recent) {
+      lines.push(`**${run.runId}**（信号日 ${run.signalDate || '—'}）`);
+      lines.push('');
+      lines.push('| 计划 | 品种 | 执行状态 | 方向/置信度 | 策略 | 信号日 | 验证结果 | 归因 |');
+      lines.push('|------|------|---------|------------|------|--------|---------|------|');
+      for (const r of run.rows || []) {
+        const symbolCell = `${r.name || r.symbol || '—'} (${r.symbol || '—'})`;
+        const strategyCell = `${r.strategyId || '—'} + ${r.playbookId || '—'}`;
+        lines.push(`| ${r.recordId || '—'} | ${symbolCell} | ${statusBadge(r.executionStatus)} | ${feedbackDirectionConfidenceCell(r)} | ${strategyCell} | ${r.signalDate || '—'} | ${feedbackStatusLabel(r)} | ${feedbackAttribution(r)} |`);
+      }
+      lines.push('');
+    }
+  }
+
+  const s = feedback.summary || {};
+  const t = (s.byMode && s.byMode.trade) || {};
+  const sg = (s.byMode && s.byMode.signal) || {};
+  const exec = s.byExecutionStatus || {};
+  const st = s.byStatus || {};
+
+  lines.push('**历史汇总（全量统计）**');
+  lines.push('');
+  lines.push('| 覆盖度 | 数量 |');
+  lines.push('|--------|------|');
+  lines.push(`| 历史策略总数 | ${s.totalPlans == null ? '—' : s.totalPlans} |`);
+  lines.push(`| 已终态 | ${s.terminalPlans == null ? '—' : s.terminalPlans} |`);
+  lines.push(`| 待验证 | ${s.pendingPlans == null ? '—' : s.pendingPlans} |`);
+  lines.push('');
+  lines.push('| 执行状态 | 数量 |');
+  lines.push('|---------|------|');
+  lines.push(`| 可执行 | ${exec.executable == null ? '—' : exec.executable} |`);
+  lines.push(`| 观察 | ${exec.watch == null ? '—' : exec.watch} |`);
+  lines.push(`| 跳过 | ${exec.skip == null ? '—' : exec.skip} |`);
+  lines.push('');
+  lines.push('| 验证模式 | 记录数 | 已终态 | 待验证 |');
+  lines.push('|---------|-------|--------|--------|');
+  lines.push(`| 交易模拟（多/空） | ${t.total == null ? '—' : t.total} | ${t.terminal == null ? '—' : t.terminal} | ${t.pending == null ? '—' : t.pending} |`);
+  lines.push(`| 信号观察（中性） | ${sg.total == null ? '—' : sg.total} | ${sg.terminal == null ? '—' : sg.terminal} | ${sg.pending == null ? '—' : sg.pending} |`);
+  lines.push('');
+  lines.push('| 验证状态 | 数量 |');
+  lines.push('|---------|------|');
+  lines.push(`| 已完整验证（交易模式） | ${st.verified == null ? '—' : st.verified} |`);
+  lines.push(`| 未触发作废（交易+信号合计） | ${st.invalidated_not_triggered == null ? '—' : st.invalidated_not_triggered} |`);
+  lines.push(`| 跳空放弃 | ${st.skipped_gap == null ? '—' : st.skipped_gap} |`);
+  lines.push(`| 确认信号兑现（中性观察） | ${st.confirmed == null ? '—' : st.confirmed} |`);
+  lines.push(`| 不可验证 | ${st.unverifiable == null ? '—' : st.unverifiable} |`);
+  lines.push(`| 待验证 | ${s.pendingPlans == null ? '—' : s.pendingPlans} |`);
+  lines.push('');
+  lines.push('| 交易结果（仅已完整验证的交易模式） | 数量 |');
+  lines.push('|----------------------------------|------|');
+  lines.push(`| 止损离场 | ${t.stoppedOut == null ? '—' : t.stoppedOut} |`);
+  lines.push(`| 目标1兑现 | ${t.target1Hit == null ? '—' : t.target1Hit} |`);
+  lines.push(`| 时间离场 | ${t.timeExit == null ? '—' : t.timeExit} |`);
+  lines.push(`| 方向正确 | ${t.directionCorrect == null ? '—' : t.directionCorrect} |`);
+  lines.push(`| 方向错误 | ${t.directionWrong == null ? '—' : t.directionWrong} |`);
+  const pct = s.directionCorrectPct == null ? '—' : `${fmt(s.directionCorrectPct, 1)}%`;
+  lines.push(`| 方向正确率 | ${pct}${s.directionDenominator ? `（分母 ${s.directionDenominator} 条）` : ''} |`);
+  lines.push('');
+  lines.push('**统计口径说明**');
+  lines.push('');
+  lines.push('- 统计对象：历史所有 run 生成的**全部**交易策略（可执行/观察/跳过均纳入），每期最多 3 条，历史记录只增不减。');
+  lines.push('- 状态库是唯一事实源：近 3 期明细与历史汇总同源；明细只展示最近 3 个生产 run，其余历史（含实验线 mirror 回放计划）全部进入本汇总。');
+  lines.push('- 已终态：完整验证、未触发作废、跳空放弃、不可验证、确认信号兑现；待验证：待验证、待数据、已触发待入场数据。');
+  lines.push('- 交易模拟（多/空）：按 T+1 触发 → 跳空放弃 → 止损/目标/时间退出进行假想执行验证。');
+  lines.push('- 信号观察（中性）：只验证观察窗口内确认信号是否兑现；不进入交易结果统计，也不进入方向正确率。');
+  lines.push('- 方向正确率 = 已完整验证的交易模式中方向正确条数 ÷ 可判定条数；未触发、跳空放弃、不可验证、待验证均不计入分母。');
+  return lines.join('\n');
+}
+
 // 按策略 id 在库中查证据 URL（最多 3 条）；BASE-01 无库条目 → 空
 // OBS-1：内部仓库路径（非 http）渲染为纯文本路径并标注「内部」，不生成 markdown 链接
 function evidenceUrls(strategyId, library) {
@@ -75,9 +184,15 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
   lines.push(`> 运行 ID: ${plan.meta.runId} | 信号日: ${plan.meta.signalDate} | 示例权益: ${plan.meta.equityCny} CNY`);
   lines.push('> 确定性生成，仅作执行参考；**不改变报告方向与置信度**。');
   if (feedback && feedback.meta) {
-    const recorded = feedback.meta.recorded == null ? '—' : feedback.meta.recorded;
-    const verified = feedback.meta.verified == null ? 0 : feedback.meta.verified;
-    lines.push(`> 证伪反馈机制：本期冻结 ${recorded} 个可执行计划；本次验证往期计划 ${verified} 个。`);
+    if (feedback.schema === 'futures-radar-strategy-feedback/2') {
+      const recorded = feedback.meta.recordedThisRun == null ? '—' : feedback.meta.recordedThisRun;
+      const attempted = feedback.meta.incrementalAttempted == null ? 0 : feedback.meta.incrementalAttempted;
+      lines.push(`> 证伪反馈机制：本期记录 ${recorded} 条策略进入证伪闭环；增量验证 ${attempted} 条未终态记录；历史累计 ${feedback.meta.totalPlans ?? '—'} 条（已终态 ${feedback.meta.terminalPlans ?? '—'} / 待验证 ${feedback.meta.pendingPlans ?? '—'}）。`);
+    } else {
+      const recorded = feedback.meta.recorded == null ? '—' : feedback.meta.recorded;
+      const verified = feedback.meta.verified == null ? 0 : feedback.meta.verified;
+      lines.push(`> 证伪反馈机制：本期冻结 ${recorded} 个可执行计划；本次验证往期计划 ${verified} 个。`);
+    }
   }
   // 前向账本滚动（01-L7：今天的报告引用往期计划的验证状态）
   if (forwardLedger && forwardLedger.previousRun && forwardLedger.previousRun !== plan.meta.runId) {
@@ -158,8 +273,11 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
     lines.push('');
   }
 
-  // 证伪反馈（往期 executable plans）
-  if (feedback && Array.isArray(feedback.results) && feedback.results.length > 0) {
+  // 证伪反馈：v2 用近3期明细+历史汇总；旧 shape 保留原样回显
+  if (feedback && feedback.schema === 'futures-radar-strategy-feedback/2') {
+    lines.push(renderFeedbackV2(feedback));
+    lines.push('');
+  } else if (feedback && Array.isArray(feedback.results) && feedback.results.length > 0) {
     const done = feedback.results.filter(r => r.status !== 'pending_data');
     if (done.length > 0) {
       lines.push('### 上一期证伪反馈');

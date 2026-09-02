@@ -134,6 +134,74 @@ describe('strategy-section: 四章+附录不变（composeReportWithStrategy）',
   });
 });
 
+describe('strategy-section: v2 证伪反馈（近3期明细+历史汇总+口径说明）', () => {
+  const feedback = {
+    schema: 'futures-radar-strategy-feedback/2',
+    meta: {
+      currentRunId: '20260902-1723-auto',
+      recordedThisRun: 3,
+      incrementalAttempted: 2,
+      incrementalTransitioned: 1,
+      totalPlans: 30,
+      terminalPlans: 25,
+      pendingPlans: 5,
+    },
+    recentRuns: [
+      {
+        runId: '20260902-1723-auto',
+        signalDate: '2026-09-02',
+        rows: [
+          {
+            recordId: '20260902-1723-auto:SA0', symbol: 'SA0', name: '纯碱', executionStatus: 'watch',
+            direction: 'neutral', confidence: 'low', strategyId: 'CS-06', playbookId: 'PB-07',
+            signalDate: '2026-09-02', status: 'confirmed', lastResult: { attribution: [{ code: 'confirmation_hit', detail: '确认信号兑现' }] }
+          }
+        ]
+      }
+    ],
+    summary: {
+      totalPlans: 30, terminalPlans: 25, pendingPlans: 5,
+      byExecutionStatus: { executable: 8, watch: 18, skip: 4 },
+      byStatus: {
+        pending_verification: 1, pending_data: 3, triggered_pending_entry: 1,
+        verified: 10, invalidated_not_triggered: 9, skipped_gap: 3, unverifiable: 1, confirmed: 2
+      },
+      byMode: {
+        trade: { total: 28, terminal: 24, pending: 4, verified: 10, invalidatedNotTriggered: 8, skippedGap: 3, unverifiable: 1, stoppedOut: 3, target1Hit: 2, timeExit: 5, directionCorrect: 6, directionWrong: 4 },
+        signal: { total: 2, terminal: 1, pending: 1, confirmed: 2, invalidatedNotTriggered: 1, unverifiable: 0 }
+      },
+      verifiedWithOutcome: 10,
+      directionDenominator: 10,
+      directionCorrectPct: 60
+    }
+  };
+
+  it('v2 渲染包含近3期明细、历史汇总与统计口径说明', () => {
+    const out = renderStrategySection(plan, library, feedback);
+    assert.ok(out.includes('### 证伪反馈（近3期明细 + 历史汇总）'));
+    assert.ok(out.includes('**近 3 期明细**'));
+    assert.ok(out.includes('**历史汇总（全量统计）**'));
+    assert.ok(out.includes('**统计口径说明**'));
+    assert.ok(out.includes('历史策略总数'));
+    assert.ok(out.includes('方向正确率'));
+    assert.ok(out.includes('可执行'));
+    assert.ok(out.includes('观察'));
+    assert.ok(out.includes('跳过'));
+    assert.ok(!out.includes('### 上一期证伪反馈'));
+  });
+
+  it('v2 渲染明细只显示最近 run 的条目，不展开全部历史', () => {
+    const out = renderStrategySection(plan, library, feedback);
+    assert.ok(out.includes('20260902-1723-auto:SA0'));
+    assert.ok(!out.includes('20260828-0610-auto:M0'));
+  });
+
+  it('v2 渲染不含收益/胜率承诺类表述', () => {
+    const out = renderStrategySection(plan, library, feedback).replace(plan.disclaimer, '');
+    assert.ok(!/(收益|回报|胜率)\s*[+＋]?\d+(\.\d+)?\s*%/.test(out));
+  });
+});
+
 describe('strategy-section: 确定性', () => {
   it('同输入渲染两次输出一致', () => {
     const a = renderStrategySection(plan, library);

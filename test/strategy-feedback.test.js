@@ -6,7 +6,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { recordExecutablePlans, verifyPlans } = require('../strategies/lib/feedback.cjs');
+const { recordExecutablePlans, verifyPlans, verifyIncremental } = require('../strategies/lib/feedback.cjs');
 
 function makePlan(runId, symbol, overrides = {}) {
   return {
@@ -30,14 +30,18 @@ function makePlan(runId, symbol, overrides = {}) {
 }
 
 describe('strategy-feedback 证伪反馈机制', () => {
-  it('只冻结 executable 计划，不记录 watch/skip', () => {
+  it('全策略口径：executable 与 watch 均进入证伪账本', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-feedback-'));
     try {
       const plan = makePlan('run-exec', 'RM0');
-      const n = recordExecutablePlans(plan, '2026-08-26T00:00:00Z', root);
-      assert.equal(n, 1);
+      assert.equal(recordExecutablePlans(plan, '2026-08-26T00:00:00Z', root), 1);
       const watchPlan = makePlan('run-watch', 'MA0', { executionStatus: 'watch' });
-      assert.equal(recordExecutablePlans(watchPlan, '2026-08-26T00:00:00Z', root), 0);
+      assert.equal(recordExecutablePlans(watchPlan, '2026-08-26T00:00:00Z', root), 1);
+      const raw = { contracts: {} };
+      const out = verifyIncremental('run-next', raw, root);
+      assert.equal(out.summary.totalPlans, 2);
+      assert.equal(out.summary.byExecutionStatus.executable, 1);
+      assert.equal(out.summary.byExecutionStatus.watch, 1);
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }
@@ -63,6 +67,71 @@ describe('strategy-feedback 证伪反馈机制', () => {
       assert.equal(r.exitType, 'stopped_out');
       assert.equal(r.directionCorrect, false);
       assert.ok(r.attribution.some(a => a.code === 'stop_hit'));
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('增量验证：已终态记录在后续 run 不再被重复验证', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-feedback-'));
+    try {
+      recordExecutablePlans(makePlan('run-prev', 'RM0'), '2026-08-26T00:00:00Z', root);
+      const raw = {
+        contracts: {
+          RM0: {
+            ohlcv: {
+              dates: ['2026-08-26', '2026-08-27', '2026-08-28'],
+              open: [98, 102, 99], high: [101, 103, 99], low: [97, 99, 94], close: [100, 101, 95]
+            }
+          }
+        }
+      };
+      const first = verifyIncremental('run-next', raw, root);
+      assert.equal(first.summary.terminalPlans, 1);
+      const second = verifyIncremental('run-next-2', raw, root);
+      assert.equal(second.meta.incrementalAttempted, 0, '终态记录不应再被增量验证');
+      assert.equal(second.summary.totalPlans, 1);
+      assert.equal(second.summary.terminalPlans, 1);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('中性观察策略使用信号模式验证：确认信号兑现 → confirmed', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-feedback-'));
+    try {
+      recordExecutablePlans(makePlan('run-neutral', 'SA0', {
+        executionStatus: 'watch',
+        reportBaseline: {
+          direction: 'neutral',
+          confidence: 'low',
+          confirmSignals: ['收盘站稳 100 上方且量能维持 1.2x 以上→多头延续']
+        },
+        entry: {
+          trigger: '→ 中性：收盘站稳 100 上方且量能维持 1.2x 以上→多头延续',
+          triggerLevel: 100,
+          triggerSource: '收盘站稳 100 上方且量能维持 1.2x 以上→多头延续',
+          triggerTiming: '无执行时点（观察）',
+          execution: 'T+1 收盘确认；确认后下一交易日开盘执行'
+        },
+        position: { lots: 0 }
+      }), '2026-08-26T00:00:00Z', root);
+      const raw = {
+        contracts: {
+          SA0: {
+            ohlcv: {
+              dates: ['2026-08-26', '2026-08-27', '2026-08-28'],
+              open: [100, 100, 101], high: [101, 100, 103], low: [99, 98, 100], close: [100, 99, 102]
+            }
+          }
+        }
+      };
+      const out = verifyIncremental('run-next', raw, root);
+      const row = out.recentRuns[0].rows[0];
+      assert.equal(row.verificationMode, 'signal');
+      assert.equal(row.status, 'confirmed');
+      assert.equal(out.summary.byStatus.confirmed, 1);
+      assert.equal(out.summary.byMode.signal.total, 1);
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }
