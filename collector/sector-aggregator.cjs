@@ -193,6 +193,17 @@ function buildSectorSnapshot(rawJson, symbolsConfig, { runId, signalDate } = {})
     const leaders = byRet5d.slice(0, 3).map(memberRow);
     const laggards = byRet5d.slice(-3).reverse().map(memberRow);
 
+    const ar1 = advanceRatio('ret1d');
+    const ar5 = advanceRatio('ret5d');
+    const downRatio1d = ar1 != null ? parseFloat((100 - ar1).toFixed(1)) : null;
+    const breadth1d = ar1 == null
+      ? null
+      : direction === 'up'
+        ? ar1
+        : direction === 'down'
+          ? downRatio1d
+          : parseFloat(Math.max(ar1, downRatio1d).toFixed(1));
+
     sectors[sectorId] = {
       sector: sectorId,
       label: sectorDefs.label || sectorId,
@@ -201,8 +212,10 @@ function buildSectorSnapshot(rawJson, symbolsConfig, { runId, signalDate } = {})
       ret1d,
       ret5d,
       ret20d,
-      advanceRatio1d: advanceRatio('ret1d'),
-      advanceRatio5d: advanceRatio('ret5d'),
+      advanceRatio1d: ar1,
+      advanceRatio5d: ar5,
+      downRatio1d,
+      breadth1d,
       coherence1d: coherence,
       volumeRatio20d: volumeRatio,
       leaderSymbol: leader ? leader.symbol : null,

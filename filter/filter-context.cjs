@@ -86,6 +86,9 @@ function main() {
         ret1d: sector.ret1d,
         ret5d: sector.ret5d,
         advanceRatio1d: sector.advanceRatio1d,
+        coherence1d: sector.coherence1d != null ? sector.coherence1d : null,
+        breadth1d: sector.breadth1d != null ? sector.breadth1d : null,
+        downRatio1d: sector.downRatio1d != null ? sector.downRatio1d : null,
         leaderSymbol: sector.leaderSymbol,
         leaderName: sector.leaderName
       } : null,
@@ -114,6 +117,15 @@ function main() {
   const ctxPath = path.join(dir, 'filter-context.json');
   writeJson(ctxPath, context);
 
+  function sectorResonanceLine(sc, trendDirection) {
+    if (!sc || sc.coherence1d == null) return '板块方向不一致，共振中性';
+    const dir = trendDirection;
+    const aligned = (dir === 'up' && sc.direction === 'up') || (dir === 'down' && sc.direction === 'down');
+    if (dir === 'flat' || sc.direction === 'flat') return `板块方向不一致，共振中性（coherence ${fmt(sc.coherence1d, 1)}%）`;
+    if (aligned) return `与板块一致，共振 ${fmt(sc.coherence1d, 1)}%`;
+    return `与板块相反，逆势 ${fmt(Math.max(0, 100 - sc.coherence1d), 1)}%`;
+  }
+
   const lines = [];
   lines.push(`# Filter 初筛 prompt（runId=${runId}）`);
   lines.push('');
@@ -122,6 +134,8 @@ function main() {
   lines.push('2. 有没有可验证的驱动线索（可作假设，不要求证实）？');
   lines.push('3. 值不值得占用一个 TOP3 深挖名额？');
   lines.push('');
+  lines.push('方向中性：多头/空头完全对等，有行情机会的更优先；禁止因“上涨广度”否定空头候选。');
+  lines.push('板块共振：多头看上涨共振，空头看下跌共振；逆势候选需要独立驱动才保留。');
   lines.push('禁止输出：赔率、longCase/shortCase、入场/止损/方向结论。');
   lines.push('KEEP ≤3；硬过滤墓碑不可复活；无来源线索必须标"待验证"。');
   lines.push('');
@@ -129,7 +143,7 @@ function main() {
     lines.push(`### ${r.symbol} ${r.name}（${r.sector}）`);
     lines.push(`- price: close=${fmt(r.price.close)} 1d=${fmt(r.price.change1dPct)}% 5d=${fmt(r.price.change5dPct)}% atr=${fmt(r.price.atr5)} atrPct=${fmt(r.price.atrPct)}% volP=${fmt(r.price.volPercentile)} volMult=${fmt(r.price.volMultiplier)} vs20=${fmt(r.price.vsMA20)}% vs60=${fmt(r.price.vsMA60)}%`);
     lines.push(`- flow: turnover=${fmt(r.flow.avgTurnover5dYi, 1)}亿 OIavg=${fmt(r.flow.avgOI5dWan, 1)}万 OI5d=${fmt(r.flow.oiChange5dPct)}%`);
-    lines.push(`- sector: ${r.sectorContext ? JSON.stringify(r.sectorContext) : '无'}`);
+    lines.push(`- sector: ${r.sectorContext ? `${r.sectorContext.direction} 1d=${fmt(r.sectorContext.ret1d)}% 5d=${fmt(r.sectorContext.ret5d)}% advance=${fmt(r.sectorContext.advanceRatio1d, 1)}% coherence=${fmt(r.sectorContext.coherence1d, 1)}% ${sectorResonanceLine(r.sectorContext, r.price.trendDirection)}` : '无'}`);
     lines.push(`- macro: ${r.macroAnchors.length ? r.macroAnchors.map((a) => `${a.id}=${a.value}(${a.change5d}%)`).join(', ') : '无'}`);
     lines.push(`- costAnchor: ${r.costAnchor ? JSON.stringify(r.costAnchor) : 'unavailable'}`);
     lines.push('');

@@ -170,26 +170,27 @@ function sectorDriverClue(sectorId) {
 }
 
 ch1.push('### 板块异动');
-ch1.push('| 板块 | 方向 | 1日 | 5日 | 上涨广度 | 代表品种 | 驱动线索 |');
-ch1.push('|------|------|-----|-----|---------|----------|----------|');
+ch1.push('| 板块 | 方向 | 1日 | 5日 | 上涨广度 | 方向一致度 | 代表品种 | 驱动线索 |');
+ch1.push('|------|------|-----|-----|---------|-----------|----------|----------|');
 if (model.sector && model.sector.sectors && Object.keys(model.sector.sectors).length > 0) {
   for (const [sectorId, sec] of Object.entries(model.sector.sectors)) {
     const leader = sec.leaderSymbol
       ? `${sec.leaderName || sec.leaderSymbol} (${sec.leaderSymbol})`
       : '—';
+    const coherence = sec.coherence1d != null ? `${sec.coherence1d.toFixed(0)}%` : '—';
     ch1.push(
       `| ${sec.label} | ${directionSymbol(sec.direction)} | ${fmtPct(sec.ret1d)} | ${fmtPct(sec.ret5d)} | ` +
-      `${sec.advanceRatio1d != null ? `${sec.advanceRatio1d.toFixed(0)}%` : '—'} | ${leader} | ${sectorDriverClue(sectorId)} |`
+      `${sec.advanceRatio1d != null ? `${sec.advanceRatio1d.toFixed(0)}%` : '—'} | ${coherence} | ${leader} | ${sectorDriverClue(sectorId)} |`
     );
   }
   ch1.push(`\n> 板块指数由 raw.json 成员等权日收益链式构建（基点 1000）。驱动线索来自板块驱动 LLM（sector-driver.json），只解释板块整体，不构成任何个股方向判断。\n`);
   ch1.push('**板块指标口径**\n');
   ch1.push('- **上涨广度**：板块内当日上涨成员数 ÷ 成员总数 × 100%（成员当日收益 = 当日收盘/前一收盘 - 1）。');
-  ch1.push('- 例如广度 81% 表示 22 个成员中约 18 个上涨；广度 14% 表示多数成员下跌。');
+  ch1.push('- **方向一致度**：成员方向与板块方向一致的比例；下跌板块该值越高，说明下跌共振越强（对空头候选是正向证据）。');
   ch1.push('- 广度 ≥ 50% 且与板块方向一致 → 多数成员共振，板块异动可信度较高；广度 < 50% 或明显分化 → 可能只是少数领涨/领跌品种拉动，不是真正的板块性行情。');
   ch1.push('- 该指标只使用价格/成交量数据，不使用持仓数据。\n');
 } else {
-  ch1.push('| — | — | — | — | — | — | 板块快照不可用 |\n');
+  ch1.push('| — | — | — | — | — | — | — | 板块快照不可用 |\n');
 }
 
 console.log(`  ✓ Chapter 1: ${ch1.length} lines`);

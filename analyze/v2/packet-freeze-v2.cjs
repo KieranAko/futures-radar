@@ -110,7 +110,15 @@ function buildPacket(raw, sym, signalDate, macroSnapshot, sectorSnapshot, regist
       : null,
     macro_context: macroSnapshot?.indicators ? { indicators: macroSnapshot.indicators } : null,
     sector_context: sector
-      ? { sector: sectorName, direction: sector.direction, ret1d: sector.ret1d, ret5d: sector.ret5d, advanceRatio1d: sector.advanceRatio1d }
+      ? {
+          sector: sectorName,
+          direction: sector.direction,
+          ret1d: sector.ret1d,
+          ret5d: sector.ret5d,
+          advanceRatio1d: sector.advanceRatio1d,
+          coherence1d: sector.coherence1d != null ? sector.coherence1d : null,
+          breadth1d: sector.breadth1d != null ? sector.breadth1d : null
+        }
       : null,
     mechanism_candidates: familyCandidates,
     prevAnalysisCache: prev

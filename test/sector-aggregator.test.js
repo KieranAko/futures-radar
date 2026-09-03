@@ -27,6 +27,8 @@ describe('sector-aggregator 板块指标', () => {
     assert.ok(Number.isFinite(sec.ret5d));
     assert.ok(Number.isFinite(sec.advanceRatio1d));
     assert.ok(sec.coherence1d == null || Number.isFinite(sec.coherence1d));
+    assert.ok(Number.isFinite(sec.breadth1d), 'breadth1d 必须是中性广度');
+    assert.ok(Number.isFinite(sec.downRatio1d), 'downRatio1d 必须存在');
     assert.ok(!('open_interest' in sec) && !('oi' in sec));
   });
 
