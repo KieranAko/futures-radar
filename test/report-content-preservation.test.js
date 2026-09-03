@@ -55,12 +55,27 @@ describe('report content preservation（信息完整优先）', () => {
   it('策略计划全部字段行保留', () => {
     for (const p of strategyPlan.plans) {
       assert.ok(report.includes(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract}）`));
-      for (const field of ['- **入场机会点**', '- **触发/执行时点**', '- **执行口径**', '- **止损**', '- **目标**', '- **仓位**', '- **证伪/失效**', '- **风险要点**', '- **策略依据**', '- **状态**']) {
-        assert.ok(report.includes(field), `missing ${field} for ${p.symbol}`);
+      const newLayout = !!p.strategyConfidence;
+      if (newLayout) {
+        for (const field of ['入场机会点', '触发/执行时点', '执行口径', '止损', '目标', '仓位', '证伪/失效']) {
+          assert.ok(report.includes(`| ${field} |`), `missing ${field} for ${p.symbol}`);
+        }
+        assert.ok(report.includes('| 风险与依据 | 内容 |'), `missing risk table for ${p.symbol}`);
+        for (const field of ['每手风险', '策略依据', '状态说明']) {
+          assert.ok(report.includes(`| ${field} |`), `missing ${field} for ${p.symbol}`);
+        }
+        if (p.executionStatus === 'watch') assert.ok(report.includes('| 转执行触发 |'), `missing watch trigger for ${p.symbol}`);
+      } else {
+        for (const field of ['- **入场机会点**', '- **触发/执行时点**', '- **执行口径**', '- **止损**', '- **目标**', '- **仓位**', '- **证伪/失效**', '- **风险要点**', '- **策略依据**', '- **状态**']) {
+          assert.ok(report.includes(field), `missing ${field} for ${p.symbol}`);
+        }
+        if (p.executionStatus === 'watch') assert.ok(report.includes('- **转执行触发**'));
       }
-      if (p.executionStatus === 'watch') assert.ok(report.includes('- **转执行触发**'));
       const close = (model.opportunities.find((o) => o.symbol === p.symbol) || {}).marketFacts?.close;
-      if (close != null) assert.ok(report.includes(`- **收盘价基准**: ${close}`), `missing strategy close for ${p.symbol}`);
+      if (close != null) {
+        const needle = newLayout ? `| 收盘价基准 | ${close}` : `- **收盘价基准**: ${close}`;
+        assert.ok(report.includes(needle), `missing strategy close for ${p.symbol}`);
+      }
     }
     if (report.includes('### 上一期策略证伪反馈')) {
       assert.ok(report.includes('| 计划 | 品种 | 方向/置信度 | 策略 | 信号日 | 验证结果 | 归因 |'));

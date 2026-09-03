@@ -241,24 +241,58 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
 
   // 每品种小节：只保留可执行关键信息
   for (const p of plan.plans) {
-    const triggerLevel = p.entry.triggerLevel == null ? '—' : fmt(p.entry.triggerLevel, 0);
     const primary = p.matchedStrategies[0];
     const supporting = (p.supportingEvidence || []).map(s => `${s.strategyId} ${s.name}`).join('、');
     const ra = p.riskAssessment;
+    const triggerLevel = p.entry.triggerLevel == null ? '—' : fmt(p.entry.triggerLevel, 0);
 
+    if (p.strategyConfidence) {
+      // Strategy-LLM 版：分组表格呈现，信息按“结论 → 执行 → 风险”排列
+      const downgrade = p.confidenceDowngradeReasons && p.confidenceDowngradeReasons.length
+        ? `（${p.confidenceDowngradeReasons.join('；')}）`
+        : '';
+      const fitLabel = p.theoryFit === 'aligned' ? '较好符合' : p.theoryFit === 'approximate' ? '大致符合' : '无合适理论';
+      const t = planTrust(p, familyEvidence);
+
+      lines.push(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract || '—'}）`);
+      lines.push('');
+      lines.push(`> **报告** ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信 · **策略表达** ${confidenceLabel(p.strategyConfidence)}置信${downgrade} · **状态** ${statusBadge(p.executionStatus)} · **理论** ${fitLabel}`);
+      if (p.theoryGapNote) lines.push(`> ${p.theoryGapNote}`);
+      lines.push('');
+      lines.push('| 执行要素 | 内容 |');
+      lines.push('|---------|------|');
+      if (closeMap && closeMap[p.symbol] != null) {
+        lines.push(`| 收盘价基准 | ${fmt(closeMap[p.symbol], 0)}（锚定合约 ${p.contract || '—'}） |`);
+      }
+      lines.push(`| 入场机会点 | ${p.entry.trigger}（触发价 ${triggerLevel}） |`);
+      lines.push(`| 触发/执行时点 | ${p.entry.triggerTiming} |`);
+      lines.push(`| 执行口径 | ${p.playbook.executionConvention} |`);
+      lines.push(`| 止损 | ${fmt(p.stop.stopPrice)}（距离 ${fmt(p.stop.stopDistancePts)} 点；${p.stop.basis}） |`);
+      lines.push(`| 目标 | T1 ${p.targets.t1}；T2 ${p.targets.t2} |`);
+      lines.push(`| 仓位 | ${p.position.lots} 手（${p.position.lotsBasis}） |`);
+      lines.push(`| 证伪/失效 | ${p.invalidation.hard.join('；')}；${p.invalidation.timeStop} |`);
+      if (p.executionStatus === 'watch' || p.executionStatus === 'skip') {
+        lines.push(`| 转执行触发 | ${p.entry.trigger} |`);
+      }
+      lines.push('');
+      lines.push('| 风险与依据 | 内容 |');
+      lines.push('|-----------|------|');
+      lines.push(`| 每手风险 | ${Math.round(ra.unitRiskCny)} CNY |`);
+      lines.push(`| 保证金/手 | ${Math.round(ra.marginPerLotCny)} CNY |`);
+      lines.push(`| 尾部 3d p95 反向边距 | ${fmt(ra.tailGapPct3d)}% |`);
+      lines.push(`| 事件风险 | ${ra.eventRiskNote || '—'} |`);
+      lines.push(`| 策略依据 | ${primary.strategyId} ${primary.name}${supporting ? `；辅证：${supporting}` : ''} |`);
+      lines.push(`| 状态说明 | ${p.statusReasons.length ? p.statusReasons.join('；') : '—'} |`);
+      lines.push(`| 可信度 | ${t.grade}（${t.why}） |`);
+      if (p.notes && p.notes.length > 0) lines.push(`| 备注 | ${p.notes.join('；')} |`);
+      lines.push('');
+      continue;
+    }
+
+    // 旧版计划：保持原格式，历史 run 回放一致
     lines.push(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract || '—'}）`);
     lines.push('');
     lines.push(`- **报告基准**: ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信；主策略 ${primary.strategyId} ${primary.name}；执行模板 ${p.playbook.playbookId}`);
-    if (p.strategyConfidence) {
-      const downgrade = p.confidenceDowngradeReasons && p.confidenceDowngradeReasons.length
-        ? `（降级：${p.confidenceDowngradeReasons.join('；')}）`
-        : '';
-      lines.push(`- **策略表达置信度**: ${confidenceLabel(p.strategyConfidence)}置信${downgrade}`);
-    }
-    if (p.theoryFit) {
-      const fitLabel = p.theoryFit === 'aligned' ? '较好符合' : p.theoryFit === 'approximate' ? '大致符合' : '无合适理论';
-      lines.push(`- **理论匹配**: ${fitLabel}${p.theoryGapNote ? ` — ${p.theoryGapNote}` : ''}`);
-    }
     if (closeMap && closeMap[p.symbol] != null) {
       lines.push(`- **收盘价基准**: ${fmt(closeMap[p.symbol], 0)}（锚定合约 ${p.contract || '—'}）`);
     }

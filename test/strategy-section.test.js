@@ -215,10 +215,13 @@ describe('strategy-section: Strategy-LLM 字段渲染', () => {
       }))
     };
     const out = renderStrategySection(withReasoning, library);
-    assert.ok(out.includes('- **策略表达置信度**: 低置信'));
-    assert.ok(out.includes('- **理论匹配**: 无合适理论'));
+    assert.ok(out.includes('> **报告**'));
+    assert.ok(out.includes('策略表达'));
+    assert.ok(out.includes('无合适理论'));
     assert.ok(out.includes('理论无合适对应'));
     assert.ok(out.includes('无合适理论，按报告 Q4/Q5 等待确认'));
+    assert.ok(out.includes('| 执行要素 | 内容 |'));
+    assert.ok(out.includes('| 风险与依据 | 内容 |'));
   });
 });
 
