@@ -202,6 +202,26 @@ describe('strategy-section: v2 证伪反馈（近3期明细+历史汇总+口径�
   });
 });
 
+describe('strategy-section: Strategy-LLM 字段渲染', () => {
+  it('渲染策略表达置信度与理论匹配/缺口说明', () => {
+    const withReasoning = {
+      ...plan,
+      plans: plan.plans.map((p) => ({
+        ...p,
+        strategyConfidence: 'low',
+        confidenceDowngradeReasons: ['理论无合适对应'],
+        theoryFit: 'none',
+        theoryGapNote: '无合适理论，按报告 Q4/Q5 等待确认'
+      }))
+    };
+    const out = renderStrategySection(withReasoning, library);
+    assert.ok(out.includes('- **策略表达置信度**: 低置信'));
+    assert.ok(out.includes('- **理论匹配**: 无合适理论'));
+    assert.ok(out.includes('理论无合适对应'));
+    assert.ok(out.includes('无合适理论，按报告 Q4/Q5 等待确认'));
+  });
+});
+
 describe('strategy-section: 确定性', () => {
   it('同输入渲染两次输出一致', () => {
     const a = renderStrategySection(plan, library);

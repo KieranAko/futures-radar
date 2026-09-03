@@ -692,6 +692,10 @@ function selectPlaybook(library, matched, ctx, ind) {
 function riskLayer(ctx, ind, opts) {
   const rc = opts.rc || RISK_CFG_DEFAULTS; // t13：rc 由 library.riskConfig 归一而来（effectiveRiskConfig）
   const dir = ctx.rm.thesis.finalDirection;
+  const customStopRaw = opts.customStopPrice;
+  const customStopPrice = customStopRaw === null || customStopRaw === undefined || customStopRaw === ''
+    ? null
+    : (Number.isFinite(Number(customStopRaw)) ? Number(customStopRaw) : null);
   const conf = ctx.rm.thesis.finalConfidence || 'medium';
   const close = ind.close;
   const atr5 = ctx.rm.priceRanges?.[0]?.atrBand?.atr5 ?? 0;
@@ -719,10 +723,17 @@ function riskLayer(ctx, ind, opts) {
   //（neutral/low 置信的 watch 计划同样输出止损/失效参数，risk-framework §9 step 1）
   const capLimit = rc.limitStopCap * (limitPct / 100) * close;
   const structDist = structuralStop !== null ? Math.abs(structuralStop - close) : Infinity;
-  stopDistancePts = Math.max(Math.min(stopK * atr5, capLimit, structDist), 0.01);
-  if (stopDistancePts === capLimit && capLimit < stopK * atr5) notes.push('止损受 0.8×涨跌停幅度约束');
-  if (structDist !== Infinity && structDist <= stopDistancePts + 1e-9) notes.push(`结构位（Q5 MA20≈${structuralStop}）比 ATR 止损更近，采用结构位`);
-  stopPrice = dir === 'bullish' ? close - stopDistancePts : close + stopDistancePts;
+  if (customStopPrice !== null) {
+    // Strategy-LLM 给出的理论失效位/概率尾止损：由 reasoning 决策，风控层只负责据此计算风险与手数
+    stopDistancePts = Math.max(Math.abs(customStopPrice - close), 0.01);
+    stopPrice = customStopPrice;
+    notes.push('止损由 Strategy-LLM 根据报告 Q5/概率区间指定');
+  } else {
+    stopDistancePts = Math.max(Math.min(stopK * atr5, capLimit, structDist), 0.01);
+    if (stopDistancePts === capLimit && capLimit < stopK * atr5) notes.push('止损受 0.8×涨跌停幅度约束');
+    if (structDist !== Infinity && structDist <= stopDistancePts + 1e-9) notes.push(`结构位（Q5 MA20≈${structuralStop}）比 ATR 止损更近，采用结构位`);
+    stopPrice = dir === 'bullish' ? close - stopDistancePts : close + stopDistancePts;
+  }
   unitRiskCny = stopDistancePts * mult;
 
   if (dir === 'neutral' || conf === 'low' || confScale === 0) {
@@ -894,7 +905,7 @@ function buildTargets(pbId, ctx, ind) {
 }
 
 // ── plan 组装 ─────────────────────────────────────────────────
-function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, rank, rc, playbookTemplate }) {
+function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, rank, rc, playbookTemplate, reasoning = null }) {
   const rm = ctx.rm;
   const dir = rm.thesis.finalDirection;
   const { matched, supporting } = matchStrategies(library, ctx, ind, formulas);
@@ -902,13 +913,16 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   const primary = pickPrimary(effectiveMatched);
   const pb = selectPlaybook(library, effectiveMatched, ctx, ind);
   const confirmSignals = rm.thesis.confirmations?.signals || [];
-  const confirmText = confirmSignals[0] || '—';
-  const triggerLevel = parseFirstNumber(confirmText);
+  const confirmText = (reasoning && reasoning.entry && reasoning.entry.triggerSource) || confirmSignals[0] || '—';
+  const triggerLevel = reasoning && reasoning.entry && Number.isFinite(Number(reasoning.entry.triggerLevel))
+    ? Number(reasoning.entry.triggerLevel)
+    : parseFirstNumber(confirmText);
   const structuralStop = parseStructuralStop([...(rm.thesis.invalidations?.conditions || []), ctx.analysisEntry?.q5_invalidation ? JSON.stringify(ctx.analysisEntry.q5_invalidation) : '']);
   const rcEff = rc || RISK_CFG_DEFAULTS;
-  const stopDistEst = riskLayerStubStop(ctx, ind, limitPct, structuralStop, rcEff);
+  const customStopPrice = reasoning && reasoning.stop && Number.isFinite(Number(reasoning.stop.stopPrice)) ? Number(reasoning.stop.stopPrice) : null;
+  const stopDistEst = customStopPrice != null ? Math.abs(customStopPrice - ind.close) : riskLayerStubStop(ctx, ind, limitPct, structuralStop, rcEff);
   const rrInfo = playbookRRInfo(pb.playbookId, ctx, ind, stopDistEst);
-  const risk = riskLayer(ctx, ind, { equityCny, limitPct, structuralStop, rrInfo, rc: rcEff });
+  const risk = riskLayer(ctx, ind, { equityCny, limitPct, structuralStop, rrInfo, rc: rcEff, customStopPrice });
   const targets = buildTargets(pb.playbookId, ctx, ind);
   // PB-08 放弃条款：锥形止损（p95 反向沿 ±0.25×ATR5）> 1.5×T1 预期 → 当日放弃（gateNote 口径）
   const gateAbandonNote = pb.playbookId === 'PB-08' ? pb08AbandonNote(ctx, ind) : null;
@@ -934,7 +948,38 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   }
   const dirLabel = dir === 'bullish' ? '↑ 多' : dir === 'bearish' ? '↓ 空' : '→ 中性';
   const invalidation = rm.thesis.invalidations?.conditions || [];
-  return {
+
+  // Strategy-LLM 输出优先：报告驱动表达层的入场/止损/目标/理论匹配
+  const reasoningEntry = reasoning && reasoning.entry ? reasoning.entry : null;
+  const reasoningStop = reasoning && reasoning.stop ? reasoning.stop : null;
+  const reasoningTargets = reasoning && reasoning.targets ? reasoning.targets : null;
+  const reasoningConf = reasoning && reasoning.strategyConfidence ? reasoning.strategyConfidence : null;
+  const reportConf = rm.thesis.finalConfidence || 'medium';
+  const strategyConfidence = reasoningConf || reportConf;
+  const entry = {
+    trigger: (reasoningEntry && reasoningEntry.trigger) || `${dirLabel}：${confirmText}`,
+    triggerLevel: reasoningEntry && reasoningEntry.triggerLevel != null ? reasoningEntry.triggerLevel : triggerLevel,
+    triggerSource: (reasoningEntry && reasoningEntry.triggerSource) || confirmText,
+    triggerTiming: (reasoningEntry && reasoningEntry.triggerTiming) || (dir === 'neutral'
+      ? '无执行时点（观察）'
+      : (pb.playbookId === 'PB-07'
+        ? 'T+1 收盘确认；确认后下一交易日开盘执行'
+        : 'T+1 开盘执行')),
+    execution: (reasoningEntry && reasoningEntry.execution) || (pb.playbookId === 'PB-07'
+      ? 'T+1 收盘确认；确认后下一交易日开盘执行；跳空 >0.75×ATR5 放弃'
+      : (pb.playbookId === 'PB-03' ? 'T+1 开盘；跳空 >0.75×ATR5 放弃' : 'T+1 开盘；跳空 >0.5×ATR5 放弃'))
+  };
+  const stop = {
+    stopPrice: risk.riskAssessment.stopPrice,
+    stopDistancePts: risk.riskAssessment.stopDistancePts,
+    basis: (reasoningStop && reasoningStop.basis) || `min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)${risk.notes.length ? '；' + risk.notes.join('；') : ''}`
+  };
+  const finalTargets = {
+    t1: (reasoningTargets && reasoningTargets.t1) || targets.t1,
+    t2: (reasoningTargets && reasoningTargets.t2) || targets.t2,
+    basis: (reasoningTargets && reasoningTargets.basis) || targets.basis
+  };
+  const plan = {
     symbol: rm.symbol,
     name: rm.name,
     contract: ctx.contract || null,
@@ -955,25 +1000,9 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
       gateNote: playbookOut.gateNote,
       executionConvention
     },
-    entry: {
-      trigger: `${dirLabel}：${confirmText}`,
-      triggerLevel,
-      triggerSource: confirmText,
-      triggerTiming: dir === 'neutral'
-        ? '无执行时点（观察）'
-        : (pb.playbookId === 'PB-07'
-          ? 'T+1 收盘确认；确认后下一交易日开盘执行'
-          : 'T+1 开盘执行'),
-      execution: pb.playbookId === 'PB-07'
-        ? 'T+1 收盘确认；确认后下一交易日开盘执行；跳空 >0.75×ATR5 放弃'
-        : (pb.playbookId === 'PB-03' ? 'T+1 开盘；跳空 >0.75×ATR5 放弃' : 'T+1 开盘；跳空 >0.5×ATR5 放弃')
-    },
-    stop: {
-      stopPrice: risk.riskAssessment.stopPrice,
-      stopDistancePts: risk.riskAssessment.stopDistancePts,
-      basis: `min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)${risk.notes.length ? '；' + risk.notes.join('；') : ''}`
-    },
-    targets,
+    entry,
+    stop,
+    targets: finalTargets,
     position: {
       lots: risk.riskAssessment.lots,
       lotsBasis: risk.lotsBasisNote || 'min(风险预算手数, 波动率目标手数, 保证金手数)'
@@ -989,6 +1018,14 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
     notes: [...risk.notes],
     disclaimer: DISCLAIMER
   };
+  if (reasoning) {
+    plan.strategyConfidence = strategyConfidence;
+    plan.confidenceDowngradeReasons = Array.isArray(reasoning.confidenceDowngradeReasons) ? reasoning.confidenceDowngradeReasons : [];
+    plan.theoryFit = reasoning.theoryFit || 'approximate';
+    plan.theoryGapNote = reasoning.theoryGapNote || null;
+    plan.reasoningRef = reasoning.reasoningRef || null;
+  }
+  return plan;
 }
 
 function riskLayerStubStop(ctx, ind, limitPct, structuralStop, rc) {
@@ -1046,7 +1083,7 @@ function applyGuarantee(matched) {
   return [{ ...BASE01, role: 'direction', pairsWith: [], weight: 0 }];
 }
 
-function buildStrategyPlan({ runId, equityCny = 100000 }) {
+function buildStrategyPlan({ runId, equityCny = 100000, reasoning = null }) {
   const library = readJSON(LIBRARY_PATH());
   const rules = readJSON(RULES_PATH());
   const schema = readJSON(PLAN_SCHEMA_PATH());
@@ -1070,6 +1107,9 @@ function buildStrategyPlan({ runId, equityCny = 100000 }) {
     { name: 'raw.json', p: path.join(runPath, 'raw.json') },
     { name: 'config/symbols.json', p: SYMBOLS_PATH() }
   ];
+  if (reasoning) {
+    inputFiles.push({ name: 'strategy-reasoning.json', p: path.join(runPath, 'strategy-reasoning.json') });
+  }
   const inputsSha = sha256(inputFiles.map(f => fs.readFileSync(f.p)).join('\n'));
 
   const macroIndicators = artifacts.reportModel.macro?.indicators || artifacts.macroSnapshot?.indicators || {};
@@ -1112,7 +1152,10 @@ function buildStrategyPlan({ runId, equityCny = 100000 }) {
       rawContract: contract,
       contract: (artifacts.mainSeries && artifacts.mainSeries[op.symbol] && artifacts.mainSeries[op.symbol].contract) || null
     };
-    const plan = buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, rank: op.planRank, rc: effRc });
+    const reasoningEntry = reasoning && Array.isArray(reasoning.strategies)
+      ? reasoning.strategies.find((r) => r.symbol === op.symbol) || null
+      : null;
+    const plan = buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, rank: op.planRank, rc: effRc, reasoning: reasoningEntry });
     // 记录 RR 供集中度仲裁使用
     const stopDist = plan.riskAssessment.stopDistancePts;
     const rrInfo = playbookRRInfo(plan.playbook.playbookId, ctx, ind, stopDist);

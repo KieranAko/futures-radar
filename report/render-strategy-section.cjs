@@ -249,6 +249,16 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
     lines.push(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract || '—'}）`);
     lines.push('');
     lines.push(`- **报告基准**: ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信；主策略 ${primary.strategyId} ${primary.name}；执行模板 ${p.playbook.playbookId}`);
+    if (p.strategyConfidence) {
+      const downgrade = p.confidenceDowngradeReasons && p.confidenceDowngradeReasons.length
+        ? `（降级：${p.confidenceDowngradeReasons.join('；')}）`
+        : '';
+      lines.push(`- **策略表达置信度**: ${confidenceLabel(p.strategyConfidence)}置信${downgrade}`);
+    }
+    if (p.theoryFit) {
+      const fitLabel = p.theoryFit === 'aligned' ? '较好符合' : p.theoryFit === 'approximate' ? '大致符合' : '无合适理论';
+      lines.push(`- **理论匹配**: ${fitLabel}${p.theoryGapNote ? ` — ${p.theoryGapNote}` : ''}`);
+    }
     if (closeMap && closeMap[p.symbol] != null) {
       lines.push(`- **收盘价基准**: ${fmt(closeMap[p.symbol], 0)}（锚定合约 ${p.contract || '—'}）`);
     }

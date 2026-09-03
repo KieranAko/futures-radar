@@ -344,6 +344,45 @@
         "riskAssessment": {
           "$ref": "#/definitions/riskAssessment"
         },
+        "strategyConfidence": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ],
+          "description": "策略表达置信度，由 Strategy-LLM 判断；不得高于 reportBaseline.confidence"
+        },
+        "confidenceDowngradeReasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "策略置信度降级原因（可为空）"
+        },
+        "theoryFit": {
+          "type": "string",
+          "enum": [
+            "aligned",
+            "approximate",
+            "none"
+          ],
+          "description": "理论匹配程度；none/approximate 时必须给出 theoryGapNote"
+        },
+        "theoryGapNote": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "理论缺口说明；无合适理论时必须非空"
+        },
+        "reasoningRef": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Strategy-LLM reasoning 引用（artifactId/packetHash 等）"
+        },
         "executionStatus": {
           "type": "string",
           "enum": [

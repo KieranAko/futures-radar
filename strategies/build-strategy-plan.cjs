@@ -16,6 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { skillRoot, runDir } = require('../lib/workspace.cjs');
 const { buildStrategyPlan, validatePlan } = require('./lib/strategy-matcher.cjs');
+const { validateStrategyReasoning } = require('./strategy-reasoning-validate.cjs');
 const { recordPlans, verifyIncremental } = require('./lib/feedback.cjs');
 
 const args = process.argv.slice(2);
@@ -35,7 +36,24 @@ if (!Number.isFinite(equityCny) || equityCny <= 0) {
   process.exit(1);
 }
 
-const { plan, schema } = buildStrategyPlan({ runId, equityCny });
+// Strategy-LLM 输出：理论软参照下的交易表达决策。
+// 生产新 run 应先生成 strategy-reasoning.json；历史回放/实验线无该文件时回退旧确定性 matcher。
+const reasoningPath = path.join(runDir(runId), 'strategy-reasoning.json');
+let reasoning = null;
+if (fs.existsSync(reasoningPath)) {
+  reasoning = JSON.parse(fs.readFileSync(reasoningPath, 'utf8'));
+  const rCheck = validateStrategyReasoning(reasoning, JSON.parse(fs.readFileSync(path.join(runDir(runId), 'report-model.json'), 'utf8')));
+  if (!rCheck.ok) {
+    console.error('strategy-reasoning.json validation FAILED:');
+    for (const e of rCheck.errors) console.error('  - ' + e);
+    process.exit(1);
+  }
+  console.log(`strategy-reasoning: loaded (${reasoning.strategies.length} strategies)`);
+} else {
+  console.warn('strategy-reasoning.json not found — using legacy deterministic matcher (回放/兼容模式)');
+}
+
+const { plan, schema } = buildStrategyPlan({ runId, equityCny, reasoning });
 
 // 自检：按 t7 schema 机械校验（t8 acceptance：schema 完整、字段可校验）
 const check = validatePlan(plan, schema);
@@ -57,7 +75,7 @@ feedback.meta.recordedThisRun = recorded;
 fs.writeFileSync(path.join(runDir(runId), 'strategy-feedback.json'), JSON.stringify(feedback, null, 2) + '\n', 'utf8');
 
 const lines = plan.plans.map(p =>
-  `  ${p.rank}. ${p.symbol} ${p.name} | ${p.reportBaseline.direction}/${p.reportBaseline.confidence} | 主策略 ${p.matchedStrategies[0].strategyId} | ${p.playbook.playbookId}(${p.playbook.gateStatus}) | ${p.executionStatus} ${p.position.lots}手`
+  `  ${p.rank}. ${p.symbol} ${p.name} | 报告${p.reportBaseline.direction}/${p.reportBaseline.confidence} 策略${p.strategyConfidence} | ${p.matchedStrategies[0].strategyId} | ${p.playbook.playbookId}(${p.playbook.gateStatus}) | ${p.executionStatus} ${p.position.lots}手`
 );
 console.log(`Output: ${outPath}`);
 console.log(`Plans: ${plan.plans.length} | concentrationDecisions: ${plan.concentrationDecisions.length} | inputsSha: ${plan.meta.inputsSha.slice(0, 12)}…`);

@@ -316,12 +316,12 @@ function cmdReplay(prodRunId) {
   }
 
   // 策略适配环节（production strategy-plan）——核心镜像验证：实验线完整调用生产 matcher。
-  // matcher 是纯函数；为保证 inputsSha 逐字节一致，运行前把其 7 个输入文件恢复为生产原文件。
+  // matcher 是纯函数；为保证 inputsSha 逐字节一致，运行前把其输入文件恢复为生产原文件。
   const planCheck = { stage: 'strategy-plan', mode: 'replayed', status: 'pass' };
   try {
     const matcherInputs = [
       'report-model.json', 'probability.json', 'sector-snapshot.json', 'sector-driver.json',
-      'macro-snapshot.json', 'analysis.json', 'raw.json',
+      'macro-snapshot.json', 'analysis.json', 'raw.json', 'strategy-reasoning.json',
     ];
     for (const f of matcherInputs) {
       const src = path.join(prodDir, f);
