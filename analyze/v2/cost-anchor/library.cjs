@@ -47,6 +47,16 @@ function snapshotPath(runId) {
   return path.join(runDir(runId), 'cost-anchor.json');
 }
 
+// 检索任务与检索结果都落在文件库 data/cost-anchor/research/ 下，
+// 不写、不读 output/runs/<runId>/analyze/ 目录（文件库是唯一事实源）。
+const RESEARCH_DIR = path.join(ROOT, 'data', 'cost-anchor', 'research');
+function researchBriefPath(runId) {
+  return path.join(RESEARCH_DIR, `${runId}.brief.json`);
+}
+function researchResultsPath(runId) {
+  return path.join(RESEARCH_DIR, `${runId}.results.json`);
+}
+
 /**
  * 从主档解析 KEEP 品种的成本锚（缓存命中时零检索）。
  */
@@ -112,6 +122,8 @@ module.exports = {
   keepSymbols,
   signalDateFromRaw,
   snapshotPath,
+  researchBriefPath,
+  researchResultsPath,
   resolveFromLibrary,
   projectSnapshot,
   readJson,

@@ -1,17 +1,16 @@
 // experiment-line/cost-anchor/run.cjs — 每期 TOP3 成本锚入口（cache-first）
 //
 // 用法:
-//   node experiment-line/cost-anchor/run.cjs --runId <runId>
+//   node analyze/v2/cost-anchor/run.cjs --runId <runId>
 //
-// 第一次（有 miss/stale）: 写 analyze/cost-anchor-research-brief.json，退出码 2（等待检索结果）
-// 填入 analyze/cost-anchor-research-results.json 后重跑:
+// 第一次（有 miss/stale）: 写 data/cost-anchor/research/<runId>.brief.json，退出码 2（等待检索结果）
+// 填入 data/cost-anchor/research/<runId>.results.json 后重跑:
 //   validate → ingest 到 data-store 主档 → 投影 output/runs/<runId>/cost-anchor.json
+// 检索任务与结果只走文件库，不读、不写 output/runs/<runId>/analyze/。
 'use strict';
 
-const path = require('node:path');
-const ROOT = require('./root.cjs');
 const { freshness } = require('./policy.cjs');
-const { dataStore, resolveFromLibrary, projectSnapshot, readJson, writeJson } = require('./library.cjs');
+const { dataStore, resolveFromLibrary, projectSnapshot, researchResultsPath, readJson } = require('./library.cjs');
 const { normalizeResearchResult } = require('./extract.cjs');
 const { validateResearchBatch } = require('./validate.cjs');
 const { buildBrief } = require('./research-runner.cjs');
@@ -41,12 +40,12 @@ function main() {
     return { ok: true, runId, snapshot: out };
   }
 
-  const resultsFile = path.join(ROOT, 'output', 'runs', runId, 'analyze', 'cost-anchor-research-results.json');
+  const resultsFile = researchResultsPath(runId);
   const results = readJson(resultsFile, null);
   if (!results) {
     const targets = pending.map((p) => ({
       symbol: p.symbol,
-      name: p.name,
+      name: p.name || p.symbol,
       sector: p.sector,
       anchorType: TYPE_HINTS[p.sector] || 'processing_margin',
       signalDate: resolved.signalDate

@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +16,17 @@ const { normalizeResearchResult } = require(path.join(EL, 'extract.cjs'));
 const { fillTemplate } = require(path.join(EL, 'research-runner.cjs'));
 
 describe('cost-anchor 模块（theory-base/05 实现）', () => {
+  it('检索任务与结果只走文件库，不从 run 目录读', () => {
+    const runSrc = fs.readFileSync(path.join(EL, 'run.cjs'), 'utf8');
+    const runnerSrc = fs.readFileSync(path.join(EL, 'research-runner.cjs'), 'utf8');
+    const libSrc = fs.readFileSync(path.join(EL, 'library.cjs'), 'utf8');
+    assert.ok(!runSrc.includes('analyze/cost-anchor-research-results.json'), 'run.cjs 不得读 run 目录下的检索结果');
+    assert.ok(!runnerSrc.includes('analyze/cost-anchor-research-brief.json'), 'research-runner.cjs 不得写 run 目录下的检索任务');
+    assert.ok(runSrc.includes('researchResultsPath'), 'run.cjs 应从文件库读取检索结果');
+    assert.ok(runnerSrc.includes('researchBriefPath'), 'research-runner.cjs 应把检索任务写入文件库');
+    assert.ok(libSrc.includes('researchResultsPath') && libSrc.includes('researchBriefPath'), 'library.cjs 应定义文件库检索路径');
+  });
+
   it('freshness 按锚类型策略判定，不读 run 快照', () => {
     const policy = loadPolicy();
     assert.equal(policy.anchorTypes.processing_margin.maxStaleDays, 7);

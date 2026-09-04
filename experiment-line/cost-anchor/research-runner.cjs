@@ -2,15 +2,12 @@
 // 检索模板来自 data/cost-anchor/query-templates.json（方法学指标名，不泛搜"成本"）。
 'use strict';
 
-const path = require('node:path');
-const ROOT = require('./root.cjs');
 const { loadQueryTemplates, loadGoldenSources } = require('./policy.cjs');
-const { runDir } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
-const { writeJson, readJson } = require('./library.cjs');
+const { writeJson, researchBriefPath } = require('./library.cjs');
 
 function fillTemplate(tpl, ctx) {
   return tpl
-    .replace(/\{name\}/g, ctx.name)
+    .replace(/\{name\}/g, ctx.name || ctx.symbol)
     .replace(/\{indicator\}/g, ctx.indicator)
     .replace(/\{year\}/g, ctx.year || String(ctx.signalDate).slice(0, 4));
 }
@@ -52,7 +49,7 @@ function buildBrief(runId, targets) {
     signalDate,
     targets: requests
   };
-  const file = path.join(runDir(runId), 'analyze', 'cost-anchor-research-brief.json');
+  const file = researchBriefPath(runId);
   writeJson(file, brief);
   return { file, requests };
 }
