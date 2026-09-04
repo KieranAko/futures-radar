@@ -251,6 +251,18 @@ for (const opp of model.opportunities) {
     ch3.push(`**锚定合约**: ${opp.contract}（收盘 ${fmt(opp.marketFacts && opp.marketFacts.close, 0)}）\n`);
   }
 
+  // 期现结构（证据链：现货折盘面 / 市场现货价）
+  if (opp.spotBasis && opp.spotBasis.status !== 'unavailable') {
+    const b = opp.spotBasis;
+    const sourceLabel = b.source === 'mysteel' ? '现货折盘面（Mysteel）' : '市场现货价（生意社）';
+    const basis = b.basis != null ? `${b.basis > 0 ? '+' : ''}${fmt(b.basis, 1)}` : '—';
+    const rate = b.basisRate != null ? `${b.basisRate > 0 ? '+' : ''}${fmt(b.basisRate * 100, 2)}%` : '—';
+    const meaning = b.source === 'mysteel'
+      ? (b.basisRate != null && b.basisRate < 0 ? '期货升水，追多安全边际较差' : b.basisRate != null && b.basisRate > 0 ? '现货升水，期货贴水' : '基差接近平水')
+      : '市场综合价，不作为交割基差';
+    ch3.push(`**期现结构（证据）**: ${sourceLabel} ${fmt(b.spotAdjustedPrice != null ? b.spotAdjustedPrice : b.spotPrice, 1)}；基差 ${basis}；基差率 ${rate} — ${meaning}\n`);
+  }
+
   // Judgment change annotation
   if (thesis.assessmentChanged) {
     ch3.push(`> ⚠️ **判断变化**: 筛选阶段评估为「${directionLabel(opp.screening.initialDirection)}/${confidenceLabel(opp.screening.initialConfidence)}置信」，深度分析后调整为「${directionLabel(thesis.finalDirection)}/${confidenceLabel(thesis.finalConfidence)}置信」\n`);

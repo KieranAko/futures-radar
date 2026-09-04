@@ -216,6 +216,7 @@ for (const opp of reportFacts.opportunities) {
     intervalModels: opp.intervalModels || null,
     currentState: opp.currentState || null,
     referenceInterval: opp.referenceInterval || null,
+    ...(opp.spotBasis ? { spotBasis: opp.spotBasis } : {}),
     screening: opp.screening,
     thesis
   });

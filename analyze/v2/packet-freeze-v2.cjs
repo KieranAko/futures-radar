@@ -229,9 +229,19 @@ function main() {
   }
 
   const keep = (filtered.candidates || []).filter((c) => c.decision === 'KEEP');
+  const spotBasisMap = {};
+  const spotBasisPath = path.join(runPath, 'spot-basis.json');
+  if (fs.existsSync(spotBasisPath)) {
+    const sb = readJson(spotBasisPath);
+    for (const row of sb.symbols || []) {
+      if (row.status !== 'unavailable') spotBasisMap[row.symbol] = row;
+    }
+  }
   const packets = {};
   for (const c of keep) {
-    packets[c.symbol] = buildPacket(raw, c.symbol, signalDate, macroSnapshot, sectorSnapshot, registry, prevAnalysis, costAnchorMap[c.symbol]);
+    const packet = buildPacket(raw, c.symbol, signalDate, macroSnapshot, sectorSnapshot, registry, prevAnalysis, costAnchorMap[c.symbol]);
+    packet.spot_basis = spotBasisMap[c.symbol] || null;
+    packets[c.symbol] = packet;
   }
   const out = {
     schema: 'futures-radar-analyze-v2-packets/1',

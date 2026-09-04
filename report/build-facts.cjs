@@ -164,6 +164,16 @@ function main() {
     mainSeries = {};
   }
 
+  // 期现基差快照（Mysteel 折盘面 / 100ppi 参考口径；缺失时为空）
+  const spotBasisPath = path.join(RUN_DIR, 'spot-basis.json');
+  let spotBasis = { symbols: [] };
+  try {
+    spotBasis = fs.existsSync(spotBasisPath) ? readJSON(spotBasisPath) : { symbols: [] };
+  } catch {
+    spotBasis = { symbols: [] };
+  }
+  const spotBasisMap = new Map((spotBasis.symbols || []).map((r) => [r.symbol, r]));
+
   console.log(`  candidates: ${candidates.candidates.length} symbols`);
   console.log(`  filtered: ${filtered.candidates.length} KEEP, ${filtered.downgraded.length} DOWNGRADE`);
   console.log(`  probability: ${probability.probabilities.length} entries`);
@@ -365,6 +375,7 @@ function main() {
       intervalModels: probEntry.intervalModels || null,
       currentState: probEntry.currentState || null,
       referenceInterval: probEntry.referenceInterval || null,
+      ...(spotBasisMap.has(symbol) ? { spotBasis: spotBasisMap.get(symbol) } : {}),
       screening: {
         initialConfidence: keepCandidate.confidence,
         initialDirection: keepCandidate.directionBias,
