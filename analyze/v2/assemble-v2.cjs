@@ -14,6 +14,7 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..', '..');
 const EL = path.join(ROOT, 'experiment-line');
 const { runDir } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
+const { validateQ4Semantics } = require(path.join(ROOT, 'strategies', 'lib', 'semantic-fact-validate.cjs'));
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -189,6 +190,14 @@ function main() {
   const prefill = readJson(path.join(runPath, 'analyze', 'prefill-v2.json')).prefill;
   const packets = readJson(path.join(runPath, 'analyze', 'packets-v2.json')).packets;
   const signalDate = packets[Object.keys(packets)[0]].signalDate;
+
+  // Q4 语义事实校验：现价在价值区内不得使用“回踩”，空头镜像。
+  const q4Sem = validateQ4Semantics(outputs, packets);
+  if (!q4Sem.ok) {
+    console.error('FATAL: Q4 semantic-fact validation failed:');
+    for (const e of q4Sem.errors) console.error(`  - ${e}`);
+    process.exit(1);
+  }
 
   const analyses = [];
   const reasoningResults = [];

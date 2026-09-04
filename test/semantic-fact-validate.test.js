@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { validateSemanticFacts, positionOf, firstActionWord } = require('../strategies/lib/semantic-fact-validate.cjs');
+const { validateSemanticFacts, validateQ4Semantics, positionOf, firstActionWord } = require('../strategies/lib/semantic-fact-validate.cjs');
 
 function rawFor(bars) {
   return {
@@ -66,5 +66,18 @@ describe('semantic-fact-validate 语义事实校验', () => {
     const reasoning = { strategies: [{ symbol: 'SA0', direction: 'bullish', expression: { type: 'conditional-watch' }, entry: { trigger: '等待放量突破 1083' } }] };
     const out = validateSemanticFacts(reasoning, reportModel, raw);
     assert.equal(out.ok, true);
+  });
+
+  it('Q4 语义校验：现价在价值区内不得使用“回踩”', () => {
+    const outputs = { results: [{ symbol: 'SA0', direction: 'long', q4_confirmations: { signals: ['回踩 1053–1074 且站稳'] } }] };
+    const packets = {
+      SA0: {
+        price_data: { close: 1056 },
+        near_term: { valueAreaLow: 1053, valueAreaHigh: 1074 }
+      }
+    };
+    const out = validateQ4Semantics(outputs, packets);
+    assert.equal(out.ok, false);
+    assert.ok(out.errors.some((e) => e.includes('不应使用“回踩”')));
   });
 });

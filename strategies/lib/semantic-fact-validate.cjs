@@ -113,4 +113,40 @@ function validateSemanticFacts(reasoning, reportModel, raw) {
   return { ok: errors.length === 0, errors, checks };
 }
 
-module.exports = { validateSemanticFacts, positionOf, firstActionWord };
+/**
+ * 校验 analyze outputs-v2 的 Q4 信号与近端位置事实一致。
+ * 现价在价值区内时，多头 Q4 不得使用“回踩”；空头镜像。
+ */
+function validateQ4Semantics(outputs, packets) {
+  const errors = [];
+  const results = outputs?.results || [];
+  for (const r of results) {
+    const p = packets?.[r.symbol];
+    const near = p?.near_term;
+    if (!near || !p?.price_data) {
+      errors.push(`${r.symbol}: 缺少 near_term/price_data，无法校验 Q4 语义`);
+      continue;
+    }
+    const close = p.price_data.close;
+    const position = positionOf(close, near.valueAreaLow, near.valueAreaHigh);
+    if (position === 'unknown') continue;
+    const dir = r.direction;
+    if (dir === 'pass' || dir === 'neutral') continue;
+    const signals = r.q4_confirmations?.signals || r.q4_confirmations?.signals || [];
+    for (const signal of signals) {
+      const action = firstActionWord(signal);
+      if (dir === 'long' || dir === 'bullish') {
+        if (action === 'pullback' && position !== 'above') {
+          errors.push(`${r.symbol}: Q4 信号“${signal}”语义错误：现价在价值区${position === 'inside' ? '内' : '下方'}，不应使用“回踩”`);
+        }
+      } else if (dir === 'short' || dir === 'bearish') {
+        if (action === 'rally' && position !== 'below') {
+          errors.push(`${r.symbol}: Q4 信号“${signal}”语义错误：现价在价值区${position === 'inside' ? '内' : '上方'}，不应使用“反抽/回抽”`);
+        }
+      }
+    }
+  }
+  return { ok: errors.length === 0, errors };
+}
+
+module.exports = { validateSemanticFacts, validateQ4Semantics, positionOf, firstActionWord };
