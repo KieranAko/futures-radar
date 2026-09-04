@@ -16,6 +16,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const EL = path.join(ROOT, 'experiment-line');
 const { runDir } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
 const basisLib = require(path.join(ROOT, 'strategies', 'research', 'v2', 'falsification', 'harness-lib', 'basis.cjs'));
+const { computeNearTermStructure } = require(path.join(ROOT, 'strategies', 'lib', 'near-term-structure.cjs'));
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -105,6 +106,16 @@ function buildPacket(raw, sym, signalDate, macroSnapshot, sectorSnapshot, regist
         ? Math.round(((o.openInterest[n - 1] / o.openInterest[n - 6]) - 1) * 10000) / 100
         : null,
     },
+    near_term: computeNearTermStructure(
+      o.dates.map((date, i) => ({
+        date,
+        open: o.open[i],
+        high: o.high[i],
+        low: o.low[i],
+        close: o.close[i]
+      })),
+      signalDate
+    ),
     term_structure: basis
       ? { br: basis.br, domBasisRate: basis.domBasisRate, asOf: normDate(basis.date), note: 'GA-8 ≤信号日最新行；br=(S−F)/S，正=现货升水' }
       : null,

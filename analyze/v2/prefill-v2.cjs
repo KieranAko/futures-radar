@@ -1,7 +1,8 @@
-// experiment-line/analyze-v2/prefill-v2.cjs — O4：确定性预填最大化
+// experiment-line/analyze-v2/prefill-v2.cjs — O4：确定性预填
 //
-// 预填：Q2 全部 / Q4-Q5 结构位条款 / Q6 全部可计算项。
-// LLM 只写：Q1 驱动、Q3 判断、Q4/Q5 的驱动类条款、以及覆盖结构预填的最终取舍。
+// 预填：Q2 全部 / Q6 全部可计算项。
+// Q4/Q5 不再确定性预填（历史 MA20 模板会导致远端机械定价），
+// 改由 LLM 基于 Q1–Q3 逻辑与 packet.near_term 近端结构生成。
 //
 // 用法: node experiment-line/analyze-v2/prefill-v2.cjs --runId <runId>
 'use strict';
@@ -39,18 +40,7 @@ function prefillOne(sym, packet, probability) {
   const judgment = alignedUp ? 'trend' : alignedDown ? 'trend' : Math.abs(chg5) >= 2 ? 'impulse' : 'chop';
   const trendSide = alignedUp ? '向上' : alignedDown ? '向下' : '结构冲突';
 
-  // Q4/Q5 结构位（方向无关的两套模板，LLM 按最终方向取舍）
-  const q4Long = [
-    `收盘站稳 MA20(${round(ma20)}) 上方且量能维持 ${volMult == null ? 1.2 : Math.max(1.2, Math.round(volMult * 10) / 10)}x 以上→多头延续`,
-    `放量突破今日高点`,
-  ];
-  const q4Short = [
-    `收盘跌破 MA20(${round(ma20)}) 且量能放大→空头延续`,
-    `放量跌破今日低点`,
-  ];
-  const q5Long = [`收盘跌破 MA20(${round(ma20)}) 且成交量放大→多头逻辑失效`];
-  const q5Short = [`收盘站回 MA20(${round(ma20)}) 且成交量放大→空头逻辑失效`];
-
+  // Q4/Q5 不预填：由 LLM 基于 Q1–Q3 逻辑与近端结构生成，避免 MA20 远端机械定价。
   // Q6 可计算项
   const mult = p.multiplier || 10;
   const contractValue = close * mult;
@@ -70,8 +60,8 @@ function prefillOne(sym, packet, probability) {
       oiStructure: oiChg == null ? 'OI 数据不可得' : `OI 5日 ${oiChg >= 0 ? '+' : ''}${oiChg}%`,
       priceAlignment: `close ${close} vs MA20(${round(ma20)})/MA60(${round(ma60)})，5日 ${chg5 >= 0 ? '+' : ''}${chg5}%，${trendSide}`,
     },
-    q4: { long: q4Long, short: q4Short },
-    q5: { long: q5Long, short: q5Short },
+    q4: null,
+    q5: null,
     q6: {
       contractValue: round(contractValue, 0),
       marginRange: margin,

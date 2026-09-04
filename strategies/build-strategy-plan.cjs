@@ -17,6 +17,7 @@ const path = require('path');
 const { skillRoot, runDir } = require('../lib/workspace.cjs');
 const { buildStrategyPlan, validatePlan } = require('./lib/strategy-matcher.cjs');
 const { validateStrategyReasoning } = require('./strategy-reasoning-validate.cjs');
+const { validatePricing } = require('./lib/pricing-validate.cjs');
 const { recordPlans, verifyIncremental } = require('./lib/feedback.cjs');
 
 const args = process.argv.slice(2);
@@ -42,10 +43,18 @@ const reasoningPath = path.join(runDir(runId), 'strategy-reasoning.json');
 let reasoning = null;
 if (fs.existsSync(reasoningPath)) {
   reasoning = JSON.parse(fs.readFileSync(reasoningPath, 'utf8'));
-  const rCheck = validateStrategyReasoning(reasoning, JSON.parse(fs.readFileSync(path.join(runDir(runId), 'report-model.json'), 'utf8')));
+  const reportModel = JSON.parse(fs.readFileSync(path.join(runDir(runId), 'report-model.json'), 'utf8'));
+  const rCheck = validateStrategyReasoning(reasoning, reportModel);
   if (!rCheck.ok) {
     console.error('strategy-reasoning.json validation FAILED:');
     for (const e of rCheck.errors) console.error('  - ' + e);
+    process.exit(1);
+  }
+  const probability = JSON.parse(fs.readFileSync(path.join(runDir(runId), 'probability.json'), 'utf8'));
+  const pCheck = validatePricing(reasoning, reportModel, probability);
+  if (!pCheck.ok) {
+    console.error('pricing validation FAILED:');
+    for (const e of pCheck.errors) console.error('  - ' + e);
     process.exit(1);
   }
   console.log(`strategy-reasoning: loaded (${reasoning.strategies.length} strategies)`);
