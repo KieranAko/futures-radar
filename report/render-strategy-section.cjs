@@ -69,7 +69,7 @@ function feedbackDirectionConfidenceCell(r) {
  */
 function renderFeedbackV2(feedback) {
   const lines = [];
-  lines.push('### 证伪反馈（近3期明细 + 历史汇总）');
+  lines.push('#### 证伪反馈（近3期明细 + 历史汇总）');
   lines.push('');
 
   const recent = Array.isArray(feedback.recentRuns) ? feedback.recentRuns : [];
@@ -312,7 +312,7 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
   lines.push('### 免责声明与风险边界');
   lines.push('');
   lines.push(plan.disclaimer || '策略为分析工具输出，不构成投资建议，不执行真实交易。');
-  return lines.join('\n');
+  return `${lines.join('\n')}\n`;
 }
 
 // 证伪反馈明细：从交易策略主章节移出，集中到附录 C（全展开）。
@@ -328,7 +328,7 @@ function renderFeedbackAppendix(feedback, forwardLedger = null, planRunId = null
   if (!hasMeta && !hasV2 && !hasLegacy && !prev) return '';
 
   const lines = [];
-  lines.push('## 附录 C：证伪反馈明细');
+  lines.push('### 4.3 证伪反馈明细');
   lines.push('');
 
   if (hasMeta) {
@@ -356,7 +356,7 @@ function renderFeedbackAppendix(feedback, forwardLedger = null, planRunId = null
     const done = feedback.results.filter((r) => r.status !== 'pending_data');
     if (done.length > 0) {
       lines.push('');
-      lines.push('### 上一期证伪反馈');
+      lines.push('#### 上一期证伪反馈');
       lines.push('');
       lines.push('| 计划 | 品种 | 方向/置信度 | 策略 | 信号日 | 验证结果 | 归因 |');
       lines.push('|------|------|------------|------|--------|---------|------|');
@@ -374,12 +374,12 @@ function renderFeedbackAppendix(feedback, forwardLedger = null, planRunId = null
     }
   }
 
-  return lines.join('\n');
+  return `${lines.join('\n')}\n`;
 }
 
 // ── 插入点：主报告「机会分析」之后、首个附录之前 ──
 function composeReportWithStrategy(baseReport, sectionMarkdown) {
-  const idx = baseReport.search(/\n## 附录 /);
+  const idx = baseReport.search(/\n## 四、附录/);
   if (idx === -1) return `${baseReport}\n\n${sectionMarkdown}\n`;
   return `${baseReport.slice(0, idx)}\n${sectionMarkdown}\n${baseReport.slice(idx)}`;
 }

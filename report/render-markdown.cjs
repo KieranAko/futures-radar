@@ -210,7 +210,7 @@ const executionLabel = (s) => (s === 'executable' ? '✅ 可执行' : s === 'wat
 const reportDate = new Date(model.meta.generatedAt).toISOString().slice(0, 10);
 const freshnessLine = model.freshness && model.freshness.latestBarDate
   ? `数据截至 ${model.freshness.latestBarDate} 15:00 收盘，${model.freshness.withLatestBar}/${model.freshness.totalSymbols} 品种已更新`
-  : '数据时效见附录 D';
+  : '数据时效见第四章附录';
 const header = [
   `# 期货投机机会雷达 — ${reportDate}\n`,
   `> 运行 ID: ${model.meta.runId} | 品种 ${model.meta.totalSymbols} | 候选 ${model.meta.top10Count} | 深挖 ${model.meta.keepCount} | ${freshnessLine}\n`
@@ -220,7 +220,7 @@ const header = [
 console.log('[3/6] Rendering 结论速览...');
 
 const summary = [];
-summary.push('## 结论速览\n');
+summary.push('## 一、结论速览\n');
 summary.push('| 品种 | 锚定合约 | 收盘价 | 方向 | 置信度 | 执行状态 |');
 summary.push('|------|---------|--------|------|--------|---------|');
 for (const opp of model.opportunities) {
@@ -262,7 +262,7 @@ const mainCh = [];
 mainCh.push('## 二、机会分析\n');
 
 const appendixB = [];
-appendixB.push('## 附录 B：机会证据链\n');
+appendixB.push('### 4.2 机会证据链\n');
 appendixB.push('> 每品种完整六问与模型明细；宏观/板块仅作背景。\n');
 
 for (const opp of model.opportunities) {
@@ -338,8 +338,8 @@ for (const opp of model.opportunities) {
   }
   mainCh.push('---\n');
 
-  // ── 附录 B：完整证据链 ──
-  appendixB.push(`### ${opp.symbol} ${opp.name}\n`);
+  // ── 附录：完整证据链 ──
+  appendixB.push(`#### ${opp.symbol} ${opp.name}\n`);
 
   if (opp.contract) {
     appendixB.push(`**锚定合约**: ${opp.contract}（收盘 ${fmt(opp.marketFacts && opp.marketFacts.close, 0)}）\n`);
@@ -424,12 +424,12 @@ for (const opp of model.opportunities) {
 }
 
 // ── 附录 A：市场与筛选明细 ──────────────────────────────────
-console.log('[5/6] Rendering 附录 A + 附录 D...');
+console.log('[5/6] Rendering 第四章附录...');
 
 const appendixA = [];
-appendixA.push('## 附录 A：市场与筛选明细\n');
+appendixA.push('### 4.1 市场与筛选明细\n');
 
-appendixA.push('### 宏观锚点\n');
+appendixA.push('#### 宏观锚点\n');
 if (macro && macro.available) {
   const asOf = (macro.meta && macro.meta.signalDate) || '—';
   const parts = [];
@@ -453,7 +453,7 @@ if (macro && macro.available) {
   appendixA.push(`> ⚠️ 宏观数据不可用（${reason}）。以下分析基于品种自身量价数据。\n`);
 }
 
-appendixA.push('### 板块异动\n');
+appendixA.push('#### 板块异动\n');
 appendixA.push('| 板块 | 方向 | 1日 | 5日 | 上涨广度 | 方向一致度 | 代表品种 | 驱动线索 |');
 appendixA.push('|------|------|-----|-----|---------|-----------|----------|----------|');
 if (model.sector && model.sector.sectors && Object.keys(model.sector.sectors).length > 0) {
@@ -467,19 +467,19 @@ if (model.sector && model.sector.sectors && Object.keys(model.sector.sectors).le
       `${sec.advanceRatio1d != null ? `${sec.advanceRatio1d.toFixed(0)}%` : '—'} | ${coherence} | ${leader} | ${sectorDriverClue(sectorId)} |`
     );
   }
-  appendixA.push(`\n> 板块指数由 raw.json 成员等权日收益链式构建；驱动线索来自 sector-driver.json，只解释板块整体。口径见附录 D。\n`);
+  appendixA.push(`\n> 板块指数由 raw.json 成员等权日收益链式构建；驱动线索来自 sector-driver.json，只解释板块整体。口径见第四章附录。\n`);
 } else {
   appendixA.push('| — | — | — | — | — | — | — | 板块快照不可用 |\n');
 }
 
-appendixA.push('### Top 10 异动排名\n');
+appendixA.push('#### Top 10 异动排名\n');
 appendixA.push('| # | 品种 | 代码 | 收盘 | 得分 | ATR% | Vol%ile | Vol× | 5dΔ | 方向 | 趋势(vs20/60) |');
 appendixA.push('|---|------|------|------|------|------|---------|------|-----|------|---------------|');
 for (const item of model.screening.top10) {
   appendixA.push(`| ${item.rank} | ${item.name} | ${item.symbol} | ${fmt(item.trend.close, 0)} | ${fmt(item.score, 1)} | ${fmtPct(item.indicators.atrPct)} | ${fmtPct(item.indicators.volPercentile, 0)} | ${fmt(item.indicators.volMultiplier, 2)}× | ${fmtPct(item.indicators.change5d)} | ${directionSymbol(item.trend.direction)} | ${fmtPct(item.trend.vsMA20)}/${fmtPct(item.trend.vsMA60)} |`);
 }
 
-appendixA.push('\n### 过滤决策\n');
+appendixA.push('\n#### 过滤决策\n');
 appendixA.push('| 品种 | 决定 | 初判理由 | 待验证 |');
 appendixA.push('|------|------|---------|--------|');
 for (const dec of model.screening.decisions) {
@@ -491,37 +491,37 @@ for (const dec of model.screening.decisions) {
 }
 appendixA.push('\n> 未入选品种及其理由见上表「❌ DROP」列，不再单列章节。\n');
 
-// ── 附录 D：方法与数据说明 ──────────────────────────────────
+// ── 4.4 方法与数据说明 ──────────────────────────────────────
 const freshnessCard = model.freshness ? renderFreshnessCard(model.freshness) : [];
 
 const appendixD = [];
-appendixD.push('## 附录 D：方法与数据说明\n');
+appendixD.push('### 4.4 方法与数据说明\n');
 
 if (freshnessCard.length > 0) {
-  appendixD.push('### 数据时效\n');
+  appendixD.push('#### 数据时效\n');
   appendixD.push(...freshnessCard);
 }
 
-appendixD.push('### 板块指标口径\n');
+appendixD.push('#### 板块指标口径\n');
 appendixD.push('- **板块指数**：由 raw.json 成员等权日收益链式构建（基点 1000）；驱动线索来自 sector-driver.json，只解释板块整体。');
 appendixD.push('- **上涨广度**：板块内当日上涨成员数 ÷ 成员总数 × 100%（成员当日收益 = 当日收盘/前一收盘 - 1）。');
 appendixD.push('- **方向一致度**：成员方向与板块方向一致的比例；下跌板块该值越高，说明下跌共振越强。');
 appendixD.push('- 广度 ≥ 50% 且与板块方向一致 → 多数成员共振，板块异动可信度较高；广度 < 50% 或明显分化 → 少数品种拉动，不是板块性行情。');
 appendixD.push('- 该指标只使用价格/成交量数据，不使用持仓数据。\n');
 
-appendixD.push('### 价格区间方法\n');
+appendixD.push('#### 价格区间方法\n');
 appendixD.push('- 区间由五个条件型/自适应模型给出：EWMA（RiskMetrics 1996）、GARCH(1,1)（Bollerslev 1986）、FHS（Barone-Adesi et al. 1999）、EVT-POT（McNeil & Frey 2000）、ACI（Gibbs & Candès 2021，轻量近似）');
 appendixD.push('- 表格列出全部模型与各自区间，✅ 标记当前状态更可能对的模型；参考区间采用该模型');
 appendixD.push('- 当前适配只看当下状态：波动切换比、HV 分位、极端单日与收益肥尾，不做历史回测竞赛');
 appendixD.push('- ATR 仅作止损与跳空口径，不参与区间判断；模型间差异是正常现象\n');
 
-appendixD.push('### 置信度定义\n');
+appendixD.push('#### 置信度定义\n');
 appendixD.push('- 置信度是 LLM 对整条证据链（数值+文本）的方向支撑强度与矛盾程度的综合判断，分 high/medium/low 三个序数等级');
 appendixD.push('- 它是判断参考标签，不是概率或胜率；等级之间允许容错，不使用证据计数或分值计算');
 appendixD.push('- high：证据链实质收敛、无实质性未解决矛盾；medium：方向成立但存在可容忍的反向或不确定；low：支撑不足、矛盾未解决或驱动不可验证\n');
 
 if (costAnchor) {
-  appendixD.push('### 成本锚方法\n');
+  appendixD.push('#### 成本锚方法\n');
   appendixD.push('- **理论依据**: `theory-base/05-cost-anchor-marginal-producer.md`（边际生产者/加工利润/进口平价/生产成本）');
   appendixD.push('- **存储**: 主档 `data/cost-anchor/<symbol>.json`；本期 `cost-anchor.json` 为文件库投影快照');
   appendixD.push('- **纪律**: 成本锚是证据上下文，不是支撑位，不单独决定方向；无来源/过期一律显示不可用');
@@ -532,16 +532,24 @@ appendixD.push('---\n');
 appendixD.push('*免责声明：本报告由 AI 生成，仅为投机机会发现工具，不构成投资建议。所有交易决策需自行判断。*');
 appendixD.push(`*数据来源：akshare (行情) | 预测区间：五模型参考（EWMA/GARCH/FHS/EVT-POT/ACI） | 管道版本：${model.meta.pipelineVersion}*`);
 
+// ── 四、附录（整合单章，集中所有细节与口径）──────────────────
+const appendixChapter = [
+  '## 四、附录\n',
+  '> 筛选明细、完整六问、证伪反馈与指标口径集中在本章；主报告只保留结论与关键价位。\n',
+  '',
+  ...appendixA,
+  ...appendixB,
+  feedbackAppendix,
+  ...appendixD
+].filter((s) => s != null);
+
 // ── Assemble final report ────────────────────────────────────
 const sections = [
   ...header,
   ...summary,
   ...mainCh,
   strategySection,
-  ...appendixA,
-  ...appendixB,
-  feedbackAppendix,
-  ...appendixD
+  ...appendixChapter
 ].filter((s) => s != null);
 const report = sections.join('\n');
 

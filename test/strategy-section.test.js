@@ -100,10 +100,11 @@ describe('strategy-section: 主报告+附录不变（composeReportWithStrategy�
     '内容S',
     '## 二、机会分析',
     '内容C',
-    '## 附录 A：市场与筛选明细',
+    '## 四、附录',
+    '### 4.1 市场与筛选明细',
     '附录A内容',
-    '## 附录 D：方法与数据说明',
-    '### 价格区间方法',
+    '### 4.4 方法与数据说明',
+    '#### 价格区间方法',
     '附录内容',
     '---',
     '*免责声明：本报告由 AI 生成*'
@@ -124,7 +125,7 @@ describe('strategy-section: 主报告+附录不变（composeReportWithStrategy�
     const out = composeReportWithStrategy(base, '## 三、交易策略\n板块内容');
     const idx3 = out.indexOf('## 二、机会分析');
     const idx4 = out.indexOf('## 三、交易策略');
-    const idxA = out.indexOf('## 附录 A：市场与筛选明细');
+    const idxA = out.indexOf('## 四、附录');
     assert.ok(idx3 < idx4 && idx4 < idxA);
   });
 
@@ -178,8 +179,8 @@ describe('strategy-section: v2 证伪反馈（近3期明细+历史汇总+口径�
 
   it('v2 渲染包含近3期明细、历史汇总与统计口径说明', () => {
     const out = renderFeedbackAppendix(feedback);
-    assert.ok(out.includes('## 附录 C：证伪反馈明细'));
-    assert.ok(out.includes('### 证伪反馈（近3期明细 + 历史汇总）'));
+    assert.ok(out.includes('### 4.3 证伪反馈明细'));
+    assert.ok(out.includes('#### 证伪反馈（近3期明细 + 历史汇总）'));
     assert.ok(out.includes('**近 3 期明细**'));
     assert.ok(out.includes('**历史汇总（全量统计）**'));
     assert.ok(out.includes('**统计口径说明**'));

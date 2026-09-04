@@ -23,8 +23,8 @@ describe('report content preservation（信息完整优先）', () => {
   const model = JSON.parse(fs.readFileSync(path.join(runDir, 'report-model.json'), 'utf8'));
   const strategyPlan = JSON.parse(fs.readFileSync(path.join(runDir, 'strategy-plan.json'), 'utf8'));
 
-  it('主报告三章 + 四个附录存在，且删除独立今日不做什么章节', () => {
-    for (const heading of ['## 结论速览', '## 二、机会分析', '## 三、交易策略', '## 附录 A：市场与筛选明细', '## 附录 B：机会证据链', '## 附录 D：方法与数据说明']) {
+  it('主报告三章 + 单章附录存在，且删除独立今日不做什么章节', () => {
+    for (const heading of ['## 一、结论速览', '## 二、机会分析', '## 三、交易策略', '## 四、附录', '### 4.1 市场与筛选明细', '### 4.2 机会证据链', '### 4.3 证伪反馈明细', '### 4.4 方法与数据说明']) {
       assert.ok(report.includes(heading), `missing ${heading}`);
     }
     assert.ok(!report.includes('## 阅读导航'));
