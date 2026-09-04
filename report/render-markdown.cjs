@@ -85,6 +85,8 @@ function directionLabel(dir) {
   return '—';
 }
 
+const trimEndPunct = (s) => (s || '').replace(/[。；;.\s]+$/u, '');
+
 // ── Stage 5C Entry ───────────────────────────────────────────
 console.log('=== Stage 5C: Markdown Renderer ===');
 console.log(`runId: ${runId}`);
@@ -183,12 +185,7 @@ if (model.sector && model.sector.sectors && Object.keys(model.sector.sectors).le
       `${sec.advanceRatio1d != null ? `${sec.advanceRatio1d.toFixed(0)}%` : '—'} | ${coherence} | ${leader} | ${sectorDriverClue(sectorId)} |`
     );
   }
-  ch1.push(`\n> 板块指数由 raw.json 成员等权日收益链式构建（基点 1000）。驱动线索来自板块驱动 LLM（sector-driver.json），只解释板块整体，不构成任何个股方向判断。\n`);
-  ch1.push('**板块指标口径**\n');
-  ch1.push('- **上涨广度**：板块内当日上涨成员数 ÷ 成员总数 × 100%（成员当日收益 = 当日收盘/前一收盘 - 1）。');
-  ch1.push('- **方向一致度**：成员方向与板块方向一致的比例；下跌板块该值越高，说明下跌共振越强（对空头候选是正向证据）。');
-  ch1.push('- 广度 ≥ 50% 且与板块方向一致 → 多数成员共振，板块异动可信度较高；广度 < 50% 或明显分化 → 可能只是少数领涨/领跌品种拉动，不是真正的板块性行情。');
-  ch1.push('- 该指标只使用价格/成交量数据，不使用持仓数据。\n');
+  ch1.push(`\n> 板块指数由 raw.json 成员等权日收益链式构建（基点 1000）。驱动线索来自板块驱动 LLM（sector-driver.json），只解释板块整体，不构成任何个股方向判断。指标口径见第五章「方法与数据说明」。\n`);
 } else {
   ch1.push('| — | — | — | — | — | — | — | 板块快照不可用 |\n');
 }
@@ -234,6 +231,15 @@ for (const opp of model.opportunities) {
 
   ch3.push(`### ${opp.symbol} ${opp.name}\n`);
   ch3.push(`**方向**: ${directionLabel(thesis.finalDirection)} | **置信度**: ${confidenceLabel(thesis.finalConfidence)}置信\n`);
+
+  // 核心逻辑一句话（Q3 赔率推理 + 期现基差；不新增结论，只提炼关键事实）
+  const q3Core = thesis.odds && thesis.odds.reasoning ? trimEndPunct(thesis.odds.reasoning) : '';
+  const basisCore = opp.spotBasis && opp.spotBasis.status !== 'unavailable' && opp.spotBasis.basisRate != null
+    ? (opp.spotBasis.source === 'mysteel'
+      ? `期现结构：${opp.spotBasis.basisRate < 0 ? '期货升水' : opp.spotBasis.basisRate > 0 ? '现货升水' : '基差平水'} ${Math.abs(opp.spotBasis.basisRate * 100).toFixed(2)}%`
+      : '')
+    : '';
+  if (q3Core || basisCore) ch3.push(`> **核心逻辑**: ${[q3Core, basisCore].filter(Boolean).join('；')}\n`);
 
   // 置信度推理说明（终稿方案：支持/反向/不确定三类，集中一行式展示；历史 run 无 rationale 时跳过）
   const rationale = thesis.confidenceRationale;
@@ -354,10 +360,28 @@ console.log(`  ✓ Chapter 3: ${ch3.length} lines`);
 // ── Chapter 5: 方法与数据说明 ────────────────────────────────
 console.log('[5/5] Rendering Chapter 5 + Appendix...');
 
+// 数据时效详细卡片移至第五章「方法与数据说明」，顶部只保留一行摘要
+const freshnessCard = model.freshness ? renderFreshnessCard(model.freshness) : [];
+
 const ch4 = [];
 
 // Appendix (copied from template.md, static content)
 ch4.push('## 五、方法与数据说明\n');
+
+// 数据时效详细卡片（顶部只保留一行摘要，细节集中在此）
+if (freshnessCard.length > 0) {
+  ch4.push('### 数据时效\n');
+  ch4.push(...freshnessCard);
+}
+
+// 板块指标口径（从第一章移至此处，第一章只保留表格与结论）
+ch4.push('### 板块指标口径\n');
+ch4.push('- **板块指数**：由 raw.json 成员等权日收益链式构建（基点 1000）；驱动线索来自板块驱动 LLM（sector-driver.json），只解释板块整体，不构成任何个股方向判断。');
+ch4.push('- **上涨广度**：板块内当日上涨成员数 ÷ 成员总数 × 100%（成员当日收益 = 当日收盘/前一收盘 - 1）。');
+ch4.push('- **方向一致度**：成员方向与板块方向一致的比例；下跌板块该值越高，说明下跌共振越强（对空头候选是正向证据）。');
+ch4.push('- 广度 ≥ 50% 且与板块方向一致 → 多数成员共振，板块异动可信度较高；广度 < 50% 或明显分化 → 可能只是少数领涨/领跌品种拉动，不是真正的板块性行情。');
+ch4.push('- 该指标只使用价格/成交量数据，不使用持仓数据。\n');
+
 ch4.push('### 价格区间方法\n');
 ch4.push('- 区间由五个条件型/自适应模型给出：EWMA（RiskMetrics 1996）、GARCH(1,1)（Bollerslev 1986）、FHS（Barone-Adesi et al. 1999）、EVT-POT（McNeil & Frey 2000）、ACI（Gibbs & Candès 2021，轻量近似）');
 ch4.push('- 报告表格列出全部模型与各自区间，✅ 标记当前状态更可能对的模型；参考区间采用该模型');
@@ -381,13 +405,13 @@ console.log(`  ✓ Chapter 5: ${ch4.length} lines`);
 
 // ── Assemble final report ────────────────────────────────────
 const reportDate = new Date(model.meta.generatedAt).toISOString().slice(0, 10);
+const freshnessLine = model.freshness && model.freshness.latestBarDate
+  ? `数据截至 ${model.freshness.latestBarDate} 15:00 收盘，${model.freshness.withLatestBar}/${model.freshness.totalSymbols} 品种已更新`
+  : '数据时效见第五章';
 const header = [
   `# 期货投机机会雷达 — ${reportDate}\n`,
-  `> 运行 ID: ${model.meta.runId} | 扫描品种: ${model.meta.totalSymbols} | 候选: ${model.meta.top10Count} | 深挖: ${model.meta.keepCount}\n`
+  `> 运行 ID: ${model.meta.runId} | 扫描品种: ${model.meta.totalSymbols} | 候选: ${model.meta.top10Count} | 深挖: ${model.meta.keepCount} | ${freshnessLine}\n`
 ];
-
-// 数据时效说明卡片（v0.1.2）：header 之后、第一章之前；旧 run 无 freshness 时跳过
-const freshnessCard = model.freshness ? renderFreshnessCard(model.freshness) : [];
 
 // ── 交易策略板块（终稿：第四章「交易策略板块」，插在附录「五、方法与数据说明」之前）──
 const { renderStrategySection, composeReportWithStrategy } = require('./render-strategy-section.cjs');
@@ -421,26 +445,32 @@ if (fs.existsSync(strategyPlanPath)) {
 // 结论速览与阅读导航（新增，只做摘要与锚点，不替代正文）
 const planMap = new Map((strategyPlan && Array.isArray(strategyPlan.plans) ? strategyPlan.plans : []).map((p) => [p.symbol, p]));
 const executionLabel = (s) => (s === 'executable' ? '✅ 可执行' : s === 'watch' ? '👀 观察' : s === 'skip' ? '⛔ 跳过' : '—');
+function coreLogic(opp) {
+  const parts = [];
+  const q3 = opp.thesis?.odds?.reasoning;
+  if (q3) parts.push(trimEndPunct(q3));
+  const basisRate = opp.spotBasis?.basisRate;
+  if (basisRate != null && opp.spotBasis?.source === 'mysteel') {
+    parts.push(basisRate < 0 ? `期货升水${Math.abs(basisRate * 100).toFixed(1)}%` : `现货升水${Math.abs(basisRate * 100).toFixed(1)}%`);
+  }
+  return parts.join('；');
+}
+
 const summaryAndNav = [];
 summaryAndNav.push('## 结论速览\n');
-summaryAndNav.push('| 品种 | 锚定合约 | 收盘价 | 方向 | 置信度 | 执行状态 |');
-summaryAndNav.push('|------|---------|--------|------|--------|---------|');
+summaryAndNav.push('| 品种 | 锚定合约 | 收盘价 | 方向 | 置信度 | 执行状态 | 核心逻辑 |');
+summaryAndNav.push('|------|---------|--------|------|--------|---------|---------|');
 for (const opp of model.opportunities) {
   const p = planMap.get(opp.symbol);
-  summaryAndNav.push(`| ${opp.symbol} ${opp.name} | ${opp.contract || '—'} | ${fmt(opp.marketFacts && opp.marketFacts.close, 0)} | ${directionLabel(opp.thesis.finalDirection)} | ${confidenceLabel(opp.thesis.finalConfidence)} | ${p ? executionLabel(p.executionStatus) : '—'} |`);
+  summaryAndNav.push(`| ${opp.symbol} ${opp.name} | ${opp.contract || '—'} | ${fmt(opp.marketFacts && opp.marketFacts.close, 0)} | ${directionLabel(opp.thesis.finalDirection)} | ${confidenceLabel(opp.thesis.finalConfidence)} | ${p ? executionLabel(p.executionStatus) : '—'} | ${coreLogic(opp) || '—'} |`);
 }
 const nExec = [...planMap.values()].filter((p) => p.executionStatus === 'executable').length;
 const nWatch = [...planMap.values()].filter((p) => p.executionStatus === 'watch').length;
 const nSkip = [...planMap.values()].filter((p) => p.executionStatus === 'skip').length;
 summaryAndNav.push(`\n**本期**: 深挖 ${model.opportunities.length} 个品种；可执行 ${nExec}，观察 ${nWatch}，跳过 ${nSkip}。`);
-summaryAndNav.push('\n**本期一句话**:');
-for (const opp of model.opportunities) {
-  const one = opp.thesis?.odds?.reasoning || opp.thesis?.driver?.primary || '—';
-  summaryAndNav.push(`- ${opp.symbol} ${opp.name}：${one}`);
-}
 summaryAndNav.push('\n> 详细证据见第三章，执行计划见第四章，方法说明见第五章。\n');
 
-const baseReport = [...header, ...freshnessCard, ...summaryAndNav, ...ch1, ...ch2, ...ch3, ...ch4].join('\n');
+const baseReport = [...header, ...summaryAndNav, ...ch1, ...ch2, ...ch3, ...ch4].join('\n');
 const report = strategySection ? composeReportWithStrategy(baseReport, strategySection) : baseReport;
 
 // ── Write report.md ──────────────────────────────────────────
