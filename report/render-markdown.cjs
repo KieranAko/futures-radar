@@ -329,7 +329,11 @@ for (const opp of model.opportunities) {
 
   // 6-question analysis
   for (const line of costAnchorLines(opp.symbol)) ch3.push(`${line}\n`);
-  ch3.push(`**驱动 (Q1)**: ${thesis.driver.primary}；${thesis.driver.secondary}。${thesis.driver.evidence.substring(0, 100)}... (来源: ${thesis.driver.source})\n`);
+  ch3.push('**驱动 (Q1)**:');
+  if (thesis.driver.primary) ch3.push(`- 主驱动: ${thesis.driver.primary}`);
+  if (thesis.driver.secondary) ch3.push(`- 次驱动: ${thesis.driver.secondary}`);
+  if (thesis.driver.evidence) ch3.push(`- 证据: ${thesis.driver.evidence}`);
+  if (thesis.driver.source) ch3.push(`- 来源: ${thesis.driver.source}`);
   ch3.push(`**趋势/脉冲 (Q2)**: ${thesis.trendOrImpulse.assessment}\n`);
   ch3.push(`**赔率 (Q3)**: ${thesis.odds.reasoning} → ${thesis.odds.bias}\n`);
 
@@ -429,7 +433,12 @@ const nExec = [...planMap.values()].filter((p) => p.executionStatus === 'executa
 const nWatch = [...planMap.values()].filter((p) => p.executionStatus === 'watch').length;
 const nSkip = [...planMap.values()].filter((p) => p.executionStatus === 'skip').length;
 summaryAndNav.push(`\n**本期**: 深挖 ${model.opportunities.length} 个品种；可执行 ${nExec}，观察 ${nWatch}，跳过 ${nSkip}。`);
-summaryAndNav.push('> 详细证据见第三章，执行计划见第四章，方法说明见第五章。\n');
+summaryAndNav.push('\n**本期一句话**:');
+for (const opp of model.opportunities) {
+  const one = opp.thesis?.odds?.reasoning || opp.thesis?.driver?.primary || '—';
+  summaryAndNav.push(`- ${opp.symbol} ${opp.name}：${one}`);
+}
+summaryAndNav.push('\n> 详细证据见第三章，执行计划见第四章，方法说明见第五章。\n');
 
 const baseReport = [...header, ...freshnessCard, ...summaryAndNav, ...ch1, ...ch2, ...ch3, ...ch4].join('\n');
 const report = strategySection ? composeReportWithStrategy(baseReport, strategySection) : baseReport;
