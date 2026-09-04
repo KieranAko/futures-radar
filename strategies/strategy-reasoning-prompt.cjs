@@ -7,6 +7,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { runDir } = require('../lib/workspace.cjs');
+const { computeNearTermStructure } = require('./lib/near-term-structure.cjs');
 
 function readJSON(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -21,6 +22,8 @@ function main() {
   const rm = readJSON(path.join(dir, 'report-model.json'));
   const analysis = readJSON(path.join(dir, 'analysis.json'));
   const prob = readJSON(path.join(dir, 'probability.json'));
+  const raw = readJSON(path.join(dir, 'raw.json'));
+  const signalDate = (analysis.meta?.analyzedAt || rm.meta?.generatedAt || '').slice(0, 10);
 
   const L = [];
   L.push(`# Strategy-LLM 推理输入（runId=${runId}）`);
@@ -43,9 +46,10 @@ function main() {
   L.push('1. 论点绑定：提取报告方向/置信度/驱动/确认/失效。');
   L.push('2. 可执行性评估：Q4 触发价是否可达？现价与触发价、p68/p95 的关系？');
   L.push('3. 表达选择：breakout / confirmation / pullback / event-confirmation / conditional-watch。');
-  L.push('4. 止损/目标：止损来自 Q5 失效位或概率尾；目标来自 Q3 逻辑点或 p68/p95。');
-  L.push('5. 仓位意图：confidence + 波动率目标 + 尾部风险。');
-  L.push('6. 自检：每个参数可溯源到报告字段；theoryFit 与 strategyConfidence 自洽。');
+  L.push('4. 语义自洽：现价相对价值区的位置必须与表达类型和触发文案一致——现价在区间内用“确认”，在区间上方等待下跌用“回踩”，在区间下方等待站上用“突破/站回”；不得出现“现价在区间内却写回踩”。');
+  L.push('5. 止损/目标：止损来自 Q5 失效位或近端结构；目标来自 Q3 逻辑点或 Q4 结构位。');
+  L.push('6. 仓位意图：confidence + 波动率目标 + 尾部风险。');
+  L.push('7. 自检：每个参数可溯源到报告字段；theoryFit 与 strategyConfidence 自洽；触发文案与表达类型一致。');
   L.push('');
   for (const opp of rm.opportunities) {
     const t = opp.thesis || {};
@@ -59,6 +63,16 @@ function main() {
     L.push(`- Q3 bias: ${t.odds?.bias || '—'} summary=${t.odds?.reasoning || t.odds?.summary || '—'}`);
     L.push(`- Q4 confirmations: ${(t.confirmations?.signals || []).join(' | ')}`);
     L.push(`- Q5 invalidations: ${(t.invalidations?.conditions || []).join(' | ')}`);
+    const rawContract = raw?.contracts?.[opp.symbol];
+    if (rawContract?.ohlcv) {
+      const o = rawContract.ohlcv;
+      const bars = o.dates.map((date, i) => ({ date, open: o.open[i], high: o.high[i], low: o.low[i], close: o.close[i] }));
+      const near = computeNearTermStructure(bars, signalDate);
+      if (near) {
+        const pos = opp.marketFacts?.close < near.valueAreaLow ? 'below' : opp.marketFacts?.close > near.valueAreaHigh ? 'above' : 'inside';
+        L.push(`- near_term: valueArea=[${near.valueAreaLow}, ${near.valueAreaHigh}] pdh=${near.pdh} pdl=${near.pdl} atr5=${near.atr5} 现价位置=${pos}`);
+      }
+    }
     L.push(`- close=${opp.marketFacts?.close} hv.percentile90d=${opp.marketFacts?.hv?.percentile90d}`);
     const pr3 = opp.priceRanges?.[0] || {};
     L.push(`- 3d p68=${JSON.stringify(pr3.hvCone?.p68)} p95=${JSON.stringify(pr3.hvCone?.p95)} atr5=${pr3.atrBand?.atr5} divergence=${pr3.divergence?.pct}`);
