@@ -152,6 +152,9 @@ function normalize(value, prodRunId, mirrorRunId, opts = {}) {
       s = s.replace(/\|------\|------\|---------\|--------\|/, '|------|------|------|');
       s = s.replace(/ \| — \|$/gm, ' |');
     }
+    // 主报告「关键价位」参考区间行：来自 intervalModels/referenceInterval，
+    // 历史 prod report-model 缺失而 mirror 回放会再生 → 两侧删除后比较
+    s = s.replace(/^\| 参考区间 \| [^\n]*\n/gm, '');
     // 价格区间：历史 run 与五模型参考格式不同 → 两侧整体删除后比较（模型表由专门测试覆盖）
     s = s.replace(/\*\*价格区间\*\*:\n[\s\S]*?(?=\n\*\*驱动 \(Q1\)\*\*)/g, '');
     s = s.replace(/\*\*价格区间（五模型参考）\*\*:\n[\s\S]*?(?=\n\*\*驱动 \(Q1\)\*\*)/g, '');

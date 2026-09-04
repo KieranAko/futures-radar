@@ -177,31 +177,12 @@ function planTrust(p, familyEvidence) {
   return trustRating({ family: inferFamily(planFamilyText(p)), familyEvidence, match: 1, fidelity: 2 });
 }
 
-function renderStrategySection(plan, library, feedback = null, familyEvidence = null, forwardLedger = null, closeMap = null) {
+function renderStrategySection(plan, library, familyEvidence = null, closeMap = null) {
   const lines = [];
-  lines.push('## 四、交易策略');
+  lines.push('## 三、交易策略');
   lines.push('');
   lines.push(`> 运行 ID: ${plan.meta.runId} | 信号日: ${plan.meta.signalDate} | 示例权益: ${plan.meta.equityCny} CNY`);
-  lines.push('> 确定性生成，仅作执行参考；**不改变报告方向与置信度**。');
-  if (feedback && feedback.meta) {
-    if (feedback.schema === 'futures-radar-strategy-feedback/2') {
-      const recorded = feedback.meta.recordedThisRun == null ? '—' : feedback.meta.recordedThisRun;
-      const attempted = feedback.meta.incrementalAttempted == null ? 0 : feedback.meta.incrementalAttempted;
-      lines.push(`> 证伪反馈机制：本期记录 ${recorded} 条策略进入证伪闭环；增量验证 ${attempted} 条未终态记录；历史累计 ${feedback.meta.totalPlans ?? '—'} 条（已终态 ${feedback.meta.terminalPlans ?? '—'} / 待验证 ${feedback.meta.pendingPlans ?? '—'}）。`);
-    } else {
-      const recorded = feedback.meta.recorded == null ? '—' : feedback.meta.recorded;
-      const verified = feedback.meta.verified == null ? 0 : feedback.meta.verified;
-      lines.push(`> 证伪反馈机制：本期冻结 ${recorded} 个可执行计划；本次验证往期计划 ${verified} 个。`);
-    }
-  }
-  // 前向账本滚动（01-L7：今天的报告引用往期计划的验证状态）
-  if (forwardLedger && forwardLedger.previousRun && forwardLedger.previousRun !== plan.meta.runId) {
-    const prev = forwardLedger.runs[forwardLedger.previousRun];
-    if (prev) {
-      const detail = (prev.rows || []).map((r) => `${r.symbol}:${r.status}${r.netPnlPct != null ? `(${r.netPnlPct}%)` : ''}`).join('；');
-      lines.push(`> 前向验证（上期 ${forwardLedger.previousRun}）：计划 ${prev.summary.plans} 条，已完成 ${prev.summary.verified}，待数据 ${prev.summary.pendingData}，未触发 ${prev.summary.triggerMiss}；${detail || '无明细'}`);
-    }
-  }
+  lines.push('> 由报告结论确定性生成，不改变方向与置信度。');
   // 族级证据状态（实验线 promote 的负面结论，不改变方向/置信度，只提示证据充分程度）
   if (familyEvidence && familyEvidence.families) {
     const closed = Object.entries(familyEvidence.families)
@@ -317,31 +298,6 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
     lines.push('');
   }
 
-  // 证伪反馈：v2 用近3期明细+历史汇总；旧 shape 保留原样回显
-  if (feedback && feedback.schema === 'futures-radar-strategy-feedback/2') {
-    lines.push(renderFeedbackV2(feedback));
-    lines.push('');
-  } else if (feedback && Array.isArray(feedback.results) && feedback.results.length > 0) {
-    const done = feedback.results.filter(r => r.status !== 'pending_data');
-    if (done.length > 0) {
-      lines.push('### 上一期证伪反馈');
-      lines.push('');
-      lines.push('| 计划 | 品种 | 方向/置信度 | 策略 | 信号日 | 验证结果 | 归因 |');
-      lines.push('|------|------|------------|------|--------|---------|------|');
-      for (const r of done) {
-        const resultLabel = r.status === 'verified'
-          ? `${r.exitType === 'stopped_out' ? '止损离场' : r.exitType === 'target1_hit' ? '目标1兑现' : '时间离场'}${r.directionCorrect ? '（方向正确）' : '（方向错误）'}`
-          : r.status === 'invalidated_not_triggered' ? '未触发，计划作废' : r.status;
-        const attr = (r.attribution || []).map(a => `${a.code}: ${a.detail}`).join('；');
-        const symbolCell = `${r.name || r.symbol || '—'} (${r.symbol || '—'})`;
-        const dirConfCell = `${r.direction ? directionLabel(r.direction) : '—'}/${r.confidence ? confidenceLabel(r.confidence) : '—'}`;
-        const strategyCell = `${r.strategyId || '—'} + ${r.playbookId || '—'}`;
-        lines.push(`| ${r.recordId} | ${symbolCell} | ${dirConfCell} | ${strategyCell} | ${r.signalDate || '—'} | ${resultLabel} | ${attr} |`);
-      }
-      lines.push('');
-    }
-  }
-
   // 集中度说明
   if (plan.concentrationDecisions && plan.concentrationDecisions.length > 0) {
     lines.push('### 集中度说明');
@@ -359,12 +315,73 @@ function renderStrategySection(plan, library, feedback = null, familyEvidence = 
   return lines.join('\n');
 }
 
-// ── 插入点（t7 §3.2）：第四章之后、附录「价格区间方法说明」之前 ──
+// 证伪反馈明细：从交易策略主章节移出，集中到附录 C（全展开）。
+// 输入：strategy-feedback.json + forward-ledger.json；两者都无有效内容时返回空字符串。
+function renderFeedbackAppendix(feedback, forwardLedger = null, planRunId = null) {
+  const hasMeta = !!(feedback && feedback.meta);
+  const hasV2 = !!(feedback && feedback.schema === 'futures-radar-strategy-feedback/2');
+  const hasLegacy = !!(feedback && Array.isArray(feedback.results) && feedback.results.length > 0);
+  const prevRun = forwardLedger && forwardLedger.previousRun && forwardLedger.previousRun !== planRunId
+    ? forwardLedger.previousRun
+    : null;
+  const prev = prevRun ? forwardLedger.runs[prevRun] : null;
+  if (!hasMeta && !hasV2 && !hasLegacy && !prev) return '';
+
+  const lines = [];
+  lines.push('## 附录 C：证伪反馈明细');
+  lines.push('');
+
+  if (hasMeta) {
+    if (hasV2) {
+      const recorded = feedback.meta.recordedThisRun == null ? '—' : feedback.meta.recordedThisRun;
+      const attempted = feedback.meta.incrementalAttempted == null ? 0 : feedback.meta.incrementalAttempted;
+      lines.push(`> 本期记录 ${recorded} 条策略进入证伪闭环；增量验证 ${attempted} 条未终态记录；历史累计 ${feedback.meta.totalPlans ?? '—'} 条（已终态 ${feedback.meta.terminalPlans ?? '—'} / 待验证 ${feedback.meta.pendingPlans ?? '—'}）。`);
+    } else {
+      const recorded = feedback.meta.recorded == null ? '—' : feedback.meta.recorded;
+      const verified = feedback.meta.verified == null ? 0 : feedback.meta.verified;
+      lines.push(`> 本期冻结 ${recorded} 个可执行计划；本次验证往期计划 ${verified} 个。`);
+    }
+  }
+
+  if (prev) {
+    const detail = (prev.rows || []).map((r) => `${r.symbol}:${r.status}${r.netPnlPct != null ? `(${r.netPnlPct}%)` : ''}`).join('；');
+    lines.push(`> 前向验证（上期 ${prevRun}）：计划 ${prev.summary.plans} 条，已完成 ${prev.summary.verified}，待数据 ${prev.summary.pendingData}，未触发 ${prev.summary.triggerMiss}；${detail || '无明细'}`);
+  }
+
+  if (hasV2) {
+    lines.push('');
+    lines.push(renderFeedbackV2(feedback));
+    lines.push('');
+  } else if (hasLegacy) {
+    const done = feedback.results.filter((r) => r.status !== 'pending_data');
+    if (done.length > 0) {
+      lines.push('');
+      lines.push('### 上一期证伪反馈');
+      lines.push('');
+      lines.push('| 计划 | 品种 | 方向/置信度 | 策略 | 信号日 | 验证结果 | 归因 |');
+      lines.push('|------|------|------------|------|--------|---------|------|');
+      for (const r of done) {
+        const resultLabel = r.status === 'verified'
+          ? `${r.exitType === 'stopped_out' ? '止损离场' : r.exitType === 'target1_hit' ? '目标1兑现' : '时间离场'}${r.directionCorrect ? '（方向正确）' : '（方向错误）'}`
+          : r.status === 'invalidated_not_triggered' ? '未触发，计划作废' : r.status;
+        const attr = (r.attribution || []).map((a) => `${a.code}: ${a.detail}`).join('；');
+        const symbolCell = `${r.name || r.symbol || '—'} (${r.symbol || '—'})`;
+        const dirConfCell = `${r.direction ? directionLabel(r.direction) : '—'}/${r.confidence ? confidenceLabel(r.confidence) : '—'}`;
+        const strategyCell = `${r.strategyId || '—'} + ${r.playbookId || '—'}`;
+        lines.push(`| ${r.recordId} | ${symbolCell} | ${dirConfCell} | ${strategyCell} | ${r.signalDate || '—'} | ${resultLabel} | ${attr} |`);
+      }
+      lines.push('');
+    }
+  }
+
+  return lines.join('\n');
+}
+
+// ── 插入点：主报告「机会分析」之后、首个附录之前 ──
 function composeReportWithStrategy(baseReport, sectionMarkdown) {
-  const anchor = '\n## 五、方法与数据说明';
-  const idx = baseReport.indexOf(anchor);
+  const idx = baseReport.search(/\n## 附录 /);
   if (idx === -1) return `${baseReport}\n\n${sectionMarkdown}\n`;
   return `${baseReport.slice(0, idx)}\n${sectionMarkdown}\n${baseReport.slice(idx)}`;
 }
 
-module.exports = { renderStrategySection, composeReportWithStrategy };
+module.exports = { renderStrategySection, renderFeedbackAppendix, composeReportWithStrategy };

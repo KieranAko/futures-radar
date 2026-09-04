@@ -23,12 +23,14 @@ describe('report content preservation（信息完整优先）', () => {
   const model = JSON.parse(fs.readFileSync(path.join(runDir, 'report-model.json'), 'utf8'));
   const strategyPlan = JSON.parse(fs.readFileSync(path.join(runDir, 'strategy-plan.json'), 'utf8'));
 
-  it('五章框架 + 速览存在，且删除独立今日不做什么章节', () => {
-    for (const heading of ['## 结论速览', '## 一、市场环境', '## 二、候选筛选', '## 三、重点机会分析', '## 四、交易策略', '## 五、方法与数据说明']) {
+  it('主报告三章 + 四个附录存在，且删除独立今日不做什么章节', () => {
+    for (const heading of ['## 结论速览', '## 二、机会分析', '## 三、交易策略', '## 附录 A：市场与筛选明细', '## 附录 B：机会证据链', '## 附录 D：方法与数据说明']) {
       assert.ok(report.includes(heading), `missing ${heading}`);
     }
     assert.ok(!report.includes('## 阅读导航'));
     assert.ok(!report.includes('## 四、今日不做什么'));
+    assert.ok(!report.includes('## 一、市场环境'));
+    assert.ok(!report.includes('## 二、候选筛选'));
     assert.ok(report.includes('未入选品种及其理由见上表'));
   });
 

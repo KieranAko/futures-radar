@@ -11,7 +11,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const matcher = require('../strategies/lib/strategy-matcher.cjs');
 const render = require('../report/render-strategy-section.cjs');
-const { renderStrategySection, composeReportWithStrategy } = render;
+const { renderStrategySection, renderFeedbackAppendix, composeReportWithStrategy } = render;
 
 const skillRoot = path.resolve(import.meta.dirname, '..');
 const library = JSON.parse(fs.readFileSync(path.join(skillRoot, 'strategies', 'strategy-library.json'), 'utf8'));
@@ -22,8 +22,8 @@ const section = renderStrategySection(plan, library);
 const sectionBody = section.replace(plan.disclaimer, '');
 
 describe('strategy-section: 板块存在与策略适配（acceptance 1/2）', () => {
-  it('渲染片段含「四、交易策略」章节标题', () => {
-    assert.ok(section.includes('## 四、交易策略'));
+  it('渲染片段含「三、交易策略」章节标题', () => {
+    assert.ok(section.includes('## 三、交易策略'));
   });
 
   it('策略总览表包含每个 TOP3 品种（每个 TOP3 ≥1 策略）', () => {
@@ -92,25 +92,25 @@ describe('strategy-section: 禁用词表与免责（t7 §3.6/§3.7）', () => {
   });
 });
 
-describe('strategy-section: 四章+附录不变（composeReportWithStrategy）', () => {
+describe('strategy-section: 主报告+附录不变（composeReportWithStrategy）', () => {
   const base = [
     '# 期货投机机会雷达 — 2026-08-27',
     '',
-    '## 一、市场雷达',
-    '内容A',
-    '## 二、候选筛选',
-    '内容B',
-    '## 三、重点机会分析',
+    '## 结论速览',
+    '内容S',
+    '## 二、机会分析',
     '内容C',
-    '## 五、方法与数据说明',
+    '## 附录 A：市场与筛选明细',
+    '附录A内容',
+    '## 附录 D：方法与数据说明',
     '### 价格区间方法',
     '附录内容',
     '---',
     '*免责声明：本报告由 AI 生成*'
   ].join('\n');
 
-  it('插入后原四章与附录所有行原样保留（逐行顺序不变）', () => {
-    const out = composeReportWithStrategy(base, '## 四、交易策略\n板块内容');
+  it('插入后原主报告与附录所有行原样保留（逐行顺序不变）', () => {
+    const out = composeReportWithStrategy(base, '## 三、交易策略\n板块内容');
     const baseLines = base.split('\n');
     const outLines = out.split('\n');
     let i = 0;
@@ -120,16 +120,16 @@ describe('strategy-section: 四章+附录不变（composeReportWithStrategy）',
     assert.equal(i, baseLines.length, 'base lines must be a subsequence in order');
   });
 
-  it('新章节位于重点机会之后、方法与数据说明之前', () => {
-    const out = composeReportWithStrategy(base, '## 四、交易策略\n板块内容');
-    const idx3 = out.indexOf('## 三、重点机会分析');
-    const idx4 = out.indexOf('## 四、交易策略');
-    const idxA = out.indexOf('## 五、方法与数据说明');
+  it('新章节位于机会分析之后、首个附录之前', () => {
+    const out = composeReportWithStrategy(base, '## 三、交易策略\n板块内容');
+    const idx3 = out.indexOf('## 二、机会分析');
+    const idx4 = out.indexOf('## 三、交易策略');
+    const idxA = out.indexOf('## 附录 A：市场与筛选明细');
     assert.ok(idx3 < idx4 && idx4 < idxA);
   });
 
   it('无附录锚点时回退为末尾追加', () => {
-    const out = composeReportWithStrategy('# 标题\n正文', '## 四、交易策略\n板块内容');
+    const out = composeReportWithStrategy('# 标题\n正文', '## 三、交易策略\n板块内容');
     assert.ok(out.endsWith('板块内容\n'));
   });
 });
@@ -177,7 +177,8 @@ describe('strategy-section: v2 证伪反馈（近3期明细+历史汇总+口径�
   };
 
   it('v2 渲染包含近3期明细、历史汇总与统计口径说明', () => {
-    const out = renderStrategySection(plan, library, feedback);
+    const out = renderFeedbackAppendix(feedback);
+    assert.ok(out.includes('## 附录 C：证伪反馈明细'));
     assert.ok(out.includes('### 证伪反馈（近3期明细 + 历史汇总）'));
     assert.ok(out.includes('**近 3 期明细**'));
     assert.ok(out.includes('**历史汇总（全量统计）**'));
@@ -191,14 +192,20 @@ describe('strategy-section: v2 证伪反馈（近3期明细+历史汇总+口径�
   });
 
   it('v2 渲染明细只显示最近 run 的条目，不展开全部历史', () => {
-    const out = renderStrategySection(plan, library, feedback);
+    const out = renderFeedbackAppendix(feedback);
     assert.ok(out.includes('20260902-1723-auto:SA0'));
     assert.ok(!out.includes('20260828-0610-auto:M0'));
   });
 
   it('v2 渲染不含收益/胜率承诺类表述', () => {
-    const out = renderStrategySection(plan, library, feedback).replace(plan.disclaimer, '');
+    const out = renderFeedbackAppendix(feedback);
     assert.ok(!/(收益|回报|胜率)\s*[+＋]?\d+(\.\d+)?\s*%/.test(out));
+  });
+
+  it('证伪反馈已从交易策略主章节移出', () => {
+    const out = renderStrategySection(plan, library, feedback);
+    assert.ok(!out.includes('证伪反馈（近3期明细 + 历史汇总）'));
+    assert.ok(!out.includes('上一期证伪反馈'));
   });
 });
 
@@ -237,8 +244,8 @@ describe('strategy-section: 确定性', () => {
       updatedAt: '2026-08-29',
       families: { carry: { level: 'g1' }, momentum: { level: 'instance_gate_failed' } },
     };
-    const withFam = renderStrategySection(plan, library, null, fam);
-    const withoutFam = renderStrategySection(plan, library, null, null);
+    const withFam = renderStrategySection(plan, library, fam);
+    const withoutFam = renderStrategySection(plan, library, null);
     assert.ok(withFam.includes('族级证据状态（实验线 2026-08-29）'));
     assert.ok(!withoutFam.includes('族级证据状态'));
     // 族级证据行不得引入收益/胜率数字
