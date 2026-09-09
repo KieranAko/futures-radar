@@ -10,26 +10,26 @@
   "alphaAdj": 0.0167,
   "decision": "screen_pending",
   "primary": {
-    "meanNetPct": -0.776535,
+    "meanNetPct": -0.764538,
     "ci": {
-      "lo": -2.215307,
-      "hi": 0.684995,
+      "lo": -2.143058,
+      "hi": 0.686147,
       "level": 0.95,
       "B": 10000,
       "seed": 20260828,
       "method": "bootstrap-percentile"
     },
-    "n": 102,
-    "sigmaPct": 7.466665
+    "n": 103,
+    "sigmaPct": 7.430971
   },
   "secondary": {
     "hitRate": {
-      "k": 44,
-      "n": 102,
-      "rate": 0.431373,
-      "pOneSided": 0.9314505971219004,
+      "k": 45,
+      "n": 103,
+      "rate": 0.436893,
+      "pOneSided": 0.9162778327939589,
       "alphaAdj": 0.0167,
-      "powerFor3pp": 0.063752,
+      "powerFor3pp": 0.064124,
       "validityGate": "low_power_no_conclusion"
     },
     "policyWindowSplit": {
@@ -38,22 +38,22 @@
         "meanNetPct": -0.329619
       },
       "outside": {
-        "n": 67,
-        "meanNetPct": -1.009998
+        "n": 68,
+        "meanNetPct": -0.988393
       },
       "note": "探索性分段；promote 后须政策窗口内保真复跑"
     },
     "baselineSpreadReturn": {
-      "n": 2637,
-      "meanNetPct": -0.010878,
+      "n": 2641,
+      "meanNetPct": -0.013715,
       "note": "全样本 10 日两腿对数收益 − 0.14（无信号对照，仅报告）"
     }
   },
   "powerReport": {
     "meanMdePct": 0.1,
-    "meanPowerAtMde": 0.011973,
+    "meanPowerAtMde": 0.012014,
     "meanPowerRule": "报告用途；探针非策略级主检验（24 协议 §2.4 适用于策略级）",
-    "hitRatePowerFor3pp": 0.063752
+    "hitRatePowerFor3pp": 0.064124
   },
   "events": [
     {
@@ -871,6 +871,14 @@
       "z": 2.279562,
       "gapPct": null,
       "netPct": -8.759551
+    },
+    {
+      "date": "2026-08-26",
+      "symbol": "J0/I0",
+      "direction": -1,
+      "z": 2.748982,
+      "gapPct": null,
+      "netPct": 0.45919
     }
   ]
 }

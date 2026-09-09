@@ -16,10 +16,10 @@
       "name": "焦炭/铁矿比价（高炉原料结构经济性替代）均值回归",
       "family": "fundamental",
       "decision": "screen_pending",
-      "n": 102,
-      "meanNetPct": -0.776535,
-      "ciLo": -2.215307,
-      "ciHi": 0.684995
+      "n": 103,
+      "meanNetPct": -0.764538,
+      "ciLo": -2.143058,
+      "ciHi": 0.686147
     },
     "H-MECH-03": {
       "name": "极端隔夜跳空后的短期反转（散户过度反应）",
