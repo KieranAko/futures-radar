@@ -54,6 +54,21 @@ describe('report content preservation（信息完整优先）', () => {
     }
   });
 
+  it('机会分析主章含驱动主线（事件逻辑前置，不只在附录）', () => {
+    const mainEnd = report.indexOf('## 三、交易策略');
+    assert.ok(mainEnd > 0, 'missing 交易策略 chapter');
+    assert.ok(report.indexOf('**驱动主线**') >= 0, 'missing 驱动主线 block');
+    assert.ok(report.indexOf('**驱动主线**') < mainEnd, '驱动主线必须位于交易策略之前');
+    for (const opp of model.opportunities) {
+      const primary = opp.thesis.driver && opp.thesis.driver.primary;
+      if (primary) {
+        const idx = report.indexOf(`**驱动主线**：${primary}`);
+        assert.ok(idx >= 0, `missing driver primary for ${opp.symbol}`);
+        assert.ok(idx < mainEnd, `${opp.symbol} 驱动主线应在主章`);
+      }
+    }
+  });
+
   it('策略计划全部字段行保留', () => {
     for (const p of strategyPlan.plans) {
       assert.ok(report.includes(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract}）`));

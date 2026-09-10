@@ -171,6 +171,46 @@ function coreLogic(opp) {
   return parts.join('；');
 }
 
+function truncateText(s, max) {
+  const str = String(s || '');
+  return str.length > max ? `${str.slice(0, max - 1)}…` : str;
+}
+
+// 机会分析主章「驱动主线」：把 Q1 事件逻辑前置，技术性证据仍在关键多空/关键价位。
+function driverBlock(opp) {
+  const d = opp.thesis && opp.thesis.driver;
+  const lines = [];
+  const primary = d && d.primary ? d.primary : '—';
+  const secondary = d && d.secondary ? `；${d.secondary}` : '';
+  lines.push(`**驱动主线**：${primary}${secondary}`);
+
+  if (opp.sector && model.sector && model.sector.sectors && model.sector.sectors[opp.sector]) {
+    const sec = model.sector.sectors[opp.sector];
+    const secObserved = `${sec.label} 1日 ${fmtPct(sec.ret1d)} / 5日 ${fmtPct(sec.ret5d)}，广度 ${
+      sec.advanceRatio1d != null ? `${sec.advanceRatio1d.toFixed(0)}%` : '—'
+    }`;
+    lines.push(`- 板块背景：${secObserved}；板块驱动：${sectorDriverClue(opp.sector)}`);
+  }
+
+  if (macro && macro.available && macro.relevance) {
+    const anchors = macro.relevance[opp.symbol] || [];
+    if (anchors.length > 0) {
+      const anchorText = anchors.map((a) => {
+        const disp = (macro.display && macro.display[a]) || { label: a, unit: '', decimals: 2 };
+        const ind = macro.indicators[a];
+        if (!ind || ind.status === 'missing') return `${disp.label} —`;
+        return `${disp.label} ${fmtMacroValue(ind.value, disp)}`;
+      }).join('；');
+      lines.push(`- 相关宏观：${anchorText}`);
+    }
+  }
+
+  if (d && d.source) {
+    lines.push(`- 来源：${truncateText(d.source, 160)}`);
+  }
+  return lines;
+}
+
 // ── Load strategy-plan.json（渲染结论速览/机会分析前需要 plan 数据）──
 console.log('[2/6] Loading strategy-plan.json...');
 const { renderStrategySection, renderFeedbackAppendix } = require('./render-strategy-section.cjs');
@@ -283,6 +323,13 @@ for (const opp of model.opportunities) {
     : '';
   if (q3Core || basisCore) {
     mainCh.push(`> **核心逻辑**：${[q3Core, basisCore].filter(Boolean).join('；')}\n`);
+  }
+
+  // 驱动主线（事件逻辑前置；附录 B 保留完整六问）
+  const dbLines = driverBlock(opp);
+  if (dbLines.length > 0) {
+    mainCh.push(...dbLines);
+    mainCh.push('');
   }
 
   if (thesis.assessmentChanged) {
