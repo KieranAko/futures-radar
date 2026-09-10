@@ -696,6 +696,8 @@ function riskLayer(ctx, ind, opts) {
   const customStopPrice = customStopRaw === null || customStopRaw === undefined || customStopRaw === ''
     ? null
     : (Number.isFinite(Number(customStopRaw)) ? Number(customStopRaw) : null);
+  const entryPrice = Number.isFinite(Number(opts.entryPrice)) ? Number(opts.entryPrice) : null;
+  const expressionType = opts.expressionType || 'confirmation';
   const conf = ctx.rm.thesis.finalConfidence || 'medium';
   const close = ind.close;
   const atr5 = ctx.rm.priceRanges?.[0]?.atrBand?.atr5 ?? 0;
@@ -725,9 +727,14 @@ function riskLayer(ctx, ind, opts) {
   const structDist = structuralStop !== null ? Math.abs(structuralStop - close) : Infinity;
   if (customStopPrice !== null) {
     // Strategy-LLM 给出的理论失效位/概率尾止损：由 reasoning 决策，风控层只负责据此计算风险与手数
-    stopDistancePts = Math.max(Math.abs(customStopPrice - close), 0.01);
+    // 风险基准：回踩/突破类计划按入场价（挂单成交价）计算；确认类计划按现价（T+1 成交价未知，保守用现价）
+    const riskPrice = (expressionType === 'pullback' || expressionType === 'breakout') && entryPrice !== null
+      ? entryPrice
+      : close;
+    stopDistancePts = Math.max(Math.abs(customStopPrice - riskPrice), 0.01);
     stopPrice = customStopPrice;
     notes.push('止损由 Strategy-LLM 根据报告 Q5/概率区间指定');
+    if (riskPrice !== close) notes.push(`风险按入场价 ${round2(riskPrice)} 计算（非现价）`);
   } else {
     stopDistancePts = Math.max(Math.min(stopK * atr5, capLimit, structDist), 0.01);
     if (stopDistancePts === capLimit && capLimit < stopK * atr5) notes.push('止损受 0.8×涨跌停幅度约束');
@@ -920,9 +927,12 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   const structuralStop = parseStructuralStop([...(rm.thesis.invalidations?.conditions || []), ctx.analysisEntry?.q5_invalidation ? JSON.stringify(ctx.analysisEntry.q5_invalidation) : '']);
   const rcEff = rc || RISK_CFG_DEFAULTS;
   const customStopPrice = reasoning && reasoning.stop && Number.isFinite(Number(reasoning.stop.stopPrice)) ? Number(reasoning.stop.stopPrice) : null;
-  const stopDistEst = customStopPrice != null ? Math.abs(customStopPrice - ind.close) : riskLayerStubStop(ctx, ind, limitPct, structuralStop, rcEff);
+  const expressionType = reasoning && reasoning.expression && reasoning.expression.type ? reasoning.expression.type : 'confirmation';
+  const entryPrice = Number.isFinite(Number(triggerLevel)) ? Number(triggerLevel) : null;
+  const riskBasisPrice = (expressionType === 'pullback' || expressionType === 'breakout') && entryPrice !== null ? entryPrice : ind.close;
+  const stopDistEst = customStopPrice != null ? Math.max(Math.abs(customStopPrice - riskBasisPrice), 0.01) : riskLayerStubStop(ctx, ind, limitPct, structuralStop, rcEff);
   const rrInfo = playbookRRInfo(pb.playbookId, ctx, ind, stopDistEst);
-  const risk = riskLayer(ctx, ind, { equityCny, limitPct, structuralStop, rrInfo, rc: rcEff, customStopPrice });
+  const risk = riskLayer(ctx, ind, { equityCny, limitPct, structuralStop, rrInfo, rc: rcEff, customStopPrice, entryPrice, expressionType });
   const targets = buildTargets(pb.playbookId, ctx, ind);
   // PB-08 放弃条款：锥形止损（p95 反向沿 ±0.25×ATR5）> 1.5×T1 预期 → 当日放弃（gateNote 口径）
   const gateAbandonNote = pb.playbookId === 'PB-08' ? pb08AbandonNote(ctx, ind) : null;
@@ -1217,6 +1227,7 @@ module.exports = {
   selectPlaybook,
   arbitrateConcentration,
   applyGuarantee,
+  riskLayer,
   effectiveRiskConfig,
   MATCH_THRESHOLD,
   FALLBACK_PRIORITY,

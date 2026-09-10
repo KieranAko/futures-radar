@@ -19,7 +19,8 @@ const {
   matchStrategies,
   selectPlaybook,
   arbitrateConcentration,
-  applyGuarantee
+  applyGuarantee,
+  riskLayer
 } = matcher;
 const skillRoot = path.resolve(import.meta.dirname, '..');
 const libraryPath = path.join(skillRoot, 'strategies', 'strategy-library.json');
@@ -250,6 +251,46 @@ describe('strategy-matcher: BASE-01 保底与集中度仲裁', () => {
     const sel = selectPlaybook(library, matched, fakeCtx, ind);
     assert.notEqual(sel.playbookId, 'PB-02');
     assert.equal(sel.playbookId, 'PB-01');
+  });
+});
+
+describe('strategy-matcher: 风险基准按入场价计算（回踩/突破计划）', () => {
+  const baseCtx = {
+    rm: {
+      thesis: { finalDirection: 'bullish', finalConfidence: 'medium' },
+      priceRanges: [{ atrBand: { atr5: 215.2 }, divergence: { pct: 10 } }],
+      marketFacts: { hv: { annual: 0.25, percentile90d: 50, degraded: false } }
+    },
+    probEntry: { cone: { '3d': { p95: [6500, 7000] } } },
+    analysisEntry: { q6_risks: { eventRisk: '—' } },
+    symbolCfg: { multiplier: 5 }
+  };
+  const ind = { close: 6624, ma20: 6050, ma60: 5865, high20: 6624, low20: 5852 };
+  const opts = {
+    equityCny: 100000,
+    limitPct: 4,
+    structuralStop: null,
+    customStopPrice: 6326,
+    entryPrice: 6412,
+    rrInfo: null
+  };
+
+  it('pullback 计划按入场价 6412 计算风险，1 手可执行', () => {
+    const r = riskLayer(baseCtx, ind, { ...opts, expressionType: 'pullback' });
+    assert.equal(r.riskAssessment.stopDistancePts, 86);
+    assert.equal(r.riskAssessment.unitRiskCny, 430);
+    assert.equal(r.riskAssessment.lots, 1);
+    assert.equal(r.executionStatus, 'executable');
+    assert.ok(r.notes.some((n) => n.includes('风险按入场价')));
+  });
+
+  it('confirmation 计划仍按现价 6624 计算风险，保持保守', () => {
+    const r = riskLayer(baseCtx, ind, { ...opts, expressionType: 'confirmation' });
+    assert.equal(r.riskAssessment.stopDistancePts, 298);
+    assert.equal(r.riskAssessment.unitRiskCny, 1490);
+    assert.equal(r.riskAssessment.lots, 0);
+    assert.equal(r.executionStatus, 'watch');
+    assert.ok(r.statusReasons.some((s) => s.includes('风险预算不足')));
   });
 });
 
