@@ -87,7 +87,7 @@ describe('strategy-matcher: 真实 run 复现（workedExample 关键值）', () 
     assert.equal(p.riskAssessment.marginPerLotCny, 1878);
     assert.equal(p.riskAssessment.marginUtilizationPct, 1.88);
     assert.equal(p.riskAssessment.volContributionPctAnnual, 3.5);
-    assert.equal(p.riskAssessment.stressRiskCny, 1174);
+    assert.equal(p.riskAssessment.stressRiskCny, 939); // RM0 涨跌停 4%（配置落地后）
     assert.ok(!p.statusReasons.some(r => r.includes('区间模型失稳 divergence')));
   });
 
@@ -291,6 +291,23 @@ describe('strategy-matcher: 风险基准按入场价计算（回踩/突破计划
     assert.equal(r.riskAssessment.lots, 0);
     assert.equal(r.executionStatus, 'watch');
     assert.ok(r.statusReasons.some((s) => s.includes('风险预算不足')));
+  });
+});
+
+describe('strategy-matcher: 涨跌停幅度配置落地（Q6 数据精度）', () => {
+  it('全部 active 品种都有 limitPct，且橡胶系为 5%、黑色/能化常规为 4%', () => {
+    const cfg = JSON.parse(fs.readFileSync(path.join(skillRoot, 'config', 'symbols.json'), 'utf8'));
+    const active = Object.values(cfg.symbols).filter((s) => s && s.active);
+    assert.ok(active.length >= 50);
+    for (const s of active) {
+      assert.ok(Number.isFinite(Number(s.limitPct)) && Number(s.limitPct) > 0, `${s.symbol} missing limitPct`);
+    }
+    const bySym = Object.fromEntries(active.map((s) => [s.symbol, Number(s.limitPct)]));
+    assert.equal(bySym.BR0, 5);
+    assert.equal(bySym.RU0, 5);
+    assert.equal(bySym.NR0, 5);
+    assert.equal(bySym.SF0, 4);
+    assert.equal(bySym.EC0, 10);
   });
 });
 

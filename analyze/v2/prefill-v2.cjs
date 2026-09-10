@@ -67,7 +67,9 @@ function prefillOne(sym, packet, probability) {
       marginRange: margin,
       overnightGap: /shfe|dce|czce/i.test(p.exchange) ? `${p.exchange.toUpperCase()} 有夜盘，存在隔夜跳空风险` : '无夜盘（以交易所公告为准）',
       tail3dP95ReversePct: tail,
-      limitDistance: '涨跌停幅度以交易所当日公告为准',
+      limitDistance: p.price_data && Number.isFinite(Number(p.price_data.limitPct))
+        ? `涨跌停幅度 ${Number(p.price_data.limitPct)}%（交易所公告为准）`
+        : '涨跌停幅度以交易所当日公告为准',
     },
   };
 }

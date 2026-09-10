@@ -27,6 +27,12 @@ function writeJson(file, obj) {
   fs.writeFileSync(file, JSON.stringify(obj, null, 2) + '\n', 'utf8');
 }
 
+const symbolsConfig = readJson(path.join(ROOT, 'config', 'symbols.json'));
+function limitPctFor(symbol) {
+  const hit = Object.values(symbolsConfig.symbols || {}).find((s) => s && s.symbol === symbol);
+  return hit && Number.isFinite(Number(hit.limitPct)) ? Number(hit.limitPct) : null;
+}
+
 function mean(a) {
   const xs = a.filter((v) => Number.isFinite(v));
   return xs.length ? xs.reduce((s, v) => s + v, 0) / xs.length : null;
@@ -97,6 +103,7 @@ function buildPacket(raw, sym, signalDate, macroSnapshot, sectorSnapshot, regist
       volMultiplier: volMult == null ? null : Math.round(volMult * 100) / 100,
       high20d: hi20,
       low20d: lo20,
+      limitPct: limitPctFor(sym),
     },
     volume_oi: {
       volume_60d: o.volume.slice(-60),

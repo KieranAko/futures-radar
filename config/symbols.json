@@ -51,7 +51,8 @@
       "sector": "black",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 3
     },
     {
       "symbol": "HC0",
@@ -60,7 +61,8 @@
       "sector": "black",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 3
     },
     {
       "symbol": "I0",
@@ -69,7 +71,8 @@
       "sector": "black",
       "active": true,
       "multiplier": 100,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "J0",
@@ -78,7 +81,8 @@
       "sector": "black",
       "active": true,
       "multiplier": 100,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "JM0",
@@ -87,7 +91,8 @@
       "sector": "black",
       "active": true,
       "multiplier": 60,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "SF0",
@@ -96,7 +101,8 @@
       "sector": "black",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "SM0",
@@ -105,7 +111,8 @@
       "sector": "black",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "SS0",
@@ -114,7 +121,8 @@
       "sector": "black",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "AO0",
@@ -123,7 +131,8 @@
       "sector": "black",
       "active": true,
       "multiplier": 20,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "AD0",
@@ -142,7 +151,8 @@
       "sector": "nonferrous",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 3
     },
     {
       "symbol": "AL0",
@@ -151,7 +161,8 @@
       "sector": "nonferrous",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 3
     },
     {
       "symbol": "ZN0",
@@ -160,7 +171,8 @@
       "sector": "nonferrous",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "PB0",
@@ -169,7 +181,8 @@
       "sector": "nonferrous",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "NI0",
@@ -178,7 +191,8 @@
       "sector": "nonferrous",
       "active": true,
       "multiplier": 1,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "SN0",
@@ -187,7 +201,8 @@
       "sector": "nonferrous",
       "active": true,
       "multiplier": 1,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "BC0",
@@ -196,7 +211,8 @@
       "sector": "nonferrous",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 3
     },
     {
       "symbol": "AU0",
@@ -205,7 +221,8 @@
       "sector": "precious",
       "active": true,
       "multiplier": 1000,
-      "unit": "克/手"
+      "unit": "克/手",
+      "limitPct": 3
     },
     {
       "symbol": "AG0",
@@ -214,7 +231,8 @@
       "sector": "precious",
       "active": true,
       "multiplier": 15,
-      "unit": "千克/手"
+      "unit": "千克/手",
+      "limitPct": 5
     },
     {
       "symbol": "PT0",
@@ -243,7 +261,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 1000,
-      "unit": "桶/手"
+      "unit": "桶/手",
+      "limitPct": 5
     },
     {
       "symbol": "FU0",
@@ -252,7 +271,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 5
     },
     {
       "symbol": "LU0",
@@ -261,7 +281,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 5
     },
     {
       "symbol": "BU0",
@@ -270,7 +291,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 5
     },
     {
       "symbol": "PG0",
@@ -279,7 +301,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 20,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "TA0",
@@ -288,7 +311,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "MA0",
@@ -297,7 +321,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "EG0",
@@ -306,7 +331,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "PP0",
@@ -315,7 +341,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "L0",
@@ -324,7 +351,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "V0",
@@ -333,7 +361,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "EB0",
@@ -342,7 +371,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "SA0",
@@ -351,7 +381,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 20,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "FG0",
@@ -360,7 +391,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 20,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "UR0",
@@ -369,7 +401,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 20,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "PF0",
@@ -378,7 +411,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "SH0",
@@ -387,7 +421,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 30,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "PX0",
@@ -396,7 +431,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "PR0",
@@ -425,7 +461,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 5
     },
     {
       "symbol": "NR0",
@@ -434,7 +471,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 5
     },
     {
       "symbol": "BR0",
@@ -443,7 +481,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 5
     },
     {
       "symbol": "SP0",
@@ -452,7 +491,8 @@
       "sector": "energy_chemical",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 5
     },
     {
       "symbol": "BZ0",
@@ -481,7 +521,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "Y0",
@@ -490,7 +531,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "P0",
@@ -499,7 +541,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "RM0",
@@ -508,7 +551,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "OI0",
@@ -517,7 +561,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "A0",
@@ -526,7 +571,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "B0",
@@ -535,7 +581,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "C0",
@@ -544,7 +591,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "CS0",
@@ -553,7 +601,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "CF0",
@@ -562,7 +611,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "SR0",
@@ -571,7 +621,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "JD0",
@@ -580,7 +631,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "AP0",
@@ -589,7 +641,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 10,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "CJ0",
@@ -598,7 +651,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 5
     },
     {
       "symbol": "PK0",
@@ -607,7 +661,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "LH0",
@@ -616,7 +671,8 @@
       "sector": "agriculture",
       "active": true,
       "multiplier": 16,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "LG0",
@@ -776,7 +832,8 @@
       "active": true,
       "note": "high volatility, unique macro exposure",
       "multiplier": 50,
-      "unit": "元/点"
+      "unit": "元/点",
+      "limitPct": 10
     },
     {
       "symbol": "LC0",
@@ -786,7 +843,8 @@
       "active": true,
       "note": "high volatility, new energy sector",
       "multiplier": 1,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "SI0",
@@ -795,7 +853,8 @@
       "sector": "new_materials",
       "active": true,
       "multiplier": 5,
-      "unit": "吨/手"
+      "unit": "吨/手",
+      "limitPct": 4
     },
     {
       "symbol": "PS0",

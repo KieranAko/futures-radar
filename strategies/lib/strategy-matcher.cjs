@@ -1150,7 +1150,9 @@ function buildStrategyPlan({ runId, equityCny = 100000, reasoning = null }) {
     const ind = computeIndicators(ohlcv.close, ohlcv.high, ohlcv.low, ohlcv.volume, contract.derived);
     const analysisEntry = (artifacts.analysis.analyses && Object.values(artifacts.analysis.analyses).find(a => a.symbol === op.symbol)) || {};
     const symbolCfg = findSymbolCfg(artifacts.symbols, op.symbol) || { multiplier: 1 };
-    const limitPct = parseFirstPct(analysisEntry.q6_risks?.limitDistance) || 4; // 保守默认 4%
+    const limitPct = (Number.isFinite(Number(symbolCfg.limitPct)) && Number(symbolCfg.limitPct) > 0)
+      ? Number(symbolCfg.limitPct)
+      : (parseFirstPct(analysisEntry.q6_risks?.limitDistance) || 4); // 保守默认 4%
     const ctx = {
       rm: op,
       probEntry,
