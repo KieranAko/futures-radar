@@ -123,6 +123,7 @@ function recordFromPlan(plan, p) {
     triggerLevel: p.entry && Number.isFinite(Number(p.entry.triggerLevel)) ? Number(p.entry.triggerLevel) : null,
     triggerTiming,
     stopPrice: p.stop && Number.isFinite(Number(p.stop.stopPrice)) ? Number(p.stop.stopPrice) : null,
+    gapThresholdPts: p.entry && Number.isFinite(Number(p.entry.gapThresholdPts)) ? Number(p.entry.gapThresholdPts) : null,
     target1Text: (p.targets && p.targets.t1) || '',
     target1Level: parseFirstNumber(p.targets && p.targets.t1),
     maxHoldingDays: p.riskAssessment && p.riskAssessment.maxHoldingDays ? p.riskAssessment.maxHoldingDays : 5,
@@ -408,15 +409,18 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
   }
   const entryBar = bars[tIdx + 2];
   const entryPrice = entryBar.open;
-  const gapThreshold = (record.stopPrice != null && record.stopPrice !== record.triggerLevel)
-    ? Math.abs(record.stopPrice - record.triggerLevel) * 0.5
-    : null;
+  // 跳空阈值优先用计划内置 gapThresholdPts（与 execution 文案一致）；旧计划无该字段时回退 0.5×|stop-trigger|。
+  const gapThreshold = Number.isFinite(Number(record.gapThresholdPts))
+    ? Number(record.gapThresholdPts)
+    : (record.stopPrice != null && record.stopPrice !== record.triggerLevel)
+      ? Math.abs(record.stopPrice - record.triggerLevel) * 0.5
+      : null;
   const gapPts = Math.abs(entryPrice - (record.triggerLevel || entryPrice));
   if (gapThreshold && gapPts > gapThreshold) {
     return {
       recordId: record.recordId, status: 'skipped_gap', signalDate: record.signalDate,
       verifyDate: entryBar.date, entryPrice, verificationSeries: series.source,
-      attribution: [{ code: 'gap_skip', detail: `跳空 ${gapPts.toFixed(1)} > ${gapThreshold.toFixed(1)}（0.75×ATR5 约束），放弃执行` }]
+      attribution: [{ code: 'gap_skip', detail: `跳空 ${gapPts.toFixed(1)} > ${gapThreshold.toFixed(1)}（计划内置阈值），放弃执行` }]
     };
   }
 
