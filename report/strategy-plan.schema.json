@@ -613,6 +613,24 @@
           "type": "number",
           "minimum": 0
         },
+        "regimeGrade": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "elevated",
+            "extreme"
+          ],
+          "description": "波动率 regime 等级（概率层唯一生产，风控层消费）"
+        },
+        "regimeDirection": {
+          "type": "string",
+          "enum": [
+            "rising",
+            "falling",
+            "stable"
+          ],
+          "description": "volShiftRatio 5日变化方向"
+        },
         "eventRiskNote": {
           "type": "string"
         },

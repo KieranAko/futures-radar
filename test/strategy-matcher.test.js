@@ -63,9 +63,9 @@ describe('strategy-matcher: 真实 run 复现（workedExample 关键值）', () 
     for (const p of plan.plans) assert.ok(p.matchedStrategies.length >= 1, p.symbol);
   });
 
-  it('AC-2: plan 含 riskAssessment（15 键）与 executionStatus + statusReasons ≥1', () => {
+  it('AC-2: plan 含 riskAssessment（17 键）与 executionStatus + statusReasons ≥1', () => {
     for (const p of plan.plans) {
-      assert.equal(Object.keys(p.riskAssessment).length, 15, p.symbol);
+      assert.equal(Object.keys(p.riskAssessment).length, 17, p.symbol);
       assert.ok(['executable', 'watch', 'skip'].includes(p.executionStatus));
       assert.ok(p.statusReasons.length >= 1);
     }
@@ -104,7 +104,7 @@ describe('strategy-matcher: 真实 run 复现（workedExample 关键值）', () 
     assert.equal(p.riskAssessment.stopPrice, 5188.9);
     assert.equal(p.riskAssessment.stopDistancePts, 160.9);
     assert.ok(p.statusReasons.some(r => r.includes('风险预算不足')));
-    assert.ok(p.statusReasons.some(r => r.includes('波动率分位 87.8≥85 且非 high 置信')));
+    assert.ok(p.statusReasons.some(r => r.includes('波动率 regime elevated') && r.includes('medium 置信最多 1 手')));
     assert.ok(p.statusReasons.some(r => r.includes('尾部') && r.includes('-9.6%')));
   });
 
@@ -330,6 +330,57 @@ describe('strategy-matcher: 尾部 3d p95 警示不再对 1 手计划直接归�
     const r = riskLayer(ctx, ind, { ...baseOpts, limitPct: 6 });
     assert.equal(r.riskAssessment.lots, 0);
     assert.equal(r.executionStatus, 'watch');
+  });
+});
+
+describe('strategy-matcher: 波动率 regime 降级阶梯', () => {
+  const mkCtx = (regime) => ({
+    rm: {
+      thesis: { finalDirection: 'bullish', finalConfidence: 'medium' },
+      priceRanges: [{ atrBand: { atr5: 100 }, divergence: { pct: 10 } }],
+      marketFacts: {
+        hv: { annual: 0.2, percentile90d: 50, degraded: false },
+        volatilityRegime: regime
+      }
+    },
+    probEntry: { cone: { '3d': { p95: [4800, 5200] } } },
+    analysisEntry: { q6_risks: { eventRisk: '—' } },
+    symbolCfg: { multiplier: 5 }
+  });
+  const ind = { close: 5000, ma20: 4800, ma60: 4600, high20: 5100, low20: 4500 };
+  const baseOpts = {
+    equityCny: 100000,
+    limitPct: 3,
+    structuralStop: null,
+    customStopPrice: 4800,
+    entryPrice: 4900,
+    expressionType: 'pullback',
+    rrInfo: null,
+    regimePlan: { normal: 'full', elevated: 'reduced', extreme: 'watch' }
+  };
+
+  it('elevated + falling + medium + reduced → 1 手', () => {
+    const r = riskLayer(mkCtx({ grade: 'elevated', dynamic: { direction: 'falling' } }), ind, baseOpts);
+    assert.equal(r.riskAssessment.lots, 1);
+    assert.equal(r.riskAssessment.regimeGrade, 'elevated');
+    assert.equal(r.riskAssessment.regimeDirection, 'falling');
+    assert.ok(r.statusReasons.some((s) => s.includes('reduced 1 手')));
+  });
+
+  it('elevated + rising + watch 姿态 → 0 手 watch', () => {
+    const r = riskLayer(mkCtx({ grade: 'elevated', dynamic: { direction: 'rising' } }), ind, {
+      ...baseOpts,
+      regimePlan: { normal: 'full', elevated: 'watch', extreme: 'watch' }
+    });
+    assert.equal(r.riskAssessment.lots, 0);
+    assert.equal(r.executionStatus, 'watch');
+  });
+
+  it('extreme + medium → skip', () => {
+    const r = riskLayer(mkCtx({ grade: 'extreme', dynamic: { direction: 'rising' } }), ind, baseOpts);
+    assert.equal(r.riskAssessment.lots, 0);
+    assert.equal(r.executionStatus, 'skip');
+    assert.ok(r.statusReasons.some((s) => s.includes('extreme')));
   });
 });
 

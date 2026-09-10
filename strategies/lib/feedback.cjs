@@ -124,6 +124,8 @@ function recordFromPlan(plan, p) {
     triggerTiming,
     stopPrice: p.stop && Number.isFinite(Number(p.stop.stopPrice)) ? Number(p.stop.stopPrice) : null,
     gapThresholdPts: p.entry && Number.isFinite(Number(p.entry.gapThresholdPts)) ? Number(p.entry.gapThresholdPts) : null,
+    regimeGrade: p.riskAssessment && p.riskAssessment.regimeGrade ? p.riskAssessment.regimeGrade : 'unknown',
+    regimeDirection: p.riskAssessment && p.riskAssessment.regimeDirection ? p.riskAssessment.regimeDirection : 'stable',
     target1Text: (p.targets && p.targets.t1) || '',
     target1Level: parseFirstNumber(p.targets && p.targets.t1),
     maxHoldingDays: p.riskAssessment && p.riskAssessment.maxHoldingDays ? p.riskAssessment.maxHoldingDays : 5,
@@ -543,6 +545,7 @@ function verifyRecord(record, raw, currentRunId, cache) {
 
 function buildSummary(state) {
   const byExecutionStatus = { executable: 0, watch: 0, skip: 0 };
+  const byRegime = { normal: 0, elevated: 0, extreme: 0, unknown: 0 };
   const byStatus = {};
   for (const s of [...NON_TERMINAL_STATUSES, ...TERMINAL_STATUSES]) byStatus[s] = 0;
   const trade = {
@@ -555,6 +558,7 @@ function buildSummary(state) {
   for (const rec of Object.values(state.records || {})) {
     const exec = byExecutionStatus[rec.executionStatus] != null ? rec.executionStatus : 'watch';
     byExecutionStatus[exec] = (byExecutionStatus[exec] || 0) + 1;
+    byRegime[rec.regimeGrade] = (byRegime[rec.regimeGrade] || 0) + 1;
     byStatus[rec.status] = (byStatus[rec.status] || 0) + 1;
     const mode = rec.verificationMode === 'signal' ? 'signal' : 'trade';
     const m = mode === 'signal' ? signal : trade;
@@ -594,6 +598,7 @@ function buildSummary(state) {
     terminalPlans,
     pendingPlans,
     byExecutionStatus,
+    byRegime,
     byStatus,
     byMode: { trade, signal },
     verifiedWithOutcome,

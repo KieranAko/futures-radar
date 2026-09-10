@@ -110,6 +110,13 @@ function renderFeedbackV2(feedback) {
   lines.push(`| 观察 | ${exec.watch == null ? '—' : exec.watch} |`);
   lines.push(`| 跳过 | ${exec.skip == null ? '—' : exec.skip} |`);
   lines.push('');
+  const regime = s.byRegime || {};
+  lines.push('| 波动率 regime | 数量 |');
+  lines.push('|--------------|------|');
+  lines.push(`| normal | ${regime.normal == null ? '—' : regime.normal} |`);
+  lines.push(`| elevated | ${regime.elevated == null ? '—' : regime.elevated} |`);
+  lines.push(`| extreme | ${regime.extreme == null ? '—' : regime.extreme} |`);
+  lines.push('');
   lines.push('| 验证模式 | 记录数 | 已终态 | 待验证 |');
   lines.push('|---------|-------|--------|--------|');
   lines.push(`| 交易模拟（多/空） | ${t.total == null ? '—' : t.total} | ${t.terminal == null ? '—' : t.terminal} | ${t.pending == null ? '—' : t.pending} |`);
@@ -183,6 +190,8 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
   lines.push('');
   lines.push(`> 运行 ID: ${plan.meta.runId} | 信号日: ${plan.meta.signalDate} | 示例权益: ${plan.meta.equityCny} CNY`);
   lines.push('> 由报告结论确定性生成，不改变方向与置信度。');
+  const regimeLines = [...new Set((plan.plans || []).map((p) => `${p.riskAssessment?.regimeGrade || 'normal'}（${p.riskAssessment?.regimeDirection || 'stable'}）`))];
+  if (regimeLines.length > 0) lines.push(`> 波动率 regime：${regimeLines.join('；')}——medium 计划按 regimePlan 降级为 1 手或观察。`);
   // 族级证据状态（实验线 promote 的负面结论，不改变方向/置信度，只提示证据充分程度）
   if (familyEvidence && familyEvidence.families) {
     const closed = Object.entries(familyEvidence.families)

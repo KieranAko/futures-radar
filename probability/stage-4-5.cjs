@@ -88,6 +88,97 @@ function computeATRFromBars(bars, period = 5) {
   return recent.reduce((acc, v) => acc + v, 0) / recent.length;
 }
 
+// ATR5 结束于指定 idx（与 computeATRFromBars 同口径，仅窗口位置不同）
+function atr5At(bars, idx, period = 5) {
+  if (idx < period) return null;
+  const tr = [];
+  for (let i = idx - period + 1; i <= idx; i++) {
+    if (i < 1) continue;
+    const b = bars[i];
+    const p = bars[i - 1];
+    tr.push(Math.max(b.high - b.low, Math.abs(b.high - p.close), Math.abs(b.low - p.close)));
+  }
+  if (tr.length < period) return null;
+  return tr.reduce((a, b) => a + b, 0) / tr.length;
+}
+
+function round4(v) {
+  return v == null || !Number.isFinite(Number(v)) ? null : Math.round(Number(v) * 10000) / 10000;
+}
+
+/**
+ * 波动率 regime 契约（唯一生产者：probability stage-4.5）。
+ * grade: normal | elevated | extreme
+ * dynamic.direction: rising | falling | stable（volShiftRatio 5 日变化）
+ * 规则见 strategies/report-strategy-section.md 与 risk-framework §10 口径。
+ */
+function computeVolatilityRegime({ close, atr5, hvAnnual, currentState, bars }) {
+  const hvDaily = hvAnnual && Number.isFinite(hvAnnual) ? hvAnnual / Math.sqrt(242) : null;
+  const vsrNow = currentState && Number.isFinite(currentState.volShiftRatio) ? currentState.volShiftRatio : null;
+  const tailFlag = !!(currentState && currentState.tailFlag);
+  const kurtosis = currentState && Number.isFinite(currentState.kurtosis) ? currentState.kurtosis : null;
+  const percentile = currentState && Number.isFinite(currentState.hvPercentile) ? currentState.hvPercentile : null;
+  const atrPct = close && Number.isFinite(close) && atr5 ? round4((atr5 / close) * 100) : null;
+
+  // volShiftRatio 5 日前（动态适应输入）
+  let vsr5dAgo = null;
+  if (bars && Array.isArray(bars) && hvDaily && hvDaily > 0) {
+    const idx5Ago = bars.length - 6;
+    if (idx5Ago >= 4) {
+      const a5 = atr5At(bars, idx5Ago);
+      if (a5 != null && bars[idx5Ago].close) {
+        vsr5dAgo = round4((a5 / bars[idx5Ago].close) / hvDaily);
+      }
+    }
+  }
+
+  const direction = vsrNow != null && vsr5dAgo != null
+    ? (vsrNow < vsr5dAgo - 0.15 ? 'falling' : vsrNow > vsr5dAgo + 0.15 ? 'rising' : 'stable')
+    : 'stable';
+
+  // regimeAgeDays：连续多少个交易日处于 elevated/extreme（用 volShiftRatio≥1.3 或 tailFlag 近似）
+  let regimeAgeDays = 0;
+  if (bars && Array.isArray(bars) && hvDaily && hvDaily > 0) {
+    const start = Math.max(4, bars.length - 10);
+    for (let i = bars.length - 1; i >= start; i--) {
+      const a5 = atr5At(bars, i);
+      const c = bars[i].close;
+      const vsr = a5 != null && c ? (a5 / c) / hvDaily : null;
+      if (vsr != null && vsr >= 1.3) regimeAgeDays++;
+      else break;
+    }
+  }
+
+  const isExtreme = percentile != null && percentile >= 95 && (vsrNow != null && vsrNow >= 1.5 || tailFlag);
+  const isElevated = !isExtreme && ((percentile != null && percentile >= 85) || (vsrNow != null && vsrNow >= 1.3) || tailFlag);
+  const grade = isExtreme ? 'extreme' : isElevated ? 'elevated' : 'normal';
+
+  const rationale = [
+    `hvPercentile ${percentile ?? '—'}`,
+    `volShiftRatio ${vsrNow ?? '—'}${vsr5dAgo != null ? `（5日前 ${vsr5dAgo}）` : ''}`,
+    `tailFlag ${tailFlag}`,
+    `grade=${grade}`,
+    `direction=${direction}`
+  ].join('；');
+
+  return {
+    grade,
+    basis: {
+      hvPercentile90d: percentile,
+      volShiftRatio: vsrNow,
+      tailFlag,
+      kurtosis,
+      atrPct
+    },
+    dynamic: {
+      direction,
+      regimeAgeDays: regimeAgeDays || null
+    },
+    asOf: bars && bars.length ? bars[bars.length - 1].date : null,
+    rationale
+  };
+}
+
 /**
  * Execute Stage 4.5: Probability Estimation
  *
@@ -273,6 +364,16 @@ async function execute(runDir, artifacts) {
       console.log(`  ATR 2× band: [${atrBand[0].toFixed(1)}, ${atrBand[1].toFixed(1)}]`);
       console.log(`  Reference divergence: ${comparison.divergencePct}%`);
 
+      // 波动率 regime 契约（唯一生产者）
+      const volatilityRegime = computeVolatilityRegime({
+        close,
+        atr5,
+        hvAnnual: hvResult.hv,
+        currentState,
+        bars: ohlcArray
+      });
+      console.log(`  Volatility regime: ${volatilityRegime.grade} (${volatilityRegime.dynamic.direction})`);
+
       // Assemble probability entry
       probabilities.push({
         symbol,
@@ -287,6 +388,7 @@ async function execute(runDir, artifacts) {
           totalBars: ohlcArray.length,
           degraded: hvResult.degraded || false
         },
+        volatilityRegime,
         cone: finalCone,
         intervalModels,
         currentState,

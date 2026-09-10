@@ -27,6 +27,18 @@ const PLAN_SCHEMA_PATH = () => path.join(skillRoot, 'report', 'strategy-plan.sch
 const SYMBOLS_PATH = () => path.join(skillRoot, 'config', 'symbols.json');
 const STRATEGY_RUNTIME_PATH = () => path.join(skillRoot, 'config', 'strategy-runtime.json');
 
+// 旧 run 无 volatilityRegime 契约时的确定性 fallback：只按 hv.percentile90d 分档。
+function fallbackVolatilityRegime(hv) {
+  const p = hv && Number.isFinite(Number(hv.percentile90d)) ? Number(hv.percentile90d) : null;
+  const grade = p != null && p >= 95 ? 'extreme' : p != null && p >= 85 ? 'elevated' : 'normal';
+  return {
+    grade,
+    dynamic: { direction: 'stable', regimeAgeDays: null },
+    basis: { hvPercentile90d: p, volShiftRatio: null, tailFlag: false, kurtosis: null, atrPct: null },
+    rationale: `fallback: hvPercentile90d=${p ?? '—'}`
+  };
+}
+
 function loadStrategyRuntime() {
   try {
     const p = STRATEGY_RUNTIME_PATH();
@@ -735,6 +747,7 @@ function riskLayer(ctx, ind, opts) {
 
   let lots = 0, status;
   let stopDistancePts = 0, stopPrice = 0, unitRiskCny = 0;
+  let regimeGrade = 'normal', regimeDirection = 'stable';
 
   // step 2：止损距离 = min(K×ATR5, 0.8×limitPct×close, |结构位−close|)
   //（neutral/low 置信的 watch 计划同样输出止损/失效参数，risk-framework §9 step 1）
@@ -781,18 +794,43 @@ function riskLayer(ctx, ind, opts) {
       lots = Math.min(lots, degradedVol);
       reasons.push('HV 数据降级（vol cap ×0.5，手数仍由风险预算决定）');
     }
-    if (hv.percentile90d !== undefined && hv.percentile90d >= rc.volPercentileSkip) {
-      lots = 0;
-      status = 'skip';
-      reasons.push(`波动率分位 ${hv.percentile90d}≥95：跳过`);
-    }
-    if (hv.percentile90d !== undefined && hv.percentile90d >= rc.volPercentileWarn) {
-      lots = Math.floor(lots / 2);
-      if (conf !== 'high') {
-        lots = 0;
-        reasons.push(`波动率分位 ${hv.percentile90d}≥85 且非 high 置信`);
+    // 波动率 regime 降级阶梯（替代 85/95 二值开关）
+    const regime = ctx.rm.marketFacts?.volatilityRegime || fallbackVolatilityRegime(hv);
+    regimeGrade = regime.grade || 'normal';
+    regimeDirection = regime.dynamic?.direction || 'stable';
+    const regimePlan = opts.regimePlan || { normal: 'full', elevated: 'reduced', extreme: 'watch' };
+    const regimeStance = regimePlan[regimeGrade] || (regimeGrade === 'elevated' ? 'reduced' : 'watch');
+
+    if (regimeGrade === 'elevated') {
+      if (regimeDirection === 'falling') {
+        if (conf === 'high') {
+          reasons.push(`波动率 regime elevated（falling）：high 置信正常计算`);
+        } else if (regimeStance === 'reduced') {
+          if (lots > 1) lots = 1;
+          reasons.push(`波动率 regime elevated（falling）：medium 计划 reduced 1 手`);
+        } else {
+          lots = 0;
+          if (status !== 'skip') status = 'watch';
+          reasons.push(`波动率 regime elevated（falling）：策略姿态 watch`);
+        }
       } else {
-        reasons.push(`波动率分位 ${hv.percentile90d}≥85：仓位减半`);
+        if (regimeStance === 'watch') {
+          lots = 0;
+          if (status !== 'skip') status = 'watch';
+          reasons.push(`波动率 regime elevated（${regimeDirection}）：策略姿态 watch`);
+        } else {
+          if (lots > 1) lots = 1;
+          reasons.push(`波动率 regime elevated（${regimeDirection}）：${conf} 置信最多 1 手`);
+        }
+      }
+    } else if (regimeGrade === 'extreme') {
+      if (regimeDirection === 'falling' && conf === 'high' && regimeStance !== 'watch') {
+        if (lots > 1) lots = 1;
+        reasons.push(`波动率 regime extreme（falling）：high 置信最多 1 手`);
+      } else {
+        lots = 0;
+        status = 'skip';
+        reasons.push(`波动率 regime extreme（${regimeDirection}）：${conf} 置信，跳过`);
       }
     }
     if (tailMag >= limitPct && tailGapPct3d !== null) {
@@ -860,6 +898,8 @@ function riskLayer(ctx, ind, opts) {
       volContributionPctAnnual,
       tailGapPct3d,
       stressRiskCny,
+      regimeGrade,
+      regimeDirection,
       eventRiskNote: (ctx.analysisEntry?.q6_risks?.eventRisk) || '—',
       maxHoldingDays: rc.maxHoldingDays
     },
@@ -951,7 +991,8 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   const riskBasisPrice = (expressionType === 'pullback' || expressionType === 'breakout') && entryPrice !== null ? entryPrice : ind.close;
   const stopDistEst = customStopPrice != null ? Math.max(Math.abs(customStopPrice - riskBasisPrice), 0.01) : riskLayerStubStop(ctx, ind, limitPct, structuralStop, rcEff);
   const rrInfo = playbookRRInfo(pb.playbookId, ctx, ind, stopDistEst);
-  const risk = riskLayer(ctx, ind, { equityCny, limitPct, structuralStop, rrInfo, rc: rcEff, customStopPrice, entryPrice, expressionType });
+  const regimePlan = (reasoning && reasoning.regimePlan) || null;
+  const risk = riskLayer(ctx, ind, { equityCny, limitPct, structuralStop, rrInfo, rc: rcEff, customStopPrice, entryPrice, expressionType, regimePlan });
   const targets = buildTargets(pb.playbookId, ctx, ind);
   // PB-08 放弃条款：锥形止损（p95 反向沿 ±0.25×ATR5）> 1.5×T1 预期 → 当日放弃（gateNote 口径）
   const gateAbandonNote = pb.playbookId === 'PB-08' ? pb08AbandonNote(ctx, ind) : null;

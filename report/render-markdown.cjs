@@ -515,6 +515,11 @@ appendixD.push('- 表格列出全部模型与各自区间，✅ 标记当前状�
 appendixD.push('- 当前适配只看当下状态：波动切换比、HV 分位、极端单日与收益肥尾，不做历史回测竞赛');
 appendixD.push('- ATR 仅作止损与跳空口径，不参与区间判断；模型间差异是正常现象\n');
 
+appendixD.push('#### 波动率 regime\n');
+appendixD.push('- 由概率层唯一生产：综合 hvPercentile90d、volShiftRatio、tailFlag，分 normal / elevated / extreme 三档。');
+appendixD.push('- extreme：hvPercentile≥95 且（volShiftRatio≥1.5 或 tailFlag）；elevated：hvPercentile≥85 或 volShiftRatio≥1.3 或 tailFlag；其余 normal。');
+appendixD.push('- dynamic.direction：volShiftRatio 较 5 日前下降 0.15+ 为 falling，上升 0.15+ 为 rising，否则 stable。');
+appendixD.push('- 风控层按 regime × direction × confidence × regimePlan 执行降级阶梯；旧 run 无该契约时按 hvPercentile 确定性回退。\n');
 appendixD.push('#### 置信度定义\n');
 appendixD.push('- 置信度是 LLM 对整条证据链（数值+文本）的方向支撑强度与矛盾程度的综合判断，分 high/medium/low 三个序数等级');
 appendixD.push('- 它是判断参考标签，不是概率或胜率；等级之间允许容错，不使用证据计数或分值计算');

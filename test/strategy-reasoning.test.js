@@ -63,4 +63,19 @@ describe('strategy-reasoning 校验', () => {
     assert.equal(out.ok, false);
     assert.ok(out.errors.some((e) => e.includes('finalDirection')));
   });
+
+  it('regimePlan 三档合法时通过', () => {
+    const out = validateStrategyReasoning(reasoningWith(strategy({
+      regimePlan: { normal: 'full', elevated: 'reduced', extreme: 'watch' }
+    })), reportModel);
+    assert.equal(out.ok, true);
+  });
+
+  it('regimePlan extreme 只允许 watch', () => {
+    const out = validateStrategyReasoning(reasoningWith(strategy({
+      regimePlan: { normal: 'full', elevated: 'reduced', extreme: 'full' }
+    })), reportModel);
+    assert.equal(out.ok, false);
+    assert.ok(out.errors.some((e) => e.includes('extreme')));
+  });
 });

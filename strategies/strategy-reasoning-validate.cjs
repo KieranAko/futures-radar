@@ -51,6 +51,14 @@ function validateStrategyReasoning(reasoning, reportModel) {
     if (!EXPRESSION_TYPES.includes(r.expression?.type)) {
       errors.push(`${r.symbol}: expression.type 必须为 ${EXPRESSION_TYPES.join('/')}`);
     }
+    if (r.regimePlan) {
+      const allowed = { normal: ['full', 'reduced', 'watch'], elevated: ['reduced', 'watch'], extreme: ['watch'] };
+      for (const grade of ['normal', 'elevated', 'extreme']) {
+        const v = r.regimePlan[grade];
+        if (!v) errors.push(`${r.symbol}: regimePlan.${grade} 缺失`);
+        else if (!allowed[grade].includes(v)) errors.push(`${r.symbol}: regimePlan.${grade}=${v} 非法（允许 ${allowed[grade].join('/')}）`);
+      }
+    }
     if (!r.entry || !r.stop || !r.targets) {
       errors.push(`${r.symbol}: 必须包含 entry/stop/targets`);
     }

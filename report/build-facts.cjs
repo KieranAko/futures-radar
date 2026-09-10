@@ -366,9 +366,11 @@ function main() {
           totalBars: probEntry.hv.totalBars,
           degraded: probEntry.hv.degraded
         } : null,
+        volatilityRegime: probEntry.volatilityRegime || null,
         provenance: {
           close: { artifactId: 'probability-json', runId: probability.meta.runId, path: `probabilities[${symbol}].close` },
-          hv: probEntry.hv ? { artifactId: 'probability-json', runId: probability.meta.runId, path: `probabilities[${symbol}].hv` } : null
+          hv: probEntry.hv ? { artifactId: 'probability-json', runId: probability.meta.runId, path: `probabilities[${symbol}].hv` } : null,
+          volatilityRegime: probEntry.volatilityRegime ? { artifactId: 'probability-json', runId: probability.meta.runId, path: `probabilities[${symbol}].volatilityRegime` } : null
         }
       },
       priceRanges,

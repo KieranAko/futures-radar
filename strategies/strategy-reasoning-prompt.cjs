@@ -74,6 +74,8 @@ function main() {
       }
     }
     L.push(`- close=${opp.marketFacts?.close} hv.percentile90d=${opp.marketFacts?.hv?.percentile90d}`);
+    const vr = opp.marketFacts?.volatilityRegime;
+    if (vr) L.push(`- volatilityRegime: grade=${vr.grade} direction=${vr.dynamic?.direction} basis=${JSON.stringify(vr.basis)}`);
     const pr3 = opp.priceRanges?.[0] || {};
     L.push(`- 3d p68=${JSON.stringify(pr3.hvCone?.p68)} p95=${JSON.stringify(pr3.hvCone?.p95)} atr5=${pr3.atrBand?.atr5} divergence=${pr3.divergence?.pct}`);
     L.push(`- currentState=${JSON.stringify(opp.currentState || {})} referenceInterval=${opp.referenceInterval?.modelId}`);
@@ -83,10 +85,11 @@ function main() {
   }
   L.push('## 输出 JSON 结构');
   L.push('```json');
-  L.push('{"schema":"futures-radar-strategy-reasoning/1","runId":"...","strategies":[{"symbol":"SA0","direction":"neutral","strategyConfidence":"low","confidenceDowngradeReasons":["..."],"theoryFit":"none|approximate|aligned","theoryRefs":[],"theoryGapNote":"...","expression":{"type":"conditional-watch","reason":"..."},"entry":{"trigger":"...","triggerSource":"...","triggerLevel":1018,"triggerTiming":"...","execution":"..."},"stop":{"stopPrice":1018,"basis":"Q5 失效位/概率尾"},"targets":{"t1":"...","t2":"...","basis":"..."},"reasoningRef":{"artifactId":"strategy-reasoning-json"}}]}');
+  L.push('{"schema":"futures-radar-strategy-reasoning/1","runId":"...","strategies":[{"symbol":"SA0","direction":"neutral","strategyConfidence":"low","confidenceDowngradeReasons":["..."],"theoryFit":"none|approximate|aligned","theoryRefs":[],"theoryGapNote":"...","regimePlan":{"normal":"full|reduced|watch","elevated":"reduced|watch","extreme":"watch"},"expression":{"type":"conditional-watch","reason":"..."},"entry":{"trigger":"...","triggerSource":"...","triggerLevel":1018,"triggerTiming":"...","execution":"..."},"stop":{"stopPrice":1018,"basis":"Q5 失效位/概率尾"},"targets":{"t1":"...","t2":"...","basis":"..."},"reasoningRef":{"artifactId":"strategy-reasoning-json"}}]}');
   L.push('```');
   L.push('');
   L.push('strategyConfidence 不得高于报告 finalConfidence。theoryFit=none|approximate 时必须给 confidenceDowngradeReasons 与 theoryGapNote。');
+L.push('regimePlan 必须覆盖 normal/elevated/extreme 三档：extreme 只允许 watch；elevated 只允许 reduced|watch；normal 允许 full|reduced|watch。');
 
   const outDir = path.join(dir, 'strategies', 'prompts');
   fs.mkdirSync(outDir, { recursive: true });
