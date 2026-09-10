@@ -25,6 +25,21 @@ const LIBRARY_PATH = () => path.join(skillRoot, 'strategies', 'strategy-library.
 const RULES_PATH = () => path.join(skillRoot, 'strategies', 'strategy-matching-rules.json');
 const PLAN_SCHEMA_PATH = () => path.join(skillRoot, 'report', 'strategy-plan.schema.json');
 const SYMBOLS_PATH = () => path.join(skillRoot, 'config', 'symbols.json');
+const STRATEGY_RUNTIME_PATH = () => path.join(skillRoot, 'config', 'strategy-runtime.json');
+
+function loadStrategyRuntime() {
+  try {
+    const p = STRATEGY_RUNTIME_PATH();
+    if (!fs.existsSync(p)) return { equityCny: 100000, volTargetPerPosition: null };
+    const r = JSON.parse(fs.readFileSync(p, 'utf8'));
+    return {
+      equityCny: Number.isFinite(Number(r.equityCny)) && Number(r.equityCny) > 0 ? Number(r.equityCny) : 100000,
+      volTargetPerPosition: Number.isFinite(Number(r.volTargetPerPosition)) ? Number(r.volTargetPerPosition) : null
+    };
+  } catch {
+    return { equityCny: 100000, volTargetPerPosition: null };
+  }
+}
 
 const RISK_CFG_DEFAULTS = {
   riskPerTradePct: 0.01,
@@ -1097,7 +1112,7 @@ function applyGuarantee(matched) {
   return [{ ...BASE01, role: 'direction', pairsWith: [], weight: 0 }];
 }
 
-function buildStrategyPlan({ runId, equityCny = 100000, reasoning = null }) {
+function buildStrategyPlan({ runId, equityCny = 100000, reasoning = null, volTargetPerPosition = null }) {
   const library = readJSON(LIBRARY_PATH());
   const rules = readJSON(RULES_PATH());
   const schema = readJSON(PLAN_SCHEMA_PATH());
@@ -1142,6 +1157,9 @@ function buildStrategyPlan({ runId, equityCny = 100000, reasoning = null }) {
   const formulas = { riskScores: scores, quadrantConflict };
   // t13：风控参数以 library.riskConfig 为权威（effectiveRiskConfig 归一），RISK_CFG_DEFAULTS 仅回退
   const effRc = effectiveRiskConfig(library.riskConfig);
+  if (Number.isFinite(Number(volTargetPerPosition)) && Number(volTargetPerPosition) > 0) {
+    effRc.volTargetPerPosition = Number(volTargetPerPosition);
+  }
 
   const plans = [];
   for (const op of tops) {
@@ -1198,6 +1216,7 @@ function buildStrategyPlan({ runId, equityCny = 100000, reasoning = null }) {
       rulesVersion: rules.schemaVersion,
       libraryVersion: library.schemaVersion,
       equityCny,
+      volTargetPerPosition: effRc.volTargetPerPosition,
       marginRate: effRc.marginRate,
       generatedAt: `${signalDate}T00:00:00.000Z`, // 确定性：由输入派生（无时间戳依赖）
       inputsSha
@@ -1234,6 +1253,7 @@ module.exports = {
   arbitrateConcentration,
   applyGuarantee,
   riskLayer,
+  loadStrategyRuntime,
   effectiveRiskConfig,
   MATCH_THRESHOLD,
   FALLBACK_PRIORITY,

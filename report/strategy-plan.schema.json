@@ -59,7 +59,13 @@
         "equityCny": {
           "type": "number",
           "exclusiveMinimum": 0,
-          "description": "示例权益口径（默认 100000，非收益承诺）"
+          "description": "示例权益口径（非收益承诺）"
+        },
+        "volTargetPerPosition": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "description": "单仓年化波动率目标（risk-framework §9 允许区间 0.05–0.15）"
         },
         "marginRate": {
           "type": "number",

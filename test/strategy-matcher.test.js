@@ -20,7 +20,8 @@ const {
   selectPlaybook,
   arbitrateConcentration,
   applyGuarantee,
-  riskLayer
+  riskLayer,
+  loadStrategyRuntime
 } = matcher;
 const skillRoot = path.resolve(import.meta.dirname, '..');
 const libraryPath = path.join(skillRoot, 'strategies', 'strategy-library.json');
@@ -328,6 +329,14 @@ describe('strategy-matcher: 尾部 3d p95 警示不再对 1 手计划直接归�
     const r = riskLayer(ctx, ind, { ...baseOpts, limitPct: 6 });
     assert.equal(r.riskAssessment.lots, 0);
     assert.equal(r.executionStatus, 'watch');
+  });
+});
+
+describe('strategy-matcher: 运行时权益与波动率目标配置', () => {
+  it('loadStrategyRuntime 读取 config/strategy-runtime.json 的权益与波动率目标', () => {
+    const rt = loadStrategyRuntime();
+    assert.ok(rt.equityCny >= 100000);
+    assert.ok(rt.volTargetPerPosition >= 0.05 && rt.volTargetPerPosition <= 0.15);
   });
 });
 

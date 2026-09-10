@@ -1,0 +1,6 @@
+{
+  "schema": "futures-radar-strategy-runtime/1",
+  "equityCny": 300000,
+  "volTargetPerPosition": 0.12,
+  "note": "交易策略示例权益与单仓年化波动目标；equityCny 可被 CLI --equity 覆盖；volTargetPerPosition 取值区间 0.05–0.15（risk-framework §9）"
+}

@@ -15,7 +15,7 @@
 const fs = require('fs');
 const path = require('path');
 const { skillRoot, runDir } = require('../lib/workspace.cjs');
-const { buildStrategyPlan, validatePlan } = require('./lib/strategy-matcher.cjs');
+const { buildStrategyPlan, validatePlan, loadStrategyRuntime } = require('./lib/strategy-matcher.cjs');
 const { validateStrategyReasoning } = require('./strategy-reasoning-validate.cjs');
 const { validatePricing } = require('./lib/pricing-validate.cjs');
 const { validateSemanticFacts } = require('./lib/semantic-fact-validate.cjs');
@@ -32,9 +32,17 @@ if (!runId) {
   console.error('FATAL: --runId required');
   process.exit(1);
 }
-const equityCny = flagVal('--equity') ? Number(flagVal('--equity')) : 100000;
+
+// 运行时参数：默认权益与波动率目标来自 config/strategy-runtime.json；CLI --equity 可覆盖权益。
+const runtime = loadStrategyRuntime();
+const equityCny = flagVal('--equity') ? Number(flagVal('--equity')) : runtime.equityCny;
+const volTargetPerPosition = runtime.volTargetPerPosition;
 if (!Number.isFinite(equityCny) || equityCny <= 0) {
   console.error('FATAL: --equity must be a positive number');
+  process.exit(1);
+}
+if (volTargetPerPosition !== undefined && (volTargetPerPosition < 0.05 || volTargetPerPosition > 0.15)) {
+  console.error('FATAL: volTargetPerPosition must be in [0.05, 0.15]');
   process.exit(1);
 }
 
@@ -71,7 +79,7 @@ if (fs.existsSync(reasoningPath)) {
   console.warn('strategy-reasoning.json not found — using legacy deterministic matcher (回放/兼容模式)');
 }
 
-const { plan, schema } = buildStrategyPlan({ runId, equityCny, reasoning });
+const { plan, schema } = buildStrategyPlan({ runId, equityCny, reasoning, volTargetPerPosition });
 
 // 自检：按 t7 schema 机械校验（t8 acceptance：schema 完整、字段可校验）
 const check = validatePlan(plan, schema);
