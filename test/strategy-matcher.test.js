@@ -294,6 +294,43 @@ describe('strategy-matcher: 风险基准按入场价计算（回踩/突破计划
   });
 });
 
+describe('strategy-matcher: 尾部 3d p95 警示不再对 1 手计划直接归零', () => {
+  const baseCtx = {
+    rm: {
+      thesis: { finalDirection: 'bullish', finalConfidence: 'medium' },
+      priceRanges: [{ atrBand: { atr5: 100 }, divergence: { pct: 10 } }],
+      marketFacts: { hv: { annual: 0.2, percentile90d: 50, degraded: false } }
+    },
+    probEntry: { cone: { '3d': { p95: [4800, 5200] } } },
+    analysisEntry: { q6_risks: { eventRisk: '—' } },
+    symbolCfg: { multiplier: 5 }
+  };
+  const ind = { close: 5000, ma20: 4800, ma60: 4600, high20: 5100, low20: 4500 };
+  const baseOpts = {
+    equityCny: 100000,
+    limitPct: 3,
+    structuralStop: null,
+    customStopPrice: 4800,
+    entryPrice: 4900,
+    expressionType: 'pullback',
+    rrInfo: null
+  };
+
+  it('1 手 + 尾部超限但 stressRisk 在预算内 → 维持 1 手 executable', () => {
+    const r = riskLayer(baseCtx, ind, baseOpts);
+    assert.equal(r.riskAssessment.lots, 1);
+    assert.equal(r.executionStatus, 'executable');
+    assert.ok(r.statusReasons.some((s) => s.includes('1 手维持，交由 stressRisk 校验')));
+  });
+
+  it('1 手 + 尾部超限且 stressRisk 超预算 → 仍被清零 watch', () => {
+    const ctx = { ...baseCtx, probEntry: { cone: { '3d': { p95: [4600, 5200] } } } };
+    const r = riskLayer(ctx, ind, { ...baseOpts, limitPct: 6 });
+    assert.equal(r.riskAssessment.lots, 0);
+    assert.equal(r.executionStatus, 'watch');
+  });
+});
+
 describe('strategy-matcher: 涨跌停幅度配置落地（Q6 数据精度）', () => {
   it('全部 active 品种都有 limitPct，且橡胶系为 5%、黑色/能化常规为 4%', () => {
     const cfg = JSON.parse(fs.readFileSync(path.join(skillRoot, 'config', 'symbols.json'), 'utf8'));

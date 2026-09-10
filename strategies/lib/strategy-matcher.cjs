@@ -781,8 +781,12 @@ function riskLayer(ctx, ind, opts) {
       }
     }
     if (tailMag >= limitPct && tailGapPct3d !== null) {
-      lots = Math.floor(lots / 2);
-      reasons.push(`尾部 3d p95 反向 ${tailGapPct3d.toFixed(1)}% ≥ 涨跌停 ${limitPct}%（连续停板警示）`);
+      if (lots >= 2) {
+        lots = Math.floor(lots / 2);
+        reasons.push(`尾部 3d p95 反向 ${tailGapPct3d.toFixed(1)}% ≥ 涨跌停 ${limitPct}%（仓位减半）`);
+      } else {
+        reasons.push(`尾部 3d p95 反向 ${tailGapPct3d.toFixed(1)}% ≥ 涨跌停 ${limitPct}%（1 手维持，交由 stressRisk 校验）`);
+      }
     }
     // stressRisk：仅尾部超限情景下做额外减仓（risk-framework §10 口径：RM0 stress=1174 不触发减仓）
     if (tailMag >= limitPct && lots > 0) {
