@@ -35,7 +35,8 @@ function dirsFor(root) {
   return {
     base,
     ledger: path.join(base, 'ledger'),
-    results: path.join(base, 'results')
+    results: path.join(base, 'results'),
+    archive: path.join(base, 'archive')
   };
 }
 
@@ -83,6 +84,13 @@ function deriveSignalDirection(text) {
  * 全策略口径：executable / watch / skip 均记录。
  * 中性方向（无真实交易方向）使用 signal 验证模式，只验证确认信号是否兑现。
  */
+// 目标价解析：优先取 3 位以上数字（避免把 "3d p95" 里的 3 当成目标价）。
+function parseTarget1Level(text) {
+  const m = String(text || '').match(/(\d{3,}(?:\.\d+)?)/);
+  if (m) return parseFloat(m[1]);
+  return parseFirstNumber(text);
+}
+
 function recordFromPlan(plan, p) {
   const direction = (p.reportBaseline && p.reportBaseline.direction) || 'neutral';
   const mode = direction === 'neutral' ? 'signal' : 'trade';
@@ -128,7 +136,7 @@ function recordFromPlan(plan, p) {
     regimeGrade: p.riskAssessment && p.riskAssessment.regimeGrade ? p.riskAssessment.regimeGrade : 'unknown',
     regimeDirection: p.riskAssessment && p.riskAssessment.regimeDirection ? p.riskAssessment.regimeDirection : 'stable',
     target1Text: (p.targets && p.targets.t1) || '',
-    target1Level: parseFirstNumber(p.targets && p.targets.t1),
+    target1Level: parseTarget1Level(p.targets && p.targets.t1),
     maxHoldingDays: p.riskAssessment && p.riskAssessment.maxHoldingDays ? p.riskAssessment.maxHoldingDays : 5,
     invalidation: p.invalidation && Array.isArray(p.invalidation.hard) ? p.invalidation.hard : [],
     status: 'pending_verification',
@@ -182,6 +190,10 @@ function normalizeLedgerRecord(rec) {
     stopPrice: Number.isFinite(Number(rec.stopPrice)) ? Number(rec.stopPrice) : null,
     target1Text: rec.target1Text || '',
     target1Level: Number.isFinite(Number(rec.target1Level)) ? Number(rec.target1Level) : parseFirstNumber(rec.target1Text),
+    gapThresholdPts: Number.isFinite(Number(rec.gapThresholdPts)) ? Number(rec.gapThresholdPts) : null,
+    triggerStyle: rec.triggerStyle || null,
+    regimeGrade: rec.regimeGrade || 'unknown',
+    regimeDirection: rec.regimeDirection || 'stable',
     maxHoldingDays: rec.maxHoldingDays || 5,
     invalidation: Array.isArray(rec.invalidation) ? rec.invalidation : [],
     status,
@@ -237,7 +249,8 @@ function saveState(state, rootOverride = null) {
 function fillMissingStateFields(target, source) {
   for (const k of ['recordedAt', 'rank', 'name', 'contract', 'direction', 'verificationMode', 'signalDirection',
     'executionStatus', 'plannedLots', 'confidence', 'strategyId', 'playbookId', 'entryTrigger',
-    'triggerLevel', 'triggerTiming', 'stopPrice', 'target1Text', 'target1Level', 'maxHoldingDays', 'invalidation']) {
+    'triggerLevel', 'triggerTiming', 'stopPrice', 'target1Text', 'target1Level', 'maxHoldingDays', 'invalidation',
+    'gapThresholdPts', 'triggerStyle', 'regimeGrade', 'regimeDirection']) {
     if (target[k] === undefined || target[k] === null) target[k] = source[k];
   }
   if (target.terminal !== true && isTerminalStatus(target.status)) target.terminal = true;
@@ -250,7 +263,8 @@ function fillMissingStateFields(target, source) {
 function applyPlanFields(target, source) {
   for (const k of ['recordedAt', 'rank', 'name', 'contract', 'direction', 'verificationMode', 'signalDirection',
     'executionStatus', 'plannedLots', 'confidence', 'strategyId', 'playbookId', 'entryTrigger',
-    'triggerLevel', 'triggerTiming', 'stopPrice', 'target1Text', 'target1Level', 'maxHoldingDays', 'invalidation']) {
+    'triggerLevel', 'triggerTiming', 'stopPrice', 'target1Text', 'target1Level', 'maxHoldingDays', 'invalidation',
+    'gapThresholdPts', 'triggerStyle', 'regimeGrade', 'regimeDirection']) {
     target[k] = source[k];
   }
 }
@@ -267,6 +281,7 @@ function syncLedgersIntoState(state, rootOverride = null) {
     if (!Array.isArray(records)) continue;
     for (const rec of records) {
       if (!rec || !rec.runId || !rec.symbol) continue;
+      if (state.archivedBefore && rec.signalDate && String(rec.signalDate) < String(state.archivedBefore)) continue;
       const id = rec.recordId || `${rec.runId}:${rec.symbol}`;
       if (!state.records[id]) {
         state.records[id] = normalizeLedgerRecord(rec);
@@ -357,9 +372,22 @@ function barsForRecord(record, raw, cache) {
   const key = record.contract ? `contract:${record.contract}` : `symbol:${record.symbol}`;
   if (!cache.has(key)) {
     const exact = record.contract ? loadContractBars(record.contract, raw) : { source: null, bars: [] };
-    const exactHasSignalDate = exact.bars.some((b) => b && b.date === record.signalDate);
-    // 具体合约序列缺失信号日时回退主力连续代理，避免把“可验证”误判为 unverifiable
-    const chosen = exact.bars.length >= 2 && exactHasSignalDate ? exact : barsForSymbol(raw, record.symbol);
+    const main = barsForSymbol(raw, record.symbol);
+    // 选择信号日之后可用 bar 更多的序列；具体合约序列冻结过早时回退主力连续，避免长期 pending_data。
+    const postSignalBars = (series) => {
+      const idx = (series.bars || []).findIndex((b) => b && b.date === record.signalDate);
+      return idx === -1 ? -1 : series.bars.length - idx - 1;
+    };
+    const exactPost = postSignalBars(exact);
+    const mainPost = postSignalBars(main);
+    let chosen;
+    if (exact.bars.length >= 2 && exactPost >= 0 && (mainPost < 0 || exactPost >= mainPost)) {
+      chosen = exact;
+    } else if (mainPost >= 0) {
+      chosen = main;
+    } else {
+      chosen = exact.bars.length >= 2 ? exact : main;
+    }
     cache.set(key, chosen);
   }
   return cache.get(key);
@@ -563,7 +591,7 @@ function buildSummary(state) {
   for (const rec of Object.values(state.records || {})) {
     const exec = byExecutionStatus[rec.executionStatus] != null ? rec.executionStatus : 'watch';
     byExecutionStatus[exec] = (byExecutionStatus[exec] || 0) + 1;
-    byRegime[rec.regimeGrade] = (byRegime[rec.regimeGrade] || 0) + 1;
+    byRegime[rec.regimeGrade || 'unknown'] = (byRegime[rec.regimeGrade || 'unknown'] || 0) + 1;
     byStatus[rec.status] = (byStatus[rec.status] || 0) + 1;
     const mode = rec.verificationMode === 'signal' ? 'signal' : 'trade';
     const m = mode === 'signal' ? signal : trade;
@@ -775,6 +803,40 @@ function buildHistoricalPlan(bars, signalDate, opts = {}) {
   };
 }
 
+/**
+ * 历史归档：把 signalDate < cutoffDate 的记录移出当前状态库，写入 archive/ 目录。
+ * 归档后状态库只保留 cutoff 及之后的记录，旧账本同步时也会跳过已归档区间。
+ */
+function archiveHistory(cutoffDate, rootOverride = null) {
+  ensureDirs(rootOverride);
+  const state = loadState(rootOverride);
+  const d = dirsFor(rootOverride);
+  const archived = [];
+  const kept = {};
+  for (const [id, rec] of Object.entries(state.records || {})) {
+    const sig = String(rec.signalDate || '');
+    if (sig && sig < String(cutoffDate)) archived.push(rec);
+    else kept[id] = rec;
+  }
+  let archiveFile = null;
+  if (archived.length > 0) {
+    archiveFile = path.join(d.archive, `verifications-before-${cutoffDate}.json`);
+    writeJSONAtomic(archiveFile, {
+      schema: STATE_SCHEMA,
+      archivedBefore: cutoffDate,
+      archivedAt: new Date().toISOString(),
+      count: archived.length,
+      records: archived
+    });
+  }
+  state.records = kept;
+  state.archivedBefore = cutoffDate;
+  state.updatedAt = new Date().toISOString();
+  state.runsScanned = true;
+  saveState(state, rootOverride);
+  return { archived: archived.length, kept: Object.keys(kept).length, archiveFile };
+}
+
 module.exports = {
   recordPlans,
   recordExecutablePlans,
@@ -783,6 +845,7 @@ module.exports = {
   parseFirstNumber,
   buildHistoricalPlan,
   buildSummary,
+  archiveHistory,
   isTerminalStatus,
   STATE_SCHEMA,
   FEEDBACK_SCHEMA_V2
