@@ -69,6 +69,11 @@ describe('report content preservation（信息完整优先）', () => {
     }
   });
 
+  it('执行口径使用「执行偏离」而非「跳空」描述追价距离', () => {
+    assert.ok(report.includes('执行偏离 >'), 'missing 执行偏离 threshold text');
+    assert.ok(!/执行口径.*跳空 >/.test(report), '执行口径仍使用跳空描述');
+  });
+
   it('策略计划全部字段行保留', () => {
     for (const p of strategyPlan.plans) {
       assert.ok(report.includes(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract}）`));

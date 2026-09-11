@@ -1009,12 +1009,12 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   let executionConvention;
   if (playbookOut.playbookId === 'PB-03') {
     executionConvention = dir === 'bullish'
-      ? 'T+1 开盘；跳空 >0.75×ATR5 放弃；多头回踩要求持仓不塌（报告既有表述）'
-      : 'T+1 开盘；跳空 >0.75×ATR5 放弃；空头反抽要求持仓不增（报告既有表述）';
+      ? 'T+1 开盘；执行偏离 >0.75×ATR5 放弃；多头回踩要求持仓不塌（报告既有表述）'
+      : 'T+1 开盘；执行偏离 >0.75×ATR5 放弃；空头反抽要求持仓不增（报告既有表述）';
   } else if (playbookOut.playbookId === 'PB-07') {
-    executionConvention = `T+1 收盘确认（触发条件含收盘）；确认后下一交易日开盘执行；跳空 >0.75×ATR5 放弃；${dirClause}`;
+    executionConvention = `T+1 收盘确认（触发条件含收盘）；确认后下一交易日开盘执行；执行偏离 >0.75×ATR5 放弃；${dirClause}`;
   } else {
-    executionConvention = `T+1 开盘；跳空 >0.5×ATR5 放弃；${dirClause}`;
+    executionConvention = `T+1 开盘；执行偏离 >0.5×ATR5 放弃；${dirClause}`;
   }
   const dirLabel = dir === 'bullish' ? '↑ 多' : dir === 'bearish' ? '↓ 空' : '→ 中性';
   const invalidation = rm.thesis.invalidations?.conditions || [];
@@ -1028,6 +1028,9 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   const strategyConfidence = reasoningConf || reportConf;
   const atr5ForGap = ctx.rm.priceRanges?.[0]?.atrBand?.atr5 ?? 0;
   const gapThresholdPts = round2((pb.playbookId === 'PB-07' || pb.playbookId === 'PB-03') ? 0.75 * atr5ForGap : 0.5 * atr5ForGap);
+  const triggerStyle = expressionType === 'pullback' ? 'low'
+    : expressionType === 'breakout' ? (dir === 'bullish' ? 'high' : 'low')
+    : 'close';
   const entry = {
     trigger: (reasoningEntry && reasoningEntry.trigger) || `${dirLabel}：${confirmText}`,
     triggerLevel: reasoningEntry && reasoningEntry.triggerLevel != null ? reasoningEntry.triggerLevel : triggerLevel,
@@ -1038,9 +1041,10 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
         ? 'T+1 收盘确认；确认后下一交易日开盘执行'
         : 'T+1 开盘执行')),
     execution: (reasoningEntry && reasoningEntry.execution) || (pb.playbookId === 'PB-07'
-      ? 'T+1 收盘确认；确认后下一交易日开盘执行；跳空 >0.75×ATR5 放弃'
-      : (pb.playbookId === 'PB-03' ? 'T+1 开盘；跳空 >0.75×ATR5 放弃' : 'T+1 开盘；跳空 >0.5×ATR5 放弃')),
-    gapThresholdPts
+      ? 'T+1 收盘确认；确认后下一交易日开盘执行；执行偏离 >0.75×ATR5 放弃'
+      : (pb.playbookId === 'PB-03' ? 'T+1 开盘；执行偏离 >0.75×ATR5 放弃' : 'T+1 开盘；执行偏离 >0.5×ATR5 放弃')),
+    gapThresholdPts,
+    triggerStyle
   };
   const stop = {
     stopPrice: risk.riskAssessment.stopPrice,

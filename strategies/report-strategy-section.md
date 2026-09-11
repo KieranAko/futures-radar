@@ -89,7 +89,7 @@
 | `matchedStrategies[]` | array ≥1（≤3） | ✓ | **队长裁定：每个 TOP3 ≥1 条**；score ≥1.5 取前 3；不足 1 条时以 BASE-01「报告结论跟随」补足（score=0，evidenceType=deterministic） |
 | `supportingEvidence[]` | array | ✓ | 低于阈值的定性命中（evidenceType=qualitative），可空 |
 | `playbook` | object | ✓ | playbookId/gateStatus(pass|pending|fail-open)/gateNote/executionConvention |
-| `entry` | object | ✓ | trigger（含转执行触发=Q4 确认价位）、triggerLevel（Q4 第一个数字，无则 null）、triggerSource（Q4 原文）、**triggerTiming（触发/执行时点语义：收盘确认后下一交易日开盘执行，或 T+1 开盘执行；neutral=无执行时点）**、execution（执行口径+跳空阈值） |
+| `entry` | object | ✓ | trigger（含转执行触发=Q4 确认价位）、triggerLevel（Q4 第一个数字，无则 null）、triggerSource（Q4 原文）、**triggerTiming（触发/执行时点语义：收盘确认后下一交易日开盘执行，或 T+1 开盘执行；neutral=无执行时点）**、execution（执行口径+执行偏离阈值） |
 | `stop` | object | ✓ | stopPrice、stopDistancePts、basis（min(stopK×ATR5, 0.8×limitPct×close, \|结构位−close\|) 计算依据） |
 | `targets` | object | ✓ | t1/t2（R 口径或区间价位，**禁止收益数字**）、basis |
 | `position` | object | ✓ | lots（整数 ≥0；0=watch/skip 仍输出完整适配）、lotsBasis（min 三分项明细） |

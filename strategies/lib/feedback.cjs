@@ -124,6 +124,7 @@ function recordFromPlan(plan, p) {
     triggerTiming,
     stopPrice: p.stop && Number.isFinite(Number(p.stop.stopPrice)) ? Number(p.stop.stopPrice) : null,
     gapThresholdPts: p.entry && Number.isFinite(Number(p.entry.gapThresholdPts)) ? Number(p.entry.gapThresholdPts) : null,
+    triggerStyle: p.entry && p.entry.triggerStyle ? p.entry.triggerStyle : null,
     regimeGrade: p.riskAssessment && p.riskAssessment.regimeGrade ? p.riskAssessment.regimeGrade : 'unknown',
     regimeDirection: p.riskAssessment && p.riskAssessment.regimeDirection ? p.riskAssessment.regimeDirection : 'stable',
     target1Text: (p.targets && p.targets.t1) || '',
@@ -387,12 +388,16 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
   }
 
   const t1 = bars[tIdx + 1];
-  const closeConfirm = /收盘/.test(record.triggerTiming || '');
   const triggerLevel = record.triggerLevel;
+  const triggerStyle = record.triggerStyle || (/收盘/.test(record.triggerTiming || '') ? 'close' : 'open');
   let triggered = false;
-  if (closeConfirm) {
+  if (triggerStyle === 'close') {
     triggered = record.direction === 'bullish' ? t1.close > triggerLevel : t1.close < triggerLevel;
-  } else {
+  } else if (triggerStyle === 'high') {
+    triggered = t1.high > triggerLevel;
+  } else if (triggerStyle === 'low') {
+    triggered = t1.low <= triggerLevel;
+  } else { // 'open'：旧计划无 triggerStyle 的回退口径
     triggered = record.direction === 'bullish' ? t1.open > triggerLevel : t1.open < triggerLevel;
   }
   if (!triggered) {
@@ -411,7 +416,7 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
   }
   const entryBar = bars[tIdx + 2];
   const entryPrice = entryBar.open;
-  // 跳空阈值优先用计划内置 gapThresholdPts（与 execution 文案一致）；旧计划无该字段时回退 0.5×|stop-trigger|。
+  // 执行偏离阈值优先用计划内置 gapThresholdPts（与 execution 文案一致）；旧计划无该字段时回退 0.5×|stop-trigger|。
   const gapThreshold = Number.isFinite(Number(record.gapThresholdPts))
     ? Number(record.gapThresholdPts)
     : (record.stopPrice != null && record.stopPrice !== record.triggerLevel)
@@ -422,7 +427,7 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
     return {
       recordId: record.recordId, status: 'skipped_gap', signalDate: record.signalDate,
       verifyDate: entryBar.date, entryPrice, verificationSeries: series.source,
-      attribution: [{ code: 'gap_skip', detail: `跳空 ${gapPts.toFixed(1)} > ${gapThreshold.toFixed(1)}（计划内置阈值），放弃执行` }]
+      attribution: [{ code: 'gap_skip', detail: `执行偏离 ${gapPts.toFixed(1)} > ${gapThreshold.toFixed(1)}（计划内置阈值），放弃执行` }]
     };
   }
 

@@ -50,6 +50,7 @@ function main() {
   L.push('5. 止损/目标：止损来自 Q5 失效位或近端结构；目标来自 Q3 逻辑点或 Q4 结构位。');
   L.push('6. 仓位意图：confidence + 波动率目标 + 尾部风险。');
   L.push('7. 自检：每个参数可溯源到报告字段；theoryFit 与 strategyConfidence 自洽；触发文案与表达类型一致。');
+L.push('8. 执行口径文案使用「执行偏离 >0.75×ATR5 放弃」或「执行偏离 >0.5×ATR5 放弃」，不要使用「跳空」描述追价距离。');
   L.push('');
   for (const opp of rm.opportunities) {
     const t = opp.thesis || {};

@@ -527,7 +527,16 @@
             "number",
             "null"
           ],
-          "description": "跳空放弃阈值（点数）：PB-07/PB-03 为 0.75×ATR5，其余为 0.5×ATR5"
+          "description": "执行偏离放弃阈值（点数）：PB-07/PB-03 为 0.75×ATR5，其余为 0.5×ATR5"
+        },
+        "triggerStyle": {
+          "type": "string",
+          "enum": [
+            "close",
+            "high",
+            "low"
+          ],
+          "description": "触发确认口径：close=收盘确认；high=盘中高点突破；low=盘中低点回踩/跌破"
         }
       }
     },

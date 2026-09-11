@@ -560,8 +560,13 @@ appendixD.push('#### 价格区间方法\n');
 appendixD.push('- 区间由五个条件型/自适应模型给出：EWMA（RiskMetrics 1996）、GARCH(1,1)（Bollerslev 1986）、FHS（Barone-Adesi et al. 1999）、EVT-POT（McNeil & Frey 2000）、ACI（Gibbs & Candès 2021，轻量近似）');
 appendixD.push('- 表格列出全部模型与各自区间，✅ 标记当前状态更可能对的模型；参考区间采用该模型');
 appendixD.push('- 当前适配只看当下状态：波动切换比、HV 分位、极端单日与收益肥尾，不做历史回测竞赛');
-appendixD.push('- ATR 仅作止损与跳空口径，不参与区间判断；模型间差异是正常现象\n');
+appendixD.push('- ATR 仅作止损与执行偏离口径，不参与区间判断；模型间差异是正常现象\n');
 
+appendixD.push('#### 执行偏离口径\n');
+appendixD.push('- 执行偏离 = |实际执行开盘价 − 计划触发价|，衡量执行价偏离触发价的距离；超过阈值则放弃该笔，不追价。');
+appendixD.push('- 阈值：PB-07/PB-03 为 0.75×ATR5，其余 playbook 为 0.5×ATR5；旧计划无内置阈值时回退 0.5×|止损−触发|。');
+appendixD.push('- 注意：执行偏离不是市场跳空（当日开盘价 − 昨日收盘价）；后者属于隔夜风险，见风险框架 §6。');
+appendixD.push('- 触发确认口径：close=收盘确认；high=盘中高点突破；low=盘中低点回踩/跌破。\n');
 appendixD.push('#### 波动率 regime\n');
 appendixD.push('- 由概率层唯一生产：综合 hvPercentile90d、volShiftRatio、tailFlag，分 normal / elevated / extreme 三档。');
 appendixD.push('- extreme：hvPercentile≥95 且（volShiftRatio≥1.5 或 tailFlag）；elevated：hvPercentile≥85 或 volShiftRatio≥1.3 或 tailFlag；其余 normal。');

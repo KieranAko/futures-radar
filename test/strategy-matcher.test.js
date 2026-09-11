@@ -90,6 +90,7 @@ describe('strategy-matcher: 真实 run 复现（workedExample 关键值）', () 
     assert.equal(p.riskAssessment.volContributionPctAnnual, 3.5);
     assert.equal(p.riskAssessment.stressRiskCny, 939); // RM0 涨跌停 4%（配置落地后）
     assert.equal(p.entry.gapThresholdPts, 36.45); // PB-07 → 0.75 × ATR5(48.6)
+    assert.equal(p.entry.triggerStyle, 'close'); // 收盘确认类触发口径
     assert.ok(!p.statusReasons.some(r => r.includes('区间模型失稳 divergence')));
   });
 
