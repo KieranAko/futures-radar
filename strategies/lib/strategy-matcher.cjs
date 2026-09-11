@@ -890,6 +890,7 @@ function riskLayer(ctx, ind, opts) {
       stopK,
       stopDistancePts: round2(stopDistancePts),
       stopPrice: round2(stopPrice),
+      atr5: round2(atr5),
       structuralStop,
       unitRiskCny: round2(unitRiskCny),
       lots,

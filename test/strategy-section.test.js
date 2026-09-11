@@ -58,6 +58,11 @@ describe('strategy-section: 板块存在与策略适配（acceptance 1/2）', ()
     assert.ok(section.includes('不执行真实交易'));
   });
 
+  it('每品种小节展示 ATR5 数值，便于换算执行偏离阈值', () => {
+    assert.ok(section.includes('ATR5 口径'));
+    assert.match(section, /ATR5 口径.*\d/);
+  });
+
   it('watch 计划附「转执行触发」', () => {
     for (const p of plan.plans.filter(x => x.executionStatus === 'watch')) {
       assert.ok(section.includes(`- **转执行触发**: ${p.entry.trigger}`), p.symbol);

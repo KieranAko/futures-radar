@@ -587,6 +587,11 @@
           "type": "number",
           "exclusiveMinimum": 0
         },
+        "atr5": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "5 日平均真实波幅（执行偏离/停板距离的倍率基数）"
+        },
         "structuralStop": {
           "type": [
             "number",

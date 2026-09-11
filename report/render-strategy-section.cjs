@@ -254,6 +254,10 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
       if (closeMap && closeMap[p.symbol] != null) {
         lines.push(`| 收盘价基准 | ${fmt(closeMap[p.symbol], 0)}（锚定合约 ${p.contract || '—'}） |`);
       }
+      const atr5v = p.riskAssessment && Number.isFinite(Number(p.riskAssessment.atr5)) ? Number(p.riskAssessment.atr5) : null;
+      if (atr5v != null) {
+        lines.push(`| ATR5 口径 | ${fmt(atr5v, 1)}（0.5×ATR5=${fmt(atr5v * 0.5, 1)}；0.75×ATR5=${fmt(atr5v * 0.75, 1)}；1×ATR5=${fmt(atr5v, 1)}） |`);
+      }
       lines.push(`| 入场机会点 | ${p.entry.trigger}（触发价 ${triggerLevel}） |`);
       lines.push(`| 触发/执行时点 | ${p.entry.triggerTiming} |`);
       lines.push(`| 执行口径 | ${p.playbook.executionConvention} |`);
@@ -285,6 +289,10 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
     lines.push(`- **报告基准**: ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信；主策略 ${primary.strategyId} ${primary.name}；执行模板 ${p.playbook.playbookId}`);
     if (closeMap && closeMap[p.symbol] != null) {
       lines.push(`- **收盘价基准**: ${fmt(closeMap[p.symbol], 0)}（锚定合约 ${p.contract || '—'}）`);
+    }
+    const atr5v = p.riskAssessment && Number.isFinite(Number(p.riskAssessment.atr5)) ? Number(p.riskAssessment.atr5) : null;
+    if (atr5v != null) {
+      lines.push(`- **ATR5 口径**: ${fmt(atr5v, 1)}（0.5×ATR5=${fmt(atr5v * 0.5, 1)}；0.75×ATR5=${fmt(atr5v * 0.75, 1)}；1×ATR5=${fmt(atr5v, 1)}）`);
     }
     {
       const t = planTrust(p, familyEvidence);

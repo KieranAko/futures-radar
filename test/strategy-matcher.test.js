@@ -63,9 +63,9 @@ describe('strategy-matcher: 真实 run 复现（workedExample 关键值）', () 
     for (const p of plan.plans) assert.ok(p.matchedStrategies.length >= 1, p.symbol);
   });
 
-  it('AC-2: plan 含 riskAssessment（17 键）与 executionStatus + statusReasons ≥1', () => {
+  it('AC-2: plan 含 riskAssessment（18 键）与 executionStatus + statusReasons ≥1', () => {
     for (const p of plan.plans) {
-      assert.equal(Object.keys(p.riskAssessment).length, 17, p.symbol);
+      assert.equal(Object.keys(p.riskAssessment).length, 18, p.symbol);
       assert.ok(['executable', 'watch', 'skip'].includes(p.executionStatus));
       assert.ok(p.statusReasons.length >= 1);
     }

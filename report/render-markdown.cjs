@@ -439,7 +439,7 @@ for (const opp of model.opportunities) {
     appendixB.push(`| HV概率锥 | 20日历史波动率对数正态外推 | ${fmtRange(range3d.hvCone.p68)} | ${fmtRange(range3d.hvCone.p95)} | — |`);
   }
   if (range3d) {
-    appendixB.push(`> ATR5=${fmt(range3d.atrBand.atr5)}，2×ATR 通道 [${fmtRange(range3d.atrBand.band)}] 仅作止损/跳空口径，不参与区间判断。`);
+    appendixB.push(`> ATR5=${fmt(range3d.atrBand.atr5)}，2×ATR 通道 [${fmtRange(range3d.atrBand.band)}] 仅作止损/执行偏离口径，不参与区间判断。`);
   }
   appendixB.push('');
 
