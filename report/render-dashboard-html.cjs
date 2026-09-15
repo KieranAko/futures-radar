@@ -347,7 +347,7 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan) {
     ${odds.reasoning ? `<p class="core-logic">${escapeHtml(odds.reasoning)}</p>` : ''}
     <div class="opp-grid">
       <div class="opp-grid-main">
-        ${ranges ? `<div class="range-legend"><span>概率区间 · 未来价格可能波动的范围（EWMA 条件波动率）</span><span class="muted">深蓝 = 68% 大概率区间 · 浅蓝 = 95% 较宽区间 · 竖线 = 现价</span></div><div class="rangebars">${ranges}</div>` : ''}
+        ${ranges ? `<div class="rangebars">${ranges}</div><div class="range-legend"><span>概率区间 · 未来价格可能波动的范围（EWMA 条件波动率）</span><span class="muted">深蓝 = 68% 大概率区间 · 浅蓝 = 95% 较宽区间 · 竖线 = 现价</span></div>` : ''}
         ${chipList('✅ 确认', confirmations, 'green')}
         ${chipList('❌ 失效', invalidations, 'red')}
         ${chipList('⚠️ 风险', risks, 'gray')}
@@ -530,7 +530,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .strategy-risk { margin-top: 8px; font-size: 12px; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 8px; }
   .watch-trigger { color: #047857; font-weight: 600; }
 
-  .range-legend { display: flex; flex-direction: column; gap: 2px; margin: 10px 0 6px; font-size: 12px; color: var(--muted); }
+  .range-legend { display: flex; flex-direction: column; gap: 2px; margin: 8px 0 0; font-size: 12px; color: var(--muted); }
   .rangebars { display: flex; flex-direction: column; gap: 10px; margin: 8px 0; }
   .rangebar { border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px 8px; background: #fcfcfd; }
   .rangebar-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; margin: 0 0 4px; }
