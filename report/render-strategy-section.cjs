@@ -243,21 +243,22 @@ function signalCard(sig, { closed = false } = {}) {
   const emoji = sig.poolStatus === 'closed' ? '⚫' : sig.poolStatus === 'downgraded' ? '🟡' : '🟢';
   lines.push(`${emoji} **${sig.signalId} · ${sig.name || sig.symbol}（${sig.contract || sig.symbol}）· ${directionLabel(sig.direction)} · ${status}**`);
   lines.push('');
-  lines.push('| 项目 | 内容 |');
-  lines.push('|------|------|');
+  lines.push('<table style="width:100%;table-layout:fixed;border-collapse:collapse;margin:4px 0;"><colgroup><col style="width:96px;"><col></colgroup>');
+  const fieldRow = (label, value) => `<tr><td style="width:96px;white-space:nowrap;vertical-align:top;font-weight:600;">${label}</td><td style="vertical-align:top;">${value}</td></tr>`;
   if (closed) {
     const closedDate = sig.closedAt ? String(sig.closedAt).slice(0, 10) : '—';
-    lines.push(`| 入池 | ${sig.createdDate}（${sig.createdRunId}） |`);
-    lines.push(`| 出池 | ${closedDate}｜${closeReasonLabel(sig.closeReason)}｜窗口判定 ${verdictLabel(sig.verdict)} |`);
+    lines.push(fieldRow('入池', `${sig.createdDate}（${sig.createdRunId}）`));
+    lines.push(fieldRow('出池', `${closedDate}｜${closeReasonLabel(sig.closeReason)}｜窗口判定 ${verdictLabel(sig.verdict)}`));
   } else {
-    lines.push(`| 入池 | ${sig.createdDate}（${sig.createdRunId}） |`);
-    lines.push(`| 最近更新 | ${sig.lastSeenDate}（${sig.lastSeenRunId}） |`);
+    lines.push(fieldRow('入池', `${sig.createdDate}（${sig.createdRunId}）`));
+    lines.push(fieldRow('最近更新', `${sig.lastSeenDate}（${sig.lastSeenRunId}）`));
   }
   const cur = sig.currentVersion || {};
   const curExpr = cur.executionStatus ? `${statusBadge(cur.executionStatus)}${cur.entryTrigger ? ' — ' + cur.entryTrigger : ''}` : '—';
-  lines.push(`| 当前表达 | ${curExpr} |`);
-  if (!closed) lines.push(`| 最新验证 | ${signalVerificationLabel(sig)} |`);
-  lines.push(`| 价格追踪 | ${signalPriceLine(sig)} |`);
+  lines.push(fieldRow('当前表达', curExpr));
+  if (!closed) lines.push(fieldRow('最新验证', signalVerificationLabel(sig)));
+  lines.push(fieldRow('价格追踪', signalPriceLine(sig)));
+  lines.push('</table>');
   lines.push('');
   lines.push(`**版本链（${sig.versionCount} 个版本）**`);
   lines.push('');
