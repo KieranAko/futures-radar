@@ -213,7 +213,7 @@ function oppNavItem(opp, raw, active) {
   const bars = raw ? extractBars(raw, opp.symbol) : null;
   const chg = change5dPct(bars);
   const chgHtml = chg == null ? '' : ` · <span class="${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg.toFixed(1)}%</span>`;
-  return `<button class="opp-nav-item ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}"><span class="nav-dot ${escapeHtml(dir)}"></span><span class="nav-main"><b>${escapeHtml(opp.name || opp.symbol)}</b><span class="nav-badge ${escapeHtml(dir)}">${directionLabel(dir)}</span></span><span class="nav-sub">${conf}置信 · ${close}${chgHtml}</span></button>`;
+  return `<button class="opp-nav-item ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}"><span class="nav-dot ${escapeHtml(dir)}"></span><span class="nav-text"><span class="nav-main"><b>${escapeHtml(opp.name || opp.symbol)}</b><span class="nav-badge ${escapeHtml(dir)}">${directionLabel(dir)}</span></span><span class="nav-sub">${conf}置信 · ${close}${chgHtml}</span></span></button>`;
 }
 
 function oppPane(opp, raw, signalDate, active) {
@@ -345,11 +345,11 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
 <style>
   :root { --bg:#f7f8fa; --card:#ffffff; --border:#e5e7eb; --text:#1f2328; --muted:#6b7280; --accent:#2563eb; --up:#b91c1c; --down:#047857; --radius:10px; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 13px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 13px/1.7 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
 
   /* App shell */
   header { background: var(--card); border-bottom: 1px solid var(--border); }
-  .header-inner { max-width: 1320px; margin: 0 auto; padding: 0 22px; display: flex; align-items: center; gap: 20px; height: 54px; }
+  .header-inner { max-width: 1320px; margin: 0 auto; padding: 0 22px; display: flex; align-items: center; gap: 20px; height: 56px; }
   .brand { font-size: 15px; font-weight: 700; white-space: nowrap; }
   .tabs { display: flex; gap: 4px; flex: 1; }
   .tab { border: none; background: transparent; color: var(--muted); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; }
@@ -362,14 +362,14 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
 
   /* KPI 统计卡 */
   .summary-bar { display: flex; gap: 12px; flex-wrap: wrap; margin: 4px 0 18px; }
-  .stat { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; min-width: 150px; }
+  .stat { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; min-width: 160px; }
   .stat-icon { width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
   .stat-icon.blue { background: #eef4ff; }
   .stat-icon.green { background: #e7f6ec; }
   .stat-icon.red { background: #fdeaea; }
   .stat-icon.gray { background: #f1f3f5; }
-  .stat-meta b { display: block; font-size: 19px; line-height: 1.2; font-variant-numeric: tabular-nums; }
-  .stat-meta span { font-size: 12px; color: var(--muted); }
+  .stat-meta b { display: block; font-size: 19px; line-height: 1.3; font-variant-numeric: tabular-nums; }
+  .stat-meta span { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
   section h2 { font-size: 15px; margin: 20px 0 10px; padding-left: 8px; border-left: 3px solid var(--accent); }
 
@@ -379,30 +379,31 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .card > summary::-webkit-details-marker { display: none; }
   .card > summary::before { content: "▸"; color: var(--muted); transition: transform .15s; }
   .card[open] > summary::before { transform: rotate(90deg); }
-  .card-body { padding: 4px 16px 14px; border-top: 1px solid var(--border); }
+  .card-body { padding: 4px 16px 16px; border-top: 1px solid var(--border); }
 
   /* Tab1 机会分析：主从布局 */
   .opp-layout { display: flex; gap: 16px; align-items: flex-start; }
   .opp-nav { width: 250px; flex: 0 0 250px; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 70px; }
-  .opp-nav-item { display: flex; align-items: flex-start; gap: 8px; text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 9px 12px; cursor: pointer; }
+  .opp-nav-item { display: flex; align-items: flex-start; gap: 10px; text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
   .opp-nav-item.active { border-color: var(--accent); background: #eef4ff; }
   .nav-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex: 0 0 8px; }
   .nav-dot.bullish { background: var(--up); }
   .nav-dot.bearish { background: var(--down); }
   .nav-dot.neutral { background: #9ca3af; }
-  .nav-main { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .nav-text { display: flex; flex-direction: column; min-width: 0; gap: 3px; }
+  .nav-main { display: flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap; }
   .nav-badge { font-size: 11px; padding: 1px 6px; border-radius: 4px; }
   .nav-badge.bullish { background: #fdeaea; color: var(--up); }
   .nav-badge.bearish { background: #e7f6ec; color: var(--down); }
   .nav-badge.neutral { background: #f1f3f5; color: var(--muted); }
-  .nav-sub { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .nav-sub { display: block; font-size: 12px; color: var(--muted); line-height: 1.5; }
   .opp-content { flex: 1; min-width: 0; }
-  .opp-pane { display: none; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
+  .opp-pane { display: none; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
   .opp-pane.active { display: block; }
 
-  .instr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .instr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
   .instr-name { font-size: 17px; font-weight: 700; }
-  .instr-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .instr-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
   .instr-badges { display: inline-flex; align-items: center; gap: 10px; }
   .confidence { display: inline-flex; gap: 3px; }
   .confidence .cm { width: 16px; height: 7px; border-radius: 3px; background: #e5e7eb; }
@@ -425,7 +426,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   @media (max-width: 1100px) { .opp-grid { grid-template-columns: 1fr; } }
 
   .rangebars { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
-  .rangebar { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; background: #fcfcfd; }
+  .rangebar { border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; background: #fcfcfd; }
   .rangebar-head, .rangebar-foot { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin: 3px 0; }
   .range-track { position: relative; height: 12px; background: #f1f3f5; border-radius: 6px; }
   .range-p95 { position: absolute; top: 2px; bottom: 2px; background: #dbe4f0; border-radius: 4px; }
@@ -433,13 +434,13 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .range-close { position: absolute; top: -2px; bottom: -2px; width: 3px; background: #1f2328; border-radius: 2px; }
 
   .factors { display: flex; flex-direction: column; gap: 8px; }
-  .factor-panel { border-radius: 8px; padding: 8px 12px; border: 1px solid var(--border); }
+  .factor-panel { border-radius: 8px; padding: 10px 14px; border: 1px solid var(--border); }
   .factor-panel.support { background: #f5faf6; border-left: 3px solid #047857; }
   .factor-panel.oppose { background: #fdf6f5; border-left: 3px solid #b91c1c; }
   .factor-panel h4 { margin: 2px 0 6px; font-size: 13px; }
-  .factor-panel ul { margin: 0; padding-left: 16px; font-size: 13px; }
+  .factor-panel ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.7; }
 
-  .chip-row { display: flex; gap: 8px; margin: 8px 0; align-items: flex-start; }
+  .chip-row { display: flex; gap: 10px; margin: 10px 0; align-items: flex-start; }
   .chip-label { font-size: 12px; color: var(--muted); white-space: nowrap; padding-top: 2px; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { font-size: 12px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); }
@@ -456,9 +457,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .pool-layout { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
   .pool-main { min-width: 0; }
   .pool-side { position: sticky; top: 70px; display: flex; flex-direction: column; gap: 12px; }
-  .side-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .side-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
   .side-card h3 { margin: 0 0 8px; font-size: 13px; }
-  .side-notes { margin: 0; padding-left: 16px; font-size: 12px; color: var(--muted); }
+  .side-notes { margin: 0; padding-left: 18px; font-size: 12px; color: var(--muted); line-height: 1.8; }
   @media (max-width: 1080px) { .pool-layout { grid-template-columns: 1fr; } .pool-side { position: static; } }
 
   table.fields { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 6px 0; }
@@ -482,7 +483,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .history-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 10px; font-size: 12px; color: var(--muted); }
   .table-wrap { overflow-x: auto; }
   table.index { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  table.index th, table.index td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  table.index th, table.index td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
   table.index tr:last-child th, table.index tr:last-child td { border-bottom: none; }
   table.index th { background: #f7f8fa; font-weight: 600; white-space: nowrap; }
   table.index tbody tr:hover { background: #fafbfc; }
@@ -491,7 +492,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   table.index tr.hidden { display: none; }
   .pagination { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0 0; }
   .page-btns { display: flex; gap: 6px; }
-  .page-btn { border: 1px solid var(--border); background: var(--card); color: var(--text); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .page-btn { border: 1px solid var(--border); background: var(--card); color: var(--text); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
   .page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
   .page-btn.nav { font-size: 12px; }
   .page-info { font-size: 12px; color: var(--muted); }
