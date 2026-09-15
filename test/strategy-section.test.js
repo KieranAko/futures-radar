@@ -258,3 +258,74 @@ describe('strategy-section: 确定性', () => {
     assert.ok(!/(收益|回报|胜率)\s*[+＋]?\d+(\.\d+)?\s*%/.test(withFam.split('族级证据状态')[1] || ''));
   });
 });
+
+describe('strategy-section: 信号池追踪渲染', () => {
+  const renderSignalPoolSection = render.renderSignalPoolSection;
+
+  function sig(overrides = {}) {
+    return {
+      signalId: 'SIG-TA0-20260911-01',
+      symbol: 'TA0', name: 'PTA', contract: 'TA2701', direction: 'bullish',
+      poolStatus: 'downgraded', createdDate: '2026-09-11', lastSeenDate: '2026-09-14',
+      versionCount: 2, consecutiveNonExecutable: 1,
+      currentVersion: { executionStatus: 'watch', entryTrigger: '突破 6322', triggerLevel: 6322 },
+      latestVerification: { status: 'triggered_pending_entry', exitType: null, directionCorrect: null },
+      priceTracking: { startClose: 6250, latestClose: 6352, maxFavorablePts: 294, maxAdversePts: -64 },
+      closedAt: null, closeReason: null, verdict: null,
+      ...overrides
+    };
+  }
+
+  function version(overrides = {}) {
+    return {
+      versionId: 'SIG-TA0-20260911-01:V1', runId: 'r1', signalDate: '2026-09-11',
+      executionStatus: 'executable', stateTransition: 'signal_created', direction: 'bullish', confidence: 'medium',
+      strategyId: 'MS-01', playbookId: 'PB-01',
+      entry: { triggerLevel: 6218 }, stop: { stopPrice: 6206 }, targets: { t1: '6322' },
+      verification: { status: 'triggered_pending_entry' },
+      ...overrides
+    };
+  }
+
+  it('渲染池内全量 + 最近出池5个 + 历史统计 + 版本链', () => {
+    const closedSig = sig({
+      signalId: 'SIG-PP0-20260910-01', symbol: 'PP0', name: '聚丙烯', poolStatus: 'closed',
+      closedAt: '2026-09-13T00:00:00Z', closeReason: 'flipped', verdict: 'hit', versionCount: 1
+    });
+    const view = {
+      schema: 'futures-radar-signal-pool-view/1',
+      meta: { runId: 'r9', poolCount: 1, closedTotal: 1 },
+      pool: [sig()],
+      recentClosed: [closedSig],
+      historyStats: { totalClosed: 1, byCloseReason: { flipped: 1 }, byVerdict: { hit: 1 } },
+      details: {
+        'SIG-TA0-20260911-01': { ...sig(), versions: [version()] },
+        'SIG-PP0-20260910-01': { ...closedSig, versions: [version({ versionId: 'SIG-PP0-20260910-01:V1', direction: 'bullish' })] }
+      }
+    };
+    const out = renderSignalPoolSection(view);
+    assert.ok(out.includes('### 4.3 信号池追踪'));
+    assert.ok(out.includes('池内 **1** 个信号全量追踪'));
+    assert.ok(out.includes('SIG-TA0-20260911-01'));
+    assert.ok(out.includes('降级观察(1/3)'));
+    assert.ok(out.includes('最近出池信号（最新 5 个）'));
+    assert.ok(out.includes('SIG-PP0-20260910-01'));
+    assert.ok(out.includes('反向翻转'));
+    assert.ok(out.includes('兑现'));
+    assert.ok(out.includes('版本链（一个信号 → 多个策略版本）'));
+    assert.ok(out.includes('SIG-TA0-20260911-01:V1'));
+    assert.ok(out.includes('| 历史已出池信号 | 1 |'));
+  });
+
+  it('空池渲染仍输出统计与口径说明', () => {
+    const out = renderSignalPoolSection({
+      schema: 'futures-radar-signal-pool-view/1',
+      meta: { runId: 'r9', poolCount: 0, closedTotal: 0 },
+      pool: [], recentClosed: [], historyStats: { totalClosed: 0, byCloseReason: {}, byVerdict: {} }, details: {}
+    });
+    assert.ok(out.includes('### 4.3 信号池追踪'));
+    assert.ok(out.includes('池内 **0** 个信号全量追踪'));
+    assert.ok(out.includes('历史统计（全部已出池信号，只统计）'));
+    assert.ok(out.includes('信号池是跨 run、跨时间、跨周期存续的信号台账'));
+  });
+});
