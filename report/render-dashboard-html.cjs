@@ -211,6 +211,48 @@ function chipList(label, items, tone) {
   return `<div class="chip-row"><span class="chip-label">${label}</span><div class="chips">${chips}</div></div>`;
 }
 
+// ── 交易策略卡 ────────────────────────────────────────────────
+function strategyStatusClass(status) {
+  if (status === 'executable') return 'st-executable';
+  if (status === 'watch') return 'st-watch';
+  return 'st-skip';
+}
+
+function strategyCard(plan) {
+  if (!plan) return '';
+  const cls = strategyStatusClass(plan.executionStatus);
+  const conf = plan.strategyConfidence ? confidenceLabel(plan.strategyConfidence) : '—';
+  const strat = plan.matchedStrategies && plan.matchedStrategies[0]
+    ? `${plan.matchedStrategies[0].strategyId} ${plan.matchedStrategies[0].name || ''}`
+    : '—';
+  const playbook = plan.playbook ? `${plan.playbook.playbookId}${plan.playbook.gateStatus ? ` · ${plan.playbook.gateStatus}` : ''}` : '—';
+  const rows = [];
+  const row = (label, value) => `<tr><th>${escapeHtml(label)}</th><td>${value}</td></tr>`;
+  rows.push(row('入场机会点', `${escapeHtml(plan.entry && plan.entry.trigger || '—')}${plan.entry && plan.entry.triggerLevel != null ? `<br><span class="muted">触发价 ${fmt(plan.entry.triggerLevel)}</span>` : ''}`));
+  rows.push(row('触发/执行', `${escapeHtml(plan.entry && plan.entry.triggerTiming || '—')}<br><span class="muted">${escapeHtml(plan.entry && plan.entry.execution || '')}</span>`));
+  rows.push(row('执行口径', escapeHtml(plan.entry && plan.entry.execution || plan.playbook && plan.playbook.executionConvention || '—')));
+  rows.push(row('止损', plan.stop && plan.stop.stopPrice != null ? `${fmt(plan.stop.stopPrice)} <span class="muted">${escapeHtml(plan.stop.basis || '')}</span>` : '—'));
+  rows.push(row('目标', plan.targets ? `${escapeHtml(plan.targets.t1 || '—')}${plan.targets.t2 ? `<br><span class="muted">${escapeHtml(plan.targets.t2)}</span>` : ''}` : '—'));
+  rows.push(row('仓位', `${plan.position && plan.position.lots != null ? `${plan.position.lots} 手` : '—'} <span class="muted">${escapeHtml(plan.position && plan.position.lotsBasis || '')}</span>`));
+  rows.push(row('证伪/失效', escapeHtml([...(plan.invalidation && plan.invalidation.hard ? plan.invalidation.hard : []), plan.invalidation && plan.invalidation.timeStop ? plan.invalidation.timeStop : ''].filter(Boolean).join('；'))));
+  if (plan.executionStatus === 'watch' && plan.entry && plan.entry.trigger) {
+    rows.push(row('转执行触发', `<span class="watch-trigger">${escapeHtml(plan.entry.trigger)}</span>`));
+  }
+  const ra = plan.riskAssessment || {};
+  const riskLine = [
+    ra.unitRiskCny != null ? `每手风险 ${Math.round(ra.unitRiskCny)} CNY` : null,
+    ra.marginPerLotCny != null ? `保证金/手 ${Math.round(ra.marginPerLotCny)} CNY` : null,
+    ra.tailGapPct3d != null ? `尾部边距 ${fmt(ra.tailGapPct3d)}%` : null
+  ].filter(Boolean).join(' · ');
+  const reasons = Array.isArray(plan.statusReasons) && plan.statusReasons.length ? plan.statusReasons.join('；') : '';
+  return `<div class="strategy-card ${cls}">
+    <div class="strategy-head"><span class="strategy-title">📌 交易策略</span><span class="strategy-badges">${statusBadge(plan.executionStatus)} · 策略${conf}置信 · ${escapeHtml(strat)}</span></div>
+    <div class="strategy-sub">${escapeHtml(strat)} + ${escapeHtml(playbook)}</div>
+    <table class="fields strategy-fields">${rows.join('')}</table>
+    ${riskLine || reasons ? `<div class="strategy-risk">${escapeHtml(riskLine)}${riskLine && reasons ? ' · ' : ''}<span class="muted">${escapeHtml(reasons)}</span></div>` : ''}
+  </div>`;
+}
+
 // ── 机会分析：导航 + 面板 ────────────────────────────────────
 function oppNavItem(opp, raw, active) {
   const t = opp.thesis || {};
@@ -223,7 +265,7 @@ function oppNavItem(opp, raw, active) {
   return `<button class="opp-nav-item ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}"><span class="nav-dot ${escapeHtml(dir)}"></span><span class="nav-text"><span class="nav-main"><b>${escapeHtml(opp.name || opp.symbol)}</b><span class="nav-badge ${escapeHtml(dir)}">${directionLabel(dir)}</span></span><span class="nav-sub">${conf}置信 · ${close}${chgHtml}</span></span></button>`;
 }
 
-function oppPane(opp, raw, signalDate, active) {
+function oppPane(opp, raw, signalDate, active, plan) {
   const t = opp.thesis || {};
   const driver = t.driver || {};
   const odds = t.odds || {};
@@ -272,13 +314,14 @@ function oppPane(opp, raw, signalDate, active) {
       </div>
       <div class="opp-grid-side">${supportPanel || opposePanel ? `<div class="factors">${supportPanel}${opposePanel}</div>` : ''}</div>
     </div>
+    ${strategyCard(plan)}
     ${detail.length ? `<details class="detail"><summary>完整六问详情</summary>${detail.join('')}</details>` : ''}
   </article>`;
 }
 
-function oppLayout(opps, raw, signalDate) {
+function oppLayout(opps, raw, signalDate, planMap) {
   const nav = opps.map((o, i) => oppNavItem(o, raw, i === 0)).join('\n');
-  const panes = opps.map((o, i) => oppPane(o, raw, signalDate, i === 0)).join('\n');
+  const panes = opps.map((o, i) => oppPane(o, raw, signalDate, i === 0, planMap ? planMap[o.symbol] : null)).join('\n');
   return `<div class="opp-layout"><nav class="opp-nav">${nav}</nav><div class="opp-content">${panes}</div></div>`;
 }
 
@@ -320,14 +363,15 @@ function historyIndex(runId, runsRoot) {
 }
 
 // ── 主渲染 ───────────────────────────────────────────────────
-function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, signalDate }) {
+function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, signalDate, strategyPlan }) {
   const opps = reportModel && Array.isArray(reportModel.opportunities) ? reportModel.opportunities : [];
   const pool = signalPoolView && Array.isArray(signalPoolView.pool) ? signalPoolView.pool : [];
   const recentClosed = signalPoolView && Array.isArray(signalPoolView.recentClosed) ? signalPoolView.recentClosed : [];
   const stats = signalPoolView && signalPoolView.historyStats ? signalPoolView.historyStats : {};
   const details = signalPoolView && signalPoolView.details ? signalPoolView.details : {};
 
-  const oppHtml = opps.length ? oppLayout(opps, raw, signalDate) : '<p class="muted">本期无机会分析。</p>';
+  const planMap = new Map((strategyPlan && Array.isArray(strategyPlan.plans) ? strategyPlan.plans : []).map((p) => [p.symbol, p]));
+  const oppHtml = opps.length ? oppLayout(opps, raw, signalDate, Object.fromEntries(planMap)) : '<p class="muted">本期无机会分析。</p>';
   const poolCards = pool.map((s) => {
     const d = details[s.signalId] || {};
     return signalCard({ ...s, versions: d.versions || [] });
@@ -431,6 +475,18 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .opp-grid-main { min-width: 0; }
   .opp-grid-side { min-width: 0; }
   @media (max-width: 1100px) { .opp-grid { grid-template-columns: 1fr; } }
+
+  .strategy-card { border: 1px solid var(--border); border-left: 3px solid var(--muted); border-radius: 8px; padding: 10px 14px; margin: 12px 0 0; background: #fcfcfd; }
+  .strategy-card.st-executable { border-left-color: #047857; }
+  .strategy-card.st-watch { border-left-color: #b45309; }
+  .strategy-card.st-skip { border-left-color: #b91c1c; }
+  .strategy-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .strategy-title { font-weight: 700; }
+  .strategy-badges { font-size: 12px; color: var(--muted); }
+  .strategy-sub { font-size: 12px; color: var(--muted); margin: 2px 0 6px; }
+  table.strategy-fields th { width: 96px; }
+  .strategy-risk { margin-top: 8px; font-size: 12px; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 8px; }
+  .watch-trigger { color: #047857; font-weight: 600; }
 
   .rangebars { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
   .rangebar { border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; background: #fcfcfd; }
@@ -647,9 +703,10 @@ function main() {
     process.exit(1);
   }
   const raw = readJSON(path.join(dir, 'raw.json'));
+  const strategyPlan = readJSON(path.join(dir, 'strategy-plan.json'));
   const signalDate = raw && raw.meta && raw.meta.cacheInfo ? raw.meta.cacheInfo.latestBarDate : null;
   const history = historyIndex(runId, path.join(runtimeRoot, 'runs'));
-  const html = renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, signalDate });
+  const html = renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, signalDate, strategyPlan });
   const outPath = path.join(runtimeRoot, 'dashboard.html');
   fs.writeFileSync(outPath, html, 'utf8');
   console.log(`dashboard.html: ${outPath}`);

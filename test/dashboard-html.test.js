@@ -128,6 +128,48 @@ describe('dashboard-html 三 Tab 看板', () => {
     assert.ok(html.includes('chip gray'));
   });
 
+  it('机会面板含交易策略卡（执行要素/风险/状态）', () => {
+    const strategyPlan = { meta: { runId: 'r1' }, plans: [{
+      symbol: 'PP0', executionStatus: 'skip', strategyConfidence: 'low',
+      matchedStrategies: [{ strategyId: 'MS-01', name: '时间序列动量 / 趋势跟踪' }],
+      playbook: { playbookId: 'PB-01', gateStatus: 'pass', executionConvention: 'T+1 开盘' },
+      entry: { trigger: '观察：放量突破 9086', triggerLevel: 9086, triggerTiming: 'T+1 盘中确认', execution: '执行偏离 >0.75×ATR5 放弃' },
+      stop: { stopPrice: 8784, basis: 'Q5 3日低点' },
+      targets: { t1: '9086（前日高点）', t2: '9144（3日 p68 上沿）' },
+      position: { lots: 0, lotsBasis: 'min(风险预算 1 手, 波动率目标 2 手, 保证金 27 手)' },
+      invalidation: { hard: ['收盘跌破 8784'], timeStop: 'T+5' },
+      riskAssessment: { unitRiskCny: 1285, marginPerLotCny: 3550, tailGapPct3d: -5.8 },
+      statusReasons: ['波动率 regime extreme：跳过']
+    }] };
+    const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [], strategyPlan });
+    assert.ok(html.includes('📌 交易策略'));
+    assert.ok(html.includes('strategy-card st-skip'));
+    assert.ok(html.includes('触发价 9086.0'));
+    assert.ok(html.includes('止损'));
+    assert.ok(html.includes('8784.0'));
+    assert.ok(html.includes('每手风险 1285 CNY'));
+    assert.ok(html.includes('波动率 regime extreme：跳过'));
+  });
+
+  it('watch 计划渲染转执行触发行', () => {
+    const strategyPlan = { meta: { runId: 'r1' }, plans: [{
+      symbol: 'PP0', executionStatus: 'watch', strategyConfidence: 'low',
+      matchedStrategies: [{ strategyId: 'MS-01', name: '时间序列动量' }],
+      playbook: { playbookId: 'PB-01', gateStatus: 'pass' },
+      entry: { trigger: '观察：放量突破 9086', triggerLevel: 9086, triggerTiming: 'T+1 确认', execution: 'T+1 开盘' },
+      stop: { stopPrice: 8784, basis: 'Q5' },
+      targets: { t1: '9086', t2: '9144' },
+      position: { lots: 0, lotsBasis: 'min(...)' },
+      invalidation: { hard: ['收盘跌破 8784'], timeStop: 'T+5' },
+      riskAssessment: { unitRiskCny: 1285, marginPerLotCny: 3550, tailGapPct3d: -5.8 },
+      statusReasons: []
+    }] };
+    const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [], strategyPlan });
+    assert.ok(html.includes('strategy-card st-watch'));
+    assert.ok(html.includes('转执行触发'));
+    assert.ok(html.includes('watch-trigger'));
+  });
+
   it('机会分析左侧导航布局：默认第一项激活', () => {
     const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [] });
     assert.ok(html.includes('class="opp-layout"'));
