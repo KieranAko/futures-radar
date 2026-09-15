@@ -3,9 +3,9 @@
 // 用法:
 //   node report/render-dashboard-html.cjs --runId <runId>
 //
-// Tab1 机会分析看板：图形化机会卡片（价格趋势图 + 区间条 + 多空面板 + chips）。
-// Tab2 信号池看板：复用 render-signal-pool-html.cjs 的卡片函数。
-// Tab3 历史报告索引：分页，每页 10 份，点击打开 report.html。
+// Tab1 机会分析看板：主从布局（左侧品种导航 + 右侧图形化机会面板）。
+// Tab2 信号池看板：双栏布局（左侧卡片流 + 右侧历史统计/口径说明）。
+// Tab3 历史报告索引：数据表 + 底部分页（每页 10 份），点击打开 report.html。
 //
 // 纪律：确定性、不联网、不调用 LLM、无外部 CSS/JS 依赖；所有字段转义。
 
@@ -34,7 +34,7 @@ function fmt(x, d = 1) {
   return Number(x).toFixed(d);
 }
 
-// ── 机会分析图形组件 ──────────────────────────────────────────
+// ── 图形组件 ──────────────────────────────────────────────────
 function confidenceMeter(level) {
   const n = level === 'high' ? 3 : level === 'medium' ? 2 : 1;
   let blocks = '';
@@ -47,6 +47,10 @@ function regimePill(regime) {
   const dir = regime && regime.dynamic && regime.dynamic.direction ? regime.dynamic.direction : 'stable';
   const arrow = dir === 'rising' ? '↑' : dir === 'falling' ? '↓' : '→';
   return `<span class="pill ${escapeHtml(grade)}">波动 ${escapeHtml(grade)} ${arrow}</span>`;
+}
+
+function statCard(icon, label, value, tone = 'blue') {
+  return `<div class="stat"><span class="stat-icon ${tone}">${icon}</span><div class="stat-meta"><b>${value}</b><span>${label}</span></div></div>`;
 }
 
 function sma(values, period) {
@@ -76,6 +80,14 @@ function extractBars(raw, symbol, maxFull = 400) {
     });
   }
   return bars;
+}
+
+function change5dPct(bars) {
+  if (!bars || bars.length < 6) return null;
+  const last = bars[bars.length - 1].close;
+  const prev = bars[bars.length - 6].close;
+  if (!prev) return null;
+  return ((last / prev) - 1) * 100;
 }
 
 function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
@@ -113,14 +125,12 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
 
   const parts = [];
   parts.push(`<svg class="price-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="价格趋势图">`);
-  // 网格线
   for (let i = 0; i <= 4; i++) {
     const gy = padY + (i / 4) * (H - padY * 2);
     const gv = max - (i / 4) * (max - min);
     parts.push(`<line x1="${padX}" y1="${gy}" x2="${W - padX}" y2="${gy}" stroke="#eef0f3" stroke-width="1"/>`);
     parts.push(`<text x="${padX - 6}" y="${gy + 4}" text-anchor="end" class="chart-label">${fmt(gv, 0)}</text>`);
   }
-  // 蜡烛
   for (let i = 0; i < n; i++) {
     const b = bars[i];
     const x = padX + i * step + step / 2;
@@ -135,7 +145,6 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
     const bodyH = Math.max(1, Math.abs(yClose - yOpen));
     parts.push(`<rect x="${(x - bodyW / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bodyW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}"><title>${escapeHtml(b.date)} O:${fmt(b.open)} H:${fmt(b.high)} L:${fmt(b.low)} C:${fmt(b.close)}</title></rect>`);
   }
-  // MA 线
   const maLine = (arr, color) => {
     const pts = [];
     for (let i = 0; i < n; i++) {
@@ -145,7 +154,6 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
   };
   maLine(ma20, '#2563eb');
   maLine(ma60, '#d97706');
-  // 信号日竖线
   if (signalDate) {
     const idx = bars.findIndex((b) => b.date === signalDate);
     if (idx >= 0) {
@@ -154,7 +162,6 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
       parts.push(`<text x="${x}" y="${H - 4}" text-anchor="middle" class="chart-label">信号 ${escapeHtml(signalDate.slice(5))}</text>`);
     }
   }
-  // 日期轴
   const xDate = (idx, anchor) => parts.push(`<text x="${padX + idx * step + step / 2}" y="${H - 4}" text-anchor="${anchor}" class="chart-label">${escapeHtml(bars[idx].date.slice(5))}</text>`);
   xDate(0, 'middle');
   if (n > 2) xDate(Math.floor((n - 1) / 2), 'middle');
@@ -197,13 +204,16 @@ function chipList(label, items, tone) {
   return `<div class="chip-row"><span class="chip-label">${label}</span><div class="chips">${chips}</div></div>`;
 }
 
-function oppNavItem(opp, active) {
+// ── 机会分析：导航 + 面板 ────────────────────────────────────
+function oppNavItem(opp, raw, active) {
   const t = opp.thesis || {};
   const dir = t.finalDirection || 'neutral';
-  const dirEmoji = dir === 'bullish' ? '🔴' : dir === 'bearish' ? '🟢' : '⚪';
   const close = opp.marketFacts && opp.marketFacts.close != null ? fmt(opp.marketFacts.close) : '—';
   const conf = confidenceLabel(t.finalConfidence);
-  return `<button class="opp-nav-item ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}"><span class="opp-nav-main">${dirEmoji} ${escapeHtml(opp.name || opp.symbol)}</span><span class="opp-nav-sub">${directionLabel(dir)} · ${conf}置信 · ${close}</span></button>`;
+  const bars = raw ? extractBars(raw, opp.symbol) : null;
+  const chg = change5dPct(bars);
+  const chgHtml = chg == null ? '' : ` · <span class="${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg.toFixed(1)}%</span>`;
+  return `<button class="opp-nav-item ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}"><span class="nav-dot ${escapeHtml(dir)}"></span><span class="nav-main"><b>${escapeHtml(opp.name || opp.symbol)}</b><span class="nav-badge ${escapeHtml(dir)}">${directionLabel(dir)}</span></span><span class="nav-sub">${conf}置信 · ${close}${chgHtml}</span></button>`;
 }
 
 function oppPane(opp, raw, signalDate, active) {
@@ -211,7 +221,6 @@ function oppPane(opp, raw, signalDate, active) {
   const driver = t.driver || {};
   const odds = t.odds || {};
   const dir = t.finalDirection || 'neutral';
-  const dirEmoji = dir === 'bullish' ? '🔴' : dir === 'bearish' ? '🟢' : '⚪';
   const close = opp.marketFacts && opp.marketFacts.close != null ? fmt(opp.marketFacts.close) : '—';
 
   const bars = raw ? extractBars(raw, opp.symbol) : null;
@@ -238,27 +247,37 @@ function oppPane(opp, raw, signalDate, active) {
   if (cr.uncertainties && cr.uncertainties.length) detail.push(`<h4>不确定项</h4><ul>${cr.uncertainties.map((u) => `<li>${escapeHtml(u)}</li>`).join('')}</ul>`);
 
   return `<article class="opp-pane ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}">
-    <div class="opp-head"><span>${dirEmoji} ${escapeHtml(opp.name || opp.symbol)}（${escapeHtml(opp.contract || opp.symbol)}）· ${directionLabel(dir)} · 收盘 ${close}</span><span class="opp-badges">${confidenceMeter(t.finalConfidence)}${regimePill(opp.marketFacts && opp.marketFacts.volatilityRegime)}</span></div>
+    <div class="instr-head">
+      <div class="instr-title">
+        <div class="instr-name">${escapeHtml(opp.name || opp.symbol)} <span class="muted">（${escapeHtml(opp.contract || opp.symbol)}）</span></div>
+        <div class="instr-sub">${directionLabel(dir)} · ${confidenceLabel(t.finalConfidence)}置信 · 收盘 ${close}</div>
+      </div>
+      <div class="instr-badges">${confidenceMeter(t.finalConfidence)}${regimePill(opp.marketFacts && opp.marketFacts.volatilityRegime)}</div>
+    </div>
     ${chart}
     ${odds.reasoning ? `<p class="core-logic">${escapeHtml(odds.reasoning)}</p>` : ''}
-    ${ranges ? `<div class="rangebars">${ranges}</div>` : ''}
-    ${supportPanel || opposePanel ? `<div class="factors">${supportPanel}${opposePanel}</div>` : ''}
-    ${chipList('✅ 确认', confirmations, 'green')}
-    ${chipList('❌ 失效', invalidations, 'red')}
-    ${chipList('⚠️ 风险', risks, 'gray')}
+    <div class="opp-grid">
+      <div class="opp-grid-main">
+        ${ranges ? `<div class="rangebars">${ranges}</div>` : ''}
+        ${chipList('✅ 确认', confirmations, 'green')}
+        ${chipList('❌ 失效', invalidations, 'red')}
+        ${chipList('⚠️ 风险', risks, 'gray')}
+      </div>
+      <div class="opp-grid-side">${supportPanel || opposePanel ? `<div class="factors">${supportPanel}${opposePanel}</div>` : ''}</div>
+    </div>
     ${detail.length ? `<details class="detail"><summary>完整六问详情</summary>${detail.join('')}</details>` : ''}
   </article>`;
 }
 
 function oppLayout(opps, raw, signalDate) {
-  const nav = opps.map((o, i) => oppNavItem(o, i === 0)).join('\n');
+  const nav = opps.map((o, i) => oppNavItem(o, raw, i === 0)).join('\n');
   const panes = opps.map((o, i) => oppPane(o, raw, signalDate, i === 0)).join('\n');
   return `<div class="opp-layout"><nav class="opp-nav">${nav}</nav><div class="opp-content">${panes}</div></div>`;
 }
 
 // ── 历史报告分页 ─────────────────────────────────────────────
 function historyTable(entries) {
-  const rows = entries.map((h) => `<tr><td>${escapeHtml(h.runId)}</td><td>${escapeHtml(h.date)}</td><td>${escapeHtml(h.oppSymbols || '—')}</td><td><a href="${escapeHtml(h.href)}">打开 →</a></td></tr>`).join('');
+  const rows = entries.map((h) => `<tr><td>${escapeHtml(h.runId)}</td><td>${escapeHtml(h.date)}</td><td>${escapeHtml(h.oppSymbols || '—')}</td><td class="row-action"><a href="${escapeHtml(h.href)}">打开 →</a></td></tr>`).join('');
   return rows;
 }
 
@@ -267,7 +286,7 @@ function paginationControl(total, pageSize) {
   const pages = Math.ceil(total / pageSize);
   let btns = '';
   for (let p = 1; p <= pages; p++) btns += `<button class="page-btn" data-page="${p}">${p}</button>`;
-  return `<div class="pagination"><button class="page-btn nav" data-page="prev">◀ 上一页</button>${btns}<button class="page-btn nav" data-page="next">下一页 ▶</button><div class="page-info">共 ${total} 份 · 第 <b id="page-cur">1</b>/${pages} 页</div></div>`;
+  return `<div class="pagination"><div class="page-btns"><button class="page-btn nav" data-page="prev">◀ 上一页</button>${btns}<button class="page-btn nav" data-page="next">下一页 ▶</button></div><div class="page-info">共 ${total} 份 · 第 <b id="page-cur">1</b>/${pages} 页</div></div>`;
 }
 
 function historyIndex(runId, runsRoot) {
@@ -311,6 +330,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
     return signalCard({ ...s, versions: d.versions || [] }, { closed: true });
   }).join('\n');
 
+  const downgradedCount = pool.filter((s) => s.poolStatus === 'downgraded').length;
+  const activeCount = pool.length - downgradedCount;
+
   const histRows = historyTable(history);
   const pagination = paginationControl(history.length, 10);
 
@@ -323,20 +345,33 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
 <style>
   :root { --bg:#f7f8fa; --card:#ffffff; --border:#e5e7eb; --text:#1f2328; --muted:#6b7280; --accent:#2563eb; --up:#b91c1c; --down:#047857; --radius:10px; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
-  header { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 22px 0; position: sticky; top: 0; z-index: 10; }
-  header h1 { font-size: 17px; margin: 0 0 10px; }
-  .tabs { display: flex; gap: 6px; }
-  .tab { border: 1px solid var(--border); border-bottom: none; background: #f1f3f5; color: var(--muted); padding: 8px 16px; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 14px; }
-  .tab.active { background: var(--bg); color: var(--text); font-weight: 600; position: relative; top: 1px; }
-  main { max-width: 1440px; margin: 0; padding: 18px 22px 48px; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 13px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+
+  /* App shell */
+  header { background: var(--card); border-bottom: 1px solid var(--border); }
+  .header-inner { max-width: 1320px; margin: 0 auto; padding: 0 22px; display: flex; align-items: center; gap: 20px; height: 54px; }
+  .brand { font-size: 15px; font-weight: 700; white-space: nowrap; }
+  .tabs { display: flex; gap: 4px; flex: 1; }
+  .tab { border: none; background: transparent; color: var(--muted); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+  .tab.active { background: #eef4ff; color: var(--accent); font-weight: 600; }
+  .run-meta { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  main { max-width: 1320px; margin: 0 auto; padding: 18px 22px 48px; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
-  .summary-bar { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 16px; }
-  .summary-bar .stat { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 16px; min-width: 110px; }
-  .summary-bar .stat b { display: block; font-size: 20px; }
-  .summary-bar .stat span { color: var(--muted); font-size: 12px; }
-  section h2 { font-size: 15px; margin: 22px 0 10px; padding-left: 8px; border-left: 3px solid var(--accent); }
+
+  /* KPI 统计卡 */
+  .summary-bar { display: flex; gap: 12px; flex-wrap: wrap; margin: 4px 0 18px; }
+  .stat { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; min-width: 150px; }
+  .stat-icon { width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+  .stat-icon.blue { background: #eef4ff; }
+  .stat-icon.green { background: #e7f6ec; }
+  .stat-icon.red { background: #fdeaea; }
+  .stat-icon.gray { background: #f1f3f5; }
+  .stat-meta b { display: block; font-size: 19px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+  .stat-meta span { font-size: 12px; color: var(--muted); }
+
+  section h2 { font-size: 15px; margin: 20px 0 10px; padding-left: 8px; border-left: 3px solid var(--accent); }
 
   /* 卡片通用 */
   .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin: 10px 0; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
@@ -346,49 +381,64 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .card[open] > summary::before { transform: rotate(90deg); }
   .card-body { padding: 4px 16px 14px; border-top: 1px solid var(--border); }
 
-  /* 机会卡片 */
-  .opp-layout { display: flex; gap: 14px; align-items: flex-start; }
-  .opp-nav { width: 240px; flex: 0 0 240px; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 70px; }
-  .opp-nav-item { text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 8px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
+  /* Tab1 机会分析：主从布局 */
+  .opp-layout { display: flex; gap: 16px; align-items: flex-start; }
+  .opp-nav { width: 250px; flex: 0 0 250px; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 70px; }
+  .opp-nav-item { display: flex; align-items: flex-start; gap: 8px; text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 9px 12px; cursor: pointer; }
   .opp-nav-item.active { border-color: var(--accent); background: #eef4ff; }
-  .opp-nav-main { font-weight: 600; }
-  .opp-nav-sub { font-size: 12px; color: var(--muted); }
+  .nav-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex: 0 0 8px; }
+  .nav-dot.bullish { background: var(--up); }
+  .nav-dot.bearish { background: var(--down); }
+  .nav-dot.neutral { background: #9ca3af; }
+  .nav-main { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .nav-badge { font-size: 11px; padding: 1px 6px; border-radius: 4px; }
+  .nav-badge.bullish { background: #fdeaea; color: var(--up); }
+  .nav-badge.bearish { background: #e7f6ec; color: var(--down); }
+  .nav-badge.neutral { background: #f1f3f5; color: var(--muted); }
+  .nav-sub { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; }
   .opp-content { flex: 1; min-width: 0; }
-  .opp-pane { display: none; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .opp-pane { display: none; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
   .opp-pane.active { display: block; }
-  .opp-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; font-weight: 600; }
-  .opp-badges { display: inline-flex; align-items: center; gap: 8px; }
-  @media (max-width: 760px) {
-    .opp-layout { flex-direction: column; }
-    .opp-nav { width: 100%; flex-direction: row; flex-wrap: wrap; position: static; }
-    .opp-nav-item { flex-direction: row; align-items: center; gap: 8px; }
-  }
+
+  .instr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .instr-name { font-size: 17px; font-weight: 700; }
+  .instr-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .instr-badges { display: inline-flex; align-items: center; gap: 10px; }
   .confidence { display: inline-flex; gap: 3px; }
-  .confidence .cm { width: 14px; height: 6px; border-radius: 2px; background: #e5e7eb; }
+  .confidence .cm { width: 16px; height: 7px; border-radius: 3px; background: #e5e7eb; }
   .confidence .cm.on { background: var(--accent); }
   .pill { font-size: 12px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
   .pill.normal { background: #e7f6ec; color: #047857; }
   .pill.elevated { background: #fdf3e0; color: #b45309; }
   .pill.extreme { background: #fdeaea; color: #b91c1c; }
+
   .price-chart { width: 100%; height: auto; display: block; background: #fcfcfd; border: 1px solid var(--border); border-radius: 8px; }
   .chart-label { font-size: 10px; fill: var(--muted); }
   .legend { display: flex; gap: 12px; margin: 6px 0 2px; font-size: 12px; color: var(--muted); }
   .legend-item { display: inline-flex; align-items: center; gap: 4px; }
   .legend-item i { width: 10px; height: 4px; display: inline-block; border-radius: 2px; }
   .core-logic { margin: 10px 0 4px; font-weight: 500; }
-  .rangebars { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+
+  .opp-grid { display: grid; grid-template-columns: 1fr 320px; gap: 14px; margin-top: 10px; }
+  .opp-grid-main { min-width: 0; }
+  .opp-grid-side { min-width: 0; }
+  @media (max-width: 1100px) { .opp-grid { grid-template-columns: 1fr; } }
+
+  .rangebars { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
   .rangebar { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; background: #fcfcfd; }
   .rangebar-head, .rangebar-foot { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin: 3px 0; }
   .range-track { position: relative; height: 12px; background: #f1f3f5; border-radius: 6px; }
   .range-p95 { position: absolute; top: 2px; bottom: 2px; background: #dbe4f0; border-radius: 4px; }
   .range-p68 { position: absolute; top: 2px; bottom: 2px; background: #9db8e8; border-radius: 4px; }
   .range-close { position: absolute; top: -2px; bottom: -2px; width: 3px; background: #1f2328; border-radius: 2px; }
-  .factors { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
-  .factor-panel { flex: 1; min-width: 260px; border-radius: 8px; padding: 8px 12px; border: 1px solid var(--border); }
+
+  .factors { display: flex; flex-direction: column; gap: 8px; }
+  .factor-panel { border-radius: 8px; padding: 8px 12px; border: 1px solid var(--border); }
   .factor-panel.support { background: #f5faf6; border-left: 3px solid #047857; }
   .factor-panel.oppose { background: #fdf6f5; border-left: 3px solid #b91c1c; }
   .factor-panel h4 { margin: 2px 0 6px; font-size: 13px; }
   .factor-panel ul { margin: 0; padding-left: 16px; font-size: 13px; }
+
   .chip-row { display: flex; gap: 8px; margin: 8px 0; align-items: flex-start; }
   .chip-label { font-size: 12px; color: var(--muted); white-space: nowrap; padding-top: 2px; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -398,9 +448,19 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .chip.gray { background: #f7f8fa; color: #4b5563; }
   details.detail { margin-top: 10px; border: 1px dashed var(--border); border-radius: 8px; padding: 4px 10px; }
   details.detail summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  .up { color: var(--up); font-weight: 600; }
+  .down { color: var(--down); font-weight: 600; }
   .muted { color: var(--muted); font-size: 12px; }
 
-  /* 信号池卡片复用样式 */
+  /* Tab2 信号池：双栏布局 */
+  .pool-layout { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
+  .pool-main { min-width: 0; }
+  .pool-side { position: sticky; top: 70px; display: flex; flex-direction: column; gap: 12px; }
+  .side-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .side-card h3 { margin: 0 0 8px; font-size: 13px; }
+  .side-notes { margin: 0; padding-left: 16px; font-size: 12px; color: var(--muted); }
+  @media (max-width: 1080px) { .pool-layout { grid-template-columns: 1fr; } .pool-side { position: static; } }
+
   table.fields { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 6px 0; }
   table.fields th { width: 88px; text-align: left; vertical-align: top; color: var(--muted); font-weight: 500; padding: 5px 10px 5px 0; white-space: nowrap; }
   table.fields td { vertical-align: top; padding: 5px 0; word-break: break-word; }
@@ -413,75 +473,86 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .version-body { padding: 2px 12px 10px; }
   .version-body table.fields th { width: 64px; font-size: 12px; }
   .version-body table.fields td { font-size: 13px; }
-  table.stats { width: 100%; max-width: 420px; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  table.stats th, table.stats td { padding: 7px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  table.stats { width: 100%; border-collapse: collapse; }
+  table.stats th, table.stats td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
   table.stats tr:last-child th, table.stats tr:last-child td { border-bottom: none; }
   table.stats th { color: var(--muted); font-weight: 500; }
 
-  /* 历史索引分页 */
+  /* Tab3 历史报告 */
+  .history-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 10px; font-size: 12px; color: var(--muted); }
   .table-wrap { overflow-x: auto; }
   table.index { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   table.index th, table.index td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
   table.index tr:last-child th, table.index tr:last-child td { border-bottom: none; }
-  table.index th { background: #f7f8fa; font-weight: 600; }
+  table.index th { background: #f7f8fa; font-weight: 600; white-space: nowrap; }
+  table.index tbody tr:hover { background: #fafbfc; }
+  table.index td.row-action { text-align: right; white-space: nowrap; }
   table.index a { color: var(--accent); text-decoration: none; }
   table.index tr.hidden { display: none; }
-  .pagination { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+  .pagination { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0 0; }
+  .page-btns { display: flex; gap: 6px; }
   .page-btn { border: 1px solid var(--border); background: var(--card); color: var(--text); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; }
   .page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
   .page-btn.nav { font-size: 12px; }
-  .page-info { margin-left: auto; font-size: 12px; color: var(--muted); }
+  .page-info { font-size: 12px; color: var(--muted); }
+
+  @media (max-width: 900px) {
+    .opp-layout { flex-direction: column; }
+    .opp-nav { width: 100%; flex-direction: row; flex-wrap: wrap; position: static; }
+    .opp-nav-item { flex-direction: row; align-items: center; }
+  }
   @media print { header { position: static; } .tab { display: none; } .tab-panel { display: block !important; } .pagination { display: none; } }
 </style>
 </head>
 <body>
 <header>
-  <h1>Futures Radar · 看板</h1>
-  <nav class="tabs">
-    <button class="tab active" data-tab="opportunities">📈 机会分析</button>
-    <button class="tab" data-tab="pool">📊 信号池</button>
-    <button class="tab" data-tab="history">🗂 历史报告</button>
-  </nav>
+  <div class="header-inner">
+    <div class="brand">Futures Radar 看板</div>
+    <nav class="tabs">
+      <button class="tab active" data-tab="opportunities">📈 机会分析</button>
+      <button class="tab" data-tab="pool">📊 信号池</button>
+      <button class="tab" data-tab="history">🗂 历史报告</button>
+    </nav>
+    <div class="run-meta">${escapeHtml(runId)}${signalDate ? ` · 信号日 ${escapeHtml(signalDate)}` : ''}</div>
+  </div>
 </header>
 <main>
   <section id="tab-opportunities" class="tab-panel active">
     <div class="summary-bar">
-      <div class="stat"><b>${opps.length}</b><span>本期机会</span></div>
-      <div class="stat"><b>${opps.filter((o) => o.thesis && o.thesis.finalDirection === 'bullish').length}</b><span>看多</span></div>
-      <div class="stat"><b>${opps.filter((o) => o.thesis && o.thesis.finalDirection === 'bearish').length}</b><span>看空</span></div>
+      ${statCard('📈', '本期机会', opps.length, 'blue')}
+      ${statCard('↑', '看多', opps.filter((o) => o.thesis && o.thesis.finalDirection === 'bullish').length, 'red')}
+      ${statCard('↓', '看空', opps.filter((o) => o.thesis && o.thesis.finalDirection === 'bearish').length, 'green')}
+      ${statCard('⚠️', '信号池内', pool.length, 'gray')}
     </div>
-    <section>
-      <h2>机会分析</h2>
-      ${oppHtml}
-    </section>
+    ${oppHtml}
   </section>
 
   <section id="tab-pool" class="tab-panel">
     <div class="summary-bar">
-      <div class="stat"><b>${pool.length}</b><span>池内信号</span></div>
-      <div class="stat"><b>${recentClosed.length}</b><span>最近出池展示</span></div>
-      <div class="stat"><b>${stats.totalClosed == null ? 0 : stats.totalClosed}</b><span>历史已出池</span></div>
+      ${statCard('📊', '池内信号', pool.length, 'blue')}
+      ${statCard('🟢', '追踪中', activeCount, 'green')}
+      ${statCard('🟡', '降级观察', downgradedCount, 'gray')}
+      ${statCard('📦', '历史已出池', stats.totalClosed == null ? 0 : stats.totalClosed, 'red')}
     </div>
-    <section>
-      <h2>池内信号（全量追踪）</h2>
-      ${poolCards || '<p class="muted">当前池内无信号。</p>'}
-    </section>
-    <section>
-      <h2>最近出池信号（最新 5 个）</h2>
-      ${closedCards || '<p class="muted">暂无出池信号。</p>'}
-    </section>
-    <section>
-      <h2>历史统计</h2>
-      ${statsTable(stats)}
-    </section>
+    <div class="pool-layout">
+      <div class="pool-main">
+        <h2>池内信号（全量追踪）</h2>
+        ${poolCards || '<p class="muted">当前池内无信号。</p>'}
+        <h2>最近出池信号（最新 5 个）</h2>
+        ${closedCards || '<p class="muted">暂无出池信号。</p>'}
+      </div>
+      <aside class="pool-side">
+        <div class="side-card"><h3>历史统计</h3>${statsTable(stats)}</div>
+        <div class="side-card"><h3>口径说明</h3><ul class="side-notes"><li>入池：executable 策略诞生信号</li><li>追踪：每期完整分析席位 + 版本追加</li><li>出池：反向翻转 / Q5 证伪 / 机会衰竭 / 窗口到期</li><li>降级（watch/skip）不出池</li></ul></div>
+      </aside>
+    </div>
   </section>
 
   <section id="tab-history" class="tab-panel">
-    <section>
-      <h2>历史报告索引</h2>
-      ${pagination}
-      ${histRows ? `<div class="table-wrap"><table class="index"><thead><tr><th>runId</th><th>日期</th><th>机会品种</th><th></th></tr></thead><tbody id="history-rows">${histRows}</tbody></table></div>` : '<p class="muted">暂无历史报告。</p>'}
-    </section>
+    <h2>历史报告索引</h2>
+    <div class="history-toolbar"><span>共 ${history.length} 份</span></div>
+    ${histRows ? `<div class="table-wrap"><table class="index"><thead><tr><th>runId</th><th>日期</th><th>机会品种</th><th></th></tr></thead><tbody id="history-rows">${histRows}</tbody></table></div>` : '<p class="muted">暂无历史报告。</p>'}
+    ${pagination}
   </section>
 </main>
 <script>
