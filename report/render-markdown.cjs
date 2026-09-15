@@ -624,6 +624,22 @@ const report = sections.join('\n');
 const outputPath = path.join(RUN_DIR, 'report.md');
 fs.writeFileSync(outputPath, report, 'utf8');
 
+// 浏览器可读的 report.html + 三 Tab 看板（机会分析/信号池/历史报告索引）；实验线 mirror 回放不生成
+if (!process.env.FUTURES_RUNTIME_ROOT) {
+  try {
+    const { main: renderReportHtml } = require('./render-report-html.cjs');
+    renderReportHtml();
+  } catch (err) {
+    console.warn(`  - report.html 生成失败：${err.message}`);
+  }
+  try {
+    const { main: renderDashboardHtml } = require('./render-dashboard-html.cjs');
+    renderDashboardHtml();
+  } catch (err) {
+    console.warn(`  - dashboard.html 生成失败：${err.message}`);
+  }
+}
+
 console.log(`\n✓ Written to: ${outputPath}`);
 console.log(`\n=== Stage 5C Complete ===`);
 console.log(`Total lines: ${report.split('\n').length}`);

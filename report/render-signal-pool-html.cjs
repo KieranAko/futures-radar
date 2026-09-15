@@ -299,6 +299,16 @@ function main() {
   console.log(`  pool=${view.pool ? view.pool.length : 0}, recentClosed=${view.recentClosed ? view.recentClosed.length : 0}, closedTotal=${view.historyStats ? view.historyStats.totalClosed : 0}`);
 }
 
-module.exports = { renderSignalPoolHtml, escapeHtml, main };
+module.exports = {
+  renderSignalPoolHtml,
+  escapeHtml,
+  fmt,
+  pctChange,
+  signalTitle,
+  signalCard,
+  statsTable,
+  fieldRow,
+  main
+};
 
 if (require.main === module) main();
