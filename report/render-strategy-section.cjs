@@ -239,24 +239,29 @@ function versionLine(v) {
 
 function signalCard(sig, { closed = false } = {}) {
   const lines = [];
-  const title = `${sig.signalId} · ${sig.name || sig.symbol}（${sig.contract || sig.symbol}）· ${directionLabel(sig.direction)} · ${poolStatusLabel(sig)}`;
-  lines.push(`#### ${title}`);
-  lines.push('');
+  const status = poolStatusLabel(sig);
+  lines.push(`> **${sig.signalId} · ${sig.name || sig.symbol}（${sig.contract || sig.symbol}）· ${directionLabel(sig.direction)} · ${status}**`);
+  lines.push('>');
+  lines.push('> | 项目 | 内容 |');
+  lines.push('> |------|------|');
   if (closed) {
     const closedDate = sig.closedAt ? String(sig.closedAt).slice(0, 10) : '—';
-    lines.push(`- **入池**：${sig.createdDate}（${sig.createdRunId}）｜**出池**：${closedDate}｜**出池原因**：${closeReasonLabel(sig.closeReason)}｜**窗口判定**：${verdictLabel(sig.verdict)}`);
+    lines.push(`> | 入池 | ${sig.createdDate}（${sig.createdRunId}） |`);
+    lines.push(`> | 出池 | ${closedDate}｜${closeReasonLabel(sig.closeReason)}｜窗口判定 ${verdictLabel(sig.verdict)} |`);
   } else {
-    lines.push(`- **入池**：${sig.createdDate}（${sig.createdRunId}）｜**最近更新**：${sig.lastSeenDate}（${sig.lastSeenRunId}）`);
+    lines.push(`> | 入池 | ${sig.createdDate}（${sig.createdRunId}） |`);
+    lines.push(`> | 最近更新 | ${sig.lastSeenDate}（${sig.lastSeenRunId}） |`);
   }
   const cur = sig.currentVersion || {};
   const curExpr = cur.executionStatus ? `${statusBadge(cur.executionStatus)}${cur.entryTrigger ? ' — ' + cur.entryTrigger : ''}` : '—';
-  lines.push(`- **当前表达**：${curExpr}`);
-  if (!closed) lines.push(`- **最新验证**：${signalVerificationLabel(sig)}`);
-  lines.push(`- **价格追踪**：${signalPriceLine(sig)}`);
-  lines.push(`- **版本链（${sig.versionCount} 个版本）**：`);
-  lines.push('');
+  lines.push(`> | 当前表达 | ${curExpr} |`);
+  if (!closed) lines.push(`> | 最新验证 | ${signalVerificationLabel(sig)} |`);
+  lines.push(`> | 价格追踪 | ${signalPriceLine(sig)} |`);
+  lines.push('>');
+  lines.push(`> **版本链（${sig.versionCount} 个版本）**`);
+  lines.push('>');
   const versions = sig.versions || [];
-  for (const v of versions) lines.push(`  - ${versionLine(v)}`);
+  for (const v of versions) lines.push(`> - ${versionLine(v)}`);
   lines.push('');
   return lines.join('\n');
 }
