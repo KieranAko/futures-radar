@@ -24,9 +24,13 @@ function validate(runId) {
     if (!c.informationGap || String(c.informationGap).trim() === '') errors.push(`${c.symbol}: informationGap 不能为空`);
     if (c.odds || c.longCase || c.shortCase) errors.push(`${c.symbol}: 初筛阶段禁止输出赔率/longCase/shortCase`);
   }
-  if (keeps.length > 3) errors.push(`KEEP 数量 ${keeps.length} > 3`);
+  // 信号池追踪席位（tracking=true）允许让 KEEP 超过 3；但新鲜 TOP3 KEEP 仍 ≤3
+  const freshKeeps = keeps.filter((c) => !c.tracking);
+  const trackingKeeps = keeps.filter((c) => c.tracking === true);
+  if (freshKeeps.length > 3) errors.push(`非追踪 KEEP 数量 ${freshKeeps.length} > 3（追踪席位可另加）`);
+  if (trackingKeeps.length > 0 && trackingKeeps.some((c) => !c.signalId)) errors.push('追踪席位必须携带 signalId');
   if (keeps.length === 0) errors.push('KEEP 数量为 0：初筛必须至少选出 1 个有分析价值的品种');
-  return { ok: errors.length === 0, errors, keepCount: keeps.length };
+  return { ok: errors.length === 0, errors, keepCount: keeps.length, freshKeeps: freshKeeps.length, trackingKeeps: trackingKeeps.length };
 }
 
 function main() {

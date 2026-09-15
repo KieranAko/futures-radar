@@ -213,7 +213,7 @@ function driverBlock(opp) {
 
 // ── Load strategy-plan.json（渲染结论速览/机会分析前需要 plan 数据）──
 console.log('[2/6] Loading strategy-plan.json...');
-const { renderStrategySection, renderFeedbackAppendix } = require('./render-strategy-section.cjs');
+const { renderStrategySection, renderFeedbackAppendix, renderSignalPoolSection } = require('./render-strategy-section.cjs');
 const strategyPlanPath = path.join(RUN_DIR, 'strategy-plan.json');
 let strategyPlan = null;
 let strategySection = null;
@@ -223,15 +223,23 @@ if (fs.existsSync(strategyPlanPath)) {
     strategyPlan = JSON.parse(fs.readFileSync(strategyPlanPath, 'utf8'));
     if (strategyPlan && Array.isArray(strategyPlan.plans) && strategyPlan.plans.length > 0) {
       const library = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'strategies', 'strategy-library.json'), 'utf8'));
-      const feedbackPath = path.join(RUN_DIR, 'strategy-feedback.json');
-      const feedback = fs.existsSync(feedbackPath) ? JSON.parse(fs.readFileSync(feedbackPath, 'utf8')) : null;
       const familyEvidencePath = path.join(__dirname, '..', 'strategies', 'family-evidence.json');
       const familyEvidence = fs.existsSync(familyEvidencePath) ? JSON.parse(fs.readFileSync(familyEvidencePath, 'utf8')) : null;
-      const forwardLedgerPath = path.join(__dirname, '..', 'strategies', 'forward-ledger.json');
-      const forwardLedger = fs.existsSync(forwardLedgerPath) ? JSON.parse(fs.readFileSync(forwardLedgerPath, 'utf8')) : null;
       const closeMap = Object.fromEntries(model.opportunities.map((o) => [o.symbol, o.marketFacts && o.marketFacts.close]));
       strategySection = renderStrategySection(strategyPlan, library, familyEvidence, closeMap);
-      feedbackAppendix = renderFeedbackAppendix(feedback, forwardLedger, strategyPlan.meta && strategyPlan.meta.runId);
+
+      // 优先渲染信号池追踪（替代证伪反馈）；旧版 strategy-feedback.json 仅作回退
+      const signalPoolPath = path.join(RUN_DIR, 'signal-pool.json');
+      if (fs.existsSync(signalPoolPath)) {
+        const signalPoolView = JSON.parse(fs.readFileSync(signalPoolPath, 'utf8'));
+        feedbackAppendix = renderSignalPoolSection(signalPoolView);
+      } else {
+        const feedbackPath = path.join(RUN_DIR, 'strategy-feedback.json');
+        const feedback = fs.existsSync(feedbackPath) ? JSON.parse(fs.readFileSync(feedbackPath, 'utf8')) : null;
+        const forwardLedgerPath = path.join(__dirname, '..', 'strategies', 'forward-ledger.json');
+        const forwardLedger = fs.existsSync(forwardLedgerPath) ? JSON.parse(fs.readFileSync(forwardLedgerPath, 'utf8')) : null;
+        feedbackAppendix = renderFeedbackAppendix(feedback, forwardLedger, strategyPlan.meta && strategyPlan.meta.runId);
+      }
       console.log(`  ✓ 交易策略板块: rendered (${strategyPlan.plans.length} plans, ${strategySection.length} chars)`);
     } else {
       console.log('  - 交易策略板块: strategy-plan.json 为空，跳过');
@@ -592,7 +600,7 @@ appendixD.push(`*数据来源：akshare (行情) | 预测区间：五模型参�
 // ── 四、附录（整合单章，集中所有细节与口径）──────────────────
 const appendixChapter = [
   '## 四、附录\n',
-  '> 筛选明细、完整六问、证伪反馈与指标口径集中在本章；主报告只保留结论与关键价位。\n',
+  '> 筛选明细、完整六问、信号池追踪与指标口径集中在本章；主报告只保留结论与关键价位。\n',
   '',
   ...appendixA,
   ...appendixB,

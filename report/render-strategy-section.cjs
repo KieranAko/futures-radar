@@ -152,6 +152,159 @@ function renderFeedbackV2(feedback) {
   return lines.join('\n');
 }
 
+// ── 信号池追踪渲染 ──────────────────────────────────────────
+function poolStatusLabel(s) {
+  if (s.poolStatus === 'closed') return '已出池';
+  if (s.poolStatus === 'downgraded') return `降级观察(${s.consecutiveNonExecutable || 0}/3)`;
+  return '追踪中';
+}
+
+function closeReasonLabel(reason) {
+  if (reason === 'flipped') return '反向翻转';
+  if (reason === 'invalidated_q5') return 'Q5 证伪';
+  if (reason === 'faded') return '机会衰竭';
+  if (reason === 'expired') return '窗口到期';
+  return reason || '—';
+}
+
+function verdictLabel(v) {
+  if (v === 'hit') return '兑现';
+  if (v === 'miss') return '未兑现';
+  return '未定';
+}
+
+function signalVerificationLabel(sig) {
+  const v = sig.latestVerification;
+  if (!v) return '待验证';
+  const status = v.status;
+  if (status === 'verified') {
+    const exit = v.exitType === 'stopped_out' ? '止损离场' : v.exitType === 'target1_hit' ? '目标1兑现' : '时间离场';
+    const dir = v.directionCorrect === true ? '（方向正确）' : v.directionCorrect === false ? '（方向错误）' : '';
+    return `${exit}${dir}`;
+  }
+  if (status === 'invalidated_not_triggered') return '未触发，计划作废';
+  if (status === 'skipped_gap') return '执行偏离放弃';
+  if (status === 'confirmed') return '确认信号兑现';
+  if (status === 'suppressed') return '已降级跳过';
+  if (status === 'unverifiable') return '不可验证';
+  if (status === 'pending_data') return '待数据';
+  if (status === 'triggered_pending_entry') return '已触发待入场';
+  if (status === 'pending_verification') return '待验证';
+  return status || '—';
+}
+
+function signalVersionVerificationLabel(v) {
+  const st = v.verification && v.verification.status;
+  if (st === 'verified') {
+    const r = v.verification.lastResult || {};
+    const exit = r.exitType === 'stopped_out' ? '止损离场' : r.exitType === 'target1_hit' ? '目标1兑现' : '时间离场';
+    const dir = r.directionCorrect === true ? '（方向正确）' : r.directionCorrect === false ? '（方向错误）' : '';
+    return `${exit}${dir}`;
+  }
+  if (st === 'invalidated_not_triggered') return '未触发';
+  if (st === 'skipped_gap') return '执行偏离放弃';
+  if (st === 'confirmed') return '确认兑现';
+  if (st === 'suppressed') return '降级跳过';
+  if (st === 'unverifiable') return '不可验证';
+  if (st === 'pending_data') return '待数据';
+  if (st === 'triggered_pending_entry') return '已触发待入场';
+  return '待验证';
+}
+
+function signalPriceCell(sig) {
+  const p = sig.priceTracking || {};
+  if (p.startClose == null && p.latestClose == null) return '—';
+  const start = p.startClose == null ? '—' : fmt(p.startClose);
+  const latest = p.latestClose == null ? '—' : fmt(p.latestClose);
+  const fav = p.maxFavorablePts == null ? '—' : `${p.maxFavorablePts >= 0 ? '+' : ''}${fmt(p.maxFavorablePts)}`;
+  const adv = p.maxAdversePts == null ? '—' : `${p.maxAdversePts <= 0 ? '' : '+'}${fmt(p.maxAdversePts)}`;
+  return `${start} → ${latest}｜有利 ${fav} / 不利 ${adv}`;
+}
+
+function renderSignalPoolSection(view) {
+  const lines = [];
+  lines.push('### 4.3 信号池追踪');
+  lines.push('');
+  const pool = Array.isArray(view.pool) ? view.pool : [];
+  const recentClosed = Array.isArray(view.recentClosed) ? view.recentClosed : [];
+  const stats = view.historyStats || {};
+  lines.push(`> 信号池：池内 **${pool.length}** 个信号全量追踪；历史已出池 **${stats.totalClosed == null ? 0 : stats.totalClosed}** 个（只统计，最近出池 ${recentClosed.length} 个列明细）。`);
+  lines.push('');
+
+  if (pool.length > 0) {
+    lines.push('#### 池内信号（全量追踪）');
+    lines.push('');
+    lines.push('| 信号ID | 品种(合约) | 方向 | 入池日 | 最近更新 | 版本 | 当前表达 | 最新验证 | 价格追踪 | 池状态 |');
+    lines.push('|--------|-----------|------|--------|---------|------|---------|---------|---------|--------|');
+    for (const s of pool) {
+      const cur = s.currentVersion || {};
+      const symbolCell = `${s.name || s.symbol} (${s.contract || s.symbol})`;
+      const curExpr = `${statusBadge(cur.executionStatus)} ${cur.entryTrigger || ''}`;
+      lines.push(`| ${s.signalId} | ${symbolCell} | ${directionLabel(s.direction)} | ${s.createdDate} | ${s.lastSeenDate} | ${s.versionCount} | ${curExpr} | ${signalVerificationLabel(s)} | ${signalPriceCell(s)} | ${poolStatusLabel(s)} |`);
+    }
+    lines.push('');
+  }
+
+  if (recentClosed.length > 0) {
+    lines.push('#### 最近出池信号（最新 5 个）');
+    lines.push('');
+    lines.push('| 信号ID | 品种 | 方向 | 入池日 | 出池日 | 出池原因 | 窗口判定 | 版本数 |');
+    lines.push('|--------|------|------|--------|--------|---------|---------|--------|');
+    for (const s of recentClosed) {
+      const closedDate = s.closedAt ? String(s.closedAt).slice(0, 10) : '—';
+      lines.push(`| ${s.signalId} | ${s.name || s.symbol} (${s.symbol}) | ${directionLabel(s.direction)} | ${s.createdDate} | ${closedDate} | ${closeReasonLabel(s.closeReason)} | ${verdictLabel(s.verdict)} | ${s.versionCount} |`);
+    }
+    lines.push('');
+  }
+
+  const detailSignals = view.details || {};
+  const detailIds = [...pool.map((s) => s.signalId), ...recentClosed.map((s) => s.signalId)];
+  if (detailIds.length > 0) {
+    lines.push('#### 版本链（一个信号 → 多个策略版本）');
+    lines.push('');
+    for (const id of detailIds) {
+      const sig = detailSignals[id];
+      if (!sig || !Array.isArray(sig.versions)) continue;
+      lines.push(`**${sig.signalId}** ${sig.name || sig.symbol}（${directionLabel(sig.direction)}）`);
+      lines.push('');
+      lines.push('| 版本 | runId | 日期 | 执行状态 | 状态转移 | 方向/置信度 | 策略 | 触发/止损/目标 | 验证结果 |');
+      lines.push('|------|-------|------|---------|---------|------------|------|--------------|---------|');
+      for (const v of sig.versions) {
+        const strategyCell = `${v.strategyId || '—'} + ${v.playbookId || '—'}`;
+        const trigger = v.entry && v.entry.triggerLevel != null ? `${v.entry.triggerLevel}` : '—';
+        const stop = v.stop && v.stop.stopPrice != null ? `${v.stop.stopPrice}` : '—';
+        const t1 = v.targets && v.targets.t1 ? v.targets.t1 : '—';
+        const transition = v.stateTransition === 'signal_created' ? '入池' : (v.stateTransition || '—');
+        lines.push(`| ${v.versionId} | ${v.runId} | ${v.signalDate} | ${statusBadge(v.executionStatus)} | ${transition} | ${directionLabel(v.direction)}/${confidenceLabel(v.confidence)} | ${strategyCell} | 触发 ${trigger} / 止损 ${stop} / 目标 ${t1} | ${signalVersionVerificationLabel(v)} |`);
+      }
+      lines.push('');
+    }
+  }
+
+  lines.push('#### 历史统计（全部已出池信号，只统计）');
+  lines.push('');
+  lines.push('| 统计项 | 数量 |');
+  lines.push('|--------|------|');
+  lines.push(`| 历史已出池信号 | ${stats.totalClosed == null ? 0 : stats.totalClosed} |`);
+  const byReason = stats.byCloseReason || {};
+  lines.push(`| 反向翻转 | ${byReason.flipped || 0} |`);
+  lines.push(`| Q5 证伪 | ${byReason.invalidated_q5 || 0} |`);
+  lines.push(`| 机会衰竭 | ${byReason.faded || 0} |`);
+  lines.push(`| 窗口到期 | ${byReason.expired || 0} |`);
+  const byVerdict = stats.byVerdict || {};
+  lines.push(`| 窗口判定：兑现 | ${byVerdict.hit || 0} |`);
+  lines.push(`| 窗口判定：未兑现 | ${byVerdict.miss || 0} |`);
+  lines.push(`| 窗口判定：未定 | ${byVerdict.unresolved || 0} |`);
+  lines.push('');
+  lines.push('**口径说明**');
+  lines.push('');
+  lines.push('- 信号池是跨 run、跨时间、跨周期存续的信号台账；池内信号全部展示，不按 run 数或交易日截断。');
+  lines.push('- 入池：executable 策略诞生信号；追踪：每期给池内品种一个与 TOP3 同规格的完整分析席位并追加策略版本。');
+  lines.push('- 出池只认机会被否定（反向翻转 / Q5 证伪 / 机会衰竭 / 窗口到期），降级（watch/skip）不出池。');
+  lines.push('- 价格追踪自入池日收盘起算，有利/不利偏移为信号方向上的最大偏移（点）。');
+  return lines.join('\n');
+}
+
 // 按策略 id 在库中查证据 URL（最多 3 条）；BASE-01 无库条目 → 空
 // OBS-1：内部仓库路径（非 http）渲染为纯文本路径并标注「内部」，不生成 markdown 链接
 function evidenceUrls(strategyId, library) {
@@ -401,4 +554,4 @@ function composeReportWithStrategy(baseReport, sectionMarkdown) {
   return `${baseReport.slice(0, idx)}\n${sectionMarkdown}\n${baseReport.slice(idx)}`;
 }
 
-module.exports = { renderStrategySection, renderFeedbackAppendix, composeReportWithStrategy };
+module.exports = { renderStrategySection, renderFeedbackAppendix, renderSignalPoolSection, composeReportWithStrategy };

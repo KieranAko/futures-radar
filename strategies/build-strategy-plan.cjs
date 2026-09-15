@@ -92,11 +92,16 @@ if (!check.ok) {
 const outPath = path.join(runDir(runId), 'strategy-plan.json');
 fs.writeFileSync(outPath, JSON.stringify(plan, null, 2) + '\n', 'utf8');
 
-// 证伪反馈闭环：冻结本期全部策略（executable/watch/skip）；只对非终态往期记录做增量验证
+// 证伪反馈闭环（兼容保留）：冻结本期全部策略（executable/watch/skip）；只对非终态往期记录做增量验证
 const recorded = recordPlans(plan);
 const feedback = verifyIncremental(runId, raw);
 feedback.meta.recordedThisRun = recorded;
 fs.writeFileSync(path.join(runDir(runId), 'strategy-feedback.json'), JSON.stringify(feedback, null, 2) + '\n', 'utf8');
+
+// 信号池更新：入池 / 追踪（版本追加+验证+价格追踪）/ 出池判定；写 signal-pool.json 供报告渲染
+const { updateSignalPool } = require('./lib/signal-pool.cjs');
+const signalPoolResult = updateSignalPool({ runId, raw });
+fs.writeFileSync(path.join(runDir(runId), 'signal-pool.json'), JSON.stringify(signalPoolResult.view, null, 2) + '\n', 'utf8');
 
 const lines = plan.plans.map(p =>
   `  ${p.rank}. ${p.symbol} ${p.name} | 报告${p.reportBaseline.direction}/${p.reportBaseline.confidence} 策略${p.strategyConfidence} | ${p.matchedStrategies[0].strategyId} | ${p.playbook.playbookId}(${p.playbook.gateStatus}) | ${p.executionStatus} ${p.position.lots}手`
@@ -104,4 +109,5 @@ const lines = plan.plans.map(p =>
 console.log(`Output: ${outPath}`);
 console.log(`Plans: ${plan.plans.length} | concentrationDecisions: ${plan.concentrationDecisions.length} | inputsSha: ${plan.meta.inputsSha.slice(0, 12)}…`);
 console.log(`Feedback: recorded ${recorded} plan(s) for falsification; incremental verified ${feedback.meta.incrementalAttempted} pending record(s)`);
+console.log(`SignalPool: created ${signalPoolResult.meta.createdThisRun} signal(s), versions +${signalPoolResult.meta.versionsAddedThisRun}, pool ${signalPoolResult.meta.poolCount}, closed ${signalPoolResult.meta.closedTotal}`);
 console.log(lines.join('\n'));
