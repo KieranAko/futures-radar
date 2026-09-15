@@ -577,4 +577,17 @@ function composeReportWithStrategy(baseReport, sectionMarkdown) {
   return `${baseReport.slice(0, idx)}\n${sectionMarkdown}\n${baseReport.slice(idx)}`;
 }
 
-module.exports = { renderStrategySection, renderFeedbackAppendix, renderSignalPoolSection, composeReportWithStrategy };
+module.exports = {
+  renderStrategySection,
+  renderFeedbackAppendix,
+  renderSignalPoolSection,
+  composeReportWithStrategy,
+  statusBadge,
+  directionLabel,
+  confidenceLabel,
+  poolStatusLabel,
+  closeReasonLabel,
+  verdictLabel,
+  signalVerificationLabel,
+  signalVersionVerificationLabel
+};

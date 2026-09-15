@@ -245,6 +245,22 @@ describe('signal-pool 信号池核心生命周期', () => {
     }
   });
 
+  it('幂等：同一 run 重复执行不重复追加版本', () => {
+    const root = tmpRoot();
+    try {
+      const raw = { contracts: {} };
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { executionStatus: 'watch' }) });
+      const ledger = loadLedger(root);
+      const sig = loadSignal(ledger.signals[0].signalId, root);
+      assert.equal(sig.versions.length, 2);
+      assert.equal(sig.versions.filter((v) => v.runId === 'run-2').length, 1);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('视图：池内全量 + 最近出池 5 个 + 历史统计', () => {
     const root = tmpRoot();
     try {

@@ -103,6 +103,12 @@ const { updateSignalPool } = require('./lib/signal-pool.cjs');
 const signalPoolResult = updateSignalPool({ runId, raw });
 fs.writeFileSync(path.join(runDir(runId), 'signal-pool.json'), JSON.stringify(signalPoolResult.view, null, 2) + '\n', 'utf8');
 
+// 信号池看板（自包含 HTML，稳定路径 output/signal-pool.html）；实验线 mirror 回放不生成
+if (!process.env.FUTURES_RUNTIME_ROOT) {
+  const { main: renderSignalPoolDashboard } = require('../report/render-signal-pool-html.cjs');
+  renderSignalPoolDashboard();
+}
+
 const lines = plan.plans.map(p =>
   `  ${p.rank}. ${p.symbol} ${p.name} | 报告${p.reportBaseline.direction}/${p.reportBaseline.confidence} 策略${p.strategyConfidence} | ${p.matchedStrategies[0].strategyId} | ${p.playbook.playbookId}(${p.playbook.gateStatus}) | ${p.executionStatus} ${p.position.lots}手`
 );

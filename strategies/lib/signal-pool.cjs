@@ -377,15 +377,18 @@ function writeObservation(root, runId, plan, p, note) {
   const file = path.join(d.observations, `${runId}.json`);
   const existing = readJSON(file, []);
   const records = Array.isArray(existing) ? existing : [];
-  records.push({
-    runId,
-    signalDate: plan.meta.signalDate,
-    symbol: p.symbol,
-    name: p.name || p.symbol,
-    direction: directionOfPlan(p),
-    executionStatus: executionOfPlan(p),
-    note
-  });
+  const dup = records.some((r) => r.runId === runId && r.symbol === p.symbol);
+  if (!dup) {
+    records.push({
+      runId,
+      signalDate: plan.meta.signalDate,
+      symbol: p.symbol,
+      name: p.name || p.symbol,
+      direction: directionOfPlan(p),
+      executionStatus: executionOfPlan(p),
+      note
+    });
+  }
   writeJSONAtomic(file, records);
 }
 
@@ -520,18 +523,25 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
     }
 
     if (existing.direction === dir) {
-      appendVersion(existing, plan, p);
-      versionsAddedThisRun++;
-      saveSignal(existing, root);
+      // 幂等：同一 run 已追加过该信号版本则不重复追加
+      const already = existing.versions.some((v) => v.runId === plan.meta.runId);
+      if (!already) {
+        appendVersion(existing, plan, p);
+        versionsAddedThisRun++;
+        saveSignal(existing, root);
+      }
     } else if (dir !== 'neutral') {
       if (executionOfPlan(p) === 'executable') {
-        closeSignal(existing, 'flipped');
-        saveSignal(existing, root);
-        const sig = createSignal(plan, p, root);
-        activeBySymbol.set(sig.symbol, sig);
-        ledger.signals.push({ signalId: sig.signalId, symbol: sig.symbol });
-        createdThisRun++;
-        saveSignal(sig, root);
+        const already = existing.versions.some((v) => v.runId === plan.meta.runId);
+        if (!already) {
+          closeSignal(existing, 'flipped');
+          saveSignal(existing, root);
+          const sig = createSignal(plan, p, root);
+          activeBySymbol.set(sig.symbol, sig);
+          ledger.signals.push({ signalId: sig.signalId, symbol: sig.symbol });
+          createdThisRun++;
+          saveSignal(sig, root);
+        }
       } else {
         writeObservation(root, runId, plan, p, '反向 watch/skip：只记录，不推翻在池信号');
       }
