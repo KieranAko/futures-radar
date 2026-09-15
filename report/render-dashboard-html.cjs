@@ -166,7 +166,7 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
     if (idx >= 0) {
       const x = padX + idx * step + step / 2;
       parts.push(`<line x1="${x}" y1="${padY}" x2="${x}" y2="${H - padY}" stroke="#6b7280" stroke-dasharray="4 4" stroke-width="1"/>`);
-      parts.push(`<text x="${x}" y="${H - 4}" text-anchor="middle" class="chart-label">信号 ${escapeHtml(signalDate.slice(5))}</text>`);
+      parts.push(`<text x="${x}" y="${H - 14}" text-anchor="middle" class="chart-label">信号 ${escapeHtml(signalDate.slice(5))}</text>`);
     }
   }
   const xDate = (idx, anchor) => parts.push(`<text x="${padX + idx * step + step / 2}" y="${H - 4}" text-anchor="${anchor}" class="chart-label">${escapeHtml(bars[idx].date.slice(5))}</text>`);
