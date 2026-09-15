@@ -96,6 +96,7 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
   const closes = fullBars.map((b) => b.close);
   const ma20 = sma(closes, 20).slice(-window);
   const ma60 = sma(closes, 60).slice(-window);
+  const chg5 = closes.map((c, i) => (i >= 5 ? ((c / closes[i - 5]) - 1) * 100 : null)).slice(-window);
 
   const W = 900;
   const H = 220;
@@ -143,7 +144,13 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
     parts.push(`<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="1"/>`);
     const bodyTop = Math.min(yOpen, yClose);
     const bodyH = Math.max(1, Math.abs(yClose - yOpen));
-    parts.push(`<rect x="${(x - bodyW / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bodyW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}"><title>${escapeHtml(b.date)} O:${fmt(b.open)} H:${fmt(b.high)} L:${fmt(b.low)} C:${fmt(b.close)}</title></rect>`);
+    const prevClose = i > 0 ? bars[i - 1].close : null;
+    const chg = prevClose != null ? b.close - prevClose : null;
+    const chgPct = prevClose != null ? ((b.close / prevClose) - 1) * 100 : null;
+    const chgText = chg == null ? '—' : `${chg >= 0 ? '+' : ''}${fmt(chg)}（${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(1)}%）`;
+    const chg5Text = chg5[i] == null ? '—' : `${chg5[i] >= 0 ? '+' : ''}${chg5[i].toFixed(1)}%`;
+    const tip = `${escapeHtml(b.date)}&#10;开盘：${fmt(b.open)}&#10;最高：${fmt(b.high)}&#10;最低：${fmt(b.low)}&#10;收盘：${fmt(b.close)}&#10;当日涨跌：${chgText}&#10;5日涨跌：${chg5Text}`;
+    parts.push(`<rect x="${(x - bodyW / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bodyW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}"><title>${tip}</title></rect>`);
   }
   const maLine = (arr, color) => {
     const pts = [];
