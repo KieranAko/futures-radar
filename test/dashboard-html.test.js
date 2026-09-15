@@ -128,6 +128,14 @@ describe('dashboard-html 三 Tab 看板', () => {
     assert.ok(html.includes('chip gray'));
   });
 
+  it('机会分析左侧导航布局：默认第一项激活', () => {
+    const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [] });
+    assert.ok(html.includes('class="opp-layout"'));
+    assert.ok(html.includes('class="opp-nav-item active" data-opp="PP0"'));
+    assert.ok(html.includes('class="opp-pane active" data-opp="PP0"'));
+    assert.ok(html.includes('oppNavItems'));
+  });
+
   it('历史报告分页控件与行渲染', () => {
     const history = Array.from({ length: 22 }, (_, i) => ({
       runId: `run-${String(i).padStart(2, '0')}`, date: '2026-09-15', oppSymbols: 'PP0', href: `runs/run-${String(i).padStart(2, '0')}/report.html`

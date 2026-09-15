@@ -197,7 +197,16 @@ function chipList(label, items, tone) {
   return `<div class="chip-row"><span class="chip-label">${label}</span><div class="chips">${chips}</div></div>`;
 }
 
-function oppCard(opp, raw, signalDate) {
+function oppNavItem(opp, active) {
+  const t = opp.thesis || {};
+  const dir = t.finalDirection || 'neutral';
+  const dirEmoji = dir === 'bullish' ? '🔴' : dir === 'bearish' ? '🟢' : '⚪';
+  const close = opp.marketFacts && opp.marketFacts.close != null ? fmt(opp.marketFacts.close) : '—';
+  const conf = confidenceLabel(t.finalConfidence);
+  return `<button class="opp-nav-item ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}"><span class="opp-nav-main">${dirEmoji} ${escapeHtml(opp.name || opp.symbol)}</span><span class="opp-nav-sub">${directionLabel(dir)} · ${conf}置信 · ${close}</span></button>`;
+}
+
+function oppPane(opp, raw, signalDate, active) {
   const t = opp.thesis || {};
   const driver = t.driver || {};
   const odds = t.odds || {};
@@ -228,7 +237,8 @@ function oppCard(opp, raw, signalDate) {
   if (odds.bias || odds.reasoning) detail.push(`<h4>Q3 赔率</h4><p>${escapeHtml(odds.bias || '')} · ${escapeHtml(odds.reasoning || '')}</p>`);
   if (cr.uncertainties && cr.uncertainties.length) detail.push(`<h4>不确定项</h4><ul>${cr.uncertainties.map((u) => `<li>${escapeHtml(u)}</li>`).join('')}</ul>`);
 
-  return `<details class="card opp-card"><summary><span class="opp-head"><span>${dirEmoji} ${escapeHtml(opp.name || opp.symbol)}（${escapeHtml(opp.contract || opp.symbol)}）· ${directionLabel(dir)} · 收盘 ${close}</span><span class="opp-badges">${confidenceMeter(t.finalConfidence)}${regimePill(opp.marketFacts && opp.marketFacts.volatilityRegime)}</span></span></summary><div class="card-body">
+  return `<article class="opp-pane ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}">
+    <div class="opp-head"><span>${dirEmoji} ${escapeHtml(opp.name || opp.symbol)}（${escapeHtml(opp.contract || opp.symbol)}）· ${directionLabel(dir)} · 收盘 ${close}</span><span class="opp-badges">${confidenceMeter(t.finalConfidence)}${regimePill(opp.marketFacts && opp.marketFacts.volatilityRegime)}</span></div>
     ${chart}
     ${odds.reasoning ? `<p class="core-logic">${escapeHtml(odds.reasoning)}</p>` : ''}
     ${ranges ? `<div class="rangebars">${ranges}</div>` : ''}
@@ -237,7 +247,13 @@ function oppCard(opp, raw, signalDate) {
     ${chipList('❌ 失效', invalidations, 'red')}
     ${chipList('⚠️ 风险', risks, 'gray')}
     ${detail.length ? `<details class="detail"><summary>完整六问详情</summary>${detail.join('')}</details>` : ''}
-  </div></details>`;
+  </article>`;
+}
+
+function oppLayout(opps, raw, signalDate) {
+  const nav = opps.map((o, i) => oppNavItem(o, i === 0)).join('\n');
+  const panes = opps.map((o, i) => oppPane(o, raw, signalDate, i === 0)).join('\n');
+  return `<div class="opp-layout"><nav class="opp-nav">${nav}</nav><div class="opp-content">${panes}</div></div>`;
 }
 
 // ── 历史报告分页 ─────────────────────────────────────────────
@@ -285,7 +301,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   const stats = signalPoolView && signalPoolView.historyStats ? signalPoolView.historyStats : {};
   const details = signalPoolView && signalPoolView.details ? signalPoolView.details : {};
 
-  const oppCards = opps.map((o) => oppCard(o, raw, signalDate)).join('\n');
+  const oppHtml = opps.length ? oppLayout(opps, raw, signalDate) : '<p class="muted">本期无机会分析。</p>';
   const poolCards = pool.map((s) => {
     const d = details[s.signalId] || {};
     return signalCard({ ...s, versions: d.versions || [] });
@@ -331,8 +347,22 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .card-body { padding: 4px 16px 14px; border-top: 1px solid var(--border); }
 
   /* 机会卡片 */
-  .opp-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; width: 100%; }
+  .opp-layout { display: flex; gap: 14px; align-items: flex-start; }
+  .opp-nav { width: 230px; flex: 0 0 230px; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 70px; }
+  .opp-nav-item { text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 8px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
+  .opp-nav-item.active { border-color: var(--accent); background: #eef4ff; }
+  .opp-nav-main { font-weight: 600; }
+  .opp-nav-sub { font-size: 12px; color: var(--muted); }
+  .opp-content { flex: 1; min-width: 0; }
+  .opp-pane { display: none; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .opp-pane.active { display: block; }
+  .opp-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; font-weight: 600; }
   .opp-badges { display: inline-flex; align-items: center; gap: 8px; }
+  @media (max-width: 760px) {
+    .opp-layout { flex-direction: column; }
+    .opp-nav { width: 100%; flex-direction: row; flex-wrap: wrap; position: static; }
+    .opp-nav-item { flex-direction: row; align-items: center; gap: 8px; }
+  }
   .confidence { display: inline-flex; gap: 3px; }
   .confidence .cm { width: 14px; height: 6px; border-radius: 2px; background: #e5e7eb; }
   .confidence .cm.on { background: var(--accent); }
@@ -422,7 +452,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
     </div>
     <section>
       <h2>机会分析</h2>
-      ${oppCards || '<p class="muted">本期无机会分析。</p>'}
+      ${oppHtml}
     </section>
   </section>
 
@@ -463,6 +493,19 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
       panels.forEach((p) => p.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // 机会分析左侧导航切换
+  const oppNavItems = document.querySelectorAll('.opp-nav-item');
+  const oppPanes = document.querySelectorAll('.opp-pane');
+  oppNavItems.forEach((item) => {
+    item.addEventListener('click', () => {
+      oppNavItems.forEach((n) => n.classList.remove('active'));
+      oppPanes.forEach((p) => p.classList.remove('active'));
+      item.classList.add('active');
+      const pane = document.querySelector('.opp-pane[data-opp="' + item.dataset.opp + '"]');
+      if (pane) pane.classList.add('active');
     });
   });
 
