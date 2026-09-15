@@ -82,6 +82,12 @@ function extractBars(raw, symbol, maxFull = 400) {
   return bars;
 }
 
+function seriesBars(mainSeries, raw, symbol) {
+  const ms = mainSeries && mainSeries[symbol];
+  if (ms && Array.isArray(ms.bars) && ms.bars.length >= 2) return ms.bars;
+  return extractBars(raw, symbol);
+}
+
 function change5dPct(bars) {
   if (!bars || bars.length < 6) return null;
   const last = bars[bars.length - 1].close;
@@ -254,25 +260,25 @@ function strategyCard(plan) {
 }
 
 // ── 机会分析：导航 + 面板 ────────────────────────────────────
-function oppNavItem(opp, raw, active) {
+function oppNavItem(opp, raw, mainSeries, active) {
   const t = opp.thesis || {};
   const dir = t.finalDirection || 'neutral';
   const close = opp.marketFacts && opp.marketFacts.close != null ? fmt(opp.marketFacts.close) : '—';
   const conf = confidenceLabel(t.finalConfidence);
-  const bars = raw ? extractBars(raw, opp.symbol) : null;
+  const bars = seriesBars(mainSeries, raw, opp.symbol);
   const chg = change5dPct(bars);
   const chgHtml = chg == null ? '' : ` · <span class="${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg.toFixed(1)}%</span>`;
   return `<button class="opp-nav-item ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}"><span class="nav-dot ${escapeHtml(dir)}"></span><span class="nav-text"><span class="nav-main"><b>${escapeHtml(opp.name || opp.symbol)}</b><span class="nav-badge ${escapeHtml(dir)}">${directionLabel(dir)}</span></span><span class="nav-sub">${conf}置信 · ${close}${chgHtml}</span></span></button>`;
 }
 
-function oppPane(opp, raw, signalDate, active, plan) {
+function oppPane(opp, raw, mainSeries, signalDate, active, plan) {
   const t = opp.thesis || {};
   const driver = t.driver || {};
   const odds = t.odds || {};
   const dir = t.finalDirection || 'neutral';
   const close = opp.marketFacts && opp.marketFacts.close != null ? fmt(opp.marketFacts.close) : '—';
 
-  const bars = raw ? extractBars(raw, opp.symbol) : null;
+  const bars = seriesBars(mainSeries, raw, opp.symbol);
   const chart = renderPriceChart(bars, { signalDate });
 
   const ranges = (opp.priceRanges || []).map((r) => rangeBar(r.period, r.hvCone && r.hvCone.p68, r.hvCone && r.hvCone.p95, opp.marketFacts && opp.marketFacts.close)).join('');
@@ -319,9 +325,9 @@ function oppPane(opp, raw, signalDate, active, plan) {
   </article>`;
 }
 
-function oppLayout(opps, raw, signalDate, planMap) {
-  const nav = opps.map((o, i) => oppNavItem(o, raw, i === 0)).join('\n');
-  const panes = opps.map((o, i) => oppPane(o, raw, signalDate, i === 0, planMap ? planMap[o.symbol] : null)).join('\n');
+function oppLayout(opps, raw, mainSeries, signalDate, planMap) {
+  const nav = opps.map((o, i) => oppNavItem(o, raw, mainSeries, i === 0)).join('\n');
+  const panes = opps.map((o, i) => oppPane(o, raw, mainSeries, signalDate, i === 0, planMap ? planMap[o.symbol] : null)).join('\n');
   return `<div class="opp-layout"><nav class="opp-nav">${nav}</nav><div class="opp-content">${panes}</div></div>`;
 }
 
@@ -363,7 +369,7 @@ function historyIndex(runId, runsRoot) {
 }
 
 // ── 主渲染 ───────────────────────────────────────────────────
-function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, signalDate, strategyPlan }) {
+function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, mainSeries, signalDate, strategyPlan }) {
   const opps = reportModel && Array.isArray(reportModel.opportunities) ? reportModel.opportunities : [];
   const pool = signalPoolView && Array.isArray(signalPoolView.pool) ? signalPoolView.pool : [];
   const recentClosed = signalPoolView && Array.isArray(signalPoolView.recentClosed) ? signalPoolView.recentClosed : [];
@@ -371,7 +377,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   const details = signalPoolView && signalPoolView.details ? signalPoolView.details : {};
 
   const planMap = new Map((strategyPlan && Array.isArray(strategyPlan.plans) ? strategyPlan.plans : []).map((p) => [p.symbol, p]));
-  const oppHtml = opps.length ? oppLayout(opps, raw, signalDate, Object.fromEntries(planMap)) : '<p class="muted">本期无机会分析。</p>';
+  const oppHtml = opps.length ? oppLayout(opps, raw, mainSeries, signalDate, Object.fromEntries(planMap)) : '<p class="muted">本期无机会分析。</p>';
   const poolCards = pool.map((s) => {
     const d = details[s.signalId] || {};
     return signalCard({ ...s, versions: d.versions || [] });
@@ -704,9 +710,10 @@ function main() {
   }
   const raw = readJSON(path.join(dir, 'raw.json'));
   const strategyPlan = readJSON(path.join(dir, 'strategy-plan.json'));
+  const mainSeries = readJSON(path.join(dir, 'analyze', 'main-series.json'));
   const signalDate = raw && raw.meta && raw.meta.cacheInfo ? raw.meta.cacheInfo.latestBarDate : null;
   const history = historyIndex(runId, path.join(runtimeRoot, 'runs'));
-  const html = renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, signalDate, strategyPlan });
+  const html = renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, mainSeries, signalDate, strategyPlan });
   const outPath = path.join(runtimeRoot, 'dashboard.html');
   fs.writeFileSync(outPath, html, 'utf8');
   console.log(`dashboard.html: ${outPath}`);
