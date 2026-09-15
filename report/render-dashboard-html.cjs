@@ -218,6 +218,7 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
 
 function rangeBar(period, p68, p95, close) {
   if (!p68 || !p95 || close == null) return '';
+  const label = period === '3d' ? '未来 3 日' : period === '5d' ? '未来 5 日' : escapeHtml(period);
   const lo = Math.min(p95[0], close);
   const hi = Math.max(p95[1], close);
   if (hi === lo) return '';
@@ -227,10 +228,11 @@ function rangeBar(period, p68, p95, close) {
   const p95Left = Math.min(pct(p95[0]), pct(p95[1]));
   const p95W = Math.abs(pct(p95[1]) - pct(p95[0]));
   const closePct = pct(close);
+  const labelLeft = Math.max(12, Math.min(88, closePct));
   const out = [];
-  out.push(`<div class="rangebar"><div class="rangebar-head"><span>${escapeHtml(period)}</span><span class="muted">p95 ${fmt(p95[0])} ~ ${fmt(p95[1])}</span></div>`);
-  out.push(`<div class="range-track"><span class="range-p95" style="left:${p95Left.toFixed(1)}%;width:${p95W.toFixed(1)}%"></span><span class="range-p68" style="left:${p68Left.toFixed(1)}%;width:${p68W.toFixed(1)}%"></span><span class="range-close" style="left:${closePct.toFixed(1)}%" title="收盘 ${fmt(close)}"></span></div>`);
-  out.push(`<div class="rangebar-foot"><span>${fmt(lo)}</span><span class="muted">收盘 ${fmt(close)}</span><span>${fmt(hi)}</span></div></div>`);
+  out.push(`<div class="rangebar"><div class="rangebar-head"><span>${label}</span><span class="rangebar-pos">现价处于区间 ${closePct.toFixed(0)}% 位置</span></div>`);
+  out.push(`<div class="range-track"><span class="range-p95" style="left:${p95Left.toFixed(1)}%;width:${p95W.toFixed(1)}%"></span><span class="range-p68" style="left:${p68Left.toFixed(1)}%;width:${p68W.toFixed(1)}%"></span><span class="range-close" style="left:${closePct.toFixed(1)}%"></span><span class="range-close-label" style="left:${labelLeft.toFixed(1)}%">↑ 现价 ${fmt(close)}</span></div>`);
+  out.push(`<div class="rangebar-foot"><span>${fmt(lo)}</span><span class="rangebar-stats">68%区间 ${fmt(p68[0])} ~ ${fmt(p68[1])} · 95%区间 ${fmt(p95[0])} ~ ${fmt(p95[1])}</span><span>${fmt(hi)}</span></div></div>`);
   return out.join('');
 }
 
@@ -345,7 +347,7 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan) {
     ${odds.reasoning ? `<p class="core-logic">${escapeHtml(odds.reasoning)}</p>` : ''}
     <div class="opp-grid">
       <div class="opp-grid-main">
-        ${ranges ? `<div class="rangebars">${ranges}</div>` : ''}
+        ${ranges ? `<div class="range-legend"><span>概率区间 · 未来价格可能波动的范围（EWMA 条件波动率）</span><span class="muted">深蓝 = 68% 大概率区间 · 浅蓝 = 95% 较宽区间 · 竖线 = 现价</span></div><div class="rangebars">${ranges}</div>` : ''}
         ${chipList('✅ 确认', confirmations, 'green')}
         ${chipList('❌ 失效', invalidations, 'red')}
         ${chipList('⚠️ 风险', risks, 'gray')}
@@ -528,13 +530,20 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .strategy-risk { margin-top: 8px; font-size: 12px; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 8px; }
   .watch-trigger { color: #047857; font-weight: 600; }
 
-  .rangebars { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
-  .rangebar { border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; background: #fcfcfd; }
-  .rangebar-head, .rangebar-foot { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin: 3px 0; }
-  .range-track { position: relative; height: 12px; background: #f1f3f5; border-radius: 6px; }
+  .range-legend { display: flex; flex-direction: column; gap: 2px; margin: 10px 0 6px; font-size: 12px; color: var(--muted); }
+  .rangebars { display: flex; flex-direction: column; gap: 10px; margin: 8px 0; }
+  .rangebar { border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px 8px; background: #fcfcfd; }
+  .rangebar-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; margin: 0 0 4px; }
+  .rangebar-head > span:first-child { font-weight: 600; color: var(--text); }
+  .rangebar-pos { color: var(--muted); }
+  .range-track { position: relative; height: 12px; background: #f1f3f5; border-radius: 6px; margin-top: 18px; }
   .range-p95 { position: absolute; top: 2px; bottom: 2px; background: #dbe4f0; border-radius: 4px; }
   .range-p68 { position: absolute; top: 2px; bottom: 2px; background: #9db8e8; border-radius: 4px; }
   .range-close { position: absolute; top: -2px; bottom: -2px; width: 3px; background: #1f2328; border-radius: 2px; }
+  .range-close-label { position: absolute; top: -18px; transform: translateX(-50%); font-size: 11px; color: var(--text); white-space: nowrap; }
+  .rangebar-foot { display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .rangebar-foot > span:first-child, .rangebar-foot > span:last-child { white-space: nowrap; }
+  .rangebar-stats { flex: 1; text-align: center; color: var(--muted); }
 
   .factors { display: flex; flex-direction: column; gap: 8px; }
   .factor-panel { border-radius: 8px; padding: 10px 14px; border: 1px solid var(--border); }

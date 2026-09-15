@@ -125,7 +125,11 @@ describe('dashboard-html 三 Tab 看板', () => {
     assert.ok(html.includes('factor-panel oppose'));
     assert.ok(html.includes('chip green'));
     assert.ok(html.includes('chip red'));
-    assert.ok(html.includes('chip gray'));
+    assert.ok(html.includes('chip gray'));    assert.ok(html.includes('概率区间 · 未来价格可能波动的范围'));
+    assert.ok(html.includes('未来 3 日'));
+    assert.ok(html.includes('现价处于区间'));
+    assert.ok(html.includes('68%区间'));
+
   });
 
   it('机会面板含交易策略卡（执行要素/风险/状态）', () => {
