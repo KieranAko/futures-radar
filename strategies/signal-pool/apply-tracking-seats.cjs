@@ -98,6 +98,41 @@ function main() {
   const { added } = applyTrackingSeats(filtered, poolSignals);
   writeJSONAtomic(filteredPath, filtered);
 
+  // 同步 candidates.json：信号池追踪席位也必须存在于 candidates.json（build-facts symbol join 需要）
+  const candidatesPath = path.join(dir, 'candidates.json');
+  if (added.length > 0 && fs.existsSync(candidatesPath)) {
+    const candidates = readJSON(candidatesPath);
+    const candList = Array.isArray(candidates.candidates) ? candidates.candidates : [];
+    const symbolsConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'config', 'symbols.json'), 'utf8'));
+    const cfgMap = new Map((symbolsConfig.symbols || []).map((c) => [c.symbol, c]));
+    const existing = new Set(candList.map((c) => c.symbol));
+    let rank = Math.max(0, ...candList.map((c) => Number(c.rank) || 0)) + 1;
+    for (const sym of added) {
+      if (existing.has(sym)) continue;
+      const cfg = cfgMap.get(sym) || {};
+      const sig = poolSignals.find((x) => x.symbol === sym);
+      candList.push({
+        symbol: sym,
+        name: cfg.name || sig.name || sym,
+        exchange: cfg.exchange || '',
+        sector: cfg.sector || sig.sector || '',
+        rank,
+        indicators: { atr5: 0, atrPct: 0, hv5: 0, hv20: 0, volPercentile: 0, volMultiplier: 0, change5d: 0 },
+        trend: { close: 0, vsMA20: 0, vsMA60: 0, direction: 'flat' },
+        liquidity: { avgVolume5d: 0, avgTurnover5d: 0, avgOI5d: 0 },
+        score: 0,
+        tracking: true,
+        signalId: sig ? sig.signalId : null
+      });
+      rank++;
+    }
+    candidates.candidates = candList;
+    candidates.meta = candidates.meta || {};
+    candidates.meta.trackingSeats = added.length;
+    writeJSONAtomic(candidatesPath, candidates);
+    console.log(`candidates.json: patched ${added.length} tracking seat(s)`);
+  }
+
   console.log(`signal-pool tracking seats: added ${added.length} (${added.join(', ') || 'none'})`);
   console.log(`filtered.json KEEP=${filtered.meta.outputCount}, downgraded=${filtered.downgraded.length}`);
 }

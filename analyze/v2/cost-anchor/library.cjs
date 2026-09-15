@@ -28,7 +28,9 @@ function keepSymbols(runId) {
   const filtered = readJson(path.join(runDir(runId), 'filtered.json'));
   const keeps = (filtered && filtered.candidates || []).filter((c) => c.decision === 'KEEP');
   if (keeps.length === 0) throw new Error(`run ${runId}: no KEEP candidates in filtered.json`);
-  if (keeps.length > 3) throw new Error(`run ${runId}: KEEP candidates exceed 3 (${keeps.length})`);
+  // 信号池追踪席位（tracking=true）允许 KEEP 超过 3；新鲜 TOP3 仍 ≤3
+  const fresh = keeps.filter((c) => !c.tracking);
+  if (fresh.length > 3) throw new Error(`run ${runId}: fresh KEEP candidates exceed 3 (${fresh.length})`);
   return keeps;
 }
 

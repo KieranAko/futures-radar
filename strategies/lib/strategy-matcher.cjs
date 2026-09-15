@@ -278,7 +278,8 @@ function findSymbolCfg(symbolsJson, code) {
 function top3Opportunities(reportModel) {
   // report-model.opportunities 即重点机会（第三章顺序）；rank 字段是 Top10 排名，不用于顺序
   const ops = Array.isArray(reportModel.opportunities) ? reportModel.opportunities : [];
-  return ops.slice(0, 3).map((o, i) => ({ ...o, planRank: i + 1 }));
+  // 信号池追踪席位与新鲜 TOP3 一样需要策略计划：全部机会进入计划层，集中度仲裁仍按 sector×方向执行
+  return ops.map((o, i) => ({ ...o, planRank: i + 1 }));
 }
 
 // ── 指标计算（t6 formulas） ───────────────────────────────────
@@ -1171,7 +1172,7 @@ function buildStrategyPlan({ runId, equityCny = 100000, reasoning = null, volTar
   const runPath = runDir(runId);
   const artifacts = loadArtifacts(runPath);
   const tops = top3Opportunities(artifacts.reportModel);
-  if (tops.length === 0) throw new Error(`run ${runId}: no TOP3 opportunities`);
+  if (tops.length === 0) throw new Error(`run ${runId}: no opportunities`);
 
   // signalDate 以 analysis.json 的分析日为准（行情收盘日），report-model.generatedAt 可能晚于行情日
   const signalDate = (artifacts.analysis.meta?.analyzedAt || artifacts.reportModel.meta?.generatedAt || '').slice(0, 10) || runId.slice(0, 8).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
