@@ -96,6 +96,52 @@ describe('dashboard-html 三 Tab 看板', () => {
     assert.ok(html.includes('回踩 8798–8845'));
   });
 
+  it('机会卡片含价格趋势图/区间条/多空面板/chips', () => {
+    const model = makeReportModel();
+    model.opportunities[0].priceRanges = [
+      { period: '3d', hvCone: { p68: [8607.7, 9152.7], p95: [8357.7, 9426.4] } },
+      { period: '5d', hvCone: { p68: [8531.1, 9234.8], p95: [8212.7, 9592.9] } }
+    ];
+    model.opportunities[0].thesis.confidenceRationale = {
+      supportingFactors: [{ note: '5日 +3.69%' }],
+      opposingFactors: [{ note: 'volMult 1.02x' }],
+      uncertainties: ['不确定项']
+    };
+    const dates = []; const open = []; const high = []; const low = []; const close = [];
+    const start = new Date('2026-06-01T00:00:00Z');
+    for (let i = 0; i < 80; i++) {
+      const d = new Date(start.getTime() + i * 86400000);
+      dates.push(d.toISOString().slice(0, 10));
+      open.push(1000 + i); high.push(1010 + i); low.push(990 + i); close.push(1005 + i);
+    }
+    const raw = { contracts: { PP0: { ohlcv: { dates, open, high, low, close } } } };
+    const html = renderDashboardHtml({ runId: 'r1', reportModel: model, signalPoolView: makeSignalPoolView(), history: [], raw, signalDate: dates[dates.length - 1] });
+    assert.ok(html.includes('<svg class="price-chart"'));
+    assert.ok(html.includes('<polyline'));
+    assert.ok(html.includes('MA20'));
+    assert.ok(html.includes('MA60'));
+    assert.ok(html.includes('range-p68'));
+    assert.ok(html.includes('factor-panel support'));
+    assert.ok(html.includes('factor-panel oppose'));
+    assert.ok(html.includes('chip green'));
+    assert.ok(html.includes('chip red'));
+    assert.ok(html.includes('chip gray'));
+  });
+
+  it('历史报告分页控件与行渲染', () => {
+    const history = Array.from({ length: 22 }, (_, i) => ({
+      runId: `run-${String(i).padStart(2, '0')}`, date: '2026-09-15', oppSymbols: 'PP0', href: `runs/run-${String(i).padStart(2, '0')}/report.html`
+    }));
+    const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history });
+    assert.ok(html.includes('class="pagination"'));
+    assert.ok(html.includes('data-page="1"'));
+    assert.ok(html.includes('data-page="2"'));
+    assert.ok(html.includes('data-page="3"'));
+    assert.ok(html.includes('共 22 份 · 第'));
+    assert.ok(html.includes('id="history-rows"'));
+    assert.ok(html.includes('table.index'));
+  });
+
   it('确定性：同输入两次渲染一致', () => {
     const args = { runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [{ runId: 'r1', date: '2026-09-15', oppSymbols: 'PP0', href: 'runs/r1/report.html' }] };
     assert.equal(renderDashboardHtml(args), renderDashboardHtml(args));
