@@ -13,7 +13,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { runtimeRoot, runDir } = require('../lib/workspace.cjs');
+const { skillRoot, runtimeRoot, runDir } = require('../lib/workspace.cjs');
 const {
   statusBadge,
   directionLabel,
@@ -82,7 +82,39 @@ function extractBars(raw, symbol, maxFull = 400) {
   return bars;
 }
 
-function seriesBars(mainSeries, raw, symbol) {
+function loadContractBarsLibrary(contract) {
+  if (!contract) return null;
+  const file = path.join(skillRoot, 'data', 'contract-bars', `${contract}.json`);
+  if (!fs.existsSync(file)) return null;
+  const wrapper = readJSON(file);
+  const map = new Map();
+  if (wrapper && wrapper.runs) {
+    for (const rid of Object.keys(wrapper.runs)) {
+      const bars = wrapper.runs[rid] && wrapper.runs[rid].bars;
+      if (!Array.isArray(bars)) continue;
+      for (const b of bars) {
+        if (b && b.date) map.set(b.date, b);
+      }
+    }
+  }
+  const bars = [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
+  return bars.length >= 2 ? bars : null;
+}
+
+function latestDateFromSeries(mainSeries) {
+  let latest = null;
+  for (const ms of Object.values(mainSeries || {})) {
+    const bars = ms && ms.bars;
+    if (!Array.isArray(bars) || bars.length === 0) continue;
+    const d = bars[bars.length - 1].date;
+    if (!latest || d > latest) latest = d;
+  }
+  return latest;
+}
+
+function seriesBars(mainSeries, raw, symbol, contract) {
+  const lib = loadContractBarsLibrary(contract);
+  if (lib) return lib;
   const ms = mainSeries && mainSeries[symbol];
   if (ms && Array.isArray(ms.bars) && ms.bars.length >= 2) return ms.bars;
   return extractBars(raw, symbol);
@@ -265,7 +297,7 @@ function oppNavItem(opp, raw, mainSeries, active) {
   const dir = t.finalDirection || 'neutral';
   const close = opp.marketFacts && opp.marketFacts.close != null ? fmt(opp.marketFacts.close) : '—';
   const conf = confidenceLabel(t.finalConfidence);
-  const bars = seriesBars(mainSeries, raw, opp.symbol);
+  const bars = seriesBars(mainSeries, raw, opp.symbol, opp.contract);
   const chg = change5dPct(bars);
   const chgHtml = chg == null ? '' : ` · <span class="${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg.toFixed(1)}%</span>`;
   return `<button class="opp-nav-item ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}"><span class="nav-dot ${escapeHtml(dir)}"></span><span class="nav-text"><span class="nav-main"><b>${escapeHtml(opp.name || opp.symbol)}</b><span class="nav-badge ${escapeHtml(dir)}">${directionLabel(dir)}</span></span><span class="nav-sub">${conf}置信 · ${close}${chgHtml}</span></span></button>`;
@@ -278,7 +310,7 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan) {
   const dir = t.finalDirection || 'neutral';
   const close = opp.marketFacts && opp.marketFacts.close != null ? fmt(opp.marketFacts.close) : '—';
 
-  const bars = seriesBars(mainSeries, raw, opp.symbol);
+  const bars = seriesBars(mainSeries, raw, opp.symbol, opp.contract);
   const chart = renderPriceChart(bars, { signalDate });
 
   const ranges = (opp.priceRanges || []).map((r) => rangeBar(r.period, r.hvCone && r.hvCone.p68, r.hvCone && r.hvCone.p95, opp.marketFacts && opp.marketFacts.close)).join('');
@@ -356,7 +388,9 @@ function historyIndex(runId, runsRoot) {
     if (!fs.existsSync(reportHtml) && !fs.existsSync(reportMd)) continue;
     const model = readJSON(path.join(dir, 'report-model.json'));
     const oppSymbols = model && Array.isArray(model.opportunities) ? model.opportunities.map((o) => `${o.symbol} ${o.name}`).join('、') : '';
-    const date = model && model.meta && model.meta.generatedAt ? String(model.meta.generatedAt).slice(0, 10) : name.slice(0, 8);
+    // 信号日以 main-series 最新 bar 日期为准（文件库/run 产物），generatedAt 只作回退
+    const seriesDate = latestDateFromSeries(readJSON(path.join(dir, 'analyze', 'main-series.json')));
+    const date = seriesDate || (model && model.meta && model.meta.generatedAt ? String(model.meta.generatedAt).slice(0, 10) : name.slice(0, 8));
     entries.push({
       runId: name,
       date,
@@ -711,7 +745,7 @@ function main() {
   const raw = readJSON(path.join(dir, 'raw.json'));
   const strategyPlan = readJSON(path.join(dir, 'strategy-plan.json'));
   const mainSeries = readJSON(path.join(dir, 'analyze', 'main-series.json'));
-  const signalDate = raw && raw.meta && raw.meta.cacheInfo ? raw.meta.cacheInfo.latestBarDate : null;
+  const signalDate = (raw && raw.meta && raw.meta.cacheInfo && raw.meta.cacheInfo.latestBarDate) || latestDateFromSeries(mainSeries) || null;
   const history = historyIndex(runId, path.join(runtimeRoot, 'runs'));
   const html = renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, mainSeries, signalDate, strategyPlan });
   const outPath = path.join(runtimeRoot, 'dashboard.html');
