@@ -329,7 +329,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .tabs { display: flex; gap: 6px; }
   .tab { border: 1px solid var(--border); border-bottom: none; background: #f1f3f5; color: var(--muted); padding: 8px 16px; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 14px; }
   .tab.active { background: var(--bg); color: var(--text); font-weight: 600; position: relative; top: 1px; }
-  main { max-width: 980px; margin: 0 auto; padding: 18px 22px 48px; }
+  main { max-width: 1440px; margin: 0; padding: 18px 22px 48px; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
   .summary-bar { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 16px; }
@@ -348,7 +348,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
 
   /* 机会卡片 */
   .opp-layout { display: flex; gap: 14px; align-items: flex-start; }
-  .opp-nav { width: 230px; flex: 0 0 230px; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 70px; }
+  .opp-nav { width: 240px; flex: 0 0 240px; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 70px; }
   .opp-nav-item { text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 8px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
   .opp-nav-item.active { border-color: var(--accent); background: #eef4ff; }
   .opp-nav-main { font-weight: 600; }
