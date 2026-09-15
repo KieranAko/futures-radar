@@ -218,6 +218,7 @@ const strategyPlanPath = path.join(RUN_DIR, 'strategy-plan.json');
 let strategyPlan = null;
 let strategySection = null;
 let feedbackAppendix = null;
+let signalPoolChapter = null;
 if (fs.existsSync(strategyPlanPath)) {
   try {
     strategyPlan = JSON.parse(fs.readFileSync(strategyPlanPath, 'utf8'));
@@ -228,11 +229,11 @@ if (fs.existsSync(strategyPlanPath)) {
       const closeMap = Object.fromEntries(model.opportunities.map((o) => [o.symbol, o.marketFacts && o.marketFacts.close]));
       strategySection = renderStrategySection(strategyPlan, library, familyEvidence, closeMap);
 
-      // 优先渲染信号池追踪（替代证伪反馈）；旧版 strategy-feedback.json 仅作回退
+      // 信号池追踪独立章节（交易策略之后）；旧版 strategy-feedback.json 仅作回退进附录
       const signalPoolPath = path.join(RUN_DIR, 'signal-pool.json');
       if (fs.existsSync(signalPoolPath)) {
         const signalPoolView = JSON.parse(fs.readFileSync(signalPoolPath, 'utf8'));
-        feedbackAppendix = renderSignalPoolSection(signalPoolView);
+        signalPoolChapter = renderSignalPoolSection(signalPoolView);
       } else {
         const feedbackPath = path.join(RUN_DIR, 'strategy-feedback.json');
         const feedback = fs.existsSync(feedbackPath) ? JSON.parse(fs.readFileSync(feedbackPath, 'utf8')) : null;
@@ -310,7 +311,7 @@ const mainCh = [];
 mainCh.push('## 二、机会分析\n');
 
 const appendixB = [];
-appendixB.push('### 4.2 机会证据链\n');
+appendixB.push('### 5.2 机会证据链\n');
 appendixB.push('> 每品种完整六问与模型明细；宏观/板块仅作背景。\n');
 
 for (const opp of model.opportunities) {
@@ -482,7 +483,7 @@ for (const opp of model.opportunities) {
 console.log('[5/6] Rendering 第四章附录...');
 
 const appendixA = [];
-appendixA.push('### 4.1 市场与筛选明细\n');
+appendixA.push('### 5.1 市场与筛选明细\n');
 
 appendixA.push('#### 宏观锚点\n');
 if (macro && macro.available) {
@@ -550,7 +551,7 @@ appendixA.push('\n> 未入选品种及其理由见上表「❌ DROP」列，不�
 const freshnessCard = model.freshness ? renderFreshnessCard(model.freshness) : [];
 
 const appendixD = [];
-appendixD.push('### 4.4 方法与数据说明\n');
+appendixD.push('### 5.3 方法与数据说明\n');
 
 if (freshnessCard.length > 0) {
   appendixD.push('#### 数据时效\n');
@@ -599,8 +600,8 @@ appendixD.push(`*数据来源：akshare (行情) | 预测区间：五模型参�
 
 // ── 四、附录（整合单章，集中所有细节与口径）──────────────────
 const appendixChapter = [
-  '## 四、附录\n',
-  '> 筛选明细、完整六问、信号池追踪与指标口径集中在本章；主报告只保留结论与关键价位。\n',
+  '## 五、附录\n',
+  '> 筛选明细、完整六问与指标口径集中在本章；主报告只保留结论与关键价位。\n',
   '',
   ...appendixA,
   ...appendixB,
@@ -614,6 +615,7 @@ const sections = [
   ...summary,
   ...mainCh,
   strategySection,
+  signalPoolChapter,
   ...appendixChapter
 ].filter((s) => s != null);
 const report = sections.join('\n');

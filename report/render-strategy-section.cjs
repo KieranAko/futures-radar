@@ -152,7 +152,7 @@ function renderFeedbackV2(feedback) {
   return lines.join('\n');
 }
 
-// ── 信号池追踪渲染 ──────────────────────────────────────────
+// ── 信号池追踪渲染（独立章节：四、信号池追踪，位于交易策略之后）──
 function poolStatusLabel(s) {
   if (s.poolStatus === 'closed') return '已出池';
   if (s.poolStatus === 'downgraded') return `降级观察(${s.consecutiveNonExecutable || 0}/3)`;
@@ -211,77 +211,91 @@ function signalVersionVerificationLabel(v) {
   return '待验证';
 }
 
-function signalPriceCell(sig) {
+function pctChange(start, latest) {
+  if (start == null || latest == null || Number(start) === 0) return null;
+  const pct = (Number(latest) - Number(start)) / Number(start) * 100;
+  const sign = pct > 0 ? '+' : '';
+  return `${sign}${pct.toFixed(1)}%`;
+}
+
+function signalPriceLine(sig) {
   const p = sig.priceTracking || {};
   if (p.startClose == null && p.latestClose == null) return '—';
   const start = p.startClose == null ? '—' : fmt(p.startClose);
   const latest = p.latestClose == null ? '—' : fmt(p.latestClose);
+  const chg = pctChange(p.startClose, p.latestClose);
   const fav = p.maxFavorablePts == null ? '—' : `${p.maxFavorablePts >= 0 ? '+' : ''}${fmt(p.maxFavorablePts)}`;
   const adv = p.maxAdversePts == null ? '—' : `${p.maxAdversePts <= 0 ? '' : '+'}${fmt(p.maxAdversePts)}`;
-  return `${start} → ${latest}｜有利 ${fav} / 不利 ${adv}`;
+  return `入池 ${start} → 最新 ${latest}${chg ? `（${chg}）` : ''}｜最大有利 ${fav}｜最大不利 ${adv}`;
+}
+
+function versionLine(v) {
+  const trigger = v.entry && v.entry.triggerLevel != null ? `触发 ${fmt(v.entry.triggerLevel)}` : '触发 —';
+  const stop = v.stop && v.stop.stopPrice != null ? `止损 ${fmt(v.stop.stopPrice)}` : '止损 —';
+  const t1 = v.targets && v.targets.t1 ? `目标 ${v.targets.t1}` : '目标 —';
+  const transition = v.stateTransition === 'signal_created' ? '入池' : (v.stateTransition || '—');
+  return `V${v.versionId.split(':V')[1] || '?'}｜${v.runId}｜${v.signalDate}｜${statusBadge(v.executionStatus)}｜${transition}｜${trigger} / ${stop} / ${t1}｜${signalVersionVerificationLabel(v)}`;
+}
+
+function signalCard(sig, { closed = false } = {}) {
+  const lines = [];
+  const title = `${sig.signalId} · ${sig.name || sig.symbol}（${sig.contract || sig.symbol}）· ${directionLabel(sig.direction)} · ${poolStatusLabel(sig)}`;
+  lines.push(`#### ${title}`);
+  lines.push('');
+  if (closed) {
+    const closedDate = sig.closedAt ? String(sig.closedAt).slice(0, 10) : '—';
+    lines.push(`- **入池**：${sig.createdDate}（${sig.createdRunId}）｜**出池**：${closedDate}｜**出池原因**：${closeReasonLabel(sig.closeReason)}｜**窗口判定**：${verdictLabel(sig.verdict)}`);
+  } else {
+    lines.push(`- **入池**：${sig.createdDate}（${sig.createdRunId}）｜**最近更新**：${sig.lastSeenDate}（${sig.lastSeenRunId}）`);
+  }
+  const cur = sig.currentVersion || {};
+  const curExpr = cur.executionStatus ? `${statusBadge(cur.executionStatus)}${cur.entryTrigger ? ' — ' + cur.entryTrigger : ''}` : '—';
+  lines.push(`- **当前表达**：${curExpr}`);
+  if (!closed) lines.push(`- **最新验证**：${signalVerificationLabel(sig)}`);
+  lines.push(`- **价格追踪**：${signalPriceLine(sig)}`);
+  lines.push(`- **版本链（${sig.versionCount} 个版本）**：`);
+  lines.push('');
+  const versions = sig.versions || [];
+  for (const v of versions) lines.push(`  - ${versionLine(v)}`);
+  lines.push('');
+  return lines.join('\n');
 }
 
 function renderSignalPoolSection(view) {
   const lines = [];
-  lines.push('### 4.3 信号池追踪');
+  lines.push('## 四、信号池追踪');
   lines.push('');
   const pool = Array.isArray(view.pool) ? view.pool : [];
   const recentClosed = Array.isArray(view.recentClosed) ? view.recentClosed : [];
   const stats = view.historyStats || {};
+  const details = view.details || {};
   lines.push(`> 信号池：池内 **${pool.length}** 个信号全量追踪；历史已出池 **${stats.totalClosed == null ? 0 : stats.totalClosed}** 个（只统计，最近出池 ${recentClosed.length} 个列明细）。`);
   lines.push('');
 
   if (pool.length > 0) {
-    lines.push('#### 池内信号（全量追踪）');
+    lines.push('### 4.1 池内信号（全量追踪）');
     lines.push('');
-    lines.push('| 信号ID | 品种(合约) | 方向 | 入池日 | 最近更新 | 版本 | 当前表达 | 最新验证 | 价格追踪 | 池状态 |');
-    lines.push('|--------|-----------|------|--------|---------|------|---------|---------|---------|--------|');
     for (const s of pool) {
-      const cur = s.currentVersion || {};
-      const symbolCell = `${s.name || s.symbol} (${s.contract || s.symbol})`;
-      const curExpr = `${statusBadge(cur.executionStatus)} ${cur.entryTrigger || ''}`;
-      lines.push(`| ${s.signalId} | ${symbolCell} | ${directionLabel(s.direction)} | ${s.createdDate} | ${s.lastSeenDate} | ${s.versionCount} | ${curExpr} | ${signalVerificationLabel(s)} | ${signalPriceCell(s)} | ${poolStatusLabel(s)} |`);
+      const detail = details[s.signalId] || {};
+      lines.push(signalCard({ ...s, versions: detail.versions || [] }));
     }
+  } else {
+    lines.push('### 4.1 池内信号（全量追踪）');
+    lines.push('');
+    lines.push('_当前池内无信号。_');
     lines.push('');
   }
 
   if (recentClosed.length > 0) {
-    lines.push('#### 最近出池信号（最新 5 个）');
+    lines.push('### 4.2 最近出池信号（最新 5 个）');
     lines.push('');
-    lines.push('| 信号ID | 品种 | 方向 | 入池日 | 出池日 | 出池原因 | 窗口判定 | 版本数 |');
-    lines.push('|--------|------|------|--------|--------|---------|---------|--------|');
     for (const s of recentClosed) {
-      const closedDate = s.closedAt ? String(s.closedAt).slice(0, 10) : '—';
-      lines.push(`| ${s.signalId} | ${s.name || s.symbol} (${s.symbol}) | ${directionLabel(s.direction)} | ${s.createdDate} | ${closedDate} | ${closeReasonLabel(s.closeReason)} | ${verdictLabel(s.verdict)} | ${s.versionCount} |`);
-    }
-    lines.push('');
-  }
-
-  const detailSignals = view.details || {};
-  const detailIds = [...pool.map((s) => s.signalId), ...recentClosed.map((s) => s.signalId)];
-  if (detailIds.length > 0) {
-    lines.push('#### 版本链（一个信号 → 多个策略版本）');
-    lines.push('');
-    for (const id of detailIds) {
-      const sig = detailSignals[id];
-      if (!sig || !Array.isArray(sig.versions)) continue;
-      lines.push(`**${sig.signalId}** ${sig.name || sig.symbol}（${directionLabel(sig.direction)}）`);
-      lines.push('');
-      lines.push('| 版本 | runId | 日期 | 执行状态 | 状态转移 | 方向/置信度 | 策略 | 触发/止损/目标 | 验证结果 |');
-      lines.push('|------|-------|------|---------|---------|------------|------|--------------|---------|');
-      for (const v of sig.versions) {
-        const strategyCell = `${v.strategyId || '—'} + ${v.playbookId || '—'}`;
-        const trigger = v.entry && v.entry.triggerLevel != null ? `${v.entry.triggerLevel}` : '—';
-        const stop = v.stop && v.stop.stopPrice != null ? `${v.stop.stopPrice}` : '—';
-        const t1 = v.targets && v.targets.t1 ? v.targets.t1 : '—';
-        const transition = v.stateTransition === 'signal_created' ? '入池' : (v.stateTransition || '—');
-        lines.push(`| ${v.versionId} | ${v.runId} | ${v.signalDate} | ${statusBadge(v.executionStatus)} | ${transition} | ${directionLabel(v.direction)}/${confidenceLabel(v.confidence)} | ${strategyCell} | 触发 ${trigger} / 止损 ${stop} / 目标 ${t1} | ${signalVersionVerificationLabel(v)} |`);
-      }
-      lines.push('');
+      const detail = details[s.signalId] || {};
+      lines.push(signalCard({ ...s, versions: detail.versions || [] }, { closed: true }));
     }
   }
 
-  lines.push('#### 历史统计（全部已出池信号，只统计）');
+  lines.push('### 4.3 历史统计与口径');
   lines.push('');
   lines.push('| 统计项 | 数量 |');
   lines.push('|--------|------|');

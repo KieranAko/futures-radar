@@ -304,7 +304,7 @@ describe('strategy-section: 信号池追踪渲染', () => {
       }
     };
     const out = renderSignalPoolSection(view);
-    assert.ok(out.includes('### 4.3 信号池追踪'));
+    assert.ok(out.includes('## 四、信号池追踪'));
     assert.ok(out.includes('池内 **1** 个信号全量追踪'));
     assert.ok(out.includes('SIG-TA0-20260911-01'));
     assert.ok(out.includes('降级观察(1/3)'));
@@ -312,8 +312,8 @@ describe('strategy-section: 信号池追踪渲染', () => {
     assert.ok(out.includes('SIG-PP0-20260910-01'));
     assert.ok(out.includes('反向翻转'));
     assert.ok(out.includes('兑现'));
-    assert.ok(out.includes('版本链（一个信号 → 多个策略版本）'));
-    assert.ok(out.includes('SIG-TA0-20260911-01:V1'));
+    assert.ok(out.includes('版本链（2 个版本）'));
+    assert.ok(out.includes('V1｜r1｜2026-09-11'));
     assert.ok(out.includes('| 历史已出池信号 | 1 |'));
   });
 
@@ -323,9 +323,9 @@ describe('strategy-section: 信号池追踪渲染', () => {
       meta: { runId: 'r9', poolCount: 0, closedTotal: 0 },
       pool: [], recentClosed: [], historyStats: { totalClosed: 0, byCloseReason: {}, byVerdict: {} }, details: {}
     });
-    assert.ok(out.includes('### 4.3 信号池追踪'));
+    assert.ok(out.includes('## 四、信号池追踪'));
     assert.ok(out.includes('池内 **0** 个信号全量追踪'));
-    assert.ok(out.includes('历史统计（全部已出池信号，只统计）'));
+    assert.ok(out.includes('### 4.3 历史统计与口径'));
     assert.ok(out.includes('信号池是跨 run、跨时间、跨周期存续的信号台账'));
   });
 });
