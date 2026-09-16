@@ -101,6 +101,33 @@ function timelineBlock(sig) {
   return `<h4>时间线</h4><table class="timeline"><tr><th>日期</th><th>事件</th><th>兑现进度</th><th>失效距离</th></tr>${rows}</table>`;
 }
 
+function anchorPanel(sig) {
+  const a = sig.anchor;
+  if (!a) return '';
+  const entryCell = a.entryPrice != null ? `${fmt(a.entryPrice)}` : (a.status === 'skipped_gap' ? '—（执行偏离放弃）' : a.status === 'invalidated_not_triggered' ? '—（未触发）' : a.status === 'triggered_pending_entry' ? 'T+2 待定' : '—');
+  const latest = sig.priceTracking && sig.priceTracking.latestClose != null ? fmt(sig.priceTracking.latestClose) : '—';
+  let pnlCell = '—';
+  if (a.entryPrice != null && a.exitPrice != null && a.realizedPnlPts != null) {
+    const sign = a.realizedPnlPts >= 0 ? '+' : '';
+    const cls = a.realizedPnlPts >= 0 ? 'up' : 'down';
+    pnlCell = `<span class="${cls}">${sign}${fmt(a.realizedPnlPts)} 点（${a.realizedPnlPct >= 0 ? '+' : ''}${a.realizedPnlPct}%）</span> · 已实现`;
+  } else if (a.status === 'verified') {
+    pnlCell = '—';
+  }
+  const prog = progressBar(sig.fulfillProgress);
+  const dist = sig.invalidationDistance != null ? `${fmt(sig.invalidationDistance)} ATR` : '—';
+  return `<div class="anchor-panel">
+    <div class="anchor-head">锚定策略：${escapeHtml(a.versionId)} · ${statusBadge(a.executionStatus)} · ${escapeHtml(a.signalDate)}</div>
+    <div class="anchor-grid">
+      <div class="anchor-item"><span>入场价格</span><b>${entryCell}</b></div>
+      <div class="anchor-item"><span>最新价格</span><b>${latest}</b></div>
+      <div class="anchor-item"><span>盈亏</span><b>${pnlCell}</b></div>
+      <div class="anchor-item"><span>兑现进度</span>${prog}</div>
+      <div class="anchor-item"><span>失效距离</span><b>${dist}</b></div>
+    </div>
+  </div>`;
+}
+
 function signalCard(sig, { closed = false } = {}) {
   const body = [];
   const rows = [];
@@ -118,13 +145,6 @@ function signalCard(sig, { closed = false } = {}) {
     : '—';
   rows.push(fieldRow('当前表达', curExpr));
   if (!closed) rows.push(fieldRow('最新验证', signalVerificationLabel(sig)));
-  if (!closed && sig.fulfillProgress != null) {
-    rows.push(fieldRow('兑现进度', `${progressBar(sig.fulfillProgress)} <span class="muted">达 100% 即兑现</span>`));
-  }
-  if (!closed && sig.invalidationDistance != null) {
-    rows.push(fieldRow('失效距离', `<span class="${sig.invalidationDistance <= 0.5 ? 'down' : ''}">${fmt(sig.invalidationDistance)} ATR</span> <span class="muted">≤0 即失效</span>`));
-  }
-
   const p = sig.priceTracking || {};
   if (p.startClose != null || p.latestClose != null) {
     const chg = pctChange(p.startClose, p.latestClose);
@@ -133,6 +153,7 @@ function signalCard(sig, { closed = false } = {}) {
     rows.push(fieldRow('价格追踪', `入池 ${fmt(p.startClose)} → 最新 ${fmt(p.latestClose)}${chg ? ` <span class="${pctChange(p.startClose, p.latestClose) && pctChange(p.startClose, p.latestClose).startsWith('+') ? 'up' : 'down'}">（${chg}）</span>` : ''}<br><span class="muted">最大有利 ${fav} · 最大不利 ${adv}</span>`));
   }
 
+  if (!closed) body.push(anchorPanel(sig));
   body.push(`<table class="fields">${rows.join('')}</table>`);
   body.push(timelineBlock(sig));
 
@@ -221,6 +242,13 @@ function renderSignalPoolHtml(view, opts = {}) {
   .card[open] > summary::before { transform: rotate(90deg); }
   .card.closed > summary { opacity: .75; }
   .card-body { padding: 4px 16px 14px; border-top: 1px solid var(--border); }
+  .anchor-panel { background: #f0f6ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 10px 12px; margin: 8px 0; }
+  .anchor-head { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  .anchor-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; }
+  .anchor-item span { display: block; font-size: 12px; color: var(--muted); }
+  .anchor-item b { font-size: 14px; font-variant-numeric: tabular-nums; }
+  @media (max-width: 900px) { .anchor-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+
   table.fields { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 6px 0; }
   table.fields th { width: 88px; text-align: left; vertical-align: top; color: var(--muted); font-weight: 500; padding: 5px 10px 5px 0; white-space: nowrap; }
   table.fields td { vertical-align: top; padding: 5px 0; word-break: break-word; }

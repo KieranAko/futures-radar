@@ -15,6 +15,14 @@ const { inferFamily, trustRating } = require('../strategies/lib/family-infer.cjs
 const symbolsConfig = require('../config/symbols.json');
 
 // ── 格式化（沿用 render-markdown.cjs 口径：价格 1 位小数、百分比 1-2 位、金额整数） ──
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function fmt(x, d) {
   if (x === null || x === undefined || Number.isNaN(Number(x))) return '—';
   return Number(x).toFixed(d === undefined ? 1 : d);
@@ -253,6 +261,20 @@ function signalCard(sig, { closed = false } = {}) {
   } else {
     lines.push(fieldRow('入池', `${sig.createdDate}（${sig.createdRunId}）`));
     lines.push(fieldRow('最近更新', `${sig.lastSeenDate}（${sig.lastSeenRunId}）`));
+  }
+  if (!closed && sig.anchor) {
+    const a = sig.anchor;
+    lines.push(fieldRow('锚定策略', `${escapeHtml(a.versionId)} · ${statusBadge(a.executionStatus)} · ${escapeHtml(a.signalDate)}`));
+    const entryCell = a.entryPrice != null ? `${fmt(a.entryPrice)}` : (a.status === 'skipped_gap' ? '—（执行偏离放弃）' : a.status === 'invalidated_not_triggered' ? '—（未触发）' : a.status === 'triggered_pending_entry' ? 'T+2 待定' : '—');
+    lines.push(fieldRow('入场价格', entryCell));
+    const latest = sig.priceTracking && sig.priceTracking.latestClose != null ? fmt(sig.priceTracking.latestClose) : '—';
+    lines.push(fieldRow('最新价格', latest));
+    if (a.entryPrice != null && a.exitPrice != null && a.realizedPnlPts != null) {
+      const sign = a.realizedPnlPts >= 0 ? '+' : '';
+      lines.push(fieldRow('盈亏', `${sign}${fmt(a.realizedPnlPts)} 点（${a.realizedPnlPct >= 0 ? '+' : ''}${a.realizedPnlPct}%）· 已实现`));
+    } else {
+      lines.push(fieldRow('盈亏', '—'));
+    }
   }
   const cur = sig.currentVersion || {};
   const curExpr = cur.executionStatus ? `${statusBadge(cur.executionStatus)}${cur.entryTrigger ? ' — ' + cur.entryTrigger : ''}` : '—';

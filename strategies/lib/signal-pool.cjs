@@ -318,6 +318,42 @@ function invalidationDistanceOf(signal) {
   return Math.round((dist / atr) * 100) / 100;
 }
 
+function anchorVersionOf(signal) {
+  const execs = executableVersionsOf(signal);
+  return execs[execs.length - 1] || null;
+}
+
+function anchorSummaryOf(signal) {
+  const v = anchorVersionOf(signal);
+  if (!v) return null;
+  const r = v.verification && v.verification.lastResult;
+  const status = v.verification && v.verification.status;
+  const entered = status === 'verified' && r && r.entryPrice != null;
+  const entryPrice = entered ? r.entryPrice : null;
+  const exitPrice = entered ? r.exitPrice : null;
+  const exitType = entered ? r.exitType : null;
+  const sign = signal.direction === 'bearish' ? -1 : 1;
+  let realizedPnlPts = null;
+  let realizedPnlPct = null;
+  if (entryPrice != null && exitPrice != null) {
+    realizedPnlPts = Math.round((exitPrice - entryPrice) * sign * 100) / 100;
+    realizedPnlPct = entryPrice !== 0 ? Math.round((realizedPnlPts / entryPrice) * 10000) / 100 : null;
+  }
+  return {
+    versionId: v.versionId,
+    signalDate: v.signalDate,
+    executionStatus: v.executionStatus,
+    status,
+    triggerLevel: v.entry && v.entry.triggerLevel != null ? v.entry.triggerLevel : null,
+    entryPrice,
+    exitPrice,
+    exitType,
+    realizedPnlPts,
+    realizedPnlPct,
+    direction: signal.direction
+  };
+}
+
 function appendObservation(signal, runId, date, events) {
   if (!Array.isArray(signal.observations)) signal.observations = [];
   const existing = signal.observations.find((o) => o.runId === runId);
@@ -524,6 +560,7 @@ function summarizeSignal(signal) {
     },
     fulfillProgress: signal.fulfillProgress,
     invalidationDistance: signal.invalidationDistance,
+    anchor: anchorSummaryOf(signal),
     observations: Array.isArray(signal.observations) ? signal.observations.slice(-12) : [],
     closedAt: signal.closedAt,
     closeReason: signal.closeReason,
@@ -710,6 +747,8 @@ module.exports = {
   versionFulfillProgress,
   fulfillProgressOf,
   hasFulfilled,
+  anchorVersionOf,
+  anchorSummaryOf,
   invalidationDistanceOf,
   appendObservation,
 

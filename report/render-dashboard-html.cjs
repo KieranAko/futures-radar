@@ -574,6 +574,13 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .side-notes { margin: 0; padding-left: 18px; font-size: 12px; color: var(--muted); line-height: 1.8; }
   @media (max-width: 1080px) { .pool-layout { grid-template-columns: 1fr; } .pool-side { position: static; } }
 
+  .anchor-panel { background: #f0f6ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 10px 12px; margin: 8px 0; }
+  .anchor-head { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  .anchor-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; }
+  .anchor-item span { display: block; font-size: 12px; color: var(--muted); }
+  .anchor-item b { font-size: 14px; font-variant-numeric: tabular-nums; }
+  @media (max-width: 900px) { .anchor-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+
   .progress { display: inline-flex; align-items: center; gap: 6px; vertical-align: middle; }
   .progress-fill { display: inline-block; height: 8px; border-radius: 4px; background: linear-gradient(90deg,#9db8e8,#2563eb); }
   .progress-text { font-size: 12px; font-variant-numeric: tabular-nums; }
