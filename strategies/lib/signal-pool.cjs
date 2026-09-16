@@ -326,6 +326,12 @@ function invalidationDistanceOf(signal) {
   return Math.round((dist / atr) * 100) / 100;
 }
 
+function hasPendingExecutable(signal) {
+  return executableVersionsOf(signal).some((v) =>
+    !v.verification.terminal && ['holding', 'triggered_pending_entry', 'pending_data', 'pending_verification'].includes(v.verification.status)
+  );
+}
+
 function anchorVersionOf(signal) {
   const execs = executableVersionsOf(signal);
   return execs[execs.length - 1] || null;
@@ -727,7 +733,7 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
       } else if (q5Hit) {
         closeSignal(sig, 'invalidated_q5');
         events.push('invalidated');
-      } else {
+      } else if (!hasPendingExecutable(sig)) {
         const barsCount = track.bars.length ? track.bars.length - track.startIdx : 0;
         if (barsCount > 10) {
           closeSignal(sig, 'expired');
@@ -767,6 +773,7 @@ module.exports = {
   versionFulfillProgress,
   fulfillProgressOf,
   hasFulfilled,
+  hasPendingExecutable,
   anchorVersionOf,
   anchorSummaryOf,
   invalidationDistanceOf,

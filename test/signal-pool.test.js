@@ -237,6 +237,7 @@ describe('signal-pool 信号池核心生命周期', () => {
       }
       const raw = makeRaw('PP0', dates, open, high, low, close);
       updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: { meta: { runId: 'run-2', signalDate: '2026-08-27', inputsSha: 'x' }, plans: [] } });
       const ledger = loadLedger(root);
       const sig = loadSignal(ledger.signals[0].signalId, root);
       assert.equal(sig.poolStatus, 'closed');
