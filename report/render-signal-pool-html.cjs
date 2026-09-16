@@ -26,7 +26,8 @@ const {
   closeReasonLabel,
   verdictLabel,
   signalVerificationLabel,
-  signalVersionVerificationLabel
+  signalVersionVerificationLabel,
+  versionExitDetail
 } = require('./render-strategy-section.cjs');
 
 function escapeHtml(s) {
@@ -72,7 +73,9 @@ function versionBody(v) {
     fieldRow('止损', stop.stopPrice != null ? `${fmt(stop.stopPrice)} <span class="muted">${escapeHtml(stop.basis || '')}</span>` : '—'),
     fieldRow('目标', `${escapeHtml(t.t1 || '—')}<br><span class="muted">${escapeHtml(t.t2 || '')}</span>`),
     fieldRow('失效', escapeHtml((inv.hard || []).join('；') || '—')),
+    fieldRow('计划离场', escapeHtml(inv.timeStop || '—')),
     fieldRow('验证', signalVersionVerificationLabel(v)),
+    ...(versionExitDetail(v) ? [fieldRow('实际离场', escapeHtml(versionExitDetail(v)))] : []),
     fieldRow('regime', `${escapeHtml(reg.grade || '—')} / ${escapeHtml(reg.direction || '—')}`)
   ];
   return `<table class="fields">${rows.join('')}</table>`;

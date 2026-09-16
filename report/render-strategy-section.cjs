@@ -227,6 +227,19 @@ function pctChange(start, latest) {
   return `${sign}${pct.toFixed(1)}%`;
 }
 
+function versionExitDetail(v) {
+  const st = v.verification && v.verification.status;
+  const r = v.verification && v.verification.lastResult;
+  if (st === 'verified' && r) {
+    const exit = r.exitType === 'stopped_out' ? '止损离场' : r.exitType === 'target1_hit' ? '目标1兑现' : '时间离场';
+    return `${exit}${r.exitDate ? ' ' + r.exitDate : ''}${r.exitPrice != null ? ' @ ' + fmt(r.exitPrice) : ''}${r.entryPrice != null ? '（入场 ' + fmt(r.entryPrice) + '）' : ''}`;
+  }
+  if (st === 'skipped_gap' && r) return `执行偏离放弃${r.entryPrice != null ? '（触发价 ' + fmt(r.entryPrice) + '）' : ''}`;
+  if (st === 'invalidated_not_triggered') return '未触发';
+  if (st === 'triggered_pending_entry') return '已触发待入场';
+  return '';
+}
+
 function signalPriceLine(sig) {
   const p = sig.priceTracking || {};
   if (p.startClose == null && p.latestClose == null) return '—';
@@ -243,7 +256,8 @@ function versionLine(v) {
   const stop = v.stop && v.stop.stopPrice != null ? `止损 ${fmt(v.stop.stopPrice)}` : '止损 —';
   const t1 = v.targets && v.targets.t1 ? `目标 ${v.targets.t1}` : '目标 —';
   const transition = v.stateTransition === 'signal_created' ? '入池' : (v.stateTransition || '—');
-  return `V${v.versionId.split(':V')[1] || '?'}｜${v.runId}｜${v.signalDate}｜${statusBadge(v.executionStatus)}｜${transition}｜${trigger} / ${stop} / ${t1}｜${signalVersionVerificationLabel(v)}`;
+  const exitDetail = versionExitDetail(v);
+  return `V${v.versionId.split(':V')[1] || '?'}｜${v.runId}｜${v.signalDate}｜${statusBadge(v.executionStatus)}｜${transition}｜${trigger} / ${stop} / ${t1}｜${signalVersionVerificationLabel(v)}${exitDetail ? '｜' + exitDetail : ''}`;
 }
 
 function signalCard(sig, { closed = false } = {}) {
@@ -619,5 +633,6 @@ module.exports = {
   closeReasonLabel,
   verdictLabel,
   signalVerificationLabel,
-  signalVersionVerificationLabel
+  signalVersionVerificationLabel,
+  versionExitDetail
 };
