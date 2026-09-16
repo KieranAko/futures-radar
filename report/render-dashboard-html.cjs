@@ -405,7 +405,83 @@ function historyIndex(runId, runsRoot) {
 }
 
 // ── 主渲染 ───────────────────────────────────────────────────
-function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, mainSeries, signalDate, strategyPlan }) {
+function macroStrip(reportModel) {
+  const inds = reportModel && reportModel.macro && reportModel.macro.indicators ? reportModel.macro.indicators : {};
+  const labels = {
+    DXY: '美元指数', USDCNH: '美元/离岸人民币', US10Y: '美债10年', DR007: 'DR007', SC0: '原油主力'
+  };
+  const order = ['SC0', 'DXY', 'US10Y', 'DR007', 'USDCNH'];
+  const parts = [];
+  for (const key of order) {
+    const v = inds[key];
+    if (!v || v.status === 'missing') continue;
+    const chg = v.change5d == null ? '' : `（${v.change5d >= 0 ? '+' : ''}${v.change5d.toFixed(2)}%）`;
+    parts.push(`${escapeHtml(labels[key] || key)} ${v.value != null ? fmt(v.value) : '—'}${chg}`);
+  }
+  if (parts.length === 0) return '<span class="muted">宏观数据不可用</span>';
+  return parts.join(' · ');
+}
+
+function sectorBadges(reportModel) {
+  const sectors = reportModel && reportModel.sector && reportModel.sector.sectors ? reportModel.sector.sectors : {};
+  const order = ['black', 'nonferrous', 'precious', 'energy_chemical', 'agriculture', 'new_materials', 'shipping'];
+  const parts = [];
+  for (const key of order) {
+    const s = sectors[key];
+    if (!s) continue;
+    const dir = s.direction === 'up' ? '↑' : s.direction === 'down' ? '↓' : '→';
+    const breadth = s.breadth1d != null ? `${Math.round(s.breadth1d)}%` : '—';
+    parts.push(`<span class="sector-badge ${escapeHtml(s.direction || 'flat')}">${escapeHtml(s.label || key)} ${dir} ${breadth}</span>`);
+  }
+  if (parts.length === 0) return '<span class="muted">板块数据不可用</span>';
+  return parts.join('');
+}
+
+function freshnessLine(reportModel) {
+  const f = reportModel && reportModel.freshness;
+  if (!f) return '';
+  const date = f.latestBarDate || '—';
+  const total = f.totalSymbols != null ? f.totalSymbols : '—';
+  const withLatest = f.withLatestBar != null ? f.withLatestBar : '—';
+  return `数据 ${escapeHtml(date)} 收盘 · ${withLatest}/${total} 品种已更新`;
+}
+
+function actionStrip(strategyPlan, signalPoolView) {
+  const plans = strategyPlan && Array.isArray(strategyPlan.plans) ? strategyPlan.plans : [];
+  const exec = plans.filter((p) => p.executionStatus === 'executable').length;
+  const watch = plans.filter((p) => p.executionStatus === 'watch').length;
+  const skip = plans.filter((p) => p.executionStatus === 'skip').length;
+  const pool = signalPoolView && Array.isArray(signalPoolView.pool) ? signalPoolView.pool : [];
+  const poolTxt = pool.map((p) => `${escapeHtml(p.name || p.symbol)}${p.poolStatus === 'active' ? '·追踪中' : '·降级'}`).join(' ｜ ') || '空';
+  return `今日动作：可执行 ${exec} · 观察 ${watch} · 跳过 ${skip} ｜ 信号池：${poolTxt}`;
+}
+
+function dataBadges(strategyPlan, signalPoolView, costAnchorAvailable) {
+  const badges = [];
+  const n = strategyPlan && Array.isArray(strategyPlan.plans) ? strategyPlan.plans.length : 0;
+  badges.push(n > 0 ? `策略 ${n}` : '策略 缺失');
+  const poolN = signalPoolView && Array.isArray(signalPoolView.pool) ? signalPoolView.pool.length : 0;
+  badges.push(signalPoolView ? `信号池 ${poolN}` : '信号池 缺失');
+  badges.push(costAnchorAvailable ? '成本锚 ✓' : '成本锚 —');
+  return badges.map((b) => `<span class="data-badge">${escapeHtml(b)}</span>`).join('');
+}
+
+function screeningBlock(reportModel) {
+  const scr = reportModel && reportModel.screening;
+  const top10 = scr && Array.isArray(scr.top10) ? scr.top10 : [];
+  const decisions = scr && Array.isArray(scr.decisions) ? scr.decisions : [];
+  const dirLabel = (d) => d === 'up' ? '↑' : d === 'down' ? '↓' : '→';
+  const topRows = top10.map((t) => `<tr><td>${t.rank}</td><td>${escapeHtml(t.symbol)} ${escapeHtml(t.name)}</td><td>${fmt(t.score, 2)}</td><td>${t.indicators && t.indicators.change5d != null ? `${t.indicators.change5d >= 0 ? '+' : ''}${fmt(t.indicators.change5d)}%` : '—'}</td><td>${dirLabel(t.trend && t.trend.direction)}</td></tr>`).join('');
+  const decRows = decisions.slice(0, 8).map((d) => `<tr><td>${escapeHtml(d.symbol)} ${escapeHtml(d.name)}</td><td>${d.decision === 'KEEP' ? '✅ KEEP' : '❌ DROP'}</td><td>${escapeHtml(d.initialDirection || '—')}</td><td>${escapeHtml(d.reason || '—')}</td></tr>`).join('');
+  return `<details class="screening"><summary>本期筛选（Top${top10.length} 异动 + 过滤决策）</summary><div class="screening-body">
+    <div class="screening-grid">
+      <div><h4>Top ${top10.length} 异动</h4><table class="mini"><tr><th>#</th><th>品种</th><th>score</th><th>5日</th><th>方向</th></tr>${topRows}</table></div>
+      <div><h4>过滤决策</h4><table class="mini"><tr><th>品种</th><th>决定</th><th>方向</th><th>理由</th></tr>${decRows}</table></div>
+    </div>
+  </div></details>`;
+}
+
+function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, mainSeries, signalDate, strategyPlan, costAnchorAvailable = false }) {
   const opps = reportModel && Array.isArray(reportModel.opportunities) ? reportModel.opportunities : [];
   const pool = signalPoolView && Array.isArray(signalPoolView.pool) ? signalPoolView.pool : [];
   const recentClosed = signalPoolView && Array.isArray(signalPoolView.recentClosed) ? signalPoolView.recentClosed : [];
@@ -452,6 +528,30 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   main { max-width: 1320px; margin: 0 auto; padding: 18px 22px 48px; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
+
+  /* 市场环境条 / 今日速览 */
+  .market-strip { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+  .market-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+  .market-label { font-weight: 600; color: var(--muted); min-width: 36px; }
+  .sector-badge { font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); background: #f7f8fa; }
+  .sector-badge.up { background: #fdeaea; color: #b91c1c; }
+  .sector-badge.down { background: #e7f6ec; color: #047857; }
+  .sector-badge.flat { background: #f1f3f5; color: #6b7280; }
+  .market-fresh { font-size: 12px; color: var(--muted); }
+  .action-strip { font-size: 13px; background: #eef4ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 8px 14px; margin-bottom: 10px; }
+  .data-badge { font-size: 11px; padding: 1px 6px; border-radius: 999px; background: #f1f3f5; color: var(--muted); margin-left: 4px; }
+  .screening { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); margin-top: 14px; }
+  .screening > summary { cursor: pointer; padding: 10px 16px; font-weight: 600; list-style: none; }
+  .screening > summary::-webkit-details-marker { display: none; }
+  .screening > summary::before { content: "▸"; color: var(--muted); margin-right: 6px; }
+  .screening[open] > summary::before { content: "▾"; }
+  .screening-body { padding: 4px 16px 14px; border-top: 1px solid var(--border); }
+  .screening-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 900px) { .screening-grid { grid-template-columns: 1fr; } }
+  table.mini { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.mini th, table.mini td { padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: left; }
+  table.mini th { color: var(--muted); font-weight: 500; background: #f7f8fa; }
+  #history-search { padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; width: 240px; }
 
   /* KPI 统计卡 */
   .summary-bar { display: flex; gap: 12px; flex-wrap: wrap; margin: 4px 0 18px; }
@@ -631,7 +731,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
     .opp-nav { width: 100%; flex-direction: row; flex-wrap: wrap; position: static; }
     .opp-nav-item { flex-direction: row; align-items: center; }
   }
-  @media print { header { position: static; } .tab { display: none; } .tab-panel { display: block !important; } .pagination { display: none; } }
+  @media print { header { position: static; } .tab { display: none; } .tab-panel { display: block !important; } .pagination { display: none; } details:not([open]) > *:not(summary) { display: block !important; } details > summary::before { content: ""; } }
 </style>
 </head>
 <body>
@@ -643,11 +743,13 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
       <button class="tab" data-tab="pool">📊 信号池</button>
       <button class="tab" data-tab="history">🗂 历史报告</button>
     </nav>
-    <div class="run-meta">${escapeHtml(runId)}${signalDate ? ` · 信号日 ${escapeHtml(signalDate)}` : ''}</div>
+    <div class="run-meta">${escapeHtml(runId)}${signalDate ? ` · 信号日 ${escapeHtml(signalDate)}` : ''} · ${dataBadges(strategyPlan, signalPoolView, costAnchorAvailable)}</div>
   </div>
 </header>
 <main>
   <section id="tab-opportunities" class="tab-panel active">
+    <div class="market-strip"><div class="market-row"><span class="market-label">宏观</span>${macroStrip(reportModel)}</div><div class="market-row"><span class="market-label">板块</span>${sectorBadges(reportModel)}</div><div class="market-row market-fresh">${freshnessLine(reportModel)}</div></div>
+    <div class="action-strip">${actionStrip(strategyPlan, signalPoolView)}</div>
     <div class="summary-bar">
       ${statCard('📈', '本期机会', opps.length, 'blue')}
       ${statCard('↑', '看多', opps.filter((o) => o.thesis && o.thesis.finalDirection === 'bullish').length, 'red')}
@@ -655,6 +757,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
       ${statCard('⚠️', '信号池内', pool.length, 'gray')}
     </div>
     ${oppHtml}
+    ${screeningBlock(reportModel)}
   </section>
 
   <section id="tab-pool" class="tab-panel">
@@ -680,7 +783,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
 
   <section id="tab-history" class="tab-panel">
     <h2>历史报告索引</h2>
-    <div class="history-toolbar"><span>共 ${history.length} 份</span></div>
+    <div class="history-toolbar"><span>共 ${history.length} 份</span><input id="history-search" type="search" placeholder="搜索 runId / 日期 / 品种"></div>
     ${histRows ? `<div class="table-wrap"><table class="index"><thead><tr><th>runId</th><th>日期</th><th>机会品种</th><th></th></tr></thead><tbody id="history-rows">${histRows}</tbody></table></div>` : '<p class="muted">暂无历史报告。</p>'}
     ${pagination}
   </section>
@@ -713,17 +816,25 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   // 历史报告分页：每页 10 份
   const pageSize = 10;
   const tbody = document.getElementById('history-rows');
+  const searchInput = document.getElementById('history-search');
   if (tbody) {
-    const rows = Array.from(tbody.rows);
+    const allRows = Array.from(tbody.rows);
     const pageBtns = document.querySelectorAll('.page-btn');
     const pageCur = document.getElementById('page-cur');
+    function filteredRows() {
+      const q = (searchInput && searchInput.value ? searchInput.value : '').trim().toLowerCase();
+      if (!q) return allRows;
+      return allRows.filter((tr) => tr.textContent.toLowerCase().includes(q));
+    }
     function showPage(p) {
+      const rows = filteredRows();
       const pages = Math.max(1, Math.ceil(rows.length / pageSize));
       if (p < 1) p = 1;
       if (p > pages) p = pages;
+      allRows.forEach((tr) => { tr.classList.add('hidden'); });
       rows.forEach((tr, i) => {
         const start = (p - 1) * pageSize;
-        tr.classList.toggle('hidden', i < start || i >= start + pageSize);
+        if (i >= start && i < start + pageSize) tr.classList.remove('hidden');
       });
       pageBtns.forEach((b) => {
         const bp = b.dataset.page;
@@ -737,7 +848,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
     pageBtns.forEach((b) => {
       b.addEventListener('click', () => {
         const bp = b.dataset.page;
-        const pages = Math.max(1, Math.ceil(rows.length / pageSize));
+        const pages = Math.max(1, Math.ceil(filteredRows().length / pageSize));
         let p = Number(window._page) || 1;
         if (bp === 'prev') p = p - 1;
         else if (bp === 'next') p = p + 1;
@@ -745,6 +856,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
         showPage(p);
       });
     });
+    if (searchInput) searchInput.addEventListener('input', () => showPage(1));
     showPage(1);
   }
 </script>
@@ -771,9 +883,10 @@ function main() {
   const raw = readJSON(path.join(dir, 'raw.json'));
   const strategyPlan = readJSON(path.join(dir, 'strategy-plan.json'));
   const mainSeries = readJSON(path.join(dir, 'analyze', 'main-series.json'));
+  const costAnchorAvailable = fs.existsSync(path.join(dir, 'cost-anchor.json'));
   const signalDate = (raw && raw.meta && raw.meta.cacheInfo && raw.meta.cacheInfo.latestBarDate) || latestDateFromSeries(mainSeries) || null;
   const history = historyIndex(runId, path.join(runtimeRoot, 'runs'));
-  const html = renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, mainSeries, signalDate, strategyPlan });
+  const html = renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, mainSeries, signalDate, strategyPlan, costAnchorAvailable });
   const outPath = path.join(runtimeRoot, 'dashboard.html');
   fs.writeFileSync(outPath, html, 'utf8');
   console.log(`dashboard.html: ${outPath}`);

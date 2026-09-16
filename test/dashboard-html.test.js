@@ -182,6 +182,21 @@ describe('dashboard-html 三 Tab 看板', () => {
     assert.ok(html.includes('oppNavItems'));
   });
 
+  it('看板含市场环境条/今日速览/筛选块/搜索框/数据徽章', () => {
+    const reportModel = makeReportModel();
+    reportModel.macro = { indicators: { SC0: { status: 'fresh', value: 827, change5d: 11.53 }, DXY: { status: 'fresh', value: 99.6, change5d: 0.87 } } };
+    reportModel.sector = { sectors: { energy_chemical: { label: '能化', direction: 'up', breadth1d: 90.9 } } };
+    reportModel.freshness = { latestBarDate: '2026-09-16', totalSymbols: 59, withLatestBar: 59 };
+    reportModel.screening = { top10: [{ rank: 1, symbol: 'CS0', name: '淀粉', score: 0.985, indicators: { change5d: -3.57 }, trend: { direction: 'down' } }], decisions: [{ symbol: 'EG0', name: '乙二醇', decision: 'KEEP', initialDirection: 'bullish', reason: '测试' }] };
+    const html = renderDashboardHtml({ runId: 'r1', reportModel, signalPoolView: makeSignalPoolView(), history: [{ runId: 'r1', date: '2026-09-16', oppSymbols: 'PP0', href: 'runs/r1/report.html' }], strategyPlan: { meta: { runId: 'r1' }, plans: [] }, costAnchorAvailable: true });
+    assert.ok(html.includes('market-strip'));
+    assert.ok(html.includes('action-strip'));
+    assert.ok(html.includes('本期筛选'));
+    assert.ok(html.includes('id="history-search"'));
+    assert.ok(html.includes('数据徽章'.length ? '策略' : ''));
+    assert.ok(html.includes('成本锚 ✓'));
+  });
+
   it('历史报告分页控件与行渲染', () => {
     const history = Array.from({ length: 22 }, (_, i) => ({
       runId: `run-${String(i).padStart(2, '0')}`, date: '2026-09-15', oppSymbols: 'PP0', href: `runs/run-${String(i).padStart(2, '0')}/report.html`
