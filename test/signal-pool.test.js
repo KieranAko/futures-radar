@@ -308,6 +308,52 @@ describe('signal-pool 信号池核心生命周期', () => {
     }
   });
 
+  it('持仓中 + 连续3期降级 → 不出池，信号保持 active', () => {
+    const root = tmpRoot();
+    try {
+      const raw = makeRaw('PP0',
+        ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28'],
+        [98, 99, 100, 101, 102], [100, 101, 103, 104, 105], [97, 98, 99, 100, 101], [100, 100, 100, 101, 103]);
+      const plan = makePlan('run-1', 'PP0', { riskAssessment: { atr5: 5, maxHoldingDays: 5, regimeGrade: 'normal', regimeDirection: 'stable' } });
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: { meta: { runId: 'run-2', signalDate: '2026-08-27', inputsSha: 'x' }, plans: [] } });
+      for (let i = 3; i <= 5; i++) {
+        updateSignalPool({ runId: `run-${i}`, raw, rootOverride: root, plan: makePlan(`run-${i}`, 'PP0', { executionStatus: 'skip' }) });
+      }
+      const ledger = loadLedger(root);
+      const sig = loadSignal(ledger.signals[0].signalId, root);
+      assert.equal(sig.poolStatus, 'active');
+      assert.equal(sig.closeReason, null);
+      assert.equal(sig.consecutiveNonExecutable, 3);
+      assert.equal(sig.versions[0].verification.status, 'holding');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('同一 run 重复执行：退出判定完全幂等，不误触发 faded', () => {
+    const root = tmpRoot();
+    try {
+      const raw = makeRaw('PP0',
+        ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28'],
+        [98, 99, 100, 101, 102], [100, 101, 103, 104, 105], [97, 98, 99, 100, 101], [100, 100, 100, 101, 103]);
+      const plan = makePlan('run-1', 'PP0', { riskAssessment: { atr5: 5, maxHoldingDays: 5, regimeGrade: 'normal', regimeDirection: 'stable' } });
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: { meta: { runId: 'run-2', signalDate: '2026-08-27', inputsSha: 'x' }, plans: [] } });
+      for (let i = 3; i <= 5; i++) {
+        updateSignalPool({ runId: `run-${i}`, raw, rootOverride: root, plan: makePlan(`run-${i}`, 'PP0', { executionStatus: 'skip' }) });
+      }
+      updateSignalPool({ runId: 'run-5', raw, rootOverride: root, plan: makePlan('run-5', 'PP0', { executionStatus: 'skip' }) });
+      const ledger = loadLedger(root);
+      const sig = loadSignal(ledger.signals[0].signalId, root);
+      assert.equal(sig.poolStatus, 'active');
+      assert.equal(sig.closeReason, null);
+      assert.equal(sig.observations.filter((o) => o.runId === 'run-5').length, 1);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('幂等：同一 run 重复执行不重复追加版本', () => {
     const root = tmpRoot();
     try {

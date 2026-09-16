@@ -332,6 +332,23 @@ function hasPendingExecutable(signal) {
   );
 }
 
+function hasOpenPosition(signal) {
+  return executableVersionsOf(signal).some((v) =>
+    ['holding', 'triggered_pending_entry'].includes(v.verification.status)
+  );
+}
+
+function positionStatusOf(signal) {
+  const v = anchorVersionOf(signal);
+  if (!v) return 'none';
+  const st = v.verification.status;
+  if (st === 'holding') return 'holding';
+  if (st === 'triggered_pending_entry') return 'triggered';
+  if (st === 'verified') return v.verification.lastResult ? v.verification.lastResult.exitType || 'exited' : 'exited';
+  if (st === 'pending_data' || st === 'pending_verification') return 'pending';
+  return 'none';
+}
+
 function anchorVersionOf(signal) {
   const execs = executableVersionsOf(signal);
   return execs[execs.length - 1] || null;
@@ -364,6 +381,7 @@ function anchorSummaryOf(signal) {
     signalDate: v.signalDate,
     executionStatus: v.executionStatus,
     status,
+    positionStatus: positionStatusOf(signal),
     triggerLevel: v.entry && v.entry.triggerLevel != null ? v.entry.triggerLevel : null,
     triggerDate: r ? r.triggerDate : null,
     entryDate: r ? r.entryDate : null,
@@ -388,6 +406,7 @@ function appendObservation(signal, runId, date, events) {
     existing.close = signal.latestClose;
     existing.fulfillProgress = signal.fulfillProgress;
     existing.invalidationDistance = signal.invalidationDistance;
+    existing.positionStatus = positionStatusOf(signal);
     existing.events = Array.isArray(events) ? [...new Set(events)] : [];
     return;
   }
@@ -397,6 +416,7 @@ function appendObservation(signal, runId, date, events) {
     close: signal.latestClose,
     fulfillProgress: signal.fulfillProgress,
     invalidationDistance: signal.invalidationDistance,
+    positionStatus: positionStatusOf(signal),
     events: Array.isArray(events) ? [...new Set(events)] : []
   });
 }
@@ -699,6 +719,8 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
   // 2) 追踪：验证 + 价格追踪 + 两态出池判定（兑现 / 失效）
   const updatedSignalIds = [];
   for (const sig of activeBySymbol.values()) {
+    // 幂等：同一 run 已处理过该信号（有 observation）则跳过追踪/退出判定
+    if (Array.isArray(sig.observations) && sig.observations.some((o) => o.runId === runId)) continue;
     const events = [];
     // 版本验证（收集关键事件）
     for (const version of sig.versions) {
@@ -722,6 +744,8 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
     if (track.expanded) events.push('price_new_high');
     sig.fulfillProgress = fulfillProgressOf(sig);
     sig.invalidationDistance = invalidationDistanceOf(sig);
+    // 持仓优先：锚定版本处于持仓/待入场时，信号保持 active，降级计数暂停生效
+    if (hasOpenPosition(sig)) sig.poolStatus = 'active';
     // 出池判定：先兑现，后失效（flipped 已在匹配阶段处理）
     if (sig.poolStatus !== 'closed') {
       const progress = sig.fulfillProgress;
@@ -774,6 +798,8 @@ module.exports = {
   fulfillProgressOf,
   hasFulfilled,
   hasPendingExecutable,
+  hasOpenPosition,
+  positionStatusOf,
   anchorVersionOf,
   anchorSummaryOf,
   invalidationDistanceOf,

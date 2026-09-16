@@ -95,13 +95,14 @@ function progressBar(progress) {
 function timelineBlock(sig) {
   const obs = Array.isArray(sig.observations) ? sig.observations.slice(-8) : [];
   if (obs.length === 0) return '';
+  const posLabel = (p) => p === 'holding' ? '持仓中' : p === 'triggered' ? '待入场' : p === 'pending' ? '待验证' : p === 'exited' ? '已离场' : '—';
   const rows = obs.map((o) => {
     const ev = o.events && o.events.length ? o.events.join(' · ') : '—';
     const prog = o.fulfillProgress == null ? '—' : `${Math.round(o.fulfillProgress * 100)}%`;
     const dist = o.invalidationDistance == null ? '—' : `${fmt(o.invalidationDistance)} ATR`;
-    return `<tr><td>${escapeHtml(o.date)}</td><td>${escapeHtml(ev)}</td><td>${prog}</td><td>${dist}</td></tr>`;
+    return `<tr><td>${escapeHtml(o.date)}</td><td>${escapeHtml(ev)}</td><td>${posLabel(o.positionStatus)}</td><td>${prog}</td><td>${dist}</td></tr>`;
   }).join('');
-  return `<h4>时间线</h4><table class="timeline"><tr><th>日期</th><th>事件</th><th>兑现进度</th><th>失效距离</th></tr>${rows}</table>`;
+  return `<h4>时间线</h4><table class="timeline"><tr><th>日期</th><th>事件</th><th>持仓</th><th>兑现进度</th><th>失效距离</th></tr>${rows}</table>`;
 }
 
 function anchorPanel(sig) {
@@ -128,8 +129,14 @@ function anchorPanel(sig) {
   }
   const prog = progressBar(sig.fulfillProgress);
   const dist = sig.invalidationDistance != null ? `${fmt(sig.invalidationDistance)} ATR` : '—';
+  const posNote = a.positionStatus === 'holding'
+    ? '<div class="anchor-sub pos-holding">持仓中 · 降级计数暂停生效</div>'
+    : a.positionStatus === 'triggered'
+      ? '<div class="anchor-sub pos-triggered">已触发，待 T+2 入场 · 降级计数暂停生效</div>'
+      : '';
   return `<div class="anchor-panel">
     <div class="anchor-head">锚定策略：${escapeHtml(a.versionId)} · ${statusBadge(a.executionStatus)} · ${escapeHtml(a.signalDate)}</div>
+    ${posNote}
     ${a.timeStop ? `<div class="anchor-sub">计划离场：${escapeHtml(a.timeStop)}</div>` : ''}
     <div class="anchor-grid">
       <div class="anchor-item"><span>入场价格</span><b>${entryCell}</b></div>
@@ -258,6 +265,8 @@ function renderSignalPoolHtml(view, opts = {}) {
   .anchor-panel { background: #f0f6ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 10px 12px; margin: 8px 0; }
   .anchor-head { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
   .anchor-sub { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .anchor-sub.pos-holding { color: #047857; font-weight: 600; }
+  .anchor-sub.pos-triggered { color: #b45309; font-weight: 600; }
   .anchor-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; }
   .anchor-item span { display: block; font-size: 12px; color: var(--muted); }
   .anchor-item b { font-size: 14px; font-variant-numeric: tabular-nums; }

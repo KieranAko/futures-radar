@@ -163,6 +163,9 @@ function renderFeedbackV2(feedback) {
 // ── 信号池追踪渲染（独立章节：四、信号池追踪，位于交易策略之后）──
 function poolStatusLabel(s) {
   if (s.poolStatus === 'closed') return '已出池';
+  const pos = s.anchor && s.anchor.positionStatus;
+  if (pos === 'holding') return `持仓中（降级 ${s.consecutiveNonExecutable || 0}/3 暂停生效）`;
+  if (pos === 'triggered') return `已触发待入场（降级 ${s.consecutiveNonExecutable || 0}/3 暂停生效）`;
   if (s.poolStatus === 'downgraded') return `降级观察(${s.consecutiveNonExecutable || 0}/3)`;
   return '追踪中';
 }
