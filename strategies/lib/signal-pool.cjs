@@ -348,6 +348,8 @@ function anchorSummaryOf(signal) {
     entryPrice,
     exitPrice,
     exitType,
+    exitDate: entered && r ? r.exitDate : null,
+    timeStop: v.invalidation && v.invalidation.timeStop ? v.invalidation.timeStop : '',
     realizedPnlPts,
     realizedPnlPct,
     direction: signal.direction

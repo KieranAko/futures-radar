@@ -267,11 +267,13 @@ function signalCard(sig, { closed = false } = {}) {
     lines.push(fieldRow('锚定策略', `${escapeHtml(a.versionId)} · ${statusBadge(a.executionStatus)} · ${escapeHtml(a.signalDate)}`));
     const entryCell = a.entryPrice != null ? `${fmt(a.entryPrice)}` : (a.status === 'skipped_gap' ? '—（执行偏离放弃）' : a.status === 'invalidated_not_triggered' ? '—（未触发）' : a.status === 'triggered_pending_entry' ? 'T+2 待定' : '—');
     lines.push(fieldRow('入场价格', entryCell));
+    if (a.timeStop) lines.push(fieldRow('计划离场', escapeHtml(a.timeStop)));
     const latest = sig.priceTracking && sig.priceTracking.latestClose != null ? fmt(sig.priceTracking.latestClose) : '—';
     lines.push(fieldRow('最新价格', latest));
     if (a.entryPrice != null && a.exitPrice != null && a.realizedPnlPts != null) {
       const sign = a.realizedPnlPts >= 0 ? '+' : '';
-      lines.push(fieldRow('盈亏', `${sign}${fmt(a.realizedPnlPts)} 点（${a.realizedPnlPct >= 0 ? '+' : ''}${a.realizedPnlPct}%）· 已实现`));
+      const exitLabel = a.exitType === 'time_exit' ? `时间离场${a.exitDate ? ' ' + a.exitDate : ''}` : a.exitType === 'stopped_out' ? `止损离场${a.exitDate ? ' ' + a.exitDate : ''}` : a.exitType === 'target1_hit' ? `目标1兑现${a.exitDate ? ' ' + a.exitDate : ''}` : '已离场';
+      lines.push(fieldRow('盈亏', `${sign}${fmt(a.realizedPnlPts)} 点（${a.realizedPnlPct >= 0 ? '+' : ''}${a.realizedPnlPct}%）· ${exitLabel}`));
     } else {
       lines.push(fieldRow('盈亏', '—'));
     }

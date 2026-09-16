@@ -575,7 +575,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   @media (max-width: 1080px) { .pool-layout { grid-template-columns: 1fr; } .pool-side { position: static; } }
 
   .anchor-panel { background: #f0f6ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 10px 12px; margin: 8px 0; }
-  .anchor-head { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  .anchor-head { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .anchor-sub { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
   .anchor-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; }
   .anchor-item span { display: block; font-size: 12px; color: var(--muted); }
   .anchor-item b { font-size: 14px; font-variant-numeric: tabular-nums; }

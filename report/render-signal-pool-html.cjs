@@ -110,7 +110,8 @@ function anchorPanel(sig) {
   if (a.entryPrice != null && a.exitPrice != null && a.realizedPnlPts != null) {
     const sign = a.realizedPnlPts >= 0 ? '+' : '';
     const cls = a.realizedPnlPts >= 0 ? 'up' : 'down';
-    pnlCell = `<span class="${cls}">${sign}${fmt(a.realizedPnlPts)} 点（${a.realizedPnlPct >= 0 ? '+' : ''}${a.realizedPnlPct}%）</span> · 已实现`;
+    const exitLabel = a.exitType === 'time_exit' ? `时间离场${a.exitDate ? ' ' + a.exitDate : ''}` : a.exitType === 'stopped_out' ? `止损离场${a.exitDate ? ' ' + a.exitDate : ''}` : a.exitType === 'target1_hit' ? `目标1兑现${a.exitDate ? ' ' + a.exitDate : ''}` : '已离场';
+    pnlCell = `<span class="${cls}">${sign}${fmt(a.realizedPnlPts)} 点（${a.realizedPnlPct >= 0 ? '+' : ''}${a.realizedPnlPct}%）</span> · ${exitLabel}`;
   } else if (a.status === 'verified') {
     pnlCell = '—';
   }
@@ -118,6 +119,7 @@ function anchorPanel(sig) {
   const dist = sig.invalidationDistance != null ? `${fmt(sig.invalidationDistance)} ATR` : '—';
   return `<div class="anchor-panel">
     <div class="anchor-head">锚定策略：${escapeHtml(a.versionId)} · ${statusBadge(a.executionStatus)} · ${escapeHtml(a.signalDate)}</div>
+    ${a.timeStop ? `<div class="anchor-sub">计划离场：${escapeHtml(a.timeStop)}</div>` : ''}
     <div class="anchor-grid">
       <div class="anchor-item"><span>入场价格</span><b>${entryCell}</b></div>
       <div class="anchor-item"><span>最新价格</span><b>${latest}</b></div>
@@ -243,7 +245,8 @@ function renderSignalPoolHtml(view, opts = {}) {
   .card.closed > summary { opacity: .75; }
   .card-body { padding: 4px 16px 14px; border-top: 1px solid var(--border); }
   .anchor-panel { background: #f0f6ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 10px 12px; margin: 8px 0; }
-  .anchor-head { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  .anchor-head { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .anchor-sub { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
   .anchor-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; }
   .anchor-item span { display: block; font-size: 12px; color: var(--muted); }
   .anchor-item b { font-size: 14px; font-variant-numeric: tabular-nums; }
