@@ -276,9 +276,17 @@ function executableVersionsOf(signal) {
   return signal.versions.filter((v) => v.executionStatus === 'executable');
 }
 
-function versionFulfillProgress(version, direction) {
+function versionFulfillProgress(version, direction, latestClose) {
   const r = version.verification && version.verification.lastResult;
   const status = version.verification && version.verification.status;
+  if (status === 'holding' && r && r.entryPrice != null && latestClose != null) {
+    const target = parseTarget1Level(version.targets && version.targets.t1);
+    if (target == null) return 0;
+    const denom = direction === 'bullish' ? target - r.entryPrice : r.entryPrice - target;
+    const gain = direction === 'bullish' ? latestClose - r.entryPrice : r.entryPrice - latestClose;
+    if (denom <= 0) return 0;
+    return Math.max(0, Math.min(1, Math.round((gain / denom) * 100) / 100));
+  }
   if (status === 'verified') {
     if (r && r.exitType === 'target1_hit') return 1;
     if (r && r.exitType === 'stopped_out') return 0;
@@ -300,7 +308,7 @@ function versionFulfillProgress(version, direction) {
 function fulfillProgressOf(signal) {
   const execs = executableVersionsOf(signal);
   if (execs.length === 0) return 0;
-  return Math.max(...execs.map((v) => versionFulfillProgress(v, signal.direction)));
+  return Math.max(...execs.map((v) => versionFulfillProgress(v, signal.direction, signal.latestClose)));
 }
 
 function hasFulfilled(signal) {
@@ -328,16 +336,22 @@ function anchorSummaryOf(signal) {
   if (!v) return null;
   const r = v.verification && v.verification.lastResult;
   const status = v.verification && v.verification.status;
-  const entered = status === 'verified' && r && r.entryPrice != null;
+  const entered = (status === 'verified' || status === 'holding') && r && r.entryPrice != null;
   const entryPrice = entered ? r.entryPrice : null;
-  const exitPrice = entered ? r.exitPrice : null;
-  const exitType = entered ? r.exitType : null;
+  const exitPrice = status === 'verified' ? r.exitPrice : null;
+  const exitType = status === 'verified' ? r.exitType : null;
   const sign = signal.direction === 'bearish' ? -1 : 1;
   let realizedPnlPts = null;
   let realizedPnlPct = null;
-  if (entryPrice != null && exitPrice != null) {
+  if (status === 'verified' && entryPrice != null && exitPrice != null) {
     realizedPnlPts = Math.round((exitPrice - entryPrice) * sign * 100) / 100;
     realizedPnlPct = entryPrice !== 0 ? Math.round((realizedPnlPts / entryPrice) * 10000) / 100 : null;
+  }
+  let floatingPnlPts = null;
+  let floatingPnlPct = null;
+  if (status === 'holding' && entryPrice != null && signal.latestClose != null) {
+    floatingPnlPts = Math.round((signal.latestClose - entryPrice) * sign * 100) / 100;
+    floatingPnlPct = entryPrice !== 0 ? Math.round((floatingPnlPts / entryPrice) * 10000) / 100 : null;
   }
   return {
     versionId: v.versionId,
@@ -345,13 +359,17 @@ function anchorSummaryOf(signal) {
     executionStatus: v.executionStatus,
     status,
     triggerLevel: v.entry && v.entry.triggerLevel != null ? v.entry.triggerLevel : null,
+    triggerDate: r ? r.triggerDate : null,
+    entryDate: r ? r.entryDate : null,
     entryPrice,
     exitPrice,
     exitType,
-    exitDate: entered && r ? r.exitDate : null,
+    exitDate: status === 'verified' && r ? r.exitDate : null,
     timeStop: v.invalidation && v.invalidation.timeStop ? v.invalidation.timeStop : '',
     realizedPnlPts,
     realizedPnlPct,
+    floatingPnlPts,
+    floatingPnlPct,
     direction: signal.direction
   };
 }

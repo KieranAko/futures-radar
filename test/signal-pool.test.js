@@ -246,13 +246,36 @@ describe('signal-pool 信号池核心生命周期', () => {
     }
   });
 
+  it('T+2 已入场但数据未到 T+5 → holding（持仓中），不提前时间离场', () => {
+    const root = tmpRoot();
+    try {
+      const raw = makeRaw('PP0',
+        ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28'],
+        [98, 99, 100, 101, 102], [100, 101, 103, 104, 105], [97, 98, 99, 100, 101], [100, 100, 100, 101, 103]);
+      const plan = makePlan('run-1', 'PP0', { riskAssessment: { atr5: 5, maxHoldingDays: 5, regimeGrade: 'normal', regimeDirection: 'stable' } });
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: { meta: { runId: 'run-2', signalDate: '2026-08-27', inputsSha: 'x' }, plans: [] } });
+      const ledger = loadLedger(root);
+      const sig = loadSignal(ledger.signals[0].signalId, root);
+      const v1 = sig.versions[0];
+      assert.equal(v1.verification.status, 'holding');
+      assert.equal(v1.verification.terminal, false);
+      assert.equal(v1.verification.lastResult.entryPrice, 102);
+      assert.equal(v1.verification.lastResult.triggerDate, '2026-08-27');
+      assert.equal(v1.verification.lastResult.entryDate, '2026-08-28');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('价格偏移不自动兑现：executable 版本未命中目标1则继续追踪', () => {
     const root = tmpRoot();
     try {
       const raw = makeRaw('PP0',
         ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28'],
         [98, 99, 100, 101, 102], [100, 101, 108, 108, 106], [97, 98, 99, 100, 100], [100, 100, 100, 101, 103]);
-      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
+      const plan = makePlan('run-1', 'PP0', { riskAssessment: { atr5: 5, maxHoldingDays: 5, regimeGrade: 'normal', regimeDirection: 'stable' } });
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
       updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: { meta: { runId: 'run-2', signalDate: '2026-08-27', inputsSha: 'x' }, plans: [] } });
       const ledger = loadLedger(root);
       const sig = loadSignal(ledger.signals[0].signalId, root);
@@ -270,7 +293,8 @@ describe('signal-pool 信号池核心生命周期', () => {
       const raw = makeRaw('PP0',
         ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28'],
         [98, 99, 100, 101, 102], [100, 101, 106, 107, 112], [97, 98, 99, 100, 100], [100, 100, 100, 101, 111]);
-      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
+      const plan = makePlan('run-1', 'PP0', { riskAssessment: { atr5: 5, maxHoldingDays: 5, regimeGrade: 'normal', regimeDirection: 'stable' } });
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
       updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: { meta: { runId: 'run-2', signalDate: '2026-08-27', inputsSha: 'x' }, plans: [] } });
       const ledger = loadLedger(root);
       const sig = loadSignal(ledger.signals[0].signalId, root);

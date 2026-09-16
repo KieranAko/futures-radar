@@ -198,6 +198,7 @@ function signalVerificationLabel(sig) {
   if (status === 'unverifiable') return '不可验证';
   if (status === 'pending_data') return '待数据';
   if (status === 'triggered_pending_entry') return '已触发待入场';
+  if (status === 'holding') return '持仓中';
   if (status === 'pending_verification') return '待验证';
   return status || '—';
 }
@@ -217,6 +218,7 @@ function signalVersionVerificationLabel(v) {
   if (st === 'unverifiable') return '不可验证';
   if (st === 'pending_data') return '待数据';
   if (st === 'triggered_pending_entry') return '已触发待入场';
+  if (st === 'holding') return '持仓中';
   return '待验证';
 }
 
@@ -234,9 +236,10 @@ function versionExitDetail(v) {
     const exit = r.exitType === 'stopped_out' ? '止损离场' : r.exitType === 'target1_hit' ? '目标1兑现' : '时间离场';
     return `${exit}${r.exitDate ? ' ' + r.exitDate : ''}${r.exitPrice != null ? ' @ ' + fmt(r.exitPrice) : ''}${r.entryPrice != null ? '（入场 ' + fmt(r.entryPrice) + '）' : ''}`;
   }
-  if (st === 'skipped_gap' && r) return `执行偏离放弃${r.entryPrice != null ? '（触发价 ' + fmt(r.entryPrice) + '）' : ''}`;
-  if (st === 'invalidated_not_triggered') return '未触发';
-  if (st === 'triggered_pending_entry') return '已触发待入场';
+  if (st === 'skipped_gap' && r) return `T+1 触发（${r.triggerDate || '—'}）→ T+2 开盘偏离超阈值放弃（${r.entryDate || '—'} 开盘 ${r.entryPrice != null ? fmt(r.entryPrice) : '—'}）`;
+  if (st === 'holding' && r) return `持仓中（${r.entryDate || '—'} 入场 ${r.entryPrice != null ? fmt(r.entryPrice) : '—'}）`;
+  if (st === 'invalidated_not_triggered' && r) return `T+1 未触发（${r.triggerDate || '—'}）`;
+  if (st === 'triggered_pending_entry' && r) return `T+1 已触发（${r.triggerDate || '—'}），待 T+2 开盘`;
   return '';
 }
 
@@ -284,7 +287,14 @@ function signalCard(sig, { closed = false } = {}) {
     if (a.timeStop) lines.push(fieldRow('计划离场', escapeHtml(a.timeStop)));
     const latest = sig.priceTracking && sig.priceTracking.latestClose != null ? fmt(sig.priceTracking.latestClose) : '—';
     lines.push(fieldRow('最新价格', latest));
-    if (a.entryPrice != null && a.exitPrice != null && a.realizedPnlPts != null) {
+    if (a.status === 'holding' && a.entryPrice != null) {
+      if (a.floatingPnlPts != null) {
+        const sign = a.floatingPnlPts >= 0 ? '+' : '';
+        lines.push(fieldRow('盈亏', `${sign}${fmt(a.floatingPnlPts)} 点（${a.floatingPnlPct >= 0 ? '+' : ''}${a.floatingPnlPct}%）· 持仓中`));
+      } else {
+        lines.push(fieldRow('盈亏', '持仓中'));
+      }
+    } else if (a.entryPrice != null && a.exitPrice != null && a.realizedPnlPts != null) {
       const sign = a.realizedPnlPts >= 0 ? '+' : '';
       const exitLabel = a.exitType === 'time_exit' ? `时间离场${a.exitDate ? ' ' + a.exitDate : ''}` : a.exitType === 'stopped_out' ? `止损离场${a.exitDate ? ' ' + a.exitDate : ''}` : a.exitType === 'target1_hit' ? `目标1兑现${a.exitDate ? ' ' + a.exitDate : ''}` : '已离场';
       lines.push(fieldRow('盈亏', `${sign}${fmt(a.realizedPnlPts)} 点（${a.realizedPnlPct >= 0 ? '+' : ''}${a.realizedPnlPct}%）· ${exitLabel}`));

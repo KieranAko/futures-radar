@@ -110,7 +110,15 @@ function anchorPanel(sig) {
   const entryCell = a.entryPrice != null ? `${fmt(a.entryPrice)}` : (a.status === 'skipped_gap' ? '—（执行偏离放弃）' : a.status === 'invalidated_not_triggered' ? '—（未触发）' : a.status === 'triggered_pending_entry' ? 'T+2 待定' : '—');
   const latest = sig.priceTracking && sig.priceTracking.latestClose != null ? fmt(sig.priceTracking.latestClose) : '—';
   let pnlCell = '—';
-  if (a.entryPrice != null && a.exitPrice != null && a.realizedPnlPts != null) {
+  if (a.status === 'holding' && a.entryPrice != null) {
+    if (a.floatingPnlPts != null) {
+      const sign = a.floatingPnlPts >= 0 ? '+' : '';
+      const cls = a.floatingPnlPts >= 0 ? 'up' : 'down';
+      pnlCell = `<span class="${cls}">${sign}${fmt(a.floatingPnlPts)} 点（${a.floatingPnlPct >= 0 ? '+' : ''}${a.floatingPnlPct}%）</span> · 持仓中`;
+    } else {
+      pnlCell = '持仓中';
+    }
+  } else if (a.entryPrice != null && a.exitPrice != null && a.realizedPnlPts != null) {
     const sign = a.realizedPnlPts >= 0 ? '+' : '';
     const cls = a.realizedPnlPts >= 0 ? 'up' : 'down';
     const exitLabel = a.exitType === 'time_exit' ? `时间离场${a.exitDate ? ' ' + a.exitDate : ''}` : a.exitType === 'stopped_out' ? `止损离场${a.exitDate ? ' ' + a.exitDate : ''}` : a.exitType === 'target1_hit' ? `目标1兑现${a.exitDate ? ' ' + a.exitDate : ''}` : '已离场';

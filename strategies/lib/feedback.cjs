@@ -28,7 +28,7 @@ const FEEDBACK_SCHEMA_V2 = 'futures-radar-strategy-feedback/2';
 const STATE_SCHEMA = 'futures-radar-strategy-verification-state/1';
 
 const TERMINAL_STATUSES = new Set(['verified', 'invalidated_not_triggered', 'skipped_gap', 'unverifiable', 'confirmed']);
-const NON_TERMINAL_STATUSES = ['pending_verification', 'pending_data', 'triggered_pending_entry'];
+const NON_TERMINAL_STATUSES = ['pending_verification', 'pending_data', 'triggered_pending_entry', 'holding'];
 
 function dirsFor(root) {
   const base = root || FEEDBACK_ROOT;
@@ -431,7 +431,7 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
   if (!triggered) {
     return {
       recordId: record.recordId, status: 'invalidated_not_triggered',
-      signalDate: record.signalDate, verifyDate: t1.date, verificationSeries: series.source,
+      signalDate: record.signalDate, verifyDate: t1.date, triggerDate: t1.date, verificationSeries: series.source,
       attribution: [{ code: 'trigger_miss', detail: `T+1 未触发入场（${record.direction} 触发价 ${triggerLevel}），计划按契约作废` }]
     };
   }
@@ -439,7 +439,7 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
   if (tIdx + 2 >= bars.length) {
     return {
       recordId: record.recordId, status: 'triggered_pending_entry',
-      signalDate: record.signalDate, verifyDate: t1.date, verificationSeries: series.source
+      signalDate: record.signalDate, verifyDate: t1.date, triggerDate: t1.date, verificationSeries: series.source
     };
   }
   const entryBar = bars[tIdx + 2];
@@ -454,15 +454,15 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
   if (gapThreshold && gapPts > gapThreshold) {
     return {
       recordId: record.recordId, status: 'skipped_gap', signalDate: record.signalDate,
-      verifyDate: entryBar.date, entryPrice, verificationSeries: series.source,
-      attribution: [{ code: 'gap_skip', detail: `执行偏离 ${gapPts.toFixed(1)} > ${gapThreshold.toFixed(1)}（计划内置阈值），放弃执行` }]
+      verifyDate: entryBar.date, triggerDate: t1.date, entryDate: entryBar.date, entryPrice, verificationSeries: series.source,
+      attribution: [{ code: 'gap_skip', detail: `T+1 触发（${t1.date}）后 T+2 开盘执行偏离 ${gapPts.toFixed(1)} > ${gapThreshold.toFixed(1)}（计划内置阈值），放弃执行` }]
     };
   }
 
-  const maxEnd = Math.min(bars.length - 1, tIdx + 2 + record.maxHoldingDays);
-  let exit = null;
-  let exitType = 'time_exit';
-  let exitDate = null;
+  // T+5 计划离场：maxHoldingDays 从信号日算起（与 timeStop 契约一致），不是入场后再持 N 天
+  const maxHoldingDays = Number.isFinite(Number(record.maxHoldingDays)) ? Number(record.maxHoldingDays) : 5;
+  const timeExitIdx = Math.max(tIdx + 2, tIdx + maxHoldingDays);
+  const maxEnd = Math.min(bars.length - 1, timeExitIdx);
   const stop = record.stopPrice;
   const sign = record.direction === 'bullish' ? 1 : -1;
   let target1 = null;
@@ -476,6 +476,10 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
   } else if (stop != null) {
     target1 = entryPrice + sign * 2 * (entryPrice - stop);
   }
+
+  let exit = null;
+  let exitType = null;
+  let exitDate = null;
   for (let i = tIdx + 2; i <= maxEnd; i++) {
     const b = bars[i];
     if (record.direction === 'bullish') {
@@ -485,9 +489,22 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
       if (stop != null && b.high >= stop) { exit = stop; exitType = 'stopped_out'; exitDate = b.date; break; }
       if (target1 != null && b.low <= target1) { exit = target1; exitType = 'target1_hit'; exitDate = b.date; break; }
     }
-    exit = b.close;
-    exitType = 'time_exit';
-    exitDate = b.date;
+  }
+
+  if (!exitType) {
+    // 未触发止损/目标：若 T+5 数据已到 → 时间离场；否则持仓中等待数据
+    if (maxEnd >= timeExitIdx) {
+      exit = bars[timeExitIdx].close;
+      exitType = 'time_exit';
+      exitDate = bars[timeExitIdx].date;
+    } else {
+      return {
+        recordId: record.recordId, status: 'holding', signalDate: record.signalDate,
+        verifyDate: bars[maxEnd].date, triggerDate: t1.date, entryDate: entryBar.date, entryPrice,
+        latestClose: bars[maxEnd].close, verificationSeries: series.source,
+        attribution: [{ code: 'holding', detail: `已入场（${entryBar.date} 开盘 ${entryPrice}），等待 T+${maxHoldingDays} 计划离场` }]
+      };
+    }
   }
 
   const directionCorrect = record.direction === 'bullish' ? exit > entryPrice : exit < entryPrice;
