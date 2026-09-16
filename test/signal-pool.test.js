@@ -246,6 +246,43 @@ describe('signal-pool 信号池核心生命周期', () => {
     }
   });
 
+  it('价格偏移不自动兑现：executable 版本未命中目标1则继续追踪', () => {
+    const root = tmpRoot();
+    try {
+      const raw = makeRaw('PP0',
+        ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28'],
+        [98, 99, 100, 101, 102], [100, 101, 108, 108, 106], [97, 98, 99, 100, 100], [100, 100, 100, 101, 103]);
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: { meta: { runId: 'run-2', signalDate: '2026-08-27', inputsSha: 'x' }, plans: [] } });
+      const ledger = loadLedger(root);
+      const sig = loadSignal(ledger.signals[0].signalId, root);
+      assert.notEqual(sig.poolStatus, 'closed');
+      assert.equal(sig.closeReason, null);
+      assert.ok(sig.fulfillProgress < 0.2);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('executable 版本命中目标1 → 信号兑现出池', () => {
+    const root = tmpRoot();
+    try {
+      const raw = makeRaw('PP0',
+        ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28'],
+        [98, 99, 100, 101, 102], [100, 101, 106, 107, 112], [97, 98, 99, 100, 100], [100, 100, 100, 101, 111]);
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: { meta: { runId: 'run-2', signalDate: '2026-08-27', inputsSha: 'x' }, plans: [] } });
+      const ledger = loadLedger(root);
+      const sig = loadSignal(ledger.signals[0].signalId, root);
+      assert.equal(sig.poolStatus, 'closed');
+      assert.equal(sig.closeReason, 'fulfilled');
+      assert.equal(sig.verdict, 'fulfilled');
+      assert.equal(sig.fulfillProgress, 1);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('幂等：同一 run 重复执行不重复追加版本', () => {
     const root = tmpRoot();
     try {

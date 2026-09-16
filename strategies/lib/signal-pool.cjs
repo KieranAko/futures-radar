@@ -254,10 +254,7 @@ function closeSignal(signal, reason, verdict = null) {
 }
 
 function computeVerdict(signal) {
-  const atr = signal.atr5AtCreation;
-  const fav = signal.maxFavorablePts == null ? null : Math.abs(signal.maxFavorablePts);
-  if (fav == null || atr == null) return 'invalidated';
-  return fav >= atr ? 'fulfilled' : 'invalidated';
+  return hasFulfilled(signal) ? 'fulfilled' : 'invalidated';
 }
 
 function currentVersionOf(signal) {
@@ -275,11 +272,41 @@ function invalidationLevelOf(signal) {
   return null;
 }
 
+function executableVersionsOf(signal) {
+  return signal.versions.filter((v) => v.executionStatus === 'executable');
+}
+
+function versionFulfillProgress(version, direction) {
+  const r = version.verification && version.verification.lastResult;
+  const status = version.verification && version.verification.status;
+  if (status === 'verified') {
+    if (r && r.exitType === 'target1_hit') return 1;
+    if (r && r.exitType === 'stopped_out') return 0;
+    // 时间离场：按实际盈亏相对目标1的进度
+    const entry = r && r.entryPrice;
+    const exit = r && r.exitPrice;
+    const target = parseTarget1Level(version.targets && version.targets.t1);
+    if (entry == null || exit == null || target == null) return r && r.directionCorrect ? 0.5 : 0;
+    const denom = direction === 'bullish' ? target - entry : entry - target;
+    const gain = direction === 'bullish' ? exit - entry : entry - exit;
+    if (denom <= 0) return r && r.directionCorrect ? 0.5 : 0;
+    return Math.max(0, Math.min(1, Math.round((gain / denom) * 100) / 100));
+  }
+  if (status === 'triggered_pending_entry') return 0.05;
+  if (status === 'invalidated_not_triggered' || status === 'skipped_gap') return 0;
+  return 0;
+}
+
 function fulfillProgressOf(signal) {
-  const atr = signal.atr5AtCreation;
-  const fav = signal.maxFavorablePts == null ? null : Math.abs(signal.maxFavorablePts);
-  if (fav == null || atr == null) return null;
-  return Math.round((fav / atr) * 100) / 100;
+  const execs = executableVersionsOf(signal);
+  if (execs.length === 0) return 0;
+  return Math.max(...execs.map((v) => versionFulfillProgress(v, signal.direction)));
+}
+
+function hasFulfilled(signal) {
+  return executableVersionsOf(signal).some((v) =>
+    v.verification.status === 'verified' && v.verification.lastResult && v.verification.lastResult.exitType === 'target1_hit'
+  );
 }
 
 function invalidationDistanceOf(signal) {
@@ -293,7 +320,15 @@ function invalidationDistanceOf(signal) {
 
 function appendObservation(signal, runId, date, events) {
   if (!Array.isArray(signal.observations)) signal.observations = [];
-  if (signal.observations.some((o) => o.runId === runId)) return;
+  const existing = signal.observations.find((o) => o.runId === runId);
+  if (existing) {
+    existing.date = date;
+    existing.close = signal.latestClose;
+    existing.fulfillProgress = signal.fulfillProgress;
+    existing.invalidationDistance = signal.invalidationDistance;
+    existing.events = Array.isArray(events) ? [...new Set(events)] : [];
+    return;
+  }
   signal.observations.push({
     runId,
     date,
@@ -629,7 +664,7 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
       const progress = sig.fulfillProgress;
       const cur = currentVersionOf(sig);
       const q5Hit = cur && track.bars.length > 0 ? q5Triggered(sig, cur, track.bars) : false;
-      if (progress != null && progress >= 1.0) {
+      if (hasFulfilled(sig)) {
         closeSignal(sig, 'fulfilled');
         events.push('fulfilled');
       } else if (q5Hit) {
@@ -671,7 +706,10 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
 module.exports = {
   currentVersionOf,
   invalidationLevelOf,
+  executableVersionsOf,
+  versionFulfillProgress,
   fulfillProgressOf,
+  hasFulfilled,
   invalidationDistanceOf,
   appendObservation,
 
