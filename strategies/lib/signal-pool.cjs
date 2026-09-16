@@ -1,6 +1,6 @@
 // strategies/lib/signal-pool.cjs — 信号池（Signal Pool）
 //
-// 设计基线（v4）：
+// 设计基线（v5）：
 //   - 信号池是跨 run、跨时间、跨周期存续的信号台账，替代原证伪反馈板块。
 //   - 入池：executable 策略版本诞生信号（该版本即 V1）。
 //   - 追踪：每期 run 给池内品种一个完整分析席位，追加新策略版本；
@@ -26,7 +26,7 @@ const LEDGER_SCHEMA = 'futures-radar-signal-pool-ledger/1';
 const VIEW_SCHEMA = 'futures-radar-signal-pool-view/1';
 
 const POOL_STATUSES = ['active', 'downgraded', 'closed'];
-const CLOSE_REASONS = ['flipped', 'invalidated_q5', 'faded', 'expired'];
+const CLOSE_REASONS = ['fulfilled', 'flipped', 'invalidated_q5', 'faded', 'expired'];
 const EXECUTION_STATUSES = ['executable', 'watch', 'skip'];
 
 function poolRoot(rootOverride = null) {
@@ -214,6 +214,9 @@ function createSignal(plan, p, root = null) {
     latestClose: null,
     maxFavorablePts: null,
     maxAdversePts: null,
+    fulfillProgress: null,
+    invalidationDistance: null,
+    observations: [],
     closedAt: null,
     closeReason: null,
     verdict: null,
@@ -247,16 +250,58 @@ function closeSignal(signal, reason, verdict = null) {
   signal.poolStatus = 'closed';
   signal.closeReason = reason;
   signal.closedAt = new Date().toISOString();
-  if (verdict) signal.verdict = verdict;
+  signal.verdict = verdict || (reason === 'fulfilled' ? 'fulfilled' : 'invalidated');
 }
 
 function computeVerdict(signal) {
   const atr = signal.atr5AtCreation;
   const fav = signal.maxFavorablePts == null ? null : Math.abs(signal.maxFavorablePts);
-  if (fav == null || atr == null) return 'unresolved';
-  if (fav >= atr) return 'hit';
-  if (fav < 0.5 * atr) return 'miss';
-  return 'unresolved';
+  if (fav == null || atr == null) return 'invalidated';
+  return fav >= atr ? 'fulfilled' : 'invalidated';
+}
+
+function currentVersionOf(signal) {
+  return signal.versions.find((v) => v.versionId === signal.currentVersionId) || signal.versions[signal.versions.length - 1] || null;
+}
+
+function invalidationLevelOf(signal) {
+  const cur = currentVersionOf(signal);
+  if (cur && cur.stop && Number.isFinite(Number(cur.stop.stopPrice))) return Number(cur.stop.stopPrice);
+  const hard = cur && cur.invalidation ? cur.invalidation.hard : [];
+  if (Array.isArray(hard) && hard.length > 0) {
+    const n = parseFirstNumber(hard[0]);
+    if (n != null) return n;
+  }
+  return null;
+}
+
+function fulfillProgressOf(signal) {
+  const atr = signal.atr5AtCreation;
+  const fav = signal.maxFavorablePts == null ? null : Math.abs(signal.maxFavorablePts);
+  if (fav == null || atr == null) return null;
+  return Math.round((fav / atr) * 100) / 100;
+}
+
+function invalidationDistanceOf(signal) {
+  const level = invalidationLevelOf(signal);
+  const atr = signal.atr5AtCreation;
+  const close = signal.latestClose;
+  if (level == null || atr == null || close == null) return null;
+  const dist = signal.direction === 'bullish' ? close - level : level - close;
+  return Math.round((dist / atr) * 100) / 100;
+}
+
+function appendObservation(signal, runId, date, events) {
+  if (!Array.isArray(signal.observations)) signal.observations = [];
+  if (signal.observations.some((o) => o.runId === runId)) return;
+  signal.observations.push({
+    runId,
+    date,
+    close: signal.latestClose,
+    fulfillProgress: signal.fulfillProgress,
+    invalidationDistance: signal.invalidationDistance,
+    events: Array.isArray(events) ? [...new Set(events)] : []
+  });
 }
 
 // ── Verification ─────────────────────────────────────────────
@@ -442,6 +487,9 @@ function summarizeSignal(signal) {
       maxFavorablePts: signal.maxFavorablePts,
       maxAdversePts: signal.maxAdversePts
     },
+    fulfillProgress: signal.fulfillProgress,
+    invalidationDistance: signal.invalidationDistance,
+    observations: Array.isArray(signal.observations) ? signal.observations.slice(-12) : [],
     closedAt: signal.closedAt,
     closeReason: signal.closeReason,
     verdict: signal.verdict
@@ -457,10 +505,11 @@ function buildView(runId, ledger, root = null) {
   const pool = all.filter((s) => s.poolStatus !== 'closed');
   const closed = all.filter((s) => s.poolStatus === 'closed').sort((a, b) => String(b.closedAt || '').localeCompare(String(a.closedAt || '')));
   const byCloseReason = {};
-  const byVerdict = {};
+  const byOutcome = { fulfilled: 0, invalidated: 0 };
   for (const c of closed) {
     byCloseReason[c.closeReason || 'unknown'] = (byCloseReason[c.closeReason || 'unknown'] || 0) + 1;
-    byVerdict[c.verdict || 'unresolved'] = (byVerdict[c.verdict || 'unresolved'] || 0) + 1;
+    if (c.verdict === 'fulfilled') byOutcome.fulfilled++;
+    else byOutcome.invalidated++;
   }
   const details = {};
   for (const s of [...pool, ...closed.slice(0, 5)]) {
@@ -479,7 +528,7 @@ function buildView(runId, ledger, root = null) {
     historyStats: {
       totalClosed: closed.length,
       byCloseReason,
-      byVerdict
+      byOutcome
     },
     details
   };
@@ -535,6 +584,7 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
         const already = existing.versions.some((v) => v.runId === plan.meta.runId);
         if (!already) {
           closeSignal(existing, 'flipped');
+          existing.closedAt = plan.meta.signalDate;
           saveSignal(existing, root);
           const sig = createSignal(plan, p, root);
           activeBySymbol.set(sig.symbol, sig);
@@ -548,39 +598,56 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
     }
   }
 
-  // 2) 追踪：验证 + 价格追踪 + 出池判定（对所有 activeBySymbol 中的信号）
+  // 2) 追踪：验证 + 价格追踪 + 两态出池判定（兑现 / 失效）
   const updatedSignalIds = [];
   for (const sig of activeBySymbol.values()) {
-    // 版本验证
+    const events = [];
+    // 版本验证（收集关键事件）
     for (const version of sig.versions) {
-      if (version.verification.terminal) continue;
       if (version.runId === runId) continue; // 本期版本下期才开始验证
+      if (version.verification.terminal) continue;
+      const prevStatus = version.verification.status;
       const result = verifyVersion(sig, version, rawData, runId, cache);
       version.verification.status = result.status;
       version.verification.terminal = result.terminal === true || result.status === 'suppressed';
       version.verification.verifiedRunId = runId;
       version.verification.lastResult = result;
+      if (result.status === 'triggered_pending_entry') events.push('triggered');
+      else if (result.status === 'verified' && result.exitType === 'stopped_out') events.push('stopped_out');
+      else if (result.status === 'verified' && result.exitType === 'target1_hit') events.push('target1_hit');
+      else if (result.status === 'skipped_gap') events.push('gap_skip');
+      else if (result.status === 'invalidated_not_triggered') events.push('not_triggered');
     }
-    // 价格追踪
+    // 价格追踪 + 两指标更新
     const track = updatePriceTracking(sig, rawData, cache);
-    // 出池判定（flipped 已处理，这里判 Q5 / expired / faded）
+    const obsDate = track.bars.length ? track.bars[track.bars.length - 1].date : sig.lastSeenDate;
+    if (track.expanded) events.push('price_new_high');
+    sig.fulfillProgress = fulfillProgressOf(sig);
+    sig.invalidationDistance = invalidationDistanceOf(sig);
+    // 出池判定：先兑现，后失效（flipped 已在匹配阶段处理）
     if (sig.poolStatus !== 'closed') {
-      const cur = sig.versions.find((v) => v.versionId === sig.currentVersionId) || sig.versions[sig.versions.length - 1];
+      const progress = sig.fulfillProgress;
+      const cur = currentVersionOf(sig);
       const q5Hit = cur && track.bars.length > 0 ? q5Triggered(sig, cur, track.bars) : false;
-      if (q5Hit) {
-        closeSignal(sig, 'invalidated_q5', computeVerdict(sig));
+      if (progress != null && progress >= 1.0) {
+        closeSignal(sig, 'fulfilled');
+        events.push('fulfilled');
+      } else if (q5Hit) {
+        closeSignal(sig, 'invalidated_q5');
+        events.push('invalidated');
       } else {
-        const lastDate = track.bars.length ? track.bars[track.bars.length - 1].date : sig.lastSeenDate;
         const barsCount = track.bars.length ? track.bars.length - track.startIdx : 0;
         if (barsCount > 10) {
-          closeSignal(sig, 'expired', computeVerdict(sig));
+          closeSignal(sig, 'expired');
+          events.push('invalidated');
         } else if (sig.consecutiveNonExecutable >= 3 && track.expanded === false) {
-          closeSignal(sig, 'faded', computeVerdict(sig));
+          closeSignal(sig, 'faded');
+          events.push('invalidated');
         }
       }
-    } else if (sig.verdict == null) {
-      sig.verdict = computeVerdict(sig);
+      if (sig.poolStatus === 'closed') sig.closedAt = obsDate;
     }
+    appendObservation(sig, runId, obsDate, events);
     saveSignal(sig, root);
     updatedSignalIds.push(sig.signalId);
   }
@@ -602,6 +669,12 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
 }
 
 module.exports = {
+  currentVersionOf,
+  invalidationLevelOf,
+  fulfillProgressOf,
+  invalidationDistanceOf,
+  appendObservation,
+
   // constants
   SIGNAL_SCHEMA,
   LEDGER_SCHEMA,

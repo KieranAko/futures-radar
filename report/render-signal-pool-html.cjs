@@ -83,6 +83,24 @@ function versionSummary(v) {
   return `V${num} · ${statusBadge(v.executionStatus)} · ${v.signalDate} · ${escapeHtml(v.stateTransition === 'signal_created' ? '入池' : (v.stateTransition || '—'))} · ${signalVersionVerificationLabel(v)}`;
 }
 
+function progressBar(progress) {
+  if (progress == null) return '—';
+  const pct = Math.max(0, Math.min(100, progress * 100));
+  return `<span class="progress"><span class="progress-fill" style="width:${pct.toFixed(0)}%"></span></span><span class="progress-text">${Math.round(pct)}%</span>`;
+}
+
+function timelineBlock(sig) {
+  const obs = Array.isArray(sig.observations) ? sig.observations.slice(-8) : [];
+  if (obs.length === 0) return '';
+  const rows = obs.map((o) => {
+    const ev = o.events && o.events.length ? o.events.join(' · ') : '—';
+    const prog = o.fulfillProgress == null ? '—' : `${Math.round(o.fulfillProgress * 100)}%`;
+    const dist = o.invalidationDistance == null ? '—' : `${fmt(o.invalidationDistance)} ATR`;
+    return `<tr><td>${escapeHtml(o.date)}</td><td>${escapeHtml(ev)}</td><td>${prog}</td><td>${dist}</td></tr>`;
+  }).join('');
+  return `<h4>时间线</h4><table class="timeline"><tr><th>日期</th><th>事件</th><th>兑现进度</th><th>失效距离</th></tr>${rows}</table>`;
+}
+
 function signalCard(sig, { closed = false } = {}) {
   const body = [];
   const rows = [];
@@ -100,6 +118,12 @@ function signalCard(sig, { closed = false } = {}) {
     : '—';
   rows.push(fieldRow('当前表达', curExpr));
   if (!closed) rows.push(fieldRow('最新验证', signalVerificationLabel(sig)));
+  if (!closed && sig.fulfillProgress != null) {
+    rows.push(fieldRow('兑现进度', `${progressBar(sig.fulfillProgress)} <span class="muted">达 100% 即兑现</span>`));
+  }
+  if (!closed && sig.invalidationDistance != null) {
+    rows.push(fieldRow('失效距离', `<span class="${sig.invalidationDistance <= 0.5 ? 'down' : ''}">${fmt(sig.invalidationDistance)} ATR</span> <span class="muted">≤0 即失效</span>`));
+  }
 
   const p = sig.priceTracking || {};
   if (p.startClose != null || p.latestClose != null) {
@@ -110,6 +134,7 @@ function signalCard(sig, { closed = false } = {}) {
   }
 
   body.push(`<table class="fields">${rows.join('')}</table>`);
+  body.push(timelineBlock(sig));
 
   const versions = Array.isArray(sig.versions) ? sig.versions : [];
   if (versions.length > 0) {
@@ -124,16 +149,15 @@ function signalCard(sig, { closed = false } = {}) {
 
 function statsTable(stats) {
   const byReason = stats.byCloseReason || {};
-  const byVerdict = stats.byVerdict || {};
+  const byOutcome = stats.byOutcome || {};
   const rows = [
     ['历史已出池信号', stats.totalClosed == null ? 0 : stats.totalClosed],
-    ['反向翻转', byReason.flipped || 0],
-    ['Q5 证伪', byReason.invalidated_q5 || 0],
-    ['机会衰竭', byReason.faded || 0],
-    ['窗口到期', byReason.expired || 0],
-    ['窗口判定 · 兑现', byVerdict.hit || 0],
-    ['窗口判定 · 未兑现', byVerdict.miss || 0],
-    ['窗口判定 · 未定', byVerdict.unresolved || 0]
+    ['已兑现', byOutcome.fulfilled || 0],
+    ['已失效', byOutcome.invalidated || 0],
+    ['失效 · 反向翻转', byReason.flipped || 0],
+    ['失效 · Q5证伪', byReason.invalidated_q5 || 0],
+    ['失效 · 机会衰竭', byReason.faded || 0],
+    ['失效 · 窗口到期', byReason.expired || 0]
   ];
   return `<table class="stats">${rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('')}</table>`;
 }

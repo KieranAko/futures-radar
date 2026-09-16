@@ -160,17 +160,18 @@ function poolStatusLabel(s) {
 }
 
 function closeReasonLabel(reason) {
-  if (reason === 'flipped') return '反向翻转';
-  if (reason === 'invalidated_q5') return 'Q5 证伪';
-  if (reason === 'faded') return '机会衰竭';
-  if (reason === 'expired') return '窗口到期';
+  if (reason === 'fulfilled') return '兑现';
+  if (reason === 'flipped') return '失效·反向翻转';
+  if (reason === 'invalidated_q5') return '失效·Q5证伪';
+  if (reason === 'faded') return '失效·机会衰竭';
+  if (reason === 'expired') return '失效·窗口到期';
   return reason || '—';
 }
 
 function verdictLabel(v) {
-  if (v === 'hit') return '兑现';
-  if (v === 'miss') return '未兑现';
-  return '未定';
+  if (v === 'fulfilled') return '已兑现';
+  if (v === 'invalidated') return '已失效';
+  return '—';
 }
 
 function signalVerificationLabel(sig) {
@@ -257,6 +258,10 @@ function signalCard(sig, { closed = false } = {}) {
   const curExpr = cur.executionStatus ? `${statusBadge(cur.executionStatus)}${cur.entryTrigger ? ' — ' + cur.entryTrigger : ''}` : '—';
   lines.push(fieldRow('当前表达', curExpr));
   if (!closed) lines.push(fieldRow('最新验证', signalVerificationLabel(sig)));
+  if (!closed && sig.fulfillProgress != null) {
+    const pct = Math.max(0, Math.min(100, Math.round(sig.fulfillProgress * 100)));
+    lines.push(fieldRow('兑现进度', `${pct}%${sig.invalidationDistance != null ? `｜距失效 ${fmt(sig.invalidationDistance)} ATR` : ''}`));
+  }
   lines.push(fieldRow('价格追踪', signalPriceLine(sig)));
   lines.push('</table>');
   lines.push('');
@@ -314,17 +319,18 @@ function renderSignalPoolSection(view) {
   lines.push(`| Q5 证伪 | ${byReason.invalidated_q5 || 0} |`);
   lines.push(`| 机会衰竭 | ${byReason.faded || 0} |`);
   lines.push(`| 窗口到期 | ${byReason.expired || 0} |`);
-  const byVerdict = stats.byVerdict || {};
-  lines.push(`| 窗口判定：兑现 | ${byVerdict.hit || 0} |`);
-  lines.push(`| 窗口判定：未兑现 | ${byVerdict.miss || 0} |`);
-  lines.push(`| 窗口判定：未定 | ${byVerdict.unresolved || 0} |`);
+  const byOutcome = stats.byOutcome || {};
+  lines.push(`| 已兑现 | ${byOutcome.fulfilled || 0} |`);
+  lines.push(`| 已失效 | ${byOutcome.invalidated || 0} |`);
   lines.push('');
   lines.push('**口径说明**');
   lines.push('');
   lines.push('- 信号池是跨 run、跨时间、跨周期存续的信号台账；池内信号全部展示，不按 run 数或交易日截断。');
   lines.push('- 入池：executable 策略诞生信号；追踪：每期给池内品种一个与 TOP3 同规格的完整分析席位并追加策略版本。');
   lines.push('- 出池只认机会被否定（反向翻转 / Q5 证伪 / 机会衰竭 / 窗口到期），降级（watch/skip）不出池。');
-  lines.push('- 价格追踪自入池日收盘起算，有利/不利偏移为信号方向上的最大偏移（点）。');
+  lines.push('- 信号全生命周期只有两个终态：兑现（顺方向最大有利偏移 ≥ 1×ATR5）或失效（Q5 证伪/反向翻转/机会衰竭/窗口到期）。\n' +
+    '- 兑现进度 = 当前最大有利偏移 ÷ 入池 ATR5；失效距离 = 当前价距当前失效位的 ATR 倍数（≤0 即失效）。\n' +
+    '- 价格追踪自入池日收盘起算，有利/不利偏移为信号方向上的最大偏移（点）。');
   return lines.join('\n');
 }
 

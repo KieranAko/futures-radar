@@ -199,7 +199,8 @@ describe('signal-pool 信号池核心生命周期', () => {
       const sig = loadSignal(ledger.signals[0].signalId, root);
       assert.equal(sig.poolStatus, 'closed');
       assert.equal(sig.closeReason, 'invalidated_q5');
-      assert.ok(['hit', 'miss', 'unresolved'].includes(sig.verdict));
+      assert.equal(sig.verdict, 'invalidated');
+      assert.ok(sig.fulfillProgress < 1);
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }
@@ -232,7 +233,7 @@ describe('signal-pool 信号池核心生命周期', () => {
       for (let i = 0; i < 13; i++) {
         const d = new Date(start.getTime() + i * 86400000);
         dates.push(d.toISOString().slice(0, 10));
-        open.push(100 + i); high.push(102 + i); low.push(99 + i); close.push(101 + i);
+        open.push(100); high.push(101); low.push(99); close.push(100);
       }
       const raw = makeRaw('PP0', dates, open, high, low, close);
       updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
