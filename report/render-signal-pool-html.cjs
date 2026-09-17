@@ -24,6 +24,7 @@ const {
   confidenceLabel,
   poolStatusLabel,
   closeReasonLabel,
+  closeClassLabel,
   verdictLabel,
   signalVerificationLabel,
   signalVersionVerificationLabel,
@@ -154,7 +155,8 @@ function signalCard(sig, { closed = false } = {}) {
   if (closed) {
     const closedDate = sig.closedAt ? String(sig.closedAt).slice(0, 10) : '—';
     rows.push(fieldRow('入池', `${sig.createdDate} <span class="muted">${escapeHtml(sig.createdRunId)}</span>`));
-    rows.push(fieldRow('出池', `${closedDate} · ${closeReasonLabel(sig.closeReason)} · 窗口判定 ${verdictLabel(sig.verdict)}`));
+    const closedClass = sig.closeClass ? closeClassLabel(sig.closeClass) : (sig.closeReason === 'fulfilled' ? '方向正确·执行盈利' : '—');
+    rows.push(fieldRow('出池', `${closedDate} · ${closedClass} · 事件 ${closeReasonLabel(sig.closeReason)}`));
   } else {
     rows.push(fieldRow('入池', `${sig.createdDate} <span class="muted">${escapeHtml(sig.createdRunId)}</span>`));
     rows.push(fieldRow('最近更新', `${sig.lastSeenDate} <span class="muted">${escapeHtml(sig.lastSeenRunId)}</span>`));
@@ -189,18 +191,24 @@ function signalCard(sig, { closed = false } = {}) {
 }
 
 function statsTable(stats) {
+  const byClass = stats.byCloseClass || {};
   const byReason = stats.byCloseReason || {};
-  const byOutcome = stats.byOutcome || {};
-  const rows = [
+  const clsRows = [
     ['历史已出池信号', stats.totalClosed == null ? 0 : stats.totalClosed],
-    ['已兑现', byOutcome.fulfilled || 0],
-    ['已失效', byOutcome.invalidated || 0],
-    ['失效 · 反向翻转', byReason.flipped || 0],
-    ['失效 · Q5证伪', byReason.invalidated_q5 || 0],
-    ['失效 · 机会衰竭', byReason.faded || 0],
-    ['失效 · 窗口到期', byReason.expired || 0]
+    ['方向正确 · 执行盈利', byClass.direction_hit_profit || 0],
+    ['方向正确 · 未执行', byClass.direction_hit_noexec || 0],
+    ['方向正确 · 执行亏损', byClass.direction_hit_loss || 0],
+    ['方向错误', byClass.direction_wrong || 0]
   ];
-  return `<table class="stats">${rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('')}</table>`;
+  const reasonRows = [
+    ['事件 · 目标兑现', byReason.fulfilled || 0],
+    ['事件 · 反向翻转', byReason.flipped || 0],
+    ['事件 · Q5证伪', byReason.invalidated_q5 || 0],
+    ['事件 · 机会衰竭', byReason.faded || 0],
+    ['事件 · 窗口到期', byReason.expired || 0]
+  ];
+  const rowHtml = (rows) => rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+  return `<table class="stats">${rowHtml(clsRows)}</table><table class="stats" style="margin-top:8px">${rowHtml(reasonRows)}</table>`;
 }
 
 function renderSignalPoolHtml(view, opts = {}) {

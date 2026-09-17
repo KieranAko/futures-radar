@@ -389,6 +389,133 @@ describe('signal-pool 信号池核心生命周期', () => {
       assert.equal(view.recentClosed.length, 5);
       assert.equal(view.historyStats.totalClosed, 7);
       assert.equal(view.historyStats.byCloseReason.flipped, 7);
+      assert.equal(view.historyStats.byCloseClass.direction_wrong, 7);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('signal-pool 出池质量分类（方向 × 执行）', () => {
+  it('目标1兑现 → 方向正确·执行盈利', () => {
+    const root = tmpRoot();
+    try {
+      const raw = makeRaw('PP0',
+        ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28'],
+        [98, 99, 100, 101, 102], [100, 101, 106, 107, 112], [97, 98, 99, 100, 100], [100, 100, 100, 101, 111]);
+      const plan = makePlan('run-1', 'PP0', { riskAssessment: { atr5: 5, maxHoldingDays: 5, regimeGrade: 'normal', regimeDirection: 'stable' } });
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: { meta: { runId: 'run-2', signalDate: '2026-08-27', inputsSha: 'x' }, plans: [] } });
+      const ledger = loadLedger(root);
+      const sig = loadSignal(ledger.signals[0].signalId, root);
+      assert.equal(sig.poolStatus, 'closed');
+      assert.equal(sig.closeReason, 'fulfilled');
+      assert.equal(sig.closeClass, 'direction_hit_profit');
+      assert.equal(sig.directionVerdict, 'hit');
+      assert.equal(sig.executionVerdict, 'profit');
+      assert.equal(sig.verdict, 'fulfilled');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('Q5证伪且价格未走出方向 → 方向错误', () => {
+    const root = tmpRoot();
+    try {
+      const raw = makeRaw('PP0',
+        ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27'],
+        [98, 99, 100, 99], [100, 101, 102, 100], [97, 98, 99, 93], [100, 100, 100, 94]);
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
+      const ledger = loadLedger(root);
+      const sig = loadSignal(ledger.signals[0].signalId, root);
+      assert.equal(sig.poolStatus, 'closed');
+      assert.equal(sig.closeReason, 'invalidated_q5');
+      assert.equal(sig.closeClass, 'direction_wrong');
+      assert.equal(sig.directionVerdict, 'miss');
+      assert.equal(sig.verdict, 'invalidated');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('faded：方向对但已执行亏损 → 方向正确·执行亏损', () => {
+    const root = tmpRoot();
+    try {
+      const raw = makeRaw('PP0',
+        ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28', '2026-08-29', '2026-08-30', '2026-08-31'],
+        [98, 99, 100, 100, 102, 102, 102, 102],
+        [100, 101, 102, 103, 103, 103, 103, 103],
+        [97, 98, 99, 100, 100, 100, 100, 100],
+        [100, 100, 100, 101, 101, 101, 101, 101]);
+      const plan = makePlan('run-1', 'PP0', { riskAssessment: { atr5: 5, maxHoldingDays: 5, regimeGrade: 'normal', regimeDirection: 'stable' } });
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-3', raw, rootOverride: root, plan: makePlan('run-3', 'PP0', { executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-4', raw, rootOverride: root, plan: makePlan('run-4', 'PP0', { executionStatus: 'watch' }) });
+      const ledger = loadLedger(root);
+      const sig = loadSignal(ledger.signals[0].signalId, root);
+      assert.equal(sig.poolStatus, 'closed');
+      assert.equal(sig.closeReason, 'faded');
+      assert.equal(sig.closeClass, 'direction_hit_loss');
+      assert.equal(sig.directionVerdict, 'hit');
+      assert.equal(sig.executionVerdict, 'loss');
+      assert.equal(sig.verdict, 'invalidated');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('faded：方向对但跳空未执行 → 方向正确·未执行', () => {
+    const root = tmpRoot();
+    try {
+      const raw = makeRaw('PP0',
+        ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28', '2026-08-29', '2026-08-30', '2026-08-31'],
+        [98, 99, 100, 100, 120, 120, 120, 120],
+        [100, 101, 102, 106, 121, 121, 121, 121],
+        [97, 98, 99, 99, 119, 119, 119, 119],
+        [100, 100, 100, 105, 120, 120, 120, 120]);
+      const plan = makePlan('run-1', 'PP0', { riskAssessment: { atr5: 5, maxHoldingDays: 5, regimeGrade: 'normal', regimeDirection: 'stable' } });
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-3', raw, rootOverride: root, plan: makePlan('run-3', 'PP0', { executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-4', raw, rootOverride: root, plan: makePlan('run-4', 'PP0', { executionStatus: 'watch' }) });
+      const ledger = loadLedger(root);
+      const sig = loadSignal(ledger.signals[0].signalId, root);
+      assert.equal(sig.poolStatus, 'closed');
+      assert.equal(sig.closeReason, 'faded');
+      assert.equal(sig.closeClass, 'direction_hit_noexec');
+      assert.equal(sig.directionVerdict, 'hit');
+      assert.equal(sig.executionVerdict, 'noexec');
+      assert.equal(sig.verdict, 'invalidated');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('旧 closed 信号缺 closeClass → buildView 惰性回填', () => {
+    const root = tmpRoot();
+    try {
+      const raw = { contracts: {} };
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
+      updateSignalPool({
+        runId: 'run-2', raw, rootOverride: root,
+        plan: makePlan('run-2', 'PP0', { reportBaseline: { direction: 'bearish', confidence: 'medium', driver: '翻转' } })
+      });
+      const ledger = loadLedger(root);
+      const oldId = ledger.signals[0].signalId;
+      const old = loadSignal(oldId, root);
+      delete old.closeClass;
+      delete old.directionVerdict;
+      delete old.executionVerdict;
+      delete old.executionBestPnlPts;
+      fs.writeFileSync(path.join(root, 'signals', `${oldId}.json`), JSON.stringify(old, null, 2) + '\n', 'utf8');
+      const view = buildView('final', ledger, root);
+      const migrated = loadSignal(oldId, root);
+      assert.ok(migrated.closeClass);
+      assert.equal(migrated.closeClass, 'direction_wrong');
+      assert.equal(migrated.directionVerdict, 'miss');
+      assert.equal(migrated.executionVerdict, 'noexec');
+      assert.equal(view.historyStats.byCloseClass.direction_wrong, 1);
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }

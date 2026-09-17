@@ -179,6 +179,14 @@ function closeReasonLabel(reason) {
   return reason || '—';
 }
 
+function closeClassLabel(cls) {
+  if (cls === 'direction_wrong') return '方向错误';
+  if (cls === 'direction_hit_profit') return '方向正确·执行盈利';
+  if (cls === 'direction_hit_noexec') return '方向正确·未执行';
+  if (cls === 'direction_hit_loss') return '方向正确·执行亏损';
+  return cls || '—';
+}
+
 function verdictLabel(v) {
   if (v === 'fulfilled') return '已兑现';
   if (v === 'invalidated') return '已失效';
@@ -277,7 +285,8 @@ function signalCard(sig, { closed = false } = {}) {
   if (closed) {
     const closedDate = sig.closedAt ? String(sig.closedAt).slice(0, 10) : '—';
     lines.push(fieldRow('入池', `${sig.createdDate}（${sig.createdRunId}）`));
-    lines.push(fieldRow('出池', `${closedDate}｜${closeReasonLabel(sig.closeReason)}｜窗口判定 ${verdictLabel(sig.verdict)}`));
+    const closedClass = sig.closeClass ? closeClassLabel(sig.closeClass) : (sig.closeReason === 'fulfilled' ? '方向正确·执行盈利' : '—');
+    lines.push(fieldRow('出池', `${closedDate}｜${closedClass}｜事件 ${closeReasonLabel(sig.closeReason)}`));
   } else {
     lines.push(fieldRow('入池', `${sig.createdDate}（${sig.createdRunId}）`));
     lines.push(fieldRow('最近更新', `${sig.lastSeenDate}（${sig.lastSeenRunId}）`));
@@ -362,24 +371,32 @@ function renderSignalPoolSection(view) {
 
   lines.push('### 4.3 历史统计与口径');
   lines.push('');
-  lines.push('| 统计项 | 数量 |');
-  lines.push('|--------|------|');
+  lines.push('| 出池质量分类（方向 × 执行） | 数量 |');
+  lines.push('|------------------------------|------|');
   lines.push(`| 历史已出池信号 | ${stats.totalClosed == null ? 0 : stats.totalClosed} |`);
+  const byClass = stats.byCloseClass || {};
+  lines.push(`| 方向正确·执行盈利 | ${byClass.direction_hit_profit || 0} |`);
+  lines.push(`| 方向正确·未执行 | ${byClass.direction_hit_noexec || 0} |`);
+  lines.push(`| 方向正确·执行亏损 | ${byClass.direction_hit_loss || 0} |`);
+  lines.push(`| 方向错误 | ${byClass.direction_wrong || 0} |`);
+  lines.push('');
+  lines.push('| 出池事件（追踪为何结束） | 数量 |');
+  lines.push('|--------------------------|------|');
   const byReason = stats.byCloseReason || {};
+  lines.push(`| 目标兑现 | ${byReason.fulfilled || 0} |`);
   lines.push(`| 反向翻转 | ${byReason.flipped || 0} |`);
   lines.push(`| Q5 证伪 | ${byReason.invalidated_q5 || 0} |`);
   lines.push(`| 机会衰竭 | ${byReason.faded || 0} |`);
   lines.push(`| 窗口到期 | ${byReason.expired || 0} |`);
-  const byOutcome = stats.byOutcome || {};
-  lines.push(`| 已兑现 | ${byOutcome.fulfilled || 0} |`);
-  lines.push(`| 已失效 | ${byOutcome.invalidated || 0} |`);
   lines.push('');
   lines.push('**口径说明**');
   lines.push('');
   lines.push('- 信号池是跨 run、跨时间、跨周期存续的信号台账；池内信号全部展示，不按 run 数或交易日截断。');
   lines.push('- 入池：executable 策略诞生信号；追踪：每期给池内品种一个与 TOP3 同规格的完整分析席位并追加策略版本。');
-  lines.push('- 出池只认机会被否定（反向翻转 / Q5 证伪 / 机会衰竭 / 窗口到期），降级（watch/skip）不出池。');
-  lines.push('- 信号全生命周期只有两个终态：兑现（顺方向最大有利偏移 ≥ 1×ATR5）或失效（Q5 证伪/反向翻转/机会衰竭/窗口到期）。\n' +
+  lines.push('- 出池分类 = 分析层（信号预测方向对错）× 执行层（是否盈利）：方向错 → 方向错误；方向对+盈利 → 方向正确·执行盈利；方向对+未执行 → 方向正确·未执行；方向对+亏损 → 方向正确·执行亏损。');
+  lines.push('- 出池事件（目标兑现 / 反向翻转 / Q5 证伪 / 机会衰竭 / 窗口到期）只说明追踪为何结束，不参与质量分类；降级（watch/skip）不出池。');
+  lines.push('- 方向判定：终值优先（多头 latest>start，空头 latest<start）；终值不满足时，顺向最大有利偏移 ≥ 1×ATR5 且 ≥ |逆向最大不利偏移| 也认方向正确（过程兑现）。\n' +
+    '- 执行判定：只看 executable 版本，任一已入场版本实现盈亏 > 0 为盈利；有入场但全部 ≤ 0 为亏损；无入场为未执行。\n' +
     '- 兑现进度 = 当前最大有利偏移 ÷ 入池 ATR5；失效距离 = 当前价距当前失效位的 ATR 倍数（≤0 即失效）。\n' +
     '- 价格追踪自入池日收盘起算，有利/不利偏移为信号方向上的最大偏移（点）。');
   return lines.join('\n');
@@ -644,6 +661,7 @@ module.exports = {
   confidenceLabel,
   poolStatusLabel,
   closeReasonLabel,
+  closeClassLabel,
   verdictLabel,
   signalVerificationLabel,
   signalVersionVerificationLabel,

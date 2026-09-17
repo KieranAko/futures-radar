@@ -5,7 +5,8 @@
 //   - 入池：executable 策略版本诞生信号（该版本即 V1）。
 //   - 追踪：每期 run 给池内品种一个完整分析席位，追加新策略版本；
 //           同时做上期版本事后验证与信号级价格追踪。
-//   - 出池：只有 flipped / invalidated_q5 / faded / expired 四种原因；
+//   - 出池：closeReason（事件轴）只有 flipped / invalidated_q5 / faded / expired / fulfilled；
+//           closeClass（质量轴）四类：方向错误 / 方向正确·执行盈利 / 方向正确·未执行 / 方向正确·执行亏损。
 //           降级（watch/skip）不出池。
 //   - 报告：池内信号全量明细 + 最近出池 5 个明细 + 历史统计。
 //
@@ -27,6 +28,7 @@ const VIEW_SCHEMA = 'futures-radar-signal-pool-view/1';
 
 const POOL_STATUSES = ['active', 'downgraded', 'closed'];
 const CLOSE_REASONS = ['fulfilled', 'flipped', 'invalidated_q5', 'faded', 'expired'];
+const CLOSE_CLASSES = ['direction_wrong', 'direction_hit_profit', 'direction_hit_noexec', 'direction_hit_loss'];
 const EXECUTION_STATUSES = ['executable', 'watch', 'skip'];
 
 function poolRoot(rootOverride = null) {
@@ -245,16 +247,94 @@ function appendVersion(signal, plan, p) {
   return version;
 }
 
+// ── 出池质量分类（方向 × 执行）────────────────────────────
+// 维度 A：信号预测方向（价格追踪口径，与是否执行无关）。
+//   终值优先：多头 latest > startClose，空头 latest < startClose。
+//   过程补认：顺向最大有利偏移 ≥ 1×ATR5 且 ≥ |逆向最大不利偏移|。
+// 维度 B：执行是否盈利（只看 executable 版本）。
+//   盈利 = 任一已入场版本实现盈亏 > 0；亏损 = 有入场但全部 ≤ 0；未执行 = 无入场。
+// closeClass：方向错 → direction_wrong；方向对+盈利 → direction_hit_profit；
+//             方向对+未执行 → direction_hit_noexec；方向对+亏损 → direction_hit_loss。
+function directionVerdictOf(signal) {
+  const dir = signal.direction;
+  const start = Number(signal.startClose);
+  const latest = Number(signal.latestClose);
+  const maxFav = Number(signal.maxFavorablePts);
+  const maxAdv = Number(signal.maxAdversePts);
+  const atr = Number(signal.atr5AtCreation);
+  if (Number.isFinite(start) && Number.isFinite(latest)) {
+    const finalHit = dir === 'bullish' ? latest > start : dir === 'bearish' ? latest < start : false;
+    if (finalHit) return 'hit';
+  }
+  if (Number.isFinite(maxFav) && maxFav > 0) {
+    const favDominates = Number.isFinite(maxAdv) ? maxFav >= Math.abs(maxAdv) : true;
+    const atrFloor = Number.isFinite(atr) && atr > 0 ? atr : 0;
+    if (favDominates && maxFav >= atrFloor) return 'hit';
+  }
+  return 'miss';
+}
+
+function executedOutcomesOf(signal) {
+  const sign = signal.direction === 'bearish' ? -1 : 1;
+  const outcomes = [];
+  for (const v of signal.versions || []) {
+    if (v.executionStatus !== 'executable') continue;
+    const r = v.verification && v.verification.lastResult;
+    const st = v.verification && v.verification.status;
+    if (!r) continue;
+    if (st === 'verified' && r.entryPrice != null && r.exitPrice != null) {
+      const pnl = (r.exitPrice - r.entryPrice) * sign;
+      outcomes.push({ versionId: v.versionId, exitType: r.exitType || 'exited', pnlPts: Math.round(pnl * 100) / 100 });
+    } else if (st === 'holding' && r.entryPrice != null && signal.latestClose != null) {
+      // 持仓中因 flipped/Q5 强制出池：按最新价结算浮动盈亏参与分类
+      const pnl = (signal.latestClose - r.entryPrice) * sign;
+      outcomes.push({ versionId: v.versionId, exitType: 'holding', pnlPts: Math.round(pnl * 100) / 100 });
+    }
+  }
+  return outcomes;
+}
+
+function executionVerdictOf(signal) {
+  const outcomes = executedOutcomesOf(signal);
+  if (outcomes.length === 0) return { verdict: 'noexec', bestPnlPts: null, outcomes };
+  const best = outcomes.reduce((a, b) => (b.pnlPts > a.pnlPts ? b : a), outcomes[0]);
+  return { verdict: best.pnlPts > 0 ? 'profit' : 'loss', bestPnlPts: best.pnlPts, outcomes };
+}
+
+function closeClassOf(signal) {
+  if (directionVerdictOf(signal) !== 'hit') return 'direction_wrong';
+  const exec = executionVerdictOf(signal);
+  if (exec.verdict === 'profit') return 'direction_hit_profit';
+  if (exec.verdict === 'loss') return 'direction_hit_loss';
+  return 'direction_hit_noexec';
+}
+
+function backfillCloseClass(signal) {
+  if (!signal || signal.poolStatus !== 'closed' || signal.closeClass) return false;
+  signal.directionVerdict = directionVerdictOf(signal);
+  const exec = executionVerdictOf(signal);
+  signal.executionVerdict = exec.verdict;
+  signal.executionBestPnlPts = exec.bestPnlPts;
+  signal.closeClass = closeClassOf(signal);
+  signal.verdict = signal.closeClass === 'direction_hit_profit' ? 'fulfilled' : 'invalidated';
+  return true;
+}
+
 function closeSignal(signal, reason, verdict = null) {
   if (!CLOSE_REASONS.includes(reason)) throw new Error(`invalid closeReason: ${reason}`);
   signal.poolStatus = 'closed';
   signal.closeReason = reason;
   signal.closedAt = new Date().toISOString();
-  signal.verdict = verdict || (reason === 'fulfilled' ? 'fulfilled' : 'invalidated');
+  signal.directionVerdict = directionVerdictOf(signal);
+  const exec = executionVerdictOf(signal);
+  signal.executionVerdict = exec.verdict;
+  signal.executionBestPnlPts = exec.bestPnlPts;
+  signal.closeClass = closeClassOf(signal);
+  signal.verdict = verdict || (signal.closeClass === 'direction_hit_profit' ? 'fulfilled' : 'invalidated');
 }
 
 function computeVerdict(signal) {
-  return hasFulfilled(signal) ? 'fulfilled' : 'invalidated';
+  return closeClassOf(signal) === 'direction_hit_profit' ? 'fulfilled' : 'invalidated';
 }
 
 function currentVersionOf(signal) {
@@ -610,6 +690,10 @@ function summarizeSignal(signal) {
     observations: Array.isArray(signal.observations) ? signal.observations.slice(-12) : [],
     closedAt: signal.closedAt,
     closeReason: signal.closeReason,
+    closeClass: signal.closeClass || null,
+    directionVerdict: signal.directionVerdict || null,
+    executionVerdict: signal.executionVerdict || null,
+    executionBestPnlPts: signal.executionBestPnlPts != null ? signal.executionBestPnlPts : null,
     verdict: signal.verdict
   };
 }
@@ -618,14 +702,19 @@ function buildView(runId, ledger, root = null) {
   const all = [];
   for (const row of ledger.signals) {
     const sig = loadSignal(row.signalId, root);
-    if (sig) all.push(sig);
+    if (sig) {
+      if (backfillCloseClass(sig)) saveSignal(sig, root);
+      all.push(sig);
+    }
   }
   const pool = all.filter((s) => s.poolStatus !== 'closed');
   const closed = all.filter((s) => s.poolStatus === 'closed').sort((a, b) => String(b.closedAt || '').localeCompare(String(a.closedAt || '')));
   const byCloseReason = {};
+  const byCloseClass = {};
   const byOutcome = { fulfilled: 0, invalidated: 0 };
   for (const c of closed) {
     byCloseReason[c.closeReason || 'unknown'] = (byCloseReason[c.closeReason || 'unknown'] || 0) + 1;
+    byCloseClass[c.closeClass || 'legacy'] = (byCloseClass[c.closeClass || 'legacy'] || 0) + 1;
     if (c.verdict === 'fulfilled') byOutcome.fulfilled++;
     else byOutcome.invalidated++;
   }
@@ -645,6 +734,7 @@ function buildView(runId, ledger, root = null) {
     recentClosed: closed.slice(0, 5).map(summarizeSignal),
     historyStats: {
       totalClosed: closed.length,
+      byCloseClass,
       byCloseReason,
       byOutcome
     },
@@ -811,6 +901,7 @@ module.exports = {
   VIEW_SCHEMA,
   POOL_STATUSES,
   CLOSE_REASONS,
+  CLOSE_CLASSES,
   EXECUTION_STATUSES,
   // paths & io
   poolRoot,
@@ -827,6 +918,11 @@ module.exports = {
   appendVersion,
   closeSignal,
   computeVerdict,
+  directionVerdictOf,
+  executedOutcomesOf,
+  executionVerdictOf,
+  closeClassOf,
+  backfillCloseClass,
   versionFromPlan,
   transitionLabel,
   // verification / tracking
