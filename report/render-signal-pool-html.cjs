@@ -300,25 +300,52 @@ function lifecycleChart(sig, versions, bars) {
   if (entryDate && entryPrice != null) addMarker(xOfDate(entryDate), entryPrice, skipped ? '#b91c1c' : '#047857', `${skipped ? '放弃执行' : '入场'} ${entryDate} @ ${fmt(entryPrice, 0)}`, skipped ? 'start' : 'end');
   if (exitDate && exitPrice != null) addMarker(xOfDate(exitDate), exitPrice, '#b91c1c', `离场 ${exitDate} @ ${fmt(exitPrice, 0)}`, 'start');
 
-  parts.push(dashedLevel(triggerLevel, '#b45309', '触发'));
-  parts.push(dashedLevel(stopPrice, '#b91c1c', '止损'));
-  parts.push(dashedLevel(entryPrice, skipped ? '#b91c1c' : '#047857', skipped ? '放弃' : '入场'));
-  parts.push(dashedLevel(exitPrice, '#b91c1c', '离场'));
+  const avoidOverlap = (items, minGap) => {
+    const sorted = [...items].sort((a, b) => a.y - b.y);
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i].y - sorted[i - 1].y < minGap) sorted[i].y = sorted[i - 1].y + minGap;
+    }
+    return sorted;
+  };
+  const textStyle = 'paint-order:stroke;stroke:#ffffff;stroke-width:3px;';
 
-  for (const m of markers) {
-    const ty = m.anchor === 'start' ? m.cy - 8 : m.cy + 16;
-    const textAnchor = m.cx > W - padR - 110 ? 'end' : 'start';
-    const tx = m.cx > W - padR - 110 ? m.cx - 6 : m.cx + 6;
-    parts.push(`<circle cx="${m.cx.toFixed(1)}" cy="${m.cy.toFixed(1)}" r="4" fill="${m.color}" stroke="#fff" stroke-width="1.5"/>`);
-    parts.push(`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" font-size="11" font-weight="600" fill="${m.color}" text-anchor="${textAnchor}">${escapeHtml(m.label)}</text>`);
+  const levels = [
+    { level: triggerLevel, color: '#b45309', label: '触发' },
+    { level: stopPrice, color: '#b91c1c', label: '止损' },
+    { level: entryPrice, color: skipped ? '#b91c1c' : '#047857', label: skipped ? '放弃' : '入场' },
+    { level: exitPrice, color: '#b91c1c', label: '离场' }
+  ].filter((l) => l.level != null);
+  for (const l of levels) {
+    const yy = y(l.level);
+    parts.push(`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="${l.color}" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>`);
+  }
+  const levelLabels = avoidOverlap(levels.map((l) => ({ y: y(l.level) + 4, text: `${l.label} ${fmt(l.level, 0)}`, color: l.color })), 13);
+  for (const t of levelLabels) {
+    const ty = Math.max(padT + 4, Math.min(H - 8, t.y));
+    parts.push(`<text x="${(W - padR + 4).toFixed(1)}" y="${ty.toFixed(1)}" font-size="10" fill="${t.color}" style="${textStyle}">${escapeHtml(t.text)}</text>`);
+  }
+
+  const markerLabels = avoidOverlap(markers.map((m) => ({
+    y: m.anchor === 'start' ? m.cy - 8 : m.cy + 16,
+    x: m.cx,
+    cy: m.cy,
+    text: m.label,
+    color: m.color,
+    anchor: m.cx > W - padR - 110 ? 'end' : 'start'
+  })), 14);
+  for (const m of markerLabels) {
+    const tx = m.anchor === 'end' ? m.x - 6 : m.x + 6;
+    const ty = Math.max(padT + 4, Math.min(H - 8, m.y));
+    parts.push(`<circle cx="${m.x.toFixed(1)}" cy="${m.cy.toFixed(1)}" r="4" fill="${m.color}" stroke="#fff" stroke-width="1.5"/>`);
+    parts.push(`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" font-size="11" font-weight="600" fill="${m.color}" text-anchor="${m.anchor}" style="${textStyle}">${escapeHtml(m.text)}</text>`);
   }
 
   const xDate = (idx, anchor) => {
     if (idx < 0 || idx >= n) return;
-    parts.push(`<text x="${x(idx).toFixed(1)}" y="${(H - 8).toFixed(1)}" font-size="10" fill="#6b7280" text-anchor="${anchor}">${escapeHtml(win[idx].date.slice(5))}</text>`);
+    parts.push(`<text x="${x(idx).toFixed(1)}" y="${(H - 8).toFixed(1)}" font-size="10" fill="#6b7280" text-anchor="${anchor}" style="${textStyle}">${escapeHtml(win[idx].date.slice(5))}</text>`);
   };
   xDate(0, 'start');
-  if (n > 2) xDate(Math.floor((n - 1) / 2), 'middle');
+  if (n > 4) xDate(Math.floor((n - 1) / 2), 'middle');
   xDate(n - 1, 'end');
 
   parts.push('</svg>');
