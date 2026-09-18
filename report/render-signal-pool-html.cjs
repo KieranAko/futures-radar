@@ -93,7 +93,9 @@ function versionSummary(v) {
   const num = String(v.versionId).includes(':V') ? String(v.versionId).split(':V')[1] : v.versionId;
   const state = versionStateOf(v);
   const trig = v.entry && v.entry.triggerLevel != null ? ` · 触发 ${fmt(v.entry.triggerLevel, 0)}` : '';
-  return `V${num} · ${stateEmoji(state)} ${signalVersionVerificationLabel(v)} · ${v.signalDate}${trig}`;
+  const exitDetail = versionExitDetail(v);
+  const reason = exitDetail ? ` · <span class="muted">${escapeHtml(exitDetail)}</span>` : '';
+  return `V${num} · ${stateEmoji(state)} ${signalVersionVerificationLabel(v)} · ${v.signalDate}${trig}${reason}`;
 }
 
 function progressBar(progress) {
