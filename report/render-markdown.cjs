@@ -256,7 +256,10 @@ const planMap = new Map((strategyPlan && Array.isArray(strategyPlan.plans) ? str
 const { planStateOf, planReasonsOf, eventLabel } = require('../strategies/lib/strategy-state.cjs');
 const executionLabel = (p) => {
   const state = planStateOf(p);
-  return state === 'armed' ? '🔔 生效观察' : eventLabel(state, 'execution');
+  if (state === 'armed') return '🔔 生效观察';
+  if (state === 'watching') return '👀 观察确认';
+  if (state === 'suspended') return '⛔ 暂停';
+  return eventLabel(state, 'execution');
 };
 
 // ── Header ───────────────────────────────────────────────────

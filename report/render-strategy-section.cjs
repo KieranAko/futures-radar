@@ -108,7 +108,7 @@ function renderFeedbackV2(feedback) {
       for (const r of run.rows || []) {
         const symbolCell = `${r.name || r.symbol || '—'} (${r.symbol || '—'})`;
         const strategyCell = `${r.strategyId || '—'} + ${r.playbookId || '—'}`;
-        lines.push(`| ${r.recordId || '—'} | ${symbolCell} | ${eventLabel(planStateOf(r), 'execution')} | ${feedbackDirectionConfidenceCell(r)} | ${strategyCell} | ${r.signalDate || '—'} | ${feedbackStatusLabel(r)} | ${feedbackAttribution(r)} |`);
+        lines.push(`| ${r.recordId || '—'} | ${symbolCell} | ${statusBadge(planStateOf(r))} | ${feedbackDirectionConfidenceCell(r)} | ${strategyCell} | ${r.signalDate || '—'} | ${feedbackStatusLabel(r)} | ${feedbackAttribution(r)} |`);
       }
       lines.push('');
     }
@@ -275,8 +275,7 @@ function versionLine(v) {
   const stop = v.stop && v.stop.stopPrice != null ? `止损 ${fmt(v.stop.stopPrice)}` : '止损 —';
   const t1 = v.targets && v.targets.t1 ? `目标 ${v.targets.t1}` : '目标 —';
   const exitDetail = versionExitDetail(v);
-  const state = versionStateOf(v);
-  return `V${v.versionId.split(':V')[1] || '?'}｜${v.runId}｜${v.signalDate}｜${eventLabel(state, 'execution')}｜${trigger} / ${stop} / ${t1}｜${signalVersionVerificationLabel(v)}${exitDetail ? '｜' + exitDetail : ''}`;
+  return `V${v.versionId.split(':V')[1] || '?'}｜${v.runId}｜${v.signalDate}｜${signalVersionVerificationLabel(v)}｜${trigger} / ${stop} / ${t1}${exitDetail ? '｜' + exitDetail : ''}`;
 }
 
 function signalCard(sig, { closed = false } = {}) {
@@ -470,7 +469,7 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
   for (const p of plan.plans) {
     const primary = p.matchedStrategies[0];
     const t = planTrust(p, familyEvidence);
-    lines.push(`| ${p.symbol} ${p.name} | ${p.contract || '—'} | ${directionLabel(p.reportBaseline.direction)} | ${confidenceLabel(p.reportBaseline.confidence)} | ${primary.strategyId} + ${p.playbook.playbookId} | ${eventLabel(planStateOf(p), 'execution')} | ${t.grade} |`);
+    lines.push(`| ${p.symbol} ${p.name} | ${p.contract || '—'} | ${directionLabel(p.reportBaseline.direction)} | ${confidenceLabel(p.reportBaseline.confidence)} | ${primary.strategyId} + ${p.playbook.playbookId} | ${statusBadge(planStateOf(p))} | ${t.grade} |`);
   }
   lines.push('');
   lines.push('> 可信度 = 族级证据 × 状态匹配 × 实现保真（实验线三层合成）；不是胜率/收益预期，只表示证据充分程度。');
@@ -505,7 +504,7 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
 
       lines.push(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract || '—'}）`);
       lines.push('');
-      lines.push(`> **报告** ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信 · **策略表达** ${confidenceLabel(p.strategyConfidence)}置信${downgrade} · **状态** ${eventLabel(planStateOf(p), 'execution')} · **理论** ${fitLabel}`);
+      lines.push(`> **报告** ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信 · **策略表达** ${confidenceLabel(p.strategyConfidence)}置信${downgrade} · **状态** ${statusBadge(planStateOf(p))} · **理论** ${fitLabel}`);
       if (p.theoryGapNote) lines.push(`> ${p.theoryGapNote}`);
       lines.push('');
       lines.push('| 执行要素 | 内容 |');
@@ -566,7 +565,7 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
     lines.push(`- **证伪/失效**: ${p.invalidation.hard.join('；')}；${p.invalidation.timeStop}；T+1 未触发入场则本计划作废`);
     lines.push(`- **风险要点**: 每手风险 ${Math.round(ra.unitRiskCny)} CNY；保证金/手 ${Math.round(ra.marginPerLotCny)} CNY；尾部 3d p95 反向边距 ${fmt(ra.tailGapPct3d)}%；事件：${ra.eventRiskNote || '—'}`);
     lines.push(`- **策略依据**: ${primary.strategyId} ${primary.name}${supporting ? `；辅证：${supporting}` : ''}`);
-    lines.push(`- **状态**: ${eventLabel(planStateOf(p), 'execution')}${planReasonsOf(p).length ? ` — ${planReasonsOf(p).join('；')}` : ''}`);
+    lines.push(`- **状态**: ${statusBadge(planStateOf(p))}${planReasonsOf(p).length ? ` — ${planReasonsOf(p).join('；')}` : ''}`);
     if (planStateOf(p) !== 'armed') {
       lines.push(`- **转执行触发**: ${p.entry.trigger}`);
     }

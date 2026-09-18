@@ -90,7 +90,7 @@ function versionBody(v) {
 
 function versionSummary(v) {
   const num = String(v.versionId).includes(':V') ? String(v.versionId).split(':V')[1] : v.versionId;
-  return `V${num} · ${escapeHtml(eventLabel(versionStateOf(v), 'execution'))} · ${v.signalDate} · ${signalVersionVerificationLabel(v)}`;
+  return `V${num} · ${signalVersionVerificationLabel(v)} · ${v.signalDate}`;
 }
 
 function progressBar(progress) {
@@ -104,7 +104,9 @@ function timelineBlock(sig) {
   if (obs.length === 0) return '';
   const posLabel = (p) => p === 'holding' ? '持仓中' : p === 'triggered' ? '待入场' : p === 'pending' ? '待验证' : p === 'exited' ? '已离场' : '—';
   const rows = obs.map((o) => {
-    const ev = o.events && o.events.length ? o.events.join(' · ') : '—';
+    const ev = Array.isArray(o.events) && o.events.length
+      ? o.events.map((e) => (typeof e === 'string' ? e : (e && e.label) || (e && e.code) || '—')).join(' · ')
+      : '—';
     const prog = o.fulfillProgress == null ? '—' : `${Math.round(o.fulfillProgress * 100)}%`;
     const dist = o.invalidationDistance == null ? '—' : `${fmt(o.invalidationDistance)} ATR`;
     return `<tr><td>${escapeHtml(o.date)}</td><td>${escapeHtml(ev)}</td><td>${posLabel(o.positionStatus)}</td><td>${prog}</td><td>${dist}</td></tr>`;

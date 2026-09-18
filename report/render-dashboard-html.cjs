@@ -290,7 +290,7 @@ function strategyCard(plan) {
     ? plan.stateReasons.join('；')
     : (Array.isArray(plan.statusReasons) && plan.statusReasons.length ? plan.statusReasons.join('；') : '');
   return `<div class="strategy-card ${cls}">
-    <div class="strategy-head"><span class="strategy-title">📌 交易策略</span><span class="strategy-badges">${escapeHtml(eventLabel(state, 'execution'))} · 策略${conf}置信 · ${escapeHtml(strat)}</span></div>
+    <div class="strategy-head"><span class="strategy-title">📌 交易策略</span><span class="strategy-badges">${statusBadge(state)} · 策略${conf}置信 · ${escapeHtml(strat)}</span></div>
     <div class="strategy-sub">${escapeHtml(strat)} + ${escapeHtml(playbook)}</div>
     <table class="fields strategy-fields">${rows.join('')}</table>
     ${riskLine || reasons ? `<div class="strategy-risk">${escapeHtml(riskLine)}${riskLine && reasons ? ' · ' : ''}<span class="muted">${escapeHtml(reasons)}</span></div>` : ''}
@@ -457,7 +457,7 @@ function actionStrip(strategyPlan, signalPoolView) {
   const suspended = plans.filter((p) => planStateOf(p) === 'suspended').length;
   const pool = signalPoolView && Array.isArray(signalPoolView.pool) ? signalPoolView.pool : [];
   const poolTxt = pool.map((p) => `${escapeHtml(p.name || p.symbol)}·${escapeHtml(p.signalStatus ? eventLabel(p.signalStatus === 'ready' ? 'triggered' : p.signalStatus, 'execution') : (p.poolStatus === 'active' ? '追踪中' : '降级'))}`).join(' ｜ ') || '空';
-  return `今日动作：生效观察 ${armed} · 观察确认 ${watching} · 暂停 ${suspended} ｜ 信号池：${poolTxt}`;
+  return `今日动作：🔔 生效观察 ${armed} · 👀 观察确认 ${watching} · ⛔ 暂停 ${suspended} ｜ 信号池：${poolTxt}`;
 }
 
 function dataBadges(strategyPlan, signalPoolView, costAnchorAvailable) {
