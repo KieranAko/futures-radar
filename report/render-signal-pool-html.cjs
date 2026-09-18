@@ -162,6 +162,112 @@ function anchorPanel(sig) {
   </div>`;
 }
 
+function lifecycleChart(sig, versions) {
+  const a = sig.anchor;
+  if (!a) return '';
+  const p = sig.priceTracking || {};
+  const obs = Array.isArray(sig.observations) ? sig.observations : [];
+  const points = [];
+  const seen = new Set();
+  const add = (date, close) => {
+    if (!date || close == null || close === '' || seen.has(date)) return;
+    seen.add(date);
+    points.push({ date, close: Number(close) });
+  };
+  add(sig.createdDate, p.startClose);
+  for (const o of obs) add(o.date, o.close);
+  add(sig.lastSeenDate, p.latestClose);
+  points.sort((x, y) => x.date.localeCompare(y.date));
+  if (points.length < 2) return '';
+
+  const av = versions.find((v) => v.versionId === a.versionId) || null;
+  const triggerLevel = a.triggerLevel != null ? Number(a.triggerLevel) : (av && av.entry && av.entry.triggerLevel != null ? Number(av.entry.triggerLevel) : null);
+  const stopPrice = av && av.stop && av.stop.stopPrice != null ? Number(av.stop.stopPrice) : null;
+
+  const levels = points.map((d) => d.close);
+  if (triggerLevel != null) levels.push(triggerLevel);
+  if (stopPrice != null) levels.push(stopPrice);
+  if (a.entryPrice != null) levels.push(Number(a.entryPrice));
+  if (a.exitPrice != null) levels.push(Number(a.exitPrice));
+  const minY = Math.min(...levels);
+  const maxY = Math.max(...levels);
+  const span = (maxY - minY) || 1;
+  const y0 = minY - span * 0.18;
+  const y1 = maxY + span * 0.18;
+
+  const W = 720;
+  const H = 210;
+  const padL = 10;
+  const padR = 78;
+  const padT = 26;
+  const padB = 30;
+  const x = (i) => padL + (i / (points.length - 1)) * (W - padL - padR);
+  const y = (v) => padT + ((y1 - v) / (y1 - y0)) * (H - padT - padB);
+
+  const linePath = points.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(d.close).toFixed(1)}`).join(' ');
+
+  const xOfDate = (date) => {
+    if (!date) return null;
+    const idx = points.findIndex((d) => d.date === date);
+    if (idx >= 0) return x(idx);
+    if (date < points[0].date) return x(0);
+    if (date > points[points.length - 1].date) return x(points.length - 1);
+    for (let i = 0; i < points.length - 1; i++) {
+      if (date > points[i].date && date < points[i + 1].date) return x(i) + (x(i + 1) - x(i)) * 0.5;
+    }
+    return null;
+  };
+
+  const markers = [];
+  const addMarker = (cx, price, color, label, anchor) => {
+    if (cx == null || price == null) return;
+    markers.push({ cx, cy: y(Number(price)), color, label, anchor });
+  };
+  if (a.triggerDate && triggerLevel != null) {
+    addMarker(xOfDate(a.triggerDate), triggerLevel, '#b45309', `触发 ${a.triggerDate} @ ${fmt(triggerLevel, 0)}`, 'end');
+  }
+  const lastR = av && av.verification && av.verification.lastResult;
+  const skipped = a.status === 'skipped_gap';
+  const entryPrice = a.entryPrice != null ? a.entryPrice : (skipped && lastR && lastR.entryPrice != null ? Number(lastR.entryPrice) : null);
+  const entryDate = a.entryDate || (skipped && lastR && lastR.entryDate ? lastR.entryDate : null);
+  if (entryDate && entryPrice != null) {
+    addMarker(xOfDate(entryDate), entryPrice, skipped ? '#b91c1c' : '#047857', `${skipped ? '放弃执行' : '入场'} ${entryDate} @ ${fmt(entryPrice, 0)}`, skipped ? 'start' : 'end');
+  }
+  if (a.exitDate && a.exitPrice != null) {
+    addMarker(xOfDate(a.exitDate), a.exitPrice, '#b91c1c', `离场 ${a.exitDate} @ ${fmt(a.exitPrice, 0)}`, 'start');
+  }
+
+  const dashedLine = (level, color) => {
+    if (level == null) return '';
+    return `<line x1="${padL}" y1="${y(level).toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${y(level).toFixed(1)}" stroke="${color}" stroke-width="1" stroke-dasharray="4 4" opacity="0.55"/>`;
+  };
+
+  const markerSvg = markers.map((m) => {
+    const ty = m.anchor === 'start' ? m.cy - 7 : m.cy + 15;
+    const textAnchor = m.cx > W - padR - 90 ? 'end' : 'start';
+    const tx = m.cx > W - padR - 90 ? m.cx - 5 : m.cx + 5;
+    return `<circle cx="${m.cx.toFixed(1)}" cy="${m.cy.toFixed(1)}" r="4" fill="${m.color}" stroke="#fff" stroke-width="1.5"/>
+      <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" font-size="11" fill="${m.color}" text-anchor="${textAnchor}">${escapeHtml(m.label)}</text>`;
+  }).join('');
+
+  const xLabels = [points[0], points[points.length - 1]].map((d, i) => {
+    const lx = i === 0 ? x(0) : x(points.length - 1);
+    return `<text x="${lx.toFixed(1)}" y="${(H - 8).toFixed(1)}" font-size="11" fill="#6b7280" text-anchor="${i === 0 ? 'start' : 'end'}">${escapeHtml(d.date)}</text>`;
+  }).join('');
+
+  return `<div class="lifecycle">
+    <h4>生命周期（价格路径 + 执行标记）</h4>
+    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">
+      ${dashedLine(triggerLevel, '#b45309')}
+      ${dashedLine(stopPrice, '#b91c1c')}
+      <path d="${linePath}" fill="none" stroke="#2563eb" stroke-width="2"/>
+      ${markerSvg}
+      ${xLabels}
+    </svg>
+    <div class="muted" style="font-size:12px">虚线：触发价 / 止损价；蓝线：收盘路径；圆点：触发/入场/离场标记</div>
+  </div>`;
+}
+
 function signalCard(sig, { closed = false } = {}) {
   const body = [];
   const rows = [];
@@ -190,11 +296,13 @@ function signalCard(sig, { closed = false } = {}) {
     rows.push(fieldRow('价格追踪', `入池 ${fmt(p.startClose)} → 最新 ${fmt(p.latestClose)}${chg ? ` <span class="${pctChange(p.startClose, p.latestClose) && pctChange(p.startClose, p.latestClose).startsWith('+') ? 'up' : 'down'}">（${chg}）</span>` : ''}<br><span class="muted">最大有利 ${fav} · 最大不利 ${adv}</span>`));
   }
 
+  const versions = Array.isArray(sig.versions) ? sig.versions : [];
+
   if (!closed) body.push(anchorPanel(sig));
   body.push(`<table class="fields">${rows.join('')}</table>`);
+  body.push(lifecycleChart(sig, versions));
   body.push(timelineBlock(sig));
 
-  const versions = Array.isArray(sig.versions) ? sig.versions : [];
   if (versions.length > 0) {
     body.push(`<h4>策略版本（${versions.length}）</h4>`);
     for (const v of versions) {
@@ -348,6 +456,8 @@ function renderSignalPoolHtml(view, opts = {}) {
   .up { color: var(--up); font-weight: 600; }
   .down { color: var(--down); font-weight: 600; }
   .card h4 { margin: 12px 0 6px; font-size: 13px; color: var(--muted); }
+  .lifecycle { margin: 10px 0; }
+  .lifecycle svg { width: 100%; height: auto; background: #fbfdff; border: 1px solid var(--border); border-radius: 8px; }
   details.version { border: 1px solid var(--border); border-radius: 8px; margin: 8px 0; background: #fbfcfd; }
   details.version > summary { cursor: pointer; padding: 8px 12px; font-size: 13px; list-style: none; }
   details.version > summary::-webkit-details-marker { display: none; }

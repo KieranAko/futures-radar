@@ -699,6 +699,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   table.fields th { width: 88px; text-align: left; vertical-align: top; color: var(--muted); font-weight: 500; padding: 5px 10px 5px 0; white-space: nowrap; }
   table.fields td { vertical-align: top; padding: 5px 0; word-break: break-word; }
   .card h4 { margin: 12px 0 6px; font-size: 13px; color: var(--muted); }
+  .lifecycle { margin: 10px 0; }
+  .lifecycle svg { width: 100%; height: auto; background: #fbfdff; border: 1px solid var(--border); border-radius: 8px; }
   details.version { border: 1px solid var(--border); border-radius: 8px; margin: 8px 0; background: #fbfcfd; }
   details.version > summary { cursor: pointer; padding: 8px 12px; font-size: 13px; list-style: none; }
   details.version > summary::-webkit-details-marker { display: none; }
