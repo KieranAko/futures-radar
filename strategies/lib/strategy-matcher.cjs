@@ -19,6 +19,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { skillRoot, runDir } = require('../../lib/workspace.cjs');
+const { PLAN_STATE_ALIASES, planStateOf } = require('./strategy-state.cjs');
 
 // ── 常量（与 strategy-library.json riskConfig / risk-framework §9 一致） ──
 const LIBRARY_PATH = () => path.join(skillRoot, 'strategies', 'strategy-library.json');
@@ -906,7 +907,9 @@ function riskLayer(ctx, ind, opts) {
       maxHoldingDays: rc.maxHoldingDays
     },
     executionStatus: status,
+    state: PLAN_STATE_ALIASES[status] || 'watching',
     statusReasons: reasons,
+    stateReasons: reasons,
     notes
   };
 }
@@ -1000,6 +1003,7 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   const gateAbandonNote = pb.playbookId === 'PB-08' ? pb08AbandonNote(ctx, ind) : null;
   const playbookOut = gateAbandonNote ? { ...pb, gateNote: `${pb.gateNote}；${gateAbandonNote}` } : pb;
   const status = risk.executionStatus;
+  const state = risk.state || PLAN_STATE_ALIASES[status] || 'watching';
   const reasons = [...risk.statusReasons];
   if (gateAbandonNote) reasons.push(gateAbandonNote);
 
@@ -1087,7 +1091,9 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
       lotsBasis: risk.lotsBasisNote || 'min(风险预算手数, 波动率目标手数, 保证金手数)'
     },
     riskAssessment: risk.riskAssessment,
+    state,
     executionStatus: status,
+    stateReasons: reasons,
     statusReasons: reasons,
     invalidation: {
       hard: [...invalidation],
@@ -1123,7 +1129,7 @@ function arbitrateConcentration(plans) {
   const decisions = [];
   const groups = new Map();
   for (const p of plans) {
-    if (p.executionStatus !== 'executable') continue;
+    if (planStateOf(p) !== 'armed') continue;
     const key = `${p.sector}|${p.reportBaseline.direction}`;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(p);
@@ -1141,9 +1147,11 @@ function arbitrateConcentration(plans) {
     const downgraded = group.slice(1);
     for (const d of downgraded) {
       d.executionStatus = 'watch';
+      d.state = 'watching';
       d.position.lots = 0;
       d.riskAssessment.lots = 0;
       d.statusReasons = [`集中度冲突：同板块同向仓位保留置信度更高/赔率更优者（${kept.symbol}）`, ...d.statusReasons.filter(r => !r.includes('全部 hard'))];
+      d.stateReasons = d.statusReasons;
     }
     decisions.push({
       conflictGroup: key,

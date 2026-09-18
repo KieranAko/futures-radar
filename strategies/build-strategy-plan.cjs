@@ -104,7 +104,7 @@ const signalPoolResult = updateSignalPool({ runId, raw });
 fs.writeFileSync(path.join(runDir(runId), 'signal-pool.json'), JSON.stringify(signalPoolResult.view, null, 2) + '\n', 'utf8');
 
 const lines = plan.plans.map(p =>
-  `  ${p.rank}. ${p.symbol} ${p.name} | 报告${p.reportBaseline.direction}/${p.reportBaseline.confidence} 策略${p.strategyConfidence} | ${p.matchedStrategies[0].strategyId} | ${p.playbook.playbookId}(${p.playbook.gateStatus}) | ${p.executionStatus} ${p.position.lots}手`
+  `  ${p.rank}. ${p.symbol} ${p.name} | 报告${p.reportBaseline.direction}/${p.reportBaseline.confidence} 策略${p.strategyConfidence} | ${p.matchedStrategies[0].strategyId} | ${p.playbook.playbookId}(${p.playbook.gateStatus}) | ${p.state || p.executionStatus} ${p.position.lots}手`
 );
 console.log(`Output: ${outPath}`);
 console.log(`Plans: ${plan.plans.length} | concentrationDecisions: ${plan.concentrationDecisions.length} | inputsSha: ${plan.meta.inputsSha.slice(0, 12)}…`);

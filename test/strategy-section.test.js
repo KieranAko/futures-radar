@@ -307,14 +307,14 @@ describe('strategy-section: 信号池追踪渲染', () => {
     assert.ok(out.includes('## 四、信号池追踪'));
     assert.ok(out.includes('池内 **1** 个信号全量追踪'));
     assert.ok(out.includes('SIG-TA0-20260911-01'));
-    assert.ok(out.includes('降级观察(1/3)'));
+    assert.ok(out.includes('已触发待入场（连续 1 期无生效策略）'));
     assert.ok(out.includes('最近出池信号（最新 5 个）'));
     assert.ok(out.includes('SIG-PP0-20260910-01'));
     assert.ok(out.includes('反向翻转'));
     assert.ok(out.includes('兑现'));
     assert.ok(out.includes('版本链（2 个版本）'));
     assert.ok(out.includes('V1｜r1｜2026-09-11'));
-    assert.ok(out.includes('| 历史已出池信号 | 1 |'));
+    assert.ok(out.includes('历史已出池信号 1 个'));
   });
 
   it('空池渲染仍输出统计与口径说明', () => {

@@ -24,6 +24,7 @@ const {
   statsTable,
   escapeHtml
 } = require('./render-signal-pool-html.cjs');
+const { planStateOf, eventLabel } = require('../strategies/lib/strategy-state.cjs');
 
 function readJSON(p, fallback = null) {
   try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return fallback; }
@@ -252,15 +253,16 @@ function chipList(label, items, tone) {
 }
 
 // ── 交易策略卡 ────────────────────────────────────────────────
-function strategyStatusClass(status) {
-  if (status === 'executable') return 'st-executable';
-  if (status === 'watch') return 'st-watch';
+function strategyStatusClass(state) {
+  if (state === 'armed') return 'st-executable';
+  if (state === 'watching') return 'st-watch';
   return 'st-skip';
 }
 
 function strategyCard(plan) {
   if (!plan) return '';
-  const cls = strategyStatusClass(plan.executionStatus);
+  const state = planStateOf(plan);
+  const cls = strategyStatusClass(state);
   const conf = plan.strategyConfidence ? confidenceLabel(plan.strategyConfidence) : '—';
   const strat = plan.matchedStrategies && plan.matchedStrategies[0]
     ? `${plan.matchedStrategies[0].strategyId} ${plan.matchedStrategies[0].name || ''}`
@@ -275,7 +277,7 @@ function strategyCard(plan) {
   rows.push(row('目标', plan.targets ? `${escapeHtml(plan.targets.t1 || '—')}${plan.targets.t2 ? `<br><span class="muted">${escapeHtml(plan.targets.t2)}</span>` : ''}` : '—'));
   rows.push(row('仓位', `${plan.position && plan.position.lots != null ? `${plan.position.lots} 手` : '—'} <span class="muted">${escapeHtml(plan.position && plan.position.lotsBasis || '')}</span>`));
   rows.push(row('证伪/失效', escapeHtml([...(plan.invalidation && plan.invalidation.hard ? plan.invalidation.hard : []), plan.invalidation && plan.invalidation.timeStop ? plan.invalidation.timeStop : ''].filter(Boolean).join('；'))));
-  if (plan.executionStatus === 'watch' && plan.entry && plan.entry.trigger) {
+  if (state === 'watching' && plan.entry && plan.entry.trigger) {
     rows.push(row('转执行触发', `<span class="watch-trigger">${escapeHtml(plan.entry.trigger)}</span>`));
   }
   const ra = plan.riskAssessment || {};
@@ -284,9 +286,11 @@ function strategyCard(plan) {
     ra.marginPerLotCny != null ? `保证金/手 ${Math.round(ra.marginPerLotCny)} CNY` : null,
     ra.tailGapPct3d != null ? `尾部边距 ${fmt(ra.tailGapPct3d)}%` : null
   ].filter(Boolean).join(' · ');
-  const reasons = Array.isArray(plan.statusReasons) && plan.statusReasons.length ? plan.statusReasons.join('；') : '';
+  const reasons = Array.isArray(plan.stateReasons) && plan.stateReasons.length
+    ? plan.stateReasons.join('；')
+    : (Array.isArray(plan.statusReasons) && plan.statusReasons.length ? plan.statusReasons.join('；') : '');
   return `<div class="strategy-card ${cls}">
-    <div class="strategy-head"><span class="strategy-title">📌 交易策略</span><span class="strategy-badges">${statusBadge(plan.executionStatus)} · 策略${conf}置信 · ${escapeHtml(strat)}</span></div>
+    <div class="strategy-head"><span class="strategy-title">📌 交易策略</span><span class="strategy-badges">${escapeHtml(eventLabel(state, 'execution'))} · 策略${conf}置信 · ${escapeHtml(strat)}</span></div>
     <div class="strategy-sub">${escapeHtml(strat)} + ${escapeHtml(playbook)}</div>
     <table class="fields strategy-fields">${rows.join('')}</table>
     ${riskLine || reasons ? `<div class="strategy-risk">${escapeHtml(riskLine)}${riskLine && reasons ? ' · ' : ''}<span class="muted">${escapeHtml(reasons)}</span></div>` : ''}
@@ -448,12 +452,12 @@ function freshnessLine(reportModel) {
 
 function actionStrip(strategyPlan, signalPoolView) {
   const plans = strategyPlan && Array.isArray(strategyPlan.plans) ? strategyPlan.plans : [];
-  const exec = plans.filter((p) => p.executionStatus === 'executable').length;
-  const watch = plans.filter((p) => p.executionStatus === 'watch').length;
-  const skip = plans.filter((p) => p.executionStatus === 'skip').length;
+  const armed = plans.filter((p) => planStateOf(p) === 'armed').length;
+  const watching = plans.filter((p) => planStateOf(p) === 'watching').length;
+  const suspended = plans.filter((p) => planStateOf(p) === 'suspended').length;
   const pool = signalPoolView && Array.isArray(signalPoolView.pool) ? signalPoolView.pool : [];
-  const poolTxt = pool.map((p) => `${escapeHtml(p.name || p.symbol)}${p.poolStatus === 'active' ? '·追踪中' : '·降级'}`).join(' ｜ ') || '空';
-  return `今日动作：可执行 ${exec} · 观察 ${watch} · 跳过 ${skip} ｜ 信号池：${poolTxt}`;
+  const poolTxt = pool.map((p) => `${escapeHtml(p.name || p.symbol)}·${escapeHtml(p.signalStatus ? eventLabel(p.signalStatus === 'ready' ? 'triggered' : p.signalStatus, 'execution') : (p.poolStatus === 'active' ? '追踪中' : '降级'))}`).join(' ｜ ') || '空';
+  return `今日动作：生效观察 ${armed} · 观察确认 ${watching} · 暂停 ${suspended} ｜ 信号池：${poolTxt}`;
 }
 
 function dataBadges(strategyPlan, signalPoolView, costAnchorAvailable) {
@@ -764,7 +768,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
     <div class="summary-bar">
       ${statCard('📊', '池内信号', pool.length, 'blue')}
       ${statCard('🟢', '追踪中', activeCount, 'green')}
-      ${statCard('🟡', '降级观察', downgradedCount, 'gray')}
+      ${statCard('🟡', '非生效观察', downgradedCount, 'gray')}
       ${statCard('📦', '历史已出池', stats.totalClosed == null ? 0 : stats.totalClosed, 'red')}
     </div>
     <div class="pool-layout">
@@ -776,7 +780,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
       </div>
       <aside class="pool-side">
         <div class="side-card"><h3>历史统计</h3>${statsTable(stats)}</div>
-        <div class="side-card"><h3>口径说明</h3><ul class="side-notes"><li>入池：executable 策略诞生信号</li><li>追踪：每期完整分析席位 + 版本追加</li><li>出池：反向翻转 / Q5 证伪 / 机会衰竭 / 窗口到期</li><li>降级（watch/skip）不出池</li></ul></div>
+        <div class="side-card"><h3>口径说明</h3><ul class="side-notes"><li>入池：armed（生效观察）策略诞生信号</li><li>追踪：每期完整分析席位 + 版本追加</li><li>事件即状态：armed → triggered → holding → 终态</li><li>出池：方向层 + 执行层两层归因，出池方式只做附注</li></ul></div>
       </aside>
     </div>
   </section>

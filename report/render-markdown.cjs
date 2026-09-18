@@ -253,7 +253,11 @@ if (fs.existsSync(strategyPlanPath)) {
 }
 
 const planMap = new Map((strategyPlan && Array.isArray(strategyPlan.plans) ? strategyPlan.plans : []).map((p) => [p.symbol, p]));
-const executionLabel = (s) => (s === 'executable' ? '✅ 可执行' : s === 'watch' ? '👀 观察' : s === 'skip' ? '⛔ 跳过' : '—');
+const { planStateOf, planReasonsOf, eventLabel } = require('../strategies/lib/strategy-state.cjs');
+const executionLabel = (p) => {
+  const state = planStateOf(p);
+  return state === 'armed' ? '🔔 生效观察' : eventLabel(state, 'execution');
+};
 
 // ── Header ───────────────────────────────────────────────────
 const reportDate = new Date(model.meta.generatedAt).toISOString().slice(0, 10);
@@ -274,7 +278,7 @@ summary.push('| 品种 | 锚定合约 | 收盘价 | 方向 | 置信度 | 执行�
 summary.push('|------|---------|--------|------|--------|---------|');
 for (const opp of model.opportunities) {
   const p = planMap.get(opp.symbol);
-  summary.push(`| ${opp.symbol} ${opp.name} | ${opp.contract || '—'} | ${fmt(opp.marketFacts && opp.marketFacts.close, 0)} | ${directionLabel(opp.thesis.finalDirection)} | ${confidenceLabel(opp.thesis.finalConfidence)} | ${p ? executionLabel(p.executionStatus) : '—'} |`);
+  summary.push(`| ${opp.symbol} ${opp.name} | ${opp.contract || '—'} | ${fmt(opp.marketFacts && opp.marketFacts.close, 0)} | ${directionLabel(opp.thesis.finalDirection)} | ${confidenceLabel(opp.thesis.finalConfidence)} | ${p ? executionLabel(p) : '—'} |`);
 }
 summary.push('');
 
@@ -289,11 +293,11 @@ if (coreBullets.length > 0) {
 
 const actionBullets = model.opportunities.map((opp) => {
   const p = planMap.get(opp.symbol);
-  const st = p ? executionLabel(p.executionStatus) : '—';
-  const reasons = p && Array.isArray(p.statusReasons) && p.statusReasons.length > 0
-    ? `（${p.statusReasons.join('；')}）`
+  const st = p ? executionLabel(p) : '—';
+  const reasons = p && planReasonsOf(p).length > 0
+    ? `（${planReasonsOf(p).join('；')}）`
     : '';
-  const turn = p && (p.executionStatus === 'watch' || p.executionStatus === 'skip') && p.entry && p.entry.trigger
+  const turn = p && planStateOf(p) !== 'armed' && p.entry && p.entry.trigger
     ? `；转执行：${p.entry.trigger}`
     : '';
   return `- ${opp.symbol} ${opp.name}：${st}${reasons}${turn}`;

@@ -30,6 +30,12 @@ const {
   signalVersionVerificationLabel,
   versionExitDetail
 } = require('./render-strategy-section.cjs');
+const {
+  versionStateOf,
+  eventLabel,
+  directionResultLabel,
+  executionResultLabel
+} = require('../strategies/lib/strategy-state.cjs');
 
 function escapeHtml(s) {
   return String(s == null ? '' : s)
@@ -84,7 +90,7 @@ function versionBody(v) {
 
 function versionSummary(v) {
   const num = String(v.versionId).includes(':V') ? String(v.versionId).split(':V')[1] : v.versionId;
-  return `V${num} · ${statusBadge(v.executionStatus)} · ${v.signalDate} · ${escapeHtml(v.stateTransition === 'signal_created' ? '入池' : (v.stateTransition || '—'))} · ${signalVersionVerificationLabel(v)}`;
+  return `V${num} · ${escapeHtml(eventLabel(versionStateOf(v), 'execution'))} · ${v.signalDate} · ${signalVersionVerificationLabel(v)}`;
 }
 
 function progressBar(progress) {
@@ -136,7 +142,7 @@ function anchorPanel(sig) {
       ? '<div class="anchor-sub pos-triggered">已触发，待 T+2 入场 · 降级计数暂停生效</div>'
       : '';
   return `<div class="anchor-panel">
-    <div class="anchor-head">锚定策略：${escapeHtml(a.versionId)} · ${statusBadge(a.executionStatus)} · ${escapeHtml(a.signalDate)}</div>
+    <div class="anchor-head">锚定策略：${escapeHtml(a.versionId)} · ${escapeHtml(eventLabel(a.executionStatus === 'executable' ? 'armed' : a.executionStatus === 'skip' ? 'suspended' : a.executionStatus === 'watch' ? 'watching' : (a.executionStatus || '—'), 'execution'))} · ${escapeHtml(a.signalDate)}</div>
     ${posNote}
     ${a.timeStop ? `<div class="anchor-sub">计划离场：${escapeHtml(a.timeStop)}</div>` : ''}
     <div class="anchor-grid">
@@ -155,15 +161,17 @@ function signalCard(sig, { closed = false } = {}) {
   if (closed) {
     const closedDate = sig.closedAt ? String(sig.closedAt).slice(0, 10) : '—';
     rows.push(fieldRow('入池', `${sig.createdDate} <span class="muted">${escapeHtml(sig.createdRunId)}</span>`));
-    const closedClass = sig.closeClass ? closeClassLabel(sig.closeClass) : (sig.closeReason === 'fulfilled' ? '方向正确·执行盈利' : '—');
-    rows.push(fieldRow('出池', `${closedDate} · ${closedClass} · 事件 ${closeReasonLabel(sig.closeReason)}`));
+    const dirAttribution = sig.directionResult ? directionResultLabel(sig.directionResult, sig.directionEvidence) : (sig.closeClass ? closeClassLabel(sig.closeClass) : '—');
+    const execAttribution = sig.executionResult ? executionResultLabel(sig.executionResult, sig.executionEvent) : '—';
+    rows.push(fieldRow('出池', `${closedDate} · ${escapeHtml(dirAttribution)} · ${escapeHtml(execAttribution)}`));
+    rows.push(fieldRow('出池方式', escapeHtml(closeReasonLabel(sig.closeReason))));
   } else {
     rows.push(fieldRow('入池', `${sig.createdDate} <span class="muted">${escapeHtml(sig.createdRunId)}</span>`));
     rows.push(fieldRow('最近更新', `${sig.lastSeenDate} <span class="muted">${escapeHtml(sig.lastSeenRunId)}</span>`));
   }
   const cur = sig.currentVersion || {};
-  const curExpr = cur.executionStatus
-    ? `${statusBadge(cur.executionStatus)}${cur.entryTrigger ? ` — ${escapeHtml(cur.entryTrigger)}` : ''}`
+  const curExpr = cur.state
+    ? `${escapeHtml(eventLabel(cur.state, 'execution'))}${cur.entryTrigger ? ` — ${escapeHtml(cur.entryTrigger)}` : ''}`
     : '—';
   rows.push(fieldRow('当前表达', curExpr));
   if (!closed) rows.push(fieldRow('最新验证', signalVerificationLabel(sig)));
@@ -191,24 +199,23 @@ function signalCard(sig, { closed = false } = {}) {
 }
 
 function statsTable(stats) {
-  const byClass = stats.byCloseClass || {};
-  const byReason = stats.byCloseReason || {};
-  const clsRows = [
-    ['历史已出池信号', stats.totalClosed == null ? 0 : stats.totalClosed],
-    ['方向正确 · 执行盈利', byClass.direction_hit_profit || 0],
-    ['方向正确 · 未执行', byClass.direction_hit_noexec || 0],
-    ['方向正确 · 执行亏损', byClass.direction_hit_loss || 0],
-    ['方向错误', byClass.direction_wrong || 0]
+  const dirLayer = stats.directionLayer || {};
+  const dirBy = dirLayer.byEvent || {};
+  const execLayer = stats.executionLayer || {};
+  const execBy = execLayer.byEvent || {};
+  const row = (k, v) => `<tr><th>${escapeHtml(k)}</th><td>${v}</td></tr>`;
+  const dirRows = [
+    row('历史已出池信号', stats.totalClosed == null ? 0 : stats.totalClosed),
+    row('方向正确', `${dirLayer.hit || 0} <span class="muted">（终值顺向 ${dirBy.close_favorable || 0} · 顺向1ATR ${dirBy.favorable_1atr || 0}）</span>`),
+    row('方向错误', `${dirLayer.miss || 0} <span class="muted">（逆向1ATR ${dirBy.adverse_1atr || 0} · 双向未出 ${dirBy.none || 0}）</span>`)
   ];
-  const reasonRows = [
-    ['事件 · 目标兑现', byReason.fulfilled || 0],
-    ['事件 · 反向翻转', byReason.flipped || 0],
-    ['事件 · Q5证伪', byReason.invalidated_q5 || 0],
-    ['事件 · 机会衰竭', byReason.faded || 0],
-    ['事件 · 窗口到期', byReason.expired || 0]
+  const execRows = [
+    row('盈利', `${execLayer.profit || 0} <span class="muted">（目标兑现 ${execBy.target_hit || 0} · 时间盈利 ${execBy.time_exit_profit || 0}）</span>`),
+    row('亏损', `${execLayer.loss || 0} <span class="muted">（止损 ${execBy.stopped_out || 0} · 时间亏损 ${execBy.time_exit_loss || 0}）</span>`),
+    row('未执行', `${execLayer.noexec || 0} <span class="muted">（跳空 ${execBy.gap_skipped || 0} · 未触发 ${execBy.trigger_missed || 0} · 观察 ${execBy.confirmed || 0}/${execBy.watch_missed || 0} · 暂停 ${execBy.suspended || 0}）</span>`)
   ];
-  const rowHtml = (rows) => rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
-  return `<table class="stats">${rowHtml(clsRows)}</table><table class="stats" style="margin-top:8px">${rowHtml(reasonRows)}</table>`;
+  const rowHtml = (rows) => rows.join('');
+  return `<table class="stats">${rowHtml(dirRows)}</table><table class="stats" style="margin-top:8px">${rowHtml(execRows)}</table>`;
 }
 
 function renderSignalPoolHtml(view, opts = {}) {

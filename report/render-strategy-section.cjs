@@ -13,6 +13,18 @@
 
 const { inferFamily, trustRating } = require('../strategies/lib/family-infer.cjs');
 const symbolsConfig = require('../config/symbols.json');
+const {
+  planStateOf,
+  planReasonsOf,
+  versionStateOf,
+  signalStatusOf,
+  verificationEventOf,
+  eventLabel,
+  directionResultLabel,
+  executionResultLabel,
+  EXECUTION_STATES,
+  DIRECTION_EVENTS
+} = require('../strategies/lib/strategy-state.cjs');
 
 // ── 格式化（沿用 render-markdown.cjs 口径：价格 1 位小数、百分比 1-2 位、金额整数） ──
 function escapeHtml(s) {
@@ -29,9 +41,16 @@ function fmt(x, d) {
 }
 
 function statusBadge(status) {
-  if (status === 'executable') return '✅ 可执行';
-  if (status === 'watch') return '👀 观察';
-  return '⛔ 跳过';
+  const state = planStateOf({ state: status, executionStatus: status });
+  if (state === 'armed') return '🔔 生效观察';
+  if (state === 'watching') return '👀 观察确认';
+  if (state === 'suspended') return '⛔ 暂停';
+  if (EXECUTION_STATES[status]) return `${EXECUTION_STATES[status].label}`;
+  return status || '—';
+}
+
+function stateLabel(code) {
+  return eventLabel(code, 'execution');
 }
 
 function directionLabel(dir) {
@@ -46,18 +65,15 @@ function confidenceLabel(conf) {
 
 function feedbackStatusLabel(r) {
   const status = r.status || '—';
-  if (status === 'verified') {
+  const mode = r.verificationMode || (r.executionStatus === 'watch' ? 'signal' : 'trade');
+  const code = verificationEventOf(status, r.lastResult || r, mode);
+  if (status === 'verified' && (r.lastResult || r).exitType === 'time_exit') {
     const r0 = r.lastResult || r;
-    const exit = r0.exitType === 'stopped_out' ? '止损离场' : r0.exitType === 'target1_hit' ? '目标1兑现' : '时间离场';
     const dir = r0.directionCorrect === true ? '（方向正确）' : r0.directionCorrect === false ? '（方向错误）' : '';
-    return `${exit}${dir}`;
+    return `${eventLabel(code, 'execution')}${dir}`;
   }
-  if (status === 'invalidated_not_triggered') return '未触发，计划作废';
-  if (status === 'skipped_gap') return '跳空放弃';
-  if (status === 'confirmed') return '确认信号兑现';
-  if (status === 'unverifiable') return '不可验证';
+  if (code) return eventLabel(code, 'execution');
   if (status === 'pending_data') return '待数据';
-  if (status === 'triggered_pending_entry') return '已触发待入场数据';
   if (status === 'pending_verification') return '待验证';
   return status;
 }
@@ -92,7 +108,7 @@ function renderFeedbackV2(feedback) {
       for (const r of run.rows || []) {
         const symbolCell = `${r.name || r.symbol || '—'} (${r.symbol || '—'})`;
         const strategyCell = `${r.strategyId || '—'} + ${r.playbookId || '—'}`;
-        lines.push(`| ${r.recordId || '—'} | ${symbolCell} | ${statusBadge(r.executionStatus)} | ${feedbackDirectionConfidenceCell(r)} | ${strategyCell} | ${r.signalDate || '—'} | ${feedbackStatusLabel(r)} | ${feedbackAttribution(r)} |`);
+        lines.push(`| ${r.recordId || '—'} | ${symbolCell} | ${eventLabel(planStateOf(r), 'execution')} | ${feedbackDirectionConfidenceCell(r)} | ${strategyCell} | ${r.signalDate || '—'} | ${feedbackStatusLabel(r)} | ${feedbackAttribution(r)} |`);
       }
       lines.push('');
     }
@@ -162,12 +178,15 @@ function renderFeedbackV2(feedback) {
 
 // ── 信号池追踪渲染（独立章节：四、信号池追踪，位于交易策略之后）──
 function poolStatusLabel(s) {
-  if (s.poolStatus === 'closed') return '已出池';
-  const pos = s.anchor && s.anchor.positionStatus;
-  if (pos === 'holding') return `持仓中（降级 ${s.consecutiveNonExecutable || 0}/3 暂停生效）`;
-  if (pos === 'triggered') return `已触发待入场（降级 ${s.consecutiveNonExecutable || 0}/3 暂停生效）`;
-  if (s.poolStatus === 'downgraded') return `降级观察(${s.consecutiveNonExecutable || 0}/3)`;
-  return '追踪中';
+  const st = s.signalStatus || signalStatusOf(s);
+  if (st === 'closed') return '已出池';
+  const downgrade = s.consecutiveNonExecutable ? `（连续 ${s.consecutiveNonExecutable} 期无生效策略）` : '';
+  if (st === 'holding') return `持仓中${downgrade}`;
+  if (st === 'ready') return `已触发待入场${downgrade}`;
+  if (st === 'armed') return '生效观察';
+  if (st === 'observing') return `观察确认${downgrade}`;
+  if (st === 'suspended') return `全部暂停${downgrade}`;
+  return s.poolStatus === 'active' ? '追踪中' : '—';
 }
 
 function closeReasonLabel(reason) {
@@ -196,40 +215,26 @@ function verdictLabel(v) {
 function signalVerificationLabel(sig) {
   const v = sig.latestVerification;
   if (!v) return '待验证';
-  const status = v.status;
-  if (status === 'verified') {
-    const exit = v.exitType === 'stopped_out' ? '止损离场' : v.exitType === 'target1_hit' ? '目标1兑现' : '时间离场';
+  const code = verificationEventOf(v.status, v, v.status === 'invalidated_not_triggered' ? 'trade' : 'trade');
+  if (v.status === 'verified' && v.exitType === 'time_exit') {
     const dir = v.directionCorrect === true ? '（方向正确）' : v.directionCorrect === false ? '（方向错误）' : '';
-    return `${exit}${dir}`;
+    return `${eventLabel(code, 'execution')}${dir}`;
   }
-  if (status === 'invalidated_not_triggered') return '未触发，计划作废';
-  if (status === 'skipped_gap') return '执行偏离放弃';
-  if (status === 'confirmed') return '确认信号兑现';
-  if (status === 'suppressed') return '已降级跳过';
-  if (status === 'unverifiable') return '不可验证';
-  if (status === 'pending_data') return '待数据';
-  if (status === 'triggered_pending_entry') return '已触发待入场';
-  if (status === 'holding') return '持仓中';
-  if (status === 'pending_verification') return '待验证';
-  return status || '—';
+  if (code) return eventLabel(code, 'execution');
+  return v.status || '—';
 }
 
 function signalVersionVerificationLabel(v) {
   const st = v.verification && v.verification.status;
-  if (st === 'verified') {
-    const r = v.verification.lastResult || {};
-    const exit = r.exitType === 'stopped_out' ? '止损离场' : r.exitType === 'target1_hit' ? '目标1兑现' : '时间离场';
+  if (st === 'pending_verification' || st === 'pending_data') return eventLabel(versionStateOf(v), 'execution');
+  const mode = (v.state === 'watching' || v.executionStatus === 'watch') ? 'signal' : 'trade';
+  const code = verificationEventOf(st, v.verification && v.verification.lastResult, mode);
+  if (st === 'verified' && v.verification.lastResult && v.verification.lastResult.exitType === 'time_exit') {
+    const r = v.verification.lastResult;
     const dir = r.directionCorrect === true ? '（方向正确）' : r.directionCorrect === false ? '（方向错误）' : '';
-    return `${exit}${dir}`;
+    return `${eventLabel(code, 'execution')}${dir}`;
   }
-  if (st === 'invalidated_not_triggered') return '未触发';
-  if (st === 'skipped_gap') return '执行偏离放弃';
-  if (st === 'confirmed') return '确认兑现';
-  if (st === 'suppressed') return '降级跳过';
-  if (st === 'unverifiable') return '不可验证';
-  if (st === 'pending_data') return '待数据';
-  if (st === 'triggered_pending_entry') return '已触发待入场';
-  if (st === 'holding') return '持仓中';
+  if (code) return eventLabel(code, 'execution');
   return '待验证';
 }
 
@@ -269,9 +274,9 @@ function versionLine(v) {
   const trigger = v.entry && v.entry.triggerLevel != null ? `触发 ${fmt(v.entry.triggerLevel)}` : '触发 —';
   const stop = v.stop && v.stop.stopPrice != null ? `止损 ${fmt(v.stop.stopPrice)}` : '止损 —';
   const t1 = v.targets && v.targets.t1 ? `目标 ${v.targets.t1}` : '目标 —';
-  const transition = v.stateTransition === 'signal_created' ? '入池' : (v.stateTransition || '—');
   const exitDetail = versionExitDetail(v);
-  return `V${v.versionId.split(':V')[1] || '?'}｜${v.runId}｜${v.signalDate}｜${statusBadge(v.executionStatus)}｜${transition}｜${trigger} / ${stop} / ${t1}｜${signalVersionVerificationLabel(v)}${exitDetail ? '｜' + exitDetail : ''}`;
+  const state = versionStateOf(v);
+  return `V${v.versionId.split(':V')[1] || '?'}｜${v.runId}｜${v.signalDate}｜${eventLabel(state, 'execution')}｜${trigger} / ${stop} / ${t1}｜${signalVersionVerificationLabel(v)}${exitDetail ? '｜' + exitDetail : ''}`;
 }
 
 function signalCard(sig, { closed = false } = {}) {
@@ -285,15 +290,17 @@ function signalCard(sig, { closed = false } = {}) {
   if (closed) {
     const closedDate = sig.closedAt ? String(sig.closedAt).slice(0, 10) : '—';
     lines.push(fieldRow('入池', `${sig.createdDate}（${sig.createdRunId}）`));
-    const closedClass = sig.closeClass ? closeClassLabel(sig.closeClass) : (sig.closeReason === 'fulfilled' ? '方向正确·执行盈利' : '—');
-    lines.push(fieldRow('出池', `${closedDate}｜${closedClass}｜事件 ${closeReasonLabel(sig.closeReason)}`));
+    const dirAttribution = sig.directionResult ? directionResultLabel(sig.directionResult, sig.directionEvidence) : (sig.closeClass ? closeClassLabel(sig.closeClass) : '—');
+    const execAttribution = sig.executionResult ? executionResultLabel(sig.executionResult, sig.executionEvent) : '—';
+    lines.push(fieldRow('出池', `${closedDate}｜${dirAttribution}｜${execAttribution}`));
+    lines.push(fieldRow('出池方式', closeReasonLabel(sig.closeReason)));
   } else {
     lines.push(fieldRow('入池', `${sig.createdDate}（${sig.createdRunId}）`));
     lines.push(fieldRow('最近更新', `${sig.lastSeenDate}（${sig.lastSeenRunId}）`));
   }
   if (!closed && sig.anchor) {
     const a = sig.anchor;
-    lines.push(fieldRow('锚定策略', `${escapeHtml(a.versionId)} · ${statusBadge(a.executionStatus)} · ${escapeHtml(a.signalDate)}`));
+    lines.push(fieldRow('锚定策略', `${escapeHtml(a.versionId)} · ${eventLabel(a.executionStatus === 'executable' ? 'armed' : a.executionStatus === 'skip' ? 'suspended' : a.executionStatus === 'watch' ? 'watching' : (a.executionStatus || '—'), 'execution')} · ${escapeHtml(a.signalDate)}`));
     const entryCell = a.entryPrice != null ? `${fmt(a.entryPrice)}` : (a.status === 'skipped_gap' ? '—（执行偏离放弃）' : a.status === 'invalidated_not_triggered' ? '—（未触发）' : a.status === 'triggered_pending_entry' ? 'T+2 待定' : '—');
     lines.push(fieldRow('入场价格', entryCell));
     if (a.timeStop) lines.push(fieldRow('计划离场', escapeHtml(a.timeStop)));
@@ -315,7 +322,7 @@ function signalCard(sig, { closed = false } = {}) {
     }
   }
   const cur = sig.currentVersion || {};
-  const curExpr = cur.executionStatus ? `${statusBadge(cur.executionStatus)}${cur.entryTrigger ? ' — ' + cur.entryTrigger : ''}` : '—';
+  const curExpr = cur.state ? `${eventLabel(cur.state, 'execution')}${cur.entryTrigger ? ' — ' + cur.entryTrigger : ''}` : '—';
   lines.push(fieldRow('当前表达', curExpr));
   if (!closed) lines.push(fieldRow('最新验证', signalVerificationLabel(sig)));
   if (!closed && sig.fulfillProgress != null) {
@@ -371,32 +378,34 @@ function renderSignalPoolSection(view) {
 
   lines.push('### 4.3 历史统计与口径');
   lines.push('');
-  lines.push('| 出池质量分类（方向 × 执行） | 数量 |');
-  lines.push('|------------------------------|------|');
-  lines.push(`| 历史已出池信号 | ${stats.totalClosed == null ? 0 : stats.totalClosed} |`);
-  const byClass = stats.byCloseClass || {};
-  lines.push(`| 方向正确·执行盈利 | ${byClass.direction_hit_profit || 0} |`);
-  lines.push(`| 方向正确·未执行 | ${byClass.direction_hit_noexec || 0} |`);
-  lines.push(`| 方向正确·执行亏损 | ${byClass.direction_hit_loss || 0} |`);
-  lines.push(`| 方向错误 | ${byClass.direction_wrong || 0} |`);
+  lines.push('**方向层面（分析层归因）**');
   lines.push('');
-  lines.push('| 出池事件（追踪为何结束） | 数量 |');
-  lines.push('|--------------------------|------|');
-  const byReason = stats.byCloseReason || {};
-  lines.push(`| 目标兑现 | ${byReason.fulfilled || 0} |`);
-  lines.push(`| 反向翻转 | ${byReason.flipped || 0} |`);
-  lines.push(`| Q5 证伪 | ${byReason.invalidated_q5 || 0} |`);
-  lines.push(`| 机会衰竭 | ${byReason.faded || 0} |`);
-  lines.push(`| 窗口到期 | ${byReason.expired || 0} |`);
+  lines.push('| 方向结果 | 数量 | 依据事件 |');
+  lines.push('|---------|------|---------|');
+  const dirLayer = stats.directionLayer || {};
+  const dirBy = dirLayer.byEvent || {};
+  lines.push(`| 方向正确 | ${dirLayer.hit || 0} | 终值顺向 ${dirBy.close_favorable || 0} · 顺向 1 ATR ${dirBy.favorable_1atr || 0} |`);
+  lines.push(`| 方向错误 | ${dirLayer.miss || 0} | 逆向 1 ATR ${dirBy.adverse_1atr || 0} · 双向未出 ${dirBy.none || 0} |`);
+  lines.push('');
+  lines.push('**交易执行层面（执行层归因）**');
+  lines.push('');
+  lines.push('| 执行结果 | 数量 | 依据事件 |');
+  lines.push('|---------|------|---------|');
+  const execLayer = stats.executionLayer || {};
+  const execBy = execLayer.byEvent || {};
+  lines.push(`| 盈利 | ${execLayer.profit || 0} | 目标兑现 ${execBy.target_hit || 0} · 时间离场盈利 ${execBy.time_exit_profit || 0} |`);
+  lines.push(`| 亏损 | ${execLayer.loss || 0} | 止损离场 ${execBy.stopped_out || 0} · 时间离场亏损 ${execBy.time_exit_loss || 0} |`);
+  lines.push(`| 未执行 | ${execLayer.noexec || 0} | 跳空放弃 ${execBy.gap_skipped || 0} · 触发未成 ${execBy.trigger_missed || 0} · 观察确认 ${execBy.confirmed || 0} · 观察未确认 ${execBy.watch_missed || 0} · 暂停 ${execBy.suspended || 0} |`);
+  lines.push('');
+  lines.push(`历史已出池信号 ${stats.totalClosed == null ? 0 : stats.totalClosed} 个；出池方式（faded/q5/flipped/expired）只做管理附注，不参与归因。`);
   lines.push('');
   lines.push('**口径说明**');
   lines.push('');
   lines.push('- 信号池是跨 run、跨时间、跨周期存续的信号台账；池内信号全部展示，不按 run 数或交易日截断。');
-  lines.push('- 入池：executable 策略诞生信号；追踪：每期给池内品种一个与 TOP3 同规格的完整分析席位并追加策略版本。');
-  lines.push('- 出池分类 = 分析层（信号预测方向对错）× 执行层（是否盈利）：方向错 → 方向错误；方向对+盈利 → 方向正确·执行盈利；方向对+未执行 → 方向正确·未执行；方向对+亏损 → 方向正确·执行亏损。');
-  lines.push('- 出池事件（目标兑现 / 反向翻转 / Q5 证伪 / 机会衰竭 / 窗口到期）只说明追踪为何结束，不参与质量分类；降级（watch/skip）不出池。');
-  lines.push('- 方向判定：终值优先（多头 latest>start，空头 latest<start）；终值不满足时，顺向最大有利偏移 ≥ 1×ATR5 且 ≥ |逆向最大不利偏移| 也认方向正确（过程兑现）。\n' +
-    '- 执行判定：只看 executable 版本，任一已入场版本实现盈亏 > 0 为盈利；有入场但全部 ≤ 0 为亏损；无入场为未执行。\n' +
+  lines.push('- 入池：armed（生效观察）策略诞生信号；追踪：每期给池内品种一个与 TOP3 同规格的完整分析席位并追加策略版本。');
+  lines.push('- 事件即状态：版本一生 = 一串执行事件（armed → triggered → holding → 终态事件）；当前状态 = 最后一条执行事件。');
+  lines.push('- 出池时对事件流做两次独立投影：方向层（方向正确/错误，依据方向事件）与执行层（盈利/亏损/未执行，依据终态事件）。');
+  lines.push('- 方向事件：终值顺向 = 收盘价在预测方向；顺向 1 ATR = 顺向最大有利偏移 ≥ 1×ATR5 且 ≥ |逆向最大不利偏移|；逆向 1 ATR = 反向占优。\n' +
     '- 兑现进度 = 当前最大有利偏移 ÷ 入池 ATR5；失效距离 = 当前价距当前失效位的 ATR 倍数（≤0 即失效）。\n' +
     '- 价格追踪自入池日收盘起算，有利/不利偏移为信号方向上的最大偏移（点）。');
   return lines.join('\n');
@@ -461,7 +470,7 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
   for (const p of plan.plans) {
     const primary = p.matchedStrategies[0];
     const t = planTrust(p, familyEvidence);
-    lines.push(`| ${p.symbol} ${p.name} | ${p.contract || '—'} | ${directionLabel(p.reportBaseline.direction)} | ${confidenceLabel(p.reportBaseline.confidence)} | ${primary.strategyId} + ${p.playbook.playbookId} | ${statusBadge(p.executionStatus)} | ${t.grade} |`);
+    lines.push(`| ${p.symbol} ${p.name} | ${p.contract || '—'} | ${directionLabel(p.reportBaseline.direction)} | ${confidenceLabel(p.reportBaseline.confidence)} | ${primary.strategyId} + ${p.playbook.playbookId} | ${eventLabel(planStateOf(p), 'execution')} | ${t.grade} |`);
   }
   lines.push('');
   lines.push('> 可信度 = 族级证据 × 状态匹配 × 实现保真（实验线三层合成）；不是胜率/收益预期，只表示证据充分程度。');
@@ -496,7 +505,7 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
 
       lines.push(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract || '—'}）`);
       lines.push('');
-      lines.push(`> **报告** ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信 · **策略表达** ${confidenceLabel(p.strategyConfidence)}置信${downgrade} · **状态** ${statusBadge(p.executionStatus)} · **理论** ${fitLabel}`);
+      lines.push(`> **报告** ${directionLabel(p.reportBaseline.direction)} / ${confidenceLabel(p.reportBaseline.confidence)}置信 · **策略表达** ${confidenceLabel(p.strategyConfidence)}置信${downgrade} · **状态** ${eventLabel(planStateOf(p), 'execution')} · **理论** ${fitLabel}`);
       if (p.theoryGapNote) lines.push(`> ${p.theoryGapNote}`);
       lines.push('');
       lines.push('| 执行要素 | 内容 |');
@@ -515,7 +524,7 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
       lines.push(`| 目标 | T1 ${p.targets.t1}；T2 ${p.targets.t2} |`);
       lines.push(`| 仓位 | ${p.position.lots} 手（${p.position.lotsBasis}） |`);
       lines.push(`| 证伪/失效 | ${p.invalidation.hard.join('；')}；${p.invalidation.timeStop} |`);
-      if (p.executionStatus === 'watch' || p.executionStatus === 'skip') {
+      if (planStateOf(p) !== 'armed') {
         lines.push(`| 转执行触发 | ${p.entry.trigger} |`);
       }
       lines.push('');
@@ -526,7 +535,7 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
       lines.push(`| 尾部 3d p95 反向边距 | ${fmt(ra.tailGapPct3d)}% |`);
       lines.push(`| 事件风险 | ${ra.eventRiskNote || '—'} |`);
       lines.push(`| 策略依据 | ${primary.strategyId} ${primary.name}${supporting ? `；辅证：${supporting}` : ''} |`);
-      lines.push(`| 状态说明 | ${p.statusReasons.length ? p.statusReasons.join('；') : '—'} |`);
+      lines.push(`| 状态说明 | ${planReasonsOf(p).length ? planReasonsOf(p).join('；') : '—'} |`);
       lines.push(`| 可信度 | ${t.grade}（${t.why}） |`);
       if (p.notes && p.notes.length > 0) lines.push(`| 备注 | ${p.notes.join('；')} |`);
       lines.push('');
@@ -557,8 +566,8 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
     lines.push(`- **证伪/失效**: ${p.invalidation.hard.join('；')}；${p.invalidation.timeStop}；T+1 未触发入场则本计划作废`);
     lines.push(`- **风险要点**: 每手风险 ${Math.round(ra.unitRiskCny)} CNY；保证金/手 ${Math.round(ra.marginPerLotCny)} CNY；尾部 3d p95 反向边距 ${fmt(ra.tailGapPct3d)}%；事件：${ra.eventRiskNote || '—'}`);
     lines.push(`- **策略依据**: ${primary.strategyId} ${primary.name}${supporting ? `；辅证：${supporting}` : ''}`);
-    lines.push(`- **状态**: ${statusBadge(p.executionStatus)}${p.statusReasons.length ? ` — ${p.statusReasons.join('；')}` : ''}`);
-    if (p.executionStatus === 'watch' || p.executionStatus === 'skip') {
+    lines.push(`- **状态**: ${eventLabel(planStateOf(p), 'execution')}${planReasonsOf(p).length ? ` — ${planReasonsOf(p).join('；')}` : ''}`);
+    if (planStateOf(p) !== 'armed') {
       lines.push(`- **转执行触发**: ${p.entry.trigger}`);
     }
     if (p.notes && p.notes.length > 0) lines.push(`- **备注**: ${p.notes.join('；')}`);
@@ -570,7 +579,7 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
     lines.push('### 集中度说明');
     lines.push('');
     for (const d of plan.concentrationDecisions) {
-      lines.push(`- ${d.conflictGroup}：保留 ${d.keptSymbol} executable，${d.downgradedSymbols.join('、')} 降级为观察（${d.reason}）`);
+      lines.push(`- ${d.conflictGroup}：保留 ${d.keptSymbol} 生效观察（armed），${d.downgradedSymbols.join('、')} 降级为观察确认（watching）（${d.reason}）`);
     }
     lines.push('');
   }
@@ -665,5 +674,7 @@ module.exports = {
   verdictLabel,
   signalVerificationLabel,
   signalVersionVerificationLabel,
-  versionExitDetail
+  versionExitDetail,
+  stateLabel,
+  statusBadge
 };

@@ -21,6 +21,23 @@ const {
   barsForRecord,
   isTerminalStatus
 } = require('./feedback.cjs');
+const {
+  planStateOf,
+  planReasonsOf,
+  versionStateOf,
+  signalStatusOf,
+  verificationEventOf,
+  normalizeEvent,
+  eventLabel,
+  eventCodesOf,
+  directionResultOfCodes,
+  directionEvidenceOfCodes,
+  executionEventOfCodes,
+  executionResultOfCodes,
+  EXECUTION_STATES,
+  DIRECTION_EVENTS,
+  EXIT_EVENTS
+} = require('./strategy-state.cjs');
 
 const SIGNAL_SCHEMA = 'futures-radar-signal-pool-signal/1';
 const LEDGER_SCHEMA = 'futures-radar-signal-pool-ledger/1';
@@ -133,7 +150,15 @@ function directionOfPlan(p) {
 }
 
 function executionOfPlan(p) {
-  return EXECUTION_STATUSES.includes(p.executionStatus) ? p.executionStatus : 'watch';
+  return planStateOf(p) === 'armed' ? 'executable' : planStateOf(p) === 'suspended' ? 'skip' : 'watch';
+}
+
+function versionInitialState(v) {
+  if (v && EXECUTION_STATES[v.state]) return v.state;
+  if (!v) return 'watching';
+  if (v.executionStatus === 'executable') return 'armed';
+  if (v.executionStatus === 'skip') return 'suspended';
+  return 'watching';
 }
 
 function transitionLabel(prevExec, curExec) {
@@ -145,13 +170,16 @@ function transitionLabel(prevExec, curExec) {
 }
 
 function versionFromPlan(signal, n, plan, p, prevVersion) {
+  const curState = planStateOf(p);
   const curExec = executionOfPlan(p);
   const prevExec = prevVersion ? prevVersion.executionStatus : null;
   return {
     versionId: `${signal.signalId}:V${n}`,
     runId: plan.meta.runId,
     signalDate: plan.meta.signalDate,
+    state: curState,
     executionStatus: curExec,
+    stateReasons: planReasonsOf(p),
     direction: directionOfPlan(p),
     confidence: (p.reportBaseline && p.reportBaseline.confidence) || 'low',
     strategyId: p.matchedStrategies && p.matchedStrategies[0] ? p.matchedStrategies[0].strategyId : 'BASE-01',
@@ -237,7 +265,7 @@ function appendVersion(signal, plan, p) {
   signal.lastSeenRunId = plan.meta.runId;
   signal.lastSeenDate = plan.meta.signalDate;
   signal.currentVersionId = version.versionId;
-  if (version.executionStatus === 'executable') {
+  if (version.state === 'armed') {
     signal.poolStatus = 'active';
     signal.consecutiveNonExecutable = 0;
   } else {
@@ -278,7 +306,7 @@ function executedOutcomesOf(signal) {
   const sign = signal.direction === 'bearish' ? -1 : 1;
   const outcomes = [];
   for (const v of signal.versions || []) {
-    if (v.executionStatus !== 'executable') continue;
+    if (versionInitialState(v) !== 'armed') continue;
     const r = v.verification && v.verification.lastResult;
     const st = v.verification && v.verification.status;
     if (!r) continue;
@@ -320,6 +348,24 @@ function backfillCloseClass(signal) {
   return true;
 }
 
+// ── 事件流两层归因投影 ────────────────────────────────────────
+function allSignalEventCodes(signal, extraEvents) {
+  const codes = new Set();
+  for (const o of Array.isArray(signal.observations) ? signal.observations : []) {
+    for (const code of eventCodesOf(o.events)) codes.add(code);
+  }
+  for (const code of eventCodesOf(extraEvents)) codes.add(code);
+  return codes;
+}
+
+function applyExitProjection(signal, extraEvents = []) {
+  const codes = allSignalEventCodes(signal, extraEvents);
+  signal.directionResult = directionResultOfCodes(codes);
+  signal.directionEvidence = directionEvidenceOfCodes(codes);
+  signal.executionEvent = executionEventOfCodes(codes);
+  signal.executionResult = executionResultOfCodes(codes);
+}
+
 function closeSignal(signal, reason, verdict = null) {
   if (!CLOSE_REASONS.includes(reason)) throw new Error(`invalid closeReason: ${reason}`);
   signal.poolStatus = 'closed';
@@ -353,7 +399,7 @@ function invalidationLevelOf(signal) {
 }
 
 function executableVersionsOf(signal) {
-  return signal.versions.filter((v) => v.executionStatus === 'executable');
+  return signal.versions.filter((v) => versionInitialState(v) === 'armed');
 }
 
 function versionFulfillProgress(version, direction, latestClose) {
@@ -511,7 +557,7 @@ function versionToRecord(signal, version) {
     name: signal.name,
     contract: signal.contract,
     direction: version.direction,
-    verificationMode: version.executionStatus === 'watch' ? 'signal' : 'trade',
+    verificationMode: versionInitialState(version) === 'watching' ? 'signal' : 'trade',
     signalDirection: version.direction === 'bullish' ? 'bullish' : version.direction === 'bearish' ? 'bearish' : null,
     executionStatus: version.executionStatus,
     plannedLots: null,
@@ -534,7 +580,7 @@ function versionToRecord(signal, version) {
 }
 
 function verifyVersion(signal, version, raw, currentRunId, cache) {
-  if (version.executionStatus === 'skip') {
+  if (versionInitialState(version) === 'suspended') {
     return {
       status: 'suppressed',
       terminal: true,
@@ -658,6 +704,7 @@ function summarizeSignal(signal) {
       versionId: cur.versionId,
       runId: cur.runId,
       signalDate: cur.signalDate,
+      state: versionStateOf(cur),
       executionStatus: cur.executionStatus,
       direction: cur.direction,
       confidence: cur.confidence,
@@ -686,11 +733,19 @@ function summarizeSignal(signal) {
     },
     fulfillProgress: signal.fulfillProgress,
     invalidationDistance: signal.invalidationDistance,
+    signalStatus: signalStatusOf(signal),
     anchor: anchorSummaryOf(signal),
-    observations: Array.isArray(signal.observations) ? signal.observations.slice(-12) : [],
+    observations: (Array.isArray(signal.observations) ? signal.observations.slice(-12) : []).map((o) => ({
+      ...o,
+      events: Array.isArray(o.events) ? o.events.map(normalizeEvent).filter(Boolean) : []
+    })),
     closedAt: signal.closedAt,
     closeReason: signal.closeReason,
     closeClass: signal.closeClass || null,
+    directionResult: signal.directionResult || null,
+    directionEvidence: signal.directionEvidence || null,
+    executionResult: signal.executionResult || null,
+    executionEvent: signal.executionEvent || null,
     directionVerdict: signal.directionVerdict || null,
     executionVerdict: signal.executionVerdict || null,
     executionBestPnlPts: signal.executionBestPnlPts != null ? signal.executionBestPnlPts : null,
@@ -698,12 +753,63 @@ function summarizeSignal(signal) {
   };
 }
 
+function deriveDirectionEvidence(signal) {
+  const dir = signal.direction;
+  const start = Number(signal.startClose);
+  const latest = Number(signal.latestClose);
+  if (Number.isFinite(start) && Number.isFinite(latest)) {
+    const finalHit = dir === 'bearish' ? latest < start : latest > start;
+    if (finalHit) return 'close_favorable';
+  }
+  const fav = Number(signal.maxFavorablePts);
+  const adv = Number(signal.maxAdversePts);
+  const atr = Number(signal.atr5AtCreation);
+  if (Number.isFinite(fav) && Number.isFinite(adv) && Number.isFinite(atr) && atr > 0) {
+    if (fav >= atr && fav >= Math.abs(adv)) return 'favorable_1atr';
+    if (Math.abs(adv) >= atr && Math.abs(adv) > fav) return 'adverse_1atr';
+  }
+  return 'none';
+}
+
+function deriveExecutionEvidence(signal) {
+  const outcomes = executedOutcomesOf(signal);
+  if (outcomes.length > 0) {
+    const best = outcomes.reduce((a, b) => (b.pnlPts > a.pnlPts ? b : a), outcomes[0]);
+    if (best.pnlPts > 0) return outcomes.some((o) => o.exitType === 'target1_hit') ? 'target_hit' : 'time_exit_profit';
+    return best.exitType === 'stopped_out' ? 'stopped_out' : 'time_exit_loss';
+  }
+  const execVersions = signal.versions.filter((v) => versionInitialState(v) === 'armed');
+  if (execVersions.some((v) => v.verification && v.verification.status === 'skipped_gap')) return 'gap_skipped';
+  if (execVersions.some((v) => v.verification && v.verification.status === 'invalidated_not_triggered')) return 'trigger_missed';
+  const watchVersions = signal.versions.filter((v) => versionInitialState(v) === 'watching');
+  if (watchVersions.some((v) => v.verification && v.verification.status === 'confirmed')) return 'confirmed';
+  if (watchVersions.some((v) => v.verification && v.verification.status === 'invalidated_not_triggered')) return 'watch_missed';
+  if (signal.versions.some((v) => v.verification && v.verification.status === 'unverifiable')) return 'unverifiable';
+  return 'suspended';
+}
+
+function backfillExitProjection(signal) {
+  if (!signal || signal.poolStatus !== 'closed' || signal.directionResult) return false;
+  const codes = allSignalEventCodes(signal, [{ code: signal.closeReason === 'flipped' ? 'flipped' : signal.closeReason === 'invalidated_q5' ? 'q5_hit' : signal.closeReason === 'fulfilled' ? 'fulfilled' : signal.closeReason === 'expired' ? 'expired' : signal.closeReason === 'faded' ? 'faded' : null, kind: 'exit' }].filter((e) => e.code));
+  const evFromCodes = executionEventOfCodes(codes);
+  const dirFromCodes = directionEvidenceOfCodes(codes);
+  // 旧 closed 信号事件流不完整：方向证据缺失时用价格追踪直接推导
+  const dirEvidence = dirFromCodes !== 'none' ? dirFromCodes : deriveDirectionEvidence(signal);
+  signal.directionEvidence = dirEvidence;
+  signal.directionResult = (dirEvidence === 'close_favorable' || dirEvidence === 'favorable_1atr') ? 'hit' : 'miss';
+  signal.executionEvent = evFromCodes || deriveExecutionEvidence(signal);
+  signal.executionResult = evFromCodes ? executionResultOfCodes(codes) : executionResultOfCodes(new Set([signal.executionEvent]));
+  return true;
+}
+
 function buildView(runId, ledger, root = null) {
   const all = [];
   for (const row of ledger.signals) {
     const sig = loadSignal(row.signalId, root);
     if (sig) {
-      if (backfillCloseClass(sig)) saveSignal(sig, root);
+      const migratedClass = backfillCloseClass(sig);
+      const migratedProjection = backfillExitProjection(sig);
+      if (migratedClass || migratedProjection) saveSignal(sig, root);
       all.push(sig);
     }
   }
@@ -712,11 +818,28 @@ function buildView(runId, ledger, root = null) {
   const byCloseReason = {};
   const byCloseClass = {};
   const byOutcome = { fulfilled: 0, invalidated: 0 };
+  const directionLayer = {
+    hit: 0, miss: 0,
+    byEvent: { close_favorable: 0, favorable_1atr: 0, adverse_1atr: 0, none: 0 }
+  };
+  const executionLayer = {
+    profit: 0, loss: 0, noexec: 0,
+    byEvent: { target_hit: 0, time_exit_profit: 0, stopped_out: 0, time_exit_loss: 0, gap_skipped: 0, trigger_missed: 0, confirmed: 0, watch_missed: 0, suspended: 0, unverifiable: 0 }
+  };
   for (const c of closed) {
     byCloseReason[c.closeReason || 'unknown'] = (byCloseReason[c.closeReason || 'unknown'] || 0) + 1;
     byCloseClass[c.closeClass || 'legacy'] = (byCloseClass[c.closeClass || 'legacy'] || 0) + 1;
     if (c.verdict === 'fulfilled') byOutcome.fulfilled++;
     else byOutcome.invalidated++;
+    const dr = c.directionResult || (c.directionVerdict === 'hit' ? 'hit' : 'miss');
+    const de = c.directionEvidence || (dr === 'hit' && c.directionVerdict === 'hit' ? (c.latestClose != null && c.startClose != null && (c.direction === 'bearish' ? c.latestClose < c.startClose : c.latestClose > c.startClose) ? 'close_favorable' : 'favorable_1atr') : 'none');
+    const er = c.executionResult || (c.executionVerdict || 'noexec');
+    const ee = c.executionEvent || (c.closeReason === 'fulfilled' ? 'target_hit' : null);
+    if (dr === 'hit') directionLayer.hit++; else directionLayer.miss++;
+    if (de && directionLayer.byEvent[de] != null) directionLayer.byEvent[de]++;
+    else directionLayer.byEvent.none++;
+    if (er === 'profit') executionLayer.profit++; else if (er === 'loss') executionLayer.loss++; else executionLayer.noexec++;
+    if (ee && executionLayer.byEvent[ee] != null) executionLayer.byEvent[ee]++;
   }
   const details = {};
   for (const s of [...pool, ...closed.slice(0, 5)]) {
@@ -734,6 +857,8 @@ function buildView(runId, ledger, root = null) {
     recentClosed: closed.slice(0, 5).map(summarizeSignal),
     historyStats: {
       totalClosed: closed.length,
+      directionLayer,
+      executionLayer,
       byCloseClass,
       byCloseReason,
       byOutcome
@@ -793,6 +918,9 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
         if (!already) {
           closeSignal(existing, 'flipped');
           existing.closedAt = plan.meta.signalDate;
+          const flipEvents = [{ code: 'flipped', kind: 'exit', label: eventLabel('flipped', 'exit') }];
+          applyExitProjection(existing, flipEvents);
+          appendObservation(existing, runId, plan.meta.signalDate, flipEvents);
           saveSignal(existing, root);
           const sig = createSignal(plan, p, root);
           activeBySymbol.set(sig.symbol, sig);
@@ -806,59 +934,75 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
     }
   }
 
-  // 2) 追踪：验证 + 价格追踪 + 两态出池判定（兑现 / 失效）
+  // 2) 追踪：验证 + 价格追踪 + 事件流 + 出池判定 + 两层归因投影
   const updatedSignalIds = [];
   for (const sig of activeBySymbol.values()) {
     // 幂等：同一 run 已处理过该信号（有 observation）则跳过追踪/退出判定
     if (Array.isArray(sig.observations) && sig.observations.some((o) => o.runId === runId)) continue;
     const events = [];
-    // 版本验证（收集关键事件）
+    const pushEvent = (code, kind, extra = {}) => {
+      if (events.some((e) => e.code === code && (e.versionId || null) === (extra.versionId || null))) return;
+      events.push({ code, kind, label: eventLabel(code, kind), versionId: extra.versionId || null });
+    };
+    // 本期新版本：初始状态事件（armed / watching / suspended）
+    for (const version of sig.versions) {
+      if (version.runId === runId) pushEvent(versionInitialState(version), 'execution', { versionId: version.versionId });
+    }
+    // 版本验证：状态转移事件（旧 verification 状态映射为统一事件）
     for (const version of sig.versions) {
       if (version.runId === runId) continue; // 本期版本下期才开始验证
       if (version.verification.terminal) continue;
-      const prevStatus = version.verification.status;
       const result = verifyVersion(sig, version, rawData, runId, cache);
       version.verification.status = result.status;
       version.verification.terminal = result.terminal === true || result.status === 'suppressed';
       version.verification.verifiedRunId = runId;
       version.verification.lastResult = result;
-      if (result.status === 'triggered_pending_entry') events.push('triggered');
-      else if (result.status === 'verified' && result.exitType === 'stopped_out') events.push('stopped_out');
-      else if (result.status === 'verified' && result.exitType === 'target1_hit') events.push('target1_hit');
-      else if (result.status === 'skipped_gap') events.push('gap_skip');
-      else if (result.status === 'invalidated_not_triggered') events.push('not_triggered');
+      const mode = versionInitialState(version) === 'watching' ? 'signal' : 'trade';
+      const evCode = verificationEventOf(result.status, result, mode);
+      if (evCode) pushEvent(evCode, 'execution', { versionId: version.versionId });
     }
-    // 价格追踪 + 两指标更新
+    // 价格追踪 + 方向事件
     const track = updatePriceTracking(sig, rawData, cache);
     const obsDate = track.bars.length ? track.bars[track.bars.length - 1].date : sig.lastSeenDate;
-    if (track.expanded) events.push('price_new_high');
+    if (track.expanded) pushEvent('price_new_high', 'direction');
+    const atr = Number(sig.atr5AtCreation);
+    const fav = Number(sig.maxFavorablePts);
+    const adv = Number(sig.maxAdversePts);
+    const start = Number(sig.startClose);
+    const latest = Number(sig.latestClose);
+    const dirSign = sig.direction === 'bearish' ? -1 : 1;
+    if (Number.isFinite(atr) && atr > 0 && Number.isFinite(fav) && Number.isFinite(adv)) {
+      if (fav >= atr && fav >= Math.abs(adv)) pushEvent('favorable_1atr', 'direction');
+      else if (Math.abs(adv) >= atr && Math.abs(adv) > fav) pushEvent('adverse_1atr', 'direction');
+    }
+    if (Number.isFinite(start) && Number.isFinite(latest) && (latest - start) * dirSign > 0) pushEvent('close_favorable', 'direction');
     sig.fulfillProgress = fulfillProgressOf(sig);
     sig.invalidationDistance = invalidationDistanceOf(sig);
     // 持仓优先：锚定版本处于持仓/待入场时，信号保持 active，降级计数暂停生效
     if (hasOpenPosition(sig)) sig.poolStatus = 'active';
     // 出池判定：先兑现，后失效（flipped 已在匹配阶段处理）
     if (sig.poolStatus !== 'closed') {
-      const progress = sig.fulfillProgress;
       const cur = currentVersionOf(sig);
       const q5Hit = cur && track.bars.length > 0 ? q5Triggered(sig, cur, track.bars) : false;
       if (hasFulfilled(sig)) {
         closeSignal(sig, 'fulfilled');
-        events.push('fulfilled');
+        pushEvent('fulfilled', 'exit');
       } else if (q5Hit) {
         closeSignal(sig, 'invalidated_q5');
-        events.push('invalidated');
+        pushEvent('q5_hit', 'exit');
       } else if (!hasPendingExecutable(sig)) {
         const barsCount = track.bars.length ? track.bars.length - track.startIdx : 0;
         if (barsCount > 10) {
           closeSignal(sig, 'expired');
-          events.push('invalidated');
+          pushEvent('expired', 'exit');
         } else if (sig.consecutiveNonExecutable >= 3 && track.expanded === false) {
           closeSignal(sig, 'faded');
-          events.push('invalidated');
+          pushEvent('faded', 'exit');
         }
       }
       if (sig.poolStatus === 'closed') sig.closedAt = obsDate;
     }
+    if (sig.poolStatus === 'closed') applyExitProjection(sig, events);
     appendObservation(sig, runId, obsDate, events);
     saveSignal(sig, root);
     updatedSignalIds.push(sig.signalId);
@@ -923,6 +1067,10 @@ module.exports = {
   executionVerdictOf,
   closeClassOf,
   backfillCloseClass,
+  backfillExitProjection,
+  applyExitProjection,
+  allSignalEventCodes,
+  versionInitialState,
   versionFromPlan,
   transitionLabel,
   // verification / tracking

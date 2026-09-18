@@ -405,6 +405,23 @@
           },
           "description": "watch/skip 必须给出原因；executable 至少一条（可为风险警示说明）"
         },
+        "state": {
+          "type": "string",
+          "enum": [
+            "armed",
+            "watching",
+            "suspended"
+          ],
+          "description": "统一状态词汇：计划的初始动作（armed=生效观察，watching=观察确认，suspended=暂停）；是信号池事件流的第一个执行事件"
+        },
+        "stateReasons": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "description": "state 的归因说明（与 statusReasons 同源）"
+        },
         "invalidation": {
           "type": "object",
           "additionalProperties": false,

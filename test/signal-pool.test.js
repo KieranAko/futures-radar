@@ -413,6 +413,9 @@ describe('signal-pool 出池质量分类（方向 × 执行）', () => {
       assert.equal(sig.closeClass, 'direction_hit_profit');
       assert.equal(sig.directionVerdict, 'hit');
       assert.equal(sig.executionVerdict, 'profit');
+      assert.equal(sig.directionResult, 'hit');
+      assert.equal(sig.executionResult, 'profit');
+      assert.equal(sig.executionEvent, 'target_hit');
       assert.equal(sig.verdict, 'fulfilled');
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
@@ -432,6 +435,8 @@ describe('signal-pool 出池质量分类（方向 × 执行）', () => {
       assert.equal(sig.closeReason, 'invalidated_q5');
       assert.equal(sig.closeClass, 'direction_wrong');
       assert.equal(sig.directionVerdict, 'miss');
+      assert.equal(sig.directionResult, 'miss');
+      assert.equal(sig.executionResult, 'noexec');
       assert.equal(sig.verdict, 'invalidated');
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
@@ -459,6 +464,9 @@ describe('signal-pool 出池质量分类（方向 × 执行）', () => {
       assert.equal(sig.closeClass, 'direction_hit_loss');
       assert.equal(sig.directionVerdict, 'hit');
       assert.equal(sig.executionVerdict, 'loss');
+      assert.equal(sig.directionResult, 'hit');
+      assert.equal(sig.executionResult, 'loss');
+      assert.equal(sig.executionEvent, 'time_exit_loss');
       assert.equal(sig.verdict, 'invalidated');
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
@@ -486,6 +494,9 @@ describe('signal-pool 出池质量分类（方向 × 执行）', () => {
       assert.equal(sig.closeClass, 'direction_hit_noexec');
       assert.equal(sig.directionVerdict, 'hit');
       assert.equal(sig.executionVerdict, 'noexec');
+      assert.equal(sig.directionResult, 'hit');
+      assert.equal(sig.executionResult, 'noexec');
+      assert.equal(sig.executionEvent, 'gap_skipped');
       assert.equal(sig.verdict, 'invalidated');
     } finally {
       fs.rmSync(root, { recursive: true, force: true });

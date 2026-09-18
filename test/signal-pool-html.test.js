@@ -42,7 +42,7 @@ function makeView() {
     targets: { t1: '9235', t2: '2R' },
     invalidation: { hard: ['收盘跌破 8619'] },
     regime: { grade: 'elevated', direction: 'rising' },
-    verification: { status: 'verified', terminal: true, lastResult: { status: 'verified', exitType: 'time_exit', directionCorrect: true } }
+    verification: { status: 'verified', terminal: true, lastResult: { status: 'verified', exitType: 'time_exit', directionCorrect: true, entryPrice: 8800, exitPrice: 8876 } }
   };
   return {
     schema: 'futures-radar-signal-pool-view/1',
@@ -85,7 +85,7 @@ describe('signal-pool-html 看板渲染', () => {
     assert.ok(html.includes('池内信号（全量追踪）'));
     assert.ok(html.includes('SIG-PP0-20260910-01'));
     assert.ok(html.includes('聚丙烯（PP2701）'));
-    assert.ok(html.includes('降级观察(1/3)'));
+    assert.ok(html.includes('全部暂停（连续 1 期无生效策略）'));
     assert.ok(html.includes('最近出池信号（最新 5 个）'));
     assert.ok(html.includes('SIG-TA0-20260901-01'));
     assert.ok(html.includes('历史统计'));
@@ -98,7 +98,7 @@ describe('signal-pool-html 看板渲染', () => {
     assert.ok(html.includes('<details class="card'));
     assert.ok(html.includes('<details class="version">'));
     assert.ok(html.includes('策略版本（1）'));
-    assert.ok(html.includes('V1 · ✅ 可执行'));
+    assert.ok(html.includes('V1 · 时间离场盈利'));
     assert.ok(html.includes('回踩 8798–8845'));
     assert.ok(html.includes('执行偏离 &gt;0.75×ATR5 放弃'));
   });
