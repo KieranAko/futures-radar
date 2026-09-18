@@ -1,11 +1,7 @@
-// report/render-signal-pool-html.cjs — 信号池看板（自包含单文件 HTML）
+// report/render-signal-pool-html.cjs — 信号池看板渲染库（供 dashboard 复用）
 //
-// 用法:
-//   node report/render-signal-pool-html.cjs --runId <runId>
-//
-// 行为:
-//   读 output/runs/<runId>/signal-pool.json → 渲染双 Tab HTML →
-//   写 <runtimeRoot>/signal-pool.html（稳定路径，每期覆盖）。
+// 注意：独立的 signal-pool.html 已废弃，信号池看板统一在 dashboard.html（Tab2）展示。
+// 本模块保留 signalCard / statsTable / escapeHtml 等纯渲染函数，由 render-dashboard-html.cjs 引用。
 //
 // Tab1 信号池看板：池内信号全量卡片 + 最近出池 5 个 + 历史统计；
 //                  信号与策略版本均可展开（原生 <details>）。
@@ -623,25 +619,9 @@ function renderSignalPoolHtml(view, opts = {}) {
 }
 
 function main() {
-  const args = process.argv.slice(2);
-  const i = args.indexOf('--runId');
-  const runId = i === -1 ? null : args[i + 1];
-  if (!runId) {
-    console.error('FATAL: --runId required');
-    process.exit(1);
-  }
-  const signalPoolPath = path.join(runDir(runId), 'signal-pool.json');
-  if (!fs.existsSync(signalPoolPath)) {
-    console.error(`FATAL: signal-pool.json not found: ${signalPoolPath}`);
-    process.exit(1);
-  }
-  const view = JSON.parse(fs.readFileSync(signalPoolPath, 'utf8'));
-  const raw = readJSON(path.join(runDir(runId), 'raw.json'), null);
-  const html = renderSignalPoolHtml(view, { runId, raw });
-  const outPath = path.join(runtimeRoot, 'signal-pool.html');
-  fs.writeFileSync(outPath, html, 'utf8');
-  console.log(`signal-pool.html: ${outPath}`);
-  console.log(`  pool=${view.pool ? view.pool.length : 0}, recentClosed=${view.recentClosed ? view.recentClosed.length : 0}, closedTotal=${view.historyStats ? view.historyStats.totalClosed : 0}`);
+  // 已废弃独立 signal-pool.html：信号池看板统一并入 dashboard.html（render-markdown.cjs）。
+  // 本模块仅作为渲染库被 render-dashboard-html.cjs 复用（signalCard/statsTable/escapeHtml）。
+  console.log('signal-pool.html 已废弃，信号池看板统一在 dashboard.html 中展示。');
 }
 
 module.exports = {
