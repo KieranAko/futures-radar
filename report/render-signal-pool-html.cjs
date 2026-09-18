@@ -28,7 +28,8 @@ const {
   verdictLabel,
   signalVerificationLabel,
   signalVersionVerificationLabel,
-  versionExitDetail
+  versionExitDetail,
+  stateEmoji
 } = require('./render-strategy-section.cjs');
 const {
   versionStateOf,
@@ -90,7 +91,9 @@ function versionBody(v) {
 
 function versionSummary(v) {
   const num = String(v.versionId).includes(':V') ? String(v.versionId).split(':V')[1] : v.versionId;
-  return `V${num} · ${signalVersionVerificationLabel(v)} · ${v.signalDate}`;
+  const state = versionStateOf(v);
+  const trig = v.entry && v.entry.triggerLevel != null ? ` · 触发 ${fmt(v.entry.triggerLevel, 0)}` : '';
+  return `V${num} · ${stateEmoji(state)} ${signalVersionVerificationLabel(v)} · ${v.signalDate}${trig}`;
 }
 
 function progressBar(progress) {
@@ -205,25 +208,66 @@ function statsTable(stats) {
   const dirBy = dirLayer.byEvent || {};
   const execLayer = stats.executionLayer || {};
   const execBy = execLayer.byEvent || {};
-  const row = (k, v) => `<tr><th>${escapeHtml(k)}</th><td>${v}</td></tr>`;
-  const sub = (text) => `<tr class="sub"><th></th><td>${text}</td></tr>`;
-  const dirRows = [
-    row('历史已出池信号', stats.totalClosed == null ? 0 : stats.totalClosed),
+  const total = stats.totalClosed == null ? 0 : stats.totalClosed;
+
+  const rowStyle = 'display:flex;justify-content:space-between;align-items:baseline;padding:5px 12px;border-bottom:1px solid #f1f3f5;';
+  const mainStyle = 'font-weight:600;color:#1f2328;';
+  const subStyle = 'padding-left:26px;color:#6b7280;font-size:12px;';
+  const numStyle = 'font-variant-numeric:tabular-nums;font-weight:600;';
+  const headStyle = 'padding:7px 12px;font-weight:600;color:#374151;background:#f7f8fa;border-bottom:1px solid #e5e7eb;';
+
+  const row = (label, value, isMain = true, isLast = false) =>
+    `<div style="${rowStyle}${isMain ? mainStyle : subStyle}${isLast ? 'border-bottom:none;' : ''}"><span>${escapeHtml(label)}</span><b style="${numStyle}">${value}</b></div>`;
+
+  const subRows = (pairs) => pairs.filter(([, v]) => v > 0).map(([k, v]) => row(k, v, false)).join('');
+
+  const dirHitSubs = subRows([
+    ['终值顺向', dirBy.close_favorable || 0],
+    ['顺向 1 ATR', dirBy.favorable_1atr || 0]
+  ]);
+  const dirMissSubs = subRows([
+    ['逆向 1 ATR', dirBy.adverse_1atr || 0],
+    ['双向未出', dirBy.none || 0]
+  ]);
+  const execProfitSubs = subRows([
+    ['目标兑现', execBy.target_hit || 0],
+    ['时间离场盈利', execBy.time_exit_profit || 0]
+  ]);
+  const execLossSubs = subRows([
+    ['止损离场', execBy.stopped_out || 0],
+    ['时间离场亏损', execBy.time_exit_loss || 0]
+  ]);
+  const execNoexecSubs = subRows([
+    ['跳空放弃', execBy.gap_skipped || 0],
+    ['触发未成', execBy.trigger_missed || 0],
+    ['观察确认', execBy.confirmed || 0],
+    ['观察未确认', execBy.watch_missed || 0],
+    ['暂停', execBy.suspended || 0]
+  ]);
+
+  const dirBody = [
     row('方向正确', dirLayer.hit || 0),
-    sub(`终值顺向 ${dirBy.close_favorable || 0} · 顺向1ATR ${dirBy.favorable_1atr || 0}`),
+    dirHitSubs,
     row('方向错误', dirLayer.miss || 0),
-    sub(`逆向1ATR ${dirBy.adverse_1atr || 0} · 双向未出 ${dirBy.none || 0}`)
-  ];
-  const execRows = [
+    dirMissSubs
+  ].filter(Boolean).join('');
+
+  const execBody = [
     row('盈利', execLayer.profit || 0),
-    sub(`目标兑现 ${execBy.target_hit || 0} · 时间盈利 ${execBy.time_exit_profit || 0}`),
+    execProfitSubs,
     row('亏损', execLayer.loss || 0),
-    sub(`止损 ${execBy.stopped_out || 0} · 时间亏损 ${execBy.time_exit_loss || 0}`),
+    execLossSubs,
     row('未执行', execLayer.noexec || 0),
-    sub(`跳空 ${execBy.gap_skipped || 0} · 未触发 ${execBy.trigger_missed || 0} · 观察 ${execBy.confirmed || 0}/${execBy.watch_missed || 0} · 暂停 ${execBy.suspended || 0}`)
-  ];
-  const rowHtml = (rows) => rows.join('');
-  return `<table class="stats">${rowHtml(dirRows)}</table><table class="stats" style="margin-top:8px">${rowHtml(execRows)}</table>`;
+    execNoexecSubs
+  ].filter(Boolean).join('');
+
+  return `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;font-size:13px;line-height:1.6;">
+    <div style="${headStyle}">历史已出池信号 ${total}</div>
+    <div style="${headStyle}border-top:1px solid #e5e7eb;">方向层面</div>
+    ${dirBody}
+    <div style="${headStyle}border-top:1px solid #e5e7eb;">交易执行层面</div>
+    ${execBody}
+  </div>`;
 }
 
 function renderSignalPoolHtml(view, opts = {}) {

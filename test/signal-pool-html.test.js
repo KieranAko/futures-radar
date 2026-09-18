@@ -90,7 +90,7 @@ describe('signal-pool-html 看板渲染', () => {
     assert.ok(html.includes('SIG-TA0-20260901-01'));
     assert.ok(html.includes('历史统计'));
     assert.ok(html.includes('历史已出池信号'));
-    assert.ok(html.includes('>1</td>'));
+    assert.ok(html.includes('>1</b>'));
   });
 
   it('信号与策略均为可展开 details', () => {
@@ -98,7 +98,7 @@ describe('signal-pool-html 看板渲染', () => {
     assert.ok(html.includes('<details class="card'));
     assert.ok(html.includes('<details class="version">'));
     assert.ok(html.includes('策略版本（1）'));
-    assert.ok(html.includes('V1 · 时间离场盈利'));
+    assert.ok(html.includes('V1 · 🟢 时间离场盈利'));
     assert.ok(html.includes('回踩 8798–8845'));
     assert.ok(html.includes('执行偏离 &gt;0.75×ATR5 放弃'));
   });

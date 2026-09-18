@@ -53,6 +53,16 @@ function stateLabel(code) {
   return eventLabel(code, 'execution');
 }
 
+function stateEmoji(state) {
+  const m = {
+    armed: '🔔', watching: '👀', triggered: '⏳', holding: '📌',
+    target_hit: '✅', time_exit_profit: '🟢', stopped_out: '🛑', time_exit_loss: '🔴',
+    gap_skipped: '⏭️', trigger_missed: '🚫', confirmed: '👁️', watch_missed: '⚪',
+    suspended: '⛔', unverifiable: '❓'
+  };
+  return m[state] || '•';
+}
+
 function directionLabel(dir) {
   if (dir === 'bullish') return '↑ 多';
   if (dir === 'bearish') return '↓ 空';
@@ -275,7 +285,8 @@ function versionLine(v) {
   const stop = v.stop && v.stop.stopPrice != null ? `止损 ${fmt(v.stop.stopPrice)}` : '止损 —';
   const t1 = v.targets && v.targets.t1 ? `目标 ${v.targets.t1}` : '目标 —';
   const exitDetail = versionExitDetail(v);
-  return `V${v.versionId.split(':V')[1] || '?'}｜${v.runId}｜${v.signalDate}｜${signalVersionVerificationLabel(v)}｜${trigger} / ${stop} / ${t1}${exitDetail ? '｜' + exitDetail : ''}`;
+  const state = versionStateOf(v);
+  return `V${v.versionId.split(':V')[1] || '?'}｜${v.runId}｜${v.signalDate}｜${stateEmoji(state)} ${signalVersionVerificationLabel(v)}｜${trigger} / ${stop} / ${t1}${exitDetail ? '｜' + exitDetail : ''}`;
 }
 
 function signalCard(sig, { closed = false } = {}) {
@@ -675,5 +686,6 @@ module.exports = {
   signalVersionVerificationLabel,
   versionExitDetail,
   stateLabel,
+  stateEmoji,
   statusBadge
 };
