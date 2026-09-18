@@ -711,6 +711,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   table.stats th, table.stats td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
   table.stats tr:last-child th, table.stats tr:last-child td { border-bottom: none; }
   table.stats th { color: var(--muted); font-weight: 500; }
+  table.stats tr.sub th, table.stats tr.sub td { padding-top: 0; }
+  table.stats tr.sub td { color: var(--muted); font-size: 12px; line-height: 1.7; }
+  table.stats tr.sub + tr th, table.stats tr.sub + tr td { padding-top: 6px; }
 
   /* Tab3 历史报告 */
   .history-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 10px; font-size: 12px; color: var(--muted); }

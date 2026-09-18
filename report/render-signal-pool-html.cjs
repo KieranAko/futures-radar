@@ -204,15 +204,21 @@ function statsTable(stats) {
   const execLayer = stats.executionLayer || {};
   const execBy = execLayer.byEvent || {};
   const row = (k, v) => `<tr><th>${escapeHtml(k)}</th><td>${v}</td></tr>`;
+  const sub = (text) => `<tr class="sub"><th></th><td>${text}</td></tr>`;
   const dirRows = [
     row('历史已出池信号', stats.totalClosed == null ? 0 : stats.totalClosed),
-    row('方向正确', `${dirLayer.hit || 0} <span class="muted">（终值顺向 ${dirBy.close_favorable || 0} · 顺向1ATR ${dirBy.favorable_1atr || 0}）</span>`),
-    row('方向错误', `${dirLayer.miss || 0} <span class="muted">（逆向1ATR ${dirBy.adverse_1atr || 0} · 双向未出 ${dirBy.none || 0}）</span>`)
+    row('方向正确', dirLayer.hit || 0),
+    sub(`终值顺向 ${dirBy.close_favorable || 0} · 顺向1ATR ${dirBy.favorable_1atr || 0}`),
+    row('方向错误', dirLayer.miss || 0),
+    sub(`逆向1ATR ${dirBy.adverse_1atr || 0} · 双向未出 ${dirBy.none || 0}`)
   ];
   const execRows = [
-    row('盈利', `${execLayer.profit || 0} <span class="muted">（目标兑现 ${execBy.target_hit || 0} · 时间盈利 ${execBy.time_exit_profit || 0}）</span>`),
-    row('亏损', `${execLayer.loss || 0} <span class="muted">（止损 ${execBy.stopped_out || 0} · 时间亏损 ${execBy.time_exit_loss || 0}）</span>`),
-    row('未执行', `${execLayer.noexec || 0} <span class="muted">（跳空 ${execBy.gap_skipped || 0} · 未触发 ${execBy.trigger_missed || 0} · 观察 ${execBy.confirmed || 0}/${execBy.watch_missed || 0} · 暂停 ${execBy.suspended || 0}）</span>`)
+    row('盈利', execLayer.profit || 0),
+    sub(`目标兑现 ${execBy.target_hit || 0} · 时间盈利 ${execBy.time_exit_profit || 0}`),
+    row('亏损', execLayer.loss || 0),
+    sub(`止损 ${execBy.stopped_out || 0} · 时间亏损 ${execBy.time_exit_loss || 0}`),
+    row('未执行', execLayer.noexec || 0),
+    sub(`跳空 ${execBy.gap_skipped || 0} · 未触发 ${execBy.trigger_missed || 0} · 观察 ${execBy.confirmed || 0}/${execBy.watch_missed || 0} · 暂停 ${execBy.suspended || 0}`)
   ];
   const rowHtml = (rows) => rows.join('');
   return `<table class="stats">${rowHtml(dirRows)}</table><table class="stats" style="margin-top:8px">${rowHtml(execRows)}</table>`;
@@ -306,6 +312,9 @@ function renderSignalPoolHtml(view, opts = {}) {
   table.stats th, table.stats td { padding: 7px 12px; text-align: left; border-bottom: 1px solid var(--border); }
   table.stats tr:last-child th, table.stats tr:last-child td { border-bottom: none; }
   table.stats th { color: var(--muted); font-weight: 500; }
+  table.stats tr.sub th, table.stats tr.sub td { border-bottom: 1px solid var(--border); padding-top: 0; }
+  table.stats tr.sub td { color: var(--muted); font-size: 12px; line-height: 1.6; }
+  table.stats tr.sub + tr th, table.stats tr.sub + tr td { padding-top: 6px; }
   .link-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; text-align: center; }
   .link-card a { color: var(--accent); font-size: 16px; text-decoration: none; }
   .link-card p { color: var(--muted); margin-top: 8px; }
