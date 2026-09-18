@@ -17,7 +17,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { runtimeRoot, runDir } = require('../lib/workspace.cjs');
+const { skillRoot, runtimeRoot, runDir } = require('../lib/workspace.cjs');
 const {
   statusBadge,
   directionLabel,
@@ -56,6 +56,43 @@ function pctChange(start, latest) {
   const pct = (Number(latest) - Number(start)) / Number(start) * 100;
   const sign = pct > 0 ? '+' : '';
   return `${sign}${pct.toFixed(1)}%`;
+}
+
+function readJSON(p, fallback = null) {
+  try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return fallback; }
+}
+
+function extractBarsLocal(raw, symbol) {
+  const c = raw && raw.contracts && raw.contracts[symbol];
+  const o = c && c.ohlcv;
+  if (!o || !Array.isArray(o.dates) || o.dates.length < 2) return null;
+  const bars = [];
+  for (let i = 0; i < o.dates.length; i++) {
+    bars.push({ date: o.dates[i], open: o.open[i], high: o.high[i], low: o.low[i], close: o.close[i] });
+  }
+  return bars;
+}
+
+function contractBarsLocal(contract) {
+  if (!contract) return null;
+  const file = path.join(skillRoot, 'data', 'contract-bars', `${contract}.json`);
+  const wrapper = readJSON(file);
+  const map = new Map();
+  if (wrapper && wrapper.runs) {
+    for (const rid of Object.keys(wrapper.runs)) {
+      const bars = wrapper.runs[rid] && wrapper.runs[rid].bars;
+      if (!Array.isArray(bars)) continue;
+      for (const b of bars) if (b && b.date) map.set(b.date, b);
+    }
+  }
+  const bars = [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
+  return bars.length >= 2 ? bars : null;
+}
+
+function barsForSignal(sig, raw) {
+  let bars = extractBarsLocal(raw, sig.symbol);
+  if (!bars) bars = contractBarsLocal(sig.contract);
+  return bars || [];
 }
 
 function signalTitle(sig) {
@@ -162,60 +199,96 @@ function anchorPanel(sig) {
   </div>`;
 }
 
-function lifecycleChart(sig, versions) {
+function lifecycleChart(sig, versions, bars) {
   const a = sig.anchor;
   if (!a) return '';
-  const p = sig.priceTracking || {};
-  const obs = Array.isArray(sig.observations) ? sig.observations : [];
-  const points = [];
-  const seen = new Set();
-  const add = (date, close) => {
-    if (!date || close == null || close === '' || seen.has(date)) return;
-    seen.add(date);
-    points.push({ date, close: Number(close) });
-  };
-  add(sig.createdDate, p.startClose);
-  for (const o of obs) add(o.date, o.close);
-  add(sig.lastSeenDate, p.latestClose);
-  points.sort((x, y) => x.date.localeCompare(y.date));
-  if (points.length < 2) return '';
+  const fullBars = Array.isArray(bars) ? bars : [];
+  let startIdx = fullBars.findIndex((b) => b.date === sig.createdDate);
+  if (startIdx === -1) startIdx = Math.max(0, fullBars.length - 40);
+  const win = fullBars.slice(startIdx);
+  if (win.length < 2) return '';
 
   const av = versions.find((v) => v.versionId === a.versionId) || null;
+  const lastR = av && av.verification && av.verification.lastResult;
+  const skipped = a.status === 'skipped_gap';
   const triggerLevel = a.triggerLevel != null ? Number(a.triggerLevel) : (av && av.entry && av.entry.triggerLevel != null ? Number(av.entry.triggerLevel) : null);
   const stopPrice = av && av.stop && av.stop.stopPrice != null ? Number(av.stop.stopPrice) : null;
+  const entryPrice = a.entryPrice != null ? Number(a.entryPrice) : (skipped && lastR && lastR.entryPrice != null ? Number(lastR.entryPrice) : null);
+  const entryDate = a.entryDate || (skipped && lastR && lastR.entryDate ? lastR.entryDate : null);
+  const exitPrice = a.exitPrice != null ? Number(a.exitPrice) : null;
+  const exitDate = a.exitDate || null;
 
-  const levels = points.map((d) => d.close);
-  if (triggerLevel != null) levels.push(triggerLevel);
-  if (stopPrice != null) levels.push(stopPrice);
-  if (a.entryPrice != null) levels.push(Number(a.entryPrice));
-  if (a.exitPrice != null) levels.push(Number(a.exitPrice));
-  const minY = Math.min(...levels);
-  const maxY = Math.max(...levels);
-  const span = (maxY - minY) || 1;
-  const y0 = minY - span * 0.18;
-  const y1 = maxY + span * 0.18;
+  const W = 780;
+  const H = 240;
+  const padL = 46;
+  const padR = 84;
+  const padT = 20;
+  const padB = 26;
+  const n = win.length;
+  const step = (W - padL - padR) / n;
+  const bodyW = Math.max(2, Math.min(8, step * 0.55));
+  const x = (i) => padL + i * step + step / 2;
 
-  const W = 720;
-  const H = 210;
-  const padL = 10;
-  const padR = 78;
-  const padT = 26;
-  const padB = 30;
-  const x = (i) => padL + (i / (points.length - 1)) * (W - padL - padR);
-  const y = (v) => padT + ((y1 - v) / (y1 - y0)) * (H - padT - padB);
+  let min = Infinity;
+  let max = -Infinity;
+  for (const b of win) {
+    min = Math.min(min, b.low);
+    max = Math.max(max, b.high);
+  }
+  for (const v of [triggerLevel, stopPrice, entryPrice, exitPrice]) {
+    if (v != null) {
+      min = Math.min(min, v);
+      max = Math.max(max, v);
+    }
+  }
+  if (!Number.isFinite(min) || !Number.isFinite(max) || max === min) max = min + 1;
+  const pad = (max - min) * 0.07;
+  min -= pad;
+  max += pad;
+  const y = (v) => padT + ((max - v) / (max - min)) * (H - padT - padB);
 
-  const linePath = points.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(d.close).toFixed(1)}`).join(' ');
+  const parts = [];
+  parts.push(`<svg class="lifecycle-chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">`);
+  for (let i = 0; i <= 4; i++) {
+    const gy = padT + (i / 4) * (H - padT - padB);
+    const gv = max - (i / 4) * (max - min);
+    parts.push(`<line x1="${padL}" y1="${gy.toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${gy.toFixed(1)}" stroke="#eef0f3" stroke-width="1"/>`);
+    parts.push(`<text x="${padL - 6}" y="${(gy + 4).toFixed(1)}" text-anchor="end" font-size="10" fill="#6b7280">${fmt(gv, 0)}</text>`);
+  }
+  for (let i = 0; i < n; i++) {
+    const b = win[i];
+    const cx = x(i);
+    const up = b.close >= b.open;
+    const color = up ? '#b91c1c' : '#047857';
+    const yHigh = y(b.high);
+    const yLow = y(b.low);
+    const yOpen = y(b.open);
+    const yClose = y(b.close);
+    parts.push(`<line x1="${cx.toFixed(1)}" y1="${yHigh.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${yLow.toFixed(1)}" stroke="${color}" stroke-width="1"/>`);
+    const bodyTop = Math.min(yOpen, yClose);
+    const bodyH = Math.max(1, Math.abs(yClose - yOpen));
+    const chg = i > 0 ? b.close - win[i - 1].close : null;
+    const chgPct = i > 0 && win[i - 1].close ? ((b.close / win[i - 1].close) - 1) * 100 : null;
+    const tip = `${escapeHtml(b.date)}&#10;开 ${fmt(b.open)} 高 ${fmt(b.high)} 低 ${fmt(b.low)} 收 ${fmt(b.close)}${chg != null ? `&#10;涨跌 ${chg >= 0 ? '+' : ''}${fmt(chg)}（${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(1)}%）` : ''}`;
+    parts.push(`<rect x="${(cx - bodyW / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bodyW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}"><title>${tip}</title></rect>`);
+  }
 
   const xOfDate = (date) => {
     if (!date) return null;
-    const idx = points.findIndex((d) => d.date === date);
+    const idx = win.findIndex((b) => b.date === date);
     if (idx >= 0) return x(idx);
-    if (date < points[0].date) return x(0);
-    if (date > points[points.length - 1].date) return x(points.length - 1);
-    for (let i = 0; i < points.length - 1; i++) {
-      if (date > points[i].date && date < points[i + 1].date) return x(i) + (x(i + 1) - x(i)) * 0.5;
+    if (date < win[0].date) return x(0);
+    if (date > win[win.length - 1].date) return x(n - 1);
+    for (let i = 0; i < n - 1; i++) {
+      if (date > win[i].date && date < win[i + 1].date) return x(i) + step * 0.5;
     }
     return null;
+  };
+
+  const dashedLevel = (level, color, label) => {
+    if (level == null) return '';
+    const yy = y(level);
+    return `<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="${color}" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/><text x="${(W - padR + 4).toFixed(1)}" y="${(yy + 4).toFixed(1)}" font-size="10" fill="${color}">${escapeHtml(label)} ${fmt(level, 0)}</text>`;
   };
 
   const markers = [];
@@ -223,52 +296,38 @@ function lifecycleChart(sig, versions) {
     if (cx == null || price == null) return;
     markers.push({ cx, cy: y(Number(price)), color, label, anchor });
   };
-  if (a.triggerDate && triggerLevel != null) {
-    addMarker(xOfDate(a.triggerDate), triggerLevel, '#b45309', `触发 ${a.triggerDate} @ ${fmt(triggerLevel, 0)}`, 'end');
-  }
-  const lastR = av && av.verification && av.verification.lastResult;
-  const skipped = a.status === 'skipped_gap';
-  const entryPrice = a.entryPrice != null ? a.entryPrice : (skipped && lastR && lastR.entryPrice != null ? Number(lastR.entryPrice) : null);
-  const entryDate = a.entryDate || (skipped && lastR && lastR.entryDate ? lastR.entryDate : null);
-  if (entryDate && entryPrice != null) {
-    addMarker(xOfDate(entryDate), entryPrice, skipped ? '#b91c1c' : '#047857', `${skipped ? '放弃执行' : '入场'} ${entryDate} @ ${fmt(entryPrice, 0)}`, skipped ? 'start' : 'end');
-  }
-  if (a.exitDate && a.exitPrice != null) {
-    addMarker(xOfDate(a.exitDate), a.exitPrice, '#b91c1c', `离场 ${a.exitDate} @ ${fmt(a.exitPrice, 0)}`, 'start');
+  if (a.triggerDate && triggerLevel != null) addMarker(xOfDate(a.triggerDate), triggerLevel, '#b45309', `触发 ${a.triggerDate} @ ${fmt(triggerLevel, 0)}`, 'end');
+  if (entryDate && entryPrice != null) addMarker(xOfDate(entryDate), entryPrice, skipped ? '#b91c1c' : '#047857', `${skipped ? '放弃执行' : '入场'} ${entryDate} @ ${fmt(entryPrice, 0)}`, skipped ? 'start' : 'end');
+  if (exitDate && exitPrice != null) addMarker(xOfDate(exitDate), exitPrice, '#b91c1c', `离场 ${exitDate} @ ${fmt(exitPrice, 0)}`, 'start');
+
+  parts.push(dashedLevel(triggerLevel, '#b45309', '触发'));
+  parts.push(dashedLevel(stopPrice, '#b91c1c', '止损'));
+  parts.push(dashedLevel(entryPrice, skipped ? '#b91c1c' : '#047857', skipped ? '放弃' : '入场'));
+  parts.push(dashedLevel(exitPrice, '#b91c1c', '离场'));
+
+  for (const m of markers) {
+    const ty = m.anchor === 'start' ? m.cy - 8 : m.cy + 16;
+    const textAnchor = m.cx > W - padR - 110 ? 'end' : 'start';
+    const tx = m.cx > W - padR - 110 ? m.cx - 6 : m.cx + 6;
+    parts.push(`<circle cx="${m.cx.toFixed(1)}" cy="${m.cy.toFixed(1)}" r="4" fill="${m.color}" stroke="#fff" stroke-width="1.5"/>`);
+    parts.push(`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" font-size="11" font-weight="600" fill="${m.color}" text-anchor="${textAnchor}">${escapeHtml(m.label)}</text>`);
   }
 
-  const dashedLine = (level, color) => {
-    if (level == null) return '';
-    return `<line x1="${padL}" y1="${y(level).toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${y(level).toFixed(1)}" stroke="${color}" stroke-width="1" stroke-dasharray="4 4" opacity="0.55"/>`;
+  const xDate = (idx, anchor) => {
+    if (idx < 0 || idx >= n) return;
+    parts.push(`<text x="${x(idx).toFixed(1)}" y="${(H - 8).toFixed(1)}" font-size="10" fill="#6b7280" text-anchor="${anchor}">${escapeHtml(win[idx].date.slice(5))}</text>`);
   };
+  xDate(0, 'start');
+  if (n > 2) xDate(Math.floor((n - 1) / 2), 'middle');
+  xDate(n - 1, 'end');
 
-  const markerSvg = markers.map((m) => {
-    const ty = m.anchor === 'start' ? m.cy - 7 : m.cy + 15;
-    const textAnchor = m.cx > W - padR - 90 ? 'end' : 'start';
-    const tx = m.cx > W - padR - 90 ? m.cx - 5 : m.cx + 5;
-    return `<circle cx="${m.cx.toFixed(1)}" cy="${m.cy.toFixed(1)}" r="4" fill="${m.color}" stroke="#fff" stroke-width="1.5"/>
-      <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" font-size="11" fill="${m.color}" text-anchor="${textAnchor}">${escapeHtml(m.label)}</text>`;
-  }).join('');
+  parts.push('</svg>');
+  parts.push('<div class="muted" style="font-size:12px">蜡烛图：信号生命周期价格走势；虚线：触发/止损/入场/离场价位；圆点：关键执行事件</div>');
 
-  const xLabels = [points[0], points[points.length - 1]].map((d, i) => {
-    const lx = i === 0 ? x(0) : x(points.length - 1);
-    return `<text x="${lx.toFixed(1)}" y="${(H - 8).toFixed(1)}" font-size="11" fill="#6b7280" text-anchor="${i === 0 ? 'start' : 'end'}">${escapeHtml(d.date)}</text>`;
-  }).join('');
-
-  return `<div class="lifecycle">
-    <h4>生命周期（价格路径 + 执行标记）</h4>
-    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">
-      ${dashedLine(triggerLevel, '#b45309')}
-      ${dashedLine(stopPrice, '#b91c1c')}
-      <path d="${linePath}" fill="none" stroke="#2563eb" stroke-width="2"/>
-      ${markerSvg}
-      ${xLabels}
-    </svg>
-    <div class="muted" style="font-size:12px">虚线：触发价 / 止损价；蓝线：收盘路径；圆点：触发/入场/离场标记</div>
-  </div>`;
+  return `<div class="lifecycle"><h4>生命周期（蜡烛图 + 执行标记）</h4>${parts.join('')}</div>`;
 }
 
-function signalCard(sig, { closed = false } = {}) {
+function signalCard(sig, { closed = false, bars = null } = {}) {
   const body = [];
   const rows = [];
   if (closed) {
@@ -300,7 +359,7 @@ function signalCard(sig, { closed = false } = {}) {
 
   if (!closed) body.push(anchorPanel(sig));
   body.push(`<table class="fields">${rows.join('')}</table>`);
-  body.push(lifecycleChart(sig, versions));
+  body.push(lifecycleChart(sig, versions, bars));
   body.push(timelineBlock(sig));
 
   if (versions.length > 0) {
@@ -386,15 +445,16 @@ function renderSignalPoolHtml(view, opts = {}) {
   const recentClosed = Array.isArray(view.recentClosed) ? view.recentClosed : [];
   const stats = view.historyStats || {};
   const details = view.details || {};
+  const raw = opts.raw || null;
 
   const poolCards = pool.map((s) => {
     const detail = details[s.signalId] || {};
-    return signalCard({ ...s, versions: detail.versions || [] });
+    return signalCard({ ...s, versions: detail.versions || [] }, { bars: barsForSignal(s, raw) });
   }).join('\n');
 
   const closedCards = recentClosed.map((s) => {
     const detail = details[s.signalId] || {};
-    return signalCard({ ...s, versions: detail.versions || [] }, { closed: true });
+    return signalCard({ ...s, versions: detail.versions || [] }, { closed: true, bars: barsForSignal(s, raw) });
   }).join('\n');
 
   const reportHref = `runs/${runId}/report.md`;
@@ -549,7 +609,8 @@ function main() {
     process.exit(1);
   }
   const view = JSON.parse(fs.readFileSync(signalPoolPath, 'utf8'));
-  const html = renderSignalPoolHtml(view, { runId });
+  const raw = readJSON(path.join(runDir(runId), 'raw.json'), null);
+  const html = renderSignalPoolHtml(view, { runId, raw });
   const outPath = path.join(runtimeRoot, 'signal-pool.html');
   fs.writeFileSync(outPath, html, 'utf8');
   console.log(`signal-pool.html: ${outPath}`);

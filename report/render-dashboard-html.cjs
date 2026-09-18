@@ -496,11 +496,11 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   const oppHtml = opps.length ? oppLayout(opps, raw, mainSeries, signalDate, Object.fromEntries(planMap)) : '<p class="muted">本期无机会分析。</p>';
   const poolCards = pool.map((s) => {
     const d = details[s.signalId] || {};
-    return signalCard({ ...s, versions: d.versions || [] });
+    return signalCard({ ...s, versions: d.versions || [] }, { bars: seriesBars(mainSeries, raw, s.symbol, s.contract) });
   }).join('\n');
   const closedCards = recentClosed.map((s) => {
     const d = details[s.signalId] || {};
-    return signalCard({ ...s, versions: d.versions || [] }, { closed: true });
+    return signalCard({ ...s, versions: d.versions || [] }, { closed: true, bars: seriesBars(mainSeries, raw, s.symbol, s.contract) });
   }).join('\n');
 
   const downgradedCount = pool.filter((s) => s.poolStatus === 'downgraded').length;
