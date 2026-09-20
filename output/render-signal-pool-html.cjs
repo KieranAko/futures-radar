@@ -222,10 +222,6 @@ function lifecycleChart(sig, versions, bars) {
   };
   const t1Level = parseLevel(av && av.targets && av.targets.t1);
   const t2Level = parseLevel(av && av.targets && av.targets.t2);
-  const dirSign = sig.direction === 'bearish' ? -1 : 1;
-  const startClose = sig.priceTracking && Number.isFinite(Number(sig.priceTracking.startClose)) ? Number(sig.priceTracking.startClose) : null;
-  const favLevel = startClose != null && sig.priceTracking.maxFavorablePts != null ? startClose + Number(sig.priceTracking.maxFavorablePts) * dirSign : null;
-  const advLevel = startClose != null && sig.priceTracking.maxAdversePts != null ? startClose + Number(sig.priceTracking.maxAdversePts) * dirSign : null;
 
   const W = 960;
   const H = 360;
@@ -244,7 +240,7 @@ function lifecycleChart(sig, versions, bars) {
     min = Math.min(min, b.low);
     max = Math.max(max, b.high);
   }
-  for (const v of [triggerLevel, stopPrice, entryPrice, exitPrice, t1Level, t2Level, favLevel, advLevel]) {
+  for (const v of [triggerLevel, stopPrice, entryPrice, exitPrice, t1Level, t2Level]) {
     if (v != null) {
       min = Math.min(min, v);
       max = Math.max(max, v);
@@ -261,7 +257,6 @@ function lifecycleChart(sig, versions, bars) {
   parts.push(`<defs>
     <pattern id="zp-plan" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="#d97706" stroke-width="1.6" opacity="0.5"/></pattern>
     <pattern id="zp-target" width="6" height="6" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="#2563eb" stroke-width="1.6" opacity="0.5"/></pattern>
-    <pattern id="zp-actual" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="#64748b" stroke-width="1.2" opacity="0.3"/></pattern>
     <pattern id="zp-invalid" width="7" height="7" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="7" stroke="#ef4444" stroke-width="1.2" opacity="0.28"/></pattern>
   </defs>`);
   for (let i = 0; i <= 4; i++) {
@@ -272,7 +267,7 @@ function lifecycleChart(sig, versions, bars) {
   }
   const textStyle = 'paint-order:stroke;stroke:#ffffff;stroke-width:3px;';
   const zoneGap = (max - min) * 0.008;
-  const ZONE_BASE = { 'zp-plan': '#d97706', 'zp-target': '#2563eb', 'zp-actual': '#64748b', 'zp-invalid': '#ef4444' };
+  const ZONE_BASE = { 'zp-plan': '#d97706', 'zp-target': '#2563eb', 'zp-invalid': '#ef4444' };
   const zone = (v1, v2, pattern, label, color) => {
     const y1 = y(v1);
     const y2 = y(v2);
@@ -291,7 +286,6 @@ function lifecycleChart(sig, versions, bars) {
     if (sig.direction === 'bullish') parts.push(zone(stopPrice, min + (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c'));
     else parts.push(zone(stopPrice, max - (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c'));
   }
-  if (favLevel != null && advLevel != null && Math.abs(favLevel - advLevel) > zoneGap) parts.push(zone(favLevel, advLevel, 'zp-actual', '', '#475569'));
   if (triggerLevel != null && stopPrice != null && Math.abs(triggerLevel - stopPrice) > zoneGap) parts.push(zone(triggerLevel, stopPrice, 'zp-plan', '计划区间', '#b45309'));
   if (t1Level != null && t2Level != null && Math.abs(t1Level - t2Level) > zoneGap) parts.push(zone(t1Level, t2Level, 'zp-target', '目标区间', '#2563eb'));
   for (let i = 0; i < n; i++) {
@@ -365,11 +359,9 @@ function lifecycleChart(sig, versions, bars) {
     { level: entryPrice, color: skipped ? '#b91c1c' : '#047857', label: skipped ? '放弃' : '入场' },
     { level: exitPrice, color: '#b91c1c', label: '离场' },
     { level: t1Level, color: '#2563eb', label: '目标1' },
-    { level: t2Level, color: '#7c3aed', label: '目标2' },
-    { level: favLevel, color: '#475569', label: '最有利', labelValue: sig.priceTracking && sig.priceTracking.maxFavorablePts != null ? Number(sig.priceTracking.maxFavorablePts) : null, dash: '1 4', opacity: 0.45 },
-    { level: advLevel, color: '#475569', label: '最不利', labelValue: sig.priceTracking && sig.priceTracking.maxAdversePts != null ? Number(sig.priceTracking.maxAdversePts) : null, dash: '1 4', opacity: 0.45 }
+    { level: t2Level, color: '#7c3aed', label: '目标2' }
   ].filter((l) => l.level != null);
-  // 去重：价格几乎相同的价位只保留优先级更高的一条（如 最不利 == 止损）
+  // 去重：价格几乎相同的价位只保留优先级更高的一条
   const dedupThreshold = (max - min) * 0.008;
   const uniqueLevels = [];
   for (const l of levels) {
@@ -399,7 +391,7 @@ function lifecycleChart(sig, versions, bars) {
     parts.push(`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="${l.color}" stroke-width="${strokeWidth}"${dash ? ` stroke-dasharray="${dash}"` : ''} opacity="${opacity}"/>`);
   }
   // 右侧标签放在图内右端：相邻价位合并成一行，避免互相压字。
-  // 信息密度控制：主要价位已足够多时不再标最有利/最不利；已有事件圆点标注的触发/入场/离场不再重复。
+  // 信息密度控制：已有事件圆点标注的触发/入场/离场不再重复。
   const hasTriggerMarker = !!a && !!a.triggerDate;
   const hasEntryMarker = !!entryDate && entryPrice != null;
   const hasExitMarker = !!exitDate && exitPrice != null;
@@ -473,7 +465,6 @@ function lifecycleChart(sig, versions, bars) {
   });
   const zoneLegend = [];
   if (stopPrice != null) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(239,68,68,.18);outline:1px solid rgba(239,68,68,.5);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">失效区</b></span>`);
-  if (favLevel != null && advLevel != null && Math.abs(favLevel - advLevel) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(100,116,139,.18);outline:1px solid rgba(100,116,139,.5);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">实际波动</b></span>`);
   if (triggerLevel != null && stopPrice != null && Math.abs(triggerLevel - stopPrice) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(217,119,6,.2);outline:1px solid rgba(217,119,6,.55);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">计划区间</b></span>`);
   if (t1Level != null && t2Level != null && Math.abs(t1Level - t2Level) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(37,99,235,.2);outline:1px solid rgba(37,99,235,.55);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">目标区间</b></span>`);
   const legendHtml = `<div class="chart-legend" style="display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:12px;color:#6b7280;">${[...levelLegend, ...zoneLegend].join('')}</div>`;
@@ -990,7 +981,7 @@ function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyThe
     const chgText = chgNum == null ? '' : Math.abs(chgNum) < 0.05 ? ' <span class="muted">（持平）</span>' : ` <span class="${chgNum >= 0 ? 'up' : 'down'}">（${chgNum >= 0 ? '+' : ''}${chgNum.toFixed(1)}%）</span>`;
     const fav = p.maxFavorablePts == null ? '—' : `${p.maxFavorablePts >= 0 ? '+' : ''}${fmt(p.maxFavorablePts)}`;
     const adv = p.maxAdversePts == null ? '—' : `${p.maxAdversePts <= 0 ? '' : '+'}${fmt(p.maxAdversePts)}`;
-    priceLine = `<div class="sig-price-line">价格：入池 ${fmt(p.startClose)} → 最新 <b>${fmt(p.latestClose)}</b>${chgText} · 最大有利 ${fav} · 最大不利 ${adv}</div>`;
+    priceLine = `<div class="sig-price-line">价格：入池 ${fmt(p.startClose)} → 最新 <b>${fmt(p.latestClose)}</b>${chgText} · <span class="up">最大有利 ${fav}</span> · <span class="down">最大不利 ${adv}</span></div>`;
   }
   const timeline = signalTimelineHtml(sig, versions, { closed: isClosed });
   const chart = lifecycleChart(sig, versions, bars);
