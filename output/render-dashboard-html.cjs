@@ -251,7 +251,9 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
   const infoColor = lastChg == null || lastChg >= 0 ? '#b91c1c' : '#047857';
   const infoHtml = `<b style="color:${infoColor}">${escapeHtml(lastB.date)}</b> · 开 ${fmt(lastB.open)} · 高 ${fmt(lastB.high)} · 低 ${fmt(lastB.low)} · 收 <b style="color:${infoColor}">${fmt(lastB.close)}</b>${lastChg != null ? ` · 涨跌 <b style="color:${infoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)}（${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%）</b>` : ''}${lastChg5 != null ? ` · 5日涨跌 <b style="color:${lastChg5 >= 0 ? '#b91c1c' : '#047857'}">${lastChg5 >= 0 ? '+' : ''}${lastChg5.toFixed(1)}%</b>` : ''} · MA20 <b>${ma20[n - 1] != null ? fmt(ma20[n - 1]) : '—'}</b> · MA60 <b>${ma60[n - 1] != null ? fmt(ma60[n - 1]) : '—'}</b>`;
   const barsAttr = JSON.stringify(bars.map((b) => ({ d: b.date, o: b.open, h: b.high, l: b.low, c: b.close }))).replace(/'/g, '&#39;');
-  return `<div class="price-chart-wrap" data-bars='${barsAttr}' data-pad='${padX},0,${padY},0'><div class="chart-day-info">${infoHtml}</div>${parts.join('')}</div>`;
+  const ma20Attr = JSON.stringify(ma20);
+  const ma60Attr = JSON.stringify(ma60);
+  return `<div class="price-chart-wrap" data-bars='${barsAttr}' data-ma20='${ma20Attr}' data-ma60='${ma60Attr}' data-pad='${padX},0,${padY},0'><div class="chart-day-info">${infoHtml}</div>${parts.join('')}</div>`;
 }
 
 function rangeBar(period, p68, p95, close) {
@@ -552,6 +554,10 @@ function signalChartHoverScript() {
     var closes = bars.map(function (b) { return b.c; });
     var ma20 = smaArr(closes, 20);
     var ma60 = smaArr(closes, 60);
+    try {
+      if (lc.hasAttribute('data-ma20')) ma20 = JSON.parse(lc.getAttribute('data-ma20') || '[]');
+      if (lc.hasAttribute('data-ma60')) ma60 = JSON.parse(lc.getAttribute('data-ma60') || '[]');
+    } catch (e) {}
     var chg5 = closes.map(function (c, i) { return i >= 5 && closes[i - 5] ? (c / closes[i - 5] - 1) * 100 : null; });
     var isLifecycle = lc.classList.contains('lifecycle');
     function dayHtml(i) {
