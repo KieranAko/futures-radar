@@ -71,7 +71,7 @@ function fmtSigned(v) {
 function dagNodeCard(n, isSource = false, isCurrent = false) {
   const cur = n.lastValue ?? n.observedValue;
   const dir = n.expectation === 1 ? '<span class="up">多</span>' : n.expectation === -1 ? '<span class="down">空</span>' : '—';
-  return `<div class="dg-node ${nodeClass(n)}${n.terminal ? ' terminal' : ''}" data-node-id="${escapeHtml(n.id)}">
+  return `<div class="dg-node ${nodeClass(n)}${n.terminal ? ' terminal' : ''}${isCurrent ? ' current' : ''}" data-node-id="${escapeHtml(n.id)}">
     <div class="dg-node-head"><b>${escapeHtml(n.label || n.id)}</b><span class="dg-node-dir">${dir}</span></div>
     <div class="dg-node-val">${fmtVal(cur)} ${escapeHtml(n.unit || '')}</div>
     <div class="dg-node-foot">${n.terminal ? `${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}` : (isCurrent ? '当前节点 · ' : '') + (NODE_STATUS_LABEL[n.status] || escapeHtml(n.status))}</div>
