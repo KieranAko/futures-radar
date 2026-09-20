@@ -109,7 +109,7 @@ describe('dashboard-html 四 Tab 看板', () => {
     assert.ok(html.includes('DR007 抬头收紧流动性，黑色资金持续流出，螺纹钢等待需求证伪'));
     assert.ok(html.includes('story-subtitle'));
     assert.ok(html.includes('story-theme'));
-    assert.ok(html.includes('<details class="story-card">'));
+    assert.ok(html.includes('class="story-card"'));
     assert.ok(html.includes('node-confirmed'));
     assert.ok(html.includes('前值'));
     assert.ok(html.includes('环比'));

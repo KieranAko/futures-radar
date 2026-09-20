@@ -557,11 +557,12 @@ function credStatsTable(stats) {
 }
 
 function activeChainModalHtml(c) {
+  const card = chainCard(c).replace('<details class="story-card">', '<details class="story-card" open>');
   return `<div class="story-modal" id="story-modal-${escapeHtml(c.chainId)}">
     <div class="story-modal-backdrop"></div>
     <div class="story-modal-body story-modal-body-sm">
       <button class="story-modal-close" data-chain-id="${escapeHtml(c.chainId)}" aria-label="关闭">×</button>
-      ${chainCard(c)}
+      ${card}
     </div>
   </div>`;
 }
@@ -583,7 +584,10 @@ function closedChainModalHtml(c) {
           <div class="story-subtitle">${escapeHtml(c.themeDetail || '')}</div>
           <div class="story-head"><span class="story-chain-id">${escapeHtml(c.chainId)}</span>${storyStatusBadge(c.status)}<span class="story-source">源 ${escapeHtml(c.sourceId || c.sector || '—')}</span><span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认 · ${escapeHtml(c.closeReason || '—')}</span></div>
         </div>
-        <div class="story-body">${graphLegendHtml()}${storyGraphHtml(c)}<div class="story-nodes">${nodes || '<span class="muted">暂无节点明细</span>'}</div><div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div></div>
+        <div class="story-body">${graphLegendHtml()}${storyGraphHtml(c)}
+          <details class="story-sub-detail"><summary>节点明细（${(c.nodes || []).length}）</summary><div class="story-nodes">${nodes || '<span class="muted">暂无节点明细</span>'}</div></details>
+          <details class="story-sub-detail"><summary>最近事件（${(c.events || []).slice(-5).length}）</summary><div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div></details>
+        </div>
       </div>
     </div>
   </div>`;
