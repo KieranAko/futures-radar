@@ -48,6 +48,17 @@ function fmt(x, d = 1) {
   return Number(x).toFixed(d);
 }
 
+function sma(values, period) {
+  const out = new Array(values.length).fill(null);
+  let sum = 0;
+  for (let i = 0; i < values.length; i++) {
+    sum += values[i];
+    if (i >= period) sum -= values[i - period];
+    if (i >= period - 1) out[i] = sum / period;
+  }
+  return out;
+}
+
 function pctChange(start, latest) {
   if (start == null || latest == null || Number(start) === 0) return null;
   const pct = (Number(latest) - Number(start)) / Number(start) * 100;
@@ -234,13 +245,17 @@ function lifecycleChart(sig, versions, bars) {
   const bodyW = Math.max(2, Math.min(8, step * 0.55));
   const x = (i) => padL + i * step + step / 2;
 
+  const closes = win.map((b) => b.close);
+  const ma20 = sma(closes, 20);
+  const ma60 = sma(closes, 60);
+  const chg5 = closes.map((c, i) => (i >= 5 && closes[i - 5] ? ((c / closes[i - 5]) - 1) * 100 : null));
   let min = Infinity;
   let max = -Infinity;
   for (const b of win) {
     min = Math.min(min, b.low);
     max = Math.max(max, b.high);
   }
-  for (const v of [triggerLevel, stopPrice, entryPrice, exitPrice, t1Level, t2Level]) {
+  for (const v of [triggerLevel, stopPrice, entryPrice, exitPrice, t1Level, t2Level, ...ma20, ...ma60]) {
     if (v != null) {
       min = Math.min(min, v);
       max = Math.max(max, v);
@@ -303,6 +318,15 @@ function lifecycleChart(sig, versions, bars) {
     const bodyH = Math.max(1, Math.abs(yClose - yOpen));
     parts.push(`<rect x="${(cx - bodyW / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bodyW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}"/>`);
   }
+  const maLine = (arr, color) => {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      if (arr[i] != null) pts.push(`${(x(i)).toFixed(1)},${y(arr[i]).toFixed(1)}`);
+    }
+    if (pts.length >= 2) parts.push(`<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.6" opacity="0.85"/>`);
+  };
+  maLine(ma20, '#2563eb');
+  maLine(ma60, '#d97706');
   const dirBadge = sig.direction === 'bearish' ? '空' : sig.direction === 'bullish' ? '多' : '';
   if (dirBadge) {
     const dirColor = sig.direction === 'bearish' ? '#047857' : '#b91c1c';
@@ -468,16 +492,21 @@ function lifecycleChart(sig, versions, bars) {
     const dash = l.dash !== undefined ? 'dashed' : solidLevels.has(l.label) ? 'solid' : l.label === '触发' ? 'dashed' : 'dashed';
     return `<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;">${legendSwatch(l.color, dash)}<b style="font-weight:600;color:#1f2328;">${escapeHtml(l.label)}</b> ${legendValue(l)}</span>`;
   });
+  const maLegend = [
+    `<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;">${legendSwatch('#2563eb', 'solid')}<b style="font-weight:600;color:#1f2328;">MA20</b> ${ma20[n - 1] != null ? fmt(ma20[n - 1]) : '—'}</span>`,
+    `<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;">${legendSwatch('#d97706', 'solid')}<b style="font-weight:600;color:#1f2328;">MA60</b> ${ma60[n - 1] != null ? fmt(ma60[n - 1]) : '—'}</span>`
+  ];
   const zoneLegend = [];
   if (stopPrice != null) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(239,68,68,.18);outline:1px solid rgba(239,68,68,.5);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">失效区</b></span>`);
   if (triggerLevel != null && stopPrice != null && Math.abs(triggerLevel - stopPrice) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(217,119,6,.2);outline:1px solid rgba(217,119,6,.55);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">计划区间</b></span>`);
   if (t1Level != null && t2Level != null && Math.abs(t1Level - t2Level) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(37,99,235,.2);outline:1px solid rgba(37,99,235,.55);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">目标区间</b></span>`);
-  const legendHtml = `<div class="chart-legend" style="display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:12px;color:#6b7280;">${[...levelLegend, ...zoneLegend].join('')}</div>`;
+  const legendHtml = `<div class="chart-legend" style="display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:12px;color:#6b7280;">${[...levelLegend, ...maLegend, ...zoneLegend].join('')}</div>`;
   const lastPrev = win.length > 1 ? win[win.length - 2].close : null;
   const lastChg = lastPrev != null ? lastBar.close - lastPrev : null;
   const lastChgPct = lastPrev != null && Number(lastPrev) !== 0 ? (lastBar.close / lastPrev - 1) * 100 : null;
+  const lastChg5 = chg5[n - 1];
   const lastInfoColor = lastChg == null || lastChg >= 0 ? '#b91c1c' : '#047857';
-  const lastInfoHtml = `<b style="color:${lastInfoColor}">${escapeHtml(lastBar.date)}</b> · 开 ${fmt(lastBar.open)} · 高 ${fmt(lastBar.high)} · 低 ${fmt(lastBar.low)} · 收 <b style="color:${lastInfoColor}">${fmt(lastBar.close)}</b>${lastChg != null ? ` · 涨跌 <b style="color:${lastInfoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)}（${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%）</b>` : ''}`;
+  const lastInfoHtml = `<b style="color:${lastInfoColor}">${escapeHtml(lastBar.date)}</b> · 开 ${fmt(lastBar.open)} · 高 ${fmt(lastBar.high)} · 低 ${fmt(lastBar.low)} · 收 <b style="color:${lastInfoColor}">${fmt(lastBar.close)}</b>${lastChg != null ? ` · 涨跌 <b style="color:${lastInfoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)}（${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%）</b>` : ''}${lastChg5 != null ? ` · 5日涨跌 <b style="color:${lastChg5 >= 0 ? '#b91c1c' : '#047857'}">${lastChg5 >= 0 ? '+' : ''}${lastChg5.toFixed(1)}%</b>` : ''} · MA20 <b>${ma20[n - 1] != null ? fmt(ma20[n - 1]) : '—'}</b> · MA60 <b>${ma60[n - 1] != null ? fmt(ma60[n - 1]) : '—'}</b>`;
   const barsAttr = JSON.stringify(win.map((b) => ({ d: b.date, o: b.open, h: b.high, l: b.low, c: b.close }))).replace(/'/g, '&#39;');
 
   return `<div class="lifecycle" data-bars='${barsAttr}' data-pad='${padL},${padR},${padT},${padB}'><div class="chart-day-info">${lastInfoHtml}</div>${parts.join('')}${legendHtml}<div class="chart-hover-tip"></div></div>`;

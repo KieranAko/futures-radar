@@ -216,13 +216,7 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
     parts.push(`<line x1="${x}" y1="${yHigh}" x2="${x}" y2="${yLow}" stroke="${color}" stroke-width="1"/>`);
     const bodyTop = Math.min(yOpen, yClose);
     const bodyH = Math.max(1, Math.abs(yClose - yOpen));
-    const prevClose = i > 0 ? bars[i - 1].close : null;
-    const chg = prevClose != null ? b.close - prevClose : null;
-    const chgPct = prevClose != null ? ((b.close / prevClose) - 1) * 100 : null;
-    const chgText = chg == null ? '—' : `${chg >= 0 ? '+' : ''}${fmt(chg)}（${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(1)}%）`;
-    const chg5Text = chg5[i] == null ? '—' : `${chg5[i] >= 0 ? '+' : ''}${chg5[i].toFixed(1)}%`;
-    const tip = `${escapeHtml(b.date)}&#10;开盘：${fmt(b.open)}&#10;最高：${fmt(b.high)}&#10;最低：${fmt(b.low)}&#10;收盘：${fmt(b.close)}&#10;当日涨跌：${chgText}&#10;5日涨跌：${chg5Text}`;
-    parts.push(`<rect x="${(x - bodyW / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bodyW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}"><title>${tip}</title></rect>`);
+    parts.push(`<rect x="${(x - bodyW / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bodyW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}"/>`);
   }
   const maLine = (arr, color) => {
     const pts = [];
@@ -243,11 +237,27 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
   }
   const xDate = (idx, anchor) => parts.push(`<text x="${padX + idx * step + step / 2}" y="${H - 4}" text-anchor="${anchor}" class="chart-label">${escapeHtml(bars[idx].date.slice(5))}</text>`);
   xDate(0, 'middle');
-  if (n > 2) xDate(Math.floor((n - 1) / 2), 'middle');
+  if (n > 6) {
+    xDate(Math.floor((n - 1) * 0.25), 'middle');
+    xDate(Math.floor((n - 1) * 0.5), 'middle');
+    xDate(Math.floor((n - 1) * 0.75), 'middle');
+  } else if (n > 2) {
+    xDate(Math.floor((n - 1) / 2), 'middle');
+  }
   xDate(n - 1, 'middle');
+  parts.push(`<line class="chart-crosshair" x1="${(padX + (n - 1) * step + step / 2).toFixed(1)}" y1="${padY}" x2="${(padX + (n - 1) * step + step / 2).toFixed(1)}" y2="${(H - padY).toFixed(1)}" stroke="#1f2328" stroke-width="1" stroke-dasharray="3 3" opacity="0.7"/>`);
   parts.push('</svg>');
   parts.push('<div class="legend"><span class="legend-item"><i style="background:#b91c1c"></i>涨</span><span class="legend-item"><i style="background:#047857"></i>跌</span><span class="legend-item"><i style="background:#2563eb"></i>MA20</span><span class="legend-item"><i style="background:#d97706"></i>MA60</span></div>');
-  return parts.join('');
+
+  const lastB = bars[n - 1];
+  const lastPrev = n > 1 ? bars[n - 2].close : null;
+  const lastChg = lastPrev != null ? lastB.close - lastPrev : null;
+  const lastChgPct = lastPrev != null && Number(lastPrev) !== 0 ? (lastB.close / lastPrev - 1) * 100 : null;
+  const lastChg5 = chg5[n - 1];
+  const infoColor = lastChg == null || lastChg >= 0 ? '#b91c1c' : '#047857';
+  const infoHtml = `<b style="color:${infoColor}">${escapeHtml(lastB.date)}</b> · 开 ${fmt(lastB.open)} · 高 ${fmt(lastB.high)} · 低 ${fmt(lastB.low)} · 收 <b style="color:${infoColor}">${fmt(lastB.close)}</b>${lastChg != null ? ` · 涨跌 <b style="color:${infoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)}（${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%）</b>` : ''}${lastChg5 != null ? ` · 5日涨跌 <b style="color:${lastChg5 >= 0 ? '#b91c1c' : '#047857'}">${lastChg5 >= 0 ? '+' : ''}${lastChg5.toFixed(1)}%</b>` : ''} · MA20 <b>${ma20[n - 1] != null ? fmt(ma20[n - 1]) : '—'}</b> · MA60 <b>${ma60[n - 1] != null ? fmt(ma60[n - 1]) : '—'}</b>`;
+  const barsAttr = JSON.stringify(bars.map((b) => ({ d: b.date, o: b.open, h: b.high, l: b.low, c: b.close }))).replace(/'/g, '&#39;');
+  return `<div class="price-chart-wrap" data-bars='${barsAttr}' data-pad='${padX},0,${padY},0'><div class="chart-day-info">${infoHtml}</div>${parts.join('')}</div>`;
 }
 
 function rangeBar(period, p68, p95, close) {
@@ -526,15 +536,29 @@ function signalChartHoverScript() {
 (function () {
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
   function nf(v) { return v == null || isNaN(Number(v)) ? '—' : Number(v).toFixed(1); }
-  document.querySelectorAll('.lifecycle').forEach(function (lc) {
+  document.querySelectorAll('.lifecycle, .price-chart-wrap').forEach(function (lc) {
     var tip = lc.querySelector('.chart-hover-tip');
-    var svg = lc.querySelector('svg.lifecycle-chart');
+    var svg = lc.querySelector('svg.lifecycle-chart, svg.price-chart');
     var cross = lc.querySelector('.chart-crosshair');
     var info = lc.querySelector('.chart-day-info');
     var bars = [];
     try { bars = JSON.parse(lc.getAttribute('data-bars') || '[]'); } catch (e) { bars = []; }
     var pads = (lc.getAttribute('data-pad') || '46,64,20,26').split(',').map(Number);
     var padL = pads[0] || 46, padR = pads[1] || 64, padT = pads[2] || 20, padB = pads[3] || 26;
+    function smaArr(values, period) {
+      var out = new Array(values.length).fill(null);
+      var sum = 0;
+      for (var i = 0; i < values.length; i++) {
+        sum += values[i];
+        if (i >= period) sum -= values[i - period];
+        if (i >= period - 1) out[i] = sum / period;
+      }
+      return out;
+    }
+    var closes = bars.map(function (b) { return b.c; });
+    var ma20 = smaArr(closes, 20);
+    var ma60 = smaArr(closes, 60);
+    var chg5 = closes.map(function (c, i) { return i >= 5 && closes[i - 5] ? (c / closes[i - 5] - 1) * 100 : null; });
     function dayHtml(i) {
       var b = bars[i];
       if (!b) return '';
@@ -542,8 +566,12 @@ function signalChartHoverScript() {
       var chg = prev != null ? b.c - prev : null;
       var chgPct = prev != null && Number(prev) !== 0 ? (b.c / prev - 1) * 100 : null;
       var color = chg == null || chg >= 0 ? '#b91c1c' : '#047857';
+      var c5 = chg5[i];
+      var c5Color = c5 == null || c5 >= 0 ? '#b91c1c' : '#047857';
       return '<b style="color:' + color + '">' + esc(b.d) + '</b> · 开 ' + nf(b.o) + ' · 高 ' + nf(b.h) + ' · 低 ' + nf(b.l) + ' · 收 <b style="color:' + color + '">' + nf(b.c) + '</b>'
-        + (chg != null ? ' · 涨跌 <b style="color:' + color + '">' + (chg >= 0 ? '+' : '') + nf(chg) + '（' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%）</b>' : '');
+        + (chg != null ? ' · 涨跌 <b style="color:' + color + '">' + (chg >= 0 ? '+' : '') + nf(chg) + '（' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%）</b>' : '')
+        + (c5 != null ? ' · 5日涨跌 <b style="color:' + c5Color + '">' + (c5 >= 0 ? '+' : '') + c5.toFixed(1) + '%</b>' : '')
+        + ' · MA20 <b>' + (ma20[i] != null ? nf(ma20[i]) : '—') + '</b> · MA60 <b>' + (ma60[i] != null ? nf(ma60[i]) : '—') + '</b>';
     }
     function nearestIndex(ev) {
       if (!svg || !bars.length) return -1;
@@ -795,6 +823,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .pill.extreme { background: #fdeaea; color: #b91c1c; }
 
   .price-chart { width: 100%; height: auto; display: block; background: #fcfcfd; border: 1px solid var(--border); border-radius: 8px; }
+  .price-chart-wrap { position: relative; }
   .chart-label { font-size: 10px; fill: var(--muted); }
   .legend { display: flex; gap: 12px; margin: 6px 0 2px; font-size: 12px; color: var(--muted); }
   .legend-item { display: inline-flex; align-items: center; gap: 4px; }
