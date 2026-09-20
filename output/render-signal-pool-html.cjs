@@ -258,12 +258,40 @@ function lifecycleChart(sig, versions, bars) {
 
   const parts = [];
   parts.push(`<svg class="lifecycle-chart" viewBox="0 0 ${W} ${H}" role="img">`);
+  parts.push(`<defs>
+    <pattern id="zp-plan" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="#d97706" stroke-width="1.2" opacity="0.28"/></pattern>
+    <pattern id="zp-target" width="6" height="6" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="#2563eb" stroke-width="1.2" opacity="0.28"/></pattern>
+    <pattern id="zp-actual" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="#64748b" stroke-width="1" opacity="0.2"/></pattern>
+    <pattern id="zp-invalid" width="7" height="7" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="7" stroke="#ef4444" stroke-width="1" opacity="0.16"/></pattern>
+  </defs>`);
   for (let i = 0; i <= 4; i++) {
     const gy = padT + (i / 4) * (H - padT - padB);
     const gv = max - (i / 4) * (max - min);
     parts.push(`<line x1="${padL}" y1="${gy.toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${gy.toFixed(1)}" stroke="#eef0f3" stroke-width="1"/>`);
     parts.push(`<text x="${padL - 6}" y="${(gy + 4).toFixed(1)}" text-anchor="end" font-size="10" fill="#6b7280">${fmt(gv, 0)}</text>`);
   }
+  const textStyle = 'paint-order:stroke;stroke:#ffffff;stroke-width:3px;';
+  const zoneGap = (max - min) * 0.008;
+  const zone = (v1, v2, pattern, label, color) => {
+    const y1 = y(v1);
+    const y2 = y(v2);
+    const top = Math.min(y1, y2);
+    const h = Math.abs(y2 - y1);
+    if (h < 4) return '';
+    let out = `<rect x="${padL}" y="${top.toFixed(1)}" width="${(W - padL - padR).toFixed(1)}" height="${h.toFixed(1)}" fill="url(#${pattern})"/>`;
+    if (label && h >= 18) {
+      out += `<text x="${(padL + 8).toFixed(1)}" y="${(top + h / 2 + 4).toFixed(1)}" font-size="10" font-weight="600" fill="${color}" style="${textStyle}">${escapeHtml(label)}</text>`;
+    }
+    return out;
+  };
+  // 背景区间块：失效区 / 实际波动区间 / 计划区间（触发↔止损）/ 目标区间（目标1↔目标2）
+  if (stopPrice != null) {
+    if (sig.direction === 'bullish') parts.push(zone(stopPrice, min + (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c'));
+    else parts.push(zone(stopPrice, max - (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c'));
+  }
+  if (favLevel != null && advLevel != null && Math.abs(favLevel - advLevel) > zoneGap) parts.push(zone(favLevel, advLevel, 'zp-actual', '', '#475569'));
+  if (triggerLevel != null && stopPrice != null && Math.abs(triggerLevel - stopPrice) > zoneGap) parts.push(zone(triggerLevel, stopPrice, 'zp-plan', '计划区间', '#b45309'));
+  if (t1Level != null && t2Level != null && Math.abs(t1Level - t2Level) > zoneGap) parts.push(zone(t1Level, t2Level, 'zp-target', '目标区间', '#2563eb'));
   for (let i = 0; i < n; i++) {
     const b = win[i];
     const cx = x(i);
@@ -281,7 +309,6 @@ function lifecycleChart(sig, versions, bars) {
     const tip = `${escapeHtml(b.date)}&#10;开 ${fmt(b.open)} 高 ${fmt(b.high)} 低 ${fmt(b.low)} 收 ${fmt(b.close)}${chg != null ? `&#10;涨跌 ${chg >= 0 ? '+' : ''}${fmt(chg)}（${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(1)}%）` : ''}`;
     parts.push(`<rect x="${(cx - bodyW / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bodyW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}"><title>${tip}</title></rect>`);
   }
-  const textStyle = 'paint-order:stroke;stroke:#ffffff;stroke-width:3px;';
   const dirBadge = sig.direction === 'bearish' ? '空' : sig.direction === 'bullish' ? '多' : '';
   if (dirBadge) {
     const dirColor = sig.direction === 'bearish' ? '#047857' : '#b91c1c';
@@ -346,9 +373,14 @@ function lifecycleChart(sig, versions, bars) {
   for (const l of levels) {
     if (!uniqueLevels.some((u) => Math.abs(u.level - l.level) < dedupThreshold)) uniqueLevels.push(l);
   }
+  const solidLevels = new Set(['止损', '入场', '放弃', '离场']);
   for (const l of uniqueLevels) {
     const yy = y(l.level);
-    parts.push(`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="${l.color}" stroke-width="1" stroke-dasharray="${l.dash || '4 4'}" opacity="${l.opacity == null ? 0.6 : l.opacity}"/>`);
+    const isSolid = l.dash === undefined && solidLevels.has(l.label);
+    const dash = l.dash !== undefined ? l.dash : (l.label === '触发' ? '8 4' : isSolid ? null : '6 4');
+    const opacity = l.opacity != null ? l.opacity : 0.75;
+    const strokeWidth = isSolid ? 1.4 : 1;
+    parts.push(`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="${l.color}" stroke-width="${strokeWidth}"${dash ? ` stroke-dasharray="${dash}"` : ''} opacity="${opacity}"/>`);
   }
   // 右侧标签放在图内右端：相邻价位合并成一行，避免互相压字。
   // 信息密度控制：主要价位已足够多时不再标最有利/最不利；已有事件圆点标注的触发/入场/离场不再重复。
