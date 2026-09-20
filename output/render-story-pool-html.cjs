@@ -157,7 +157,7 @@ function computeLayers(nodes, edges) {
 }
 
 function nodeSvg(n, x, y, sourceId, markerId, idPrefix = '') {
-  const w = 196, h = 66;
+  const w = 168, h = 58;
   const isSource = n.id === sourceId;
   const isTerminal = !!n.terminal;
   const status = n.status || 'pending';
@@ -166,7 +166,7 @@ function nodeSvg(n, x, y, sourceId, markerId, idPrefix = '') {
   else if (status === 'confirmed') { fill = '#ecfdf5'; stroke = '#047857'; text = '#065f46'; }
   else if (isTerminal && n.priority === 'primary') { fill = '#eef2ff'; stroke = '#6366f1'; text = '#3730a3'; }
   else if (isTerminal && n.priority === 'secondary') { fill = '#f3f4f6'; stroke = '#9ca3af'; text = '#374151'; }
-  else if (isSource) { fill = '#1f2937'; stroke = '#1f2937'; text = '#ffffff'; }
+  else if (isSource) { fill = '#eef2ff'; stroke = '#6366f1'; text = '#3730a3'; }
   else { fill = '#f8fafc'; stroke = '#cbd5e1'; text = '#334155'; }
   const label = n.label || n.id;
   const sub = n.indicatorId || n.concept || '';
@@ -174,16 +174,16 @@ function nodeSvg(n, x, y, sourceId, markerId, idPrefix = '') {
   const statusShort = status === 'confirmed' ? '✔' : status === 'broken' ? '✘' : '·';
   return `<g class="sg-node" data-id="${escapeHtml(idPrefix + n.id)}" transform="translate(${x},${y})" style="cursor:pointer">
     <rect width="${w}" height="${h}" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="${isTerminal ? 2.5 : 1.5}"></rect>
-    <text x="12" y="25" font-size="13" font-weight="700" fill="${text}">${escapeHtml(short(label, 12))}</text>
-    <text x="12" y="43" font-size="10" fill="${text}" opacity="0.78">${escapeHtml(short(sub, 24))}</text>
-    <text x="${w - 12}" y="25" font-size="12" fill="${text}" text-anchor="end">${dir}${statusShort}</text>
-    ${isTerminal ? `<text x="12" y="58" font-size="10" fill="${text}" opacity="0.95">${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}</text>` : ''}
+    <text x="12" y="25" font-size="12" font-weight="700" fill="${text}">${escapeHtml(short(label, 12))}</text>
+    <text x="12" y="43" font-size="9" fill="${text}" opacity="0.78">${escapeHtml(short(sub, 24))}</text>
+    <text x="${w - 12}" y="25" font-size="11" fill="${text}" text-anchor="end">${dir}${statusShort}</text>
+    ${isTerminal ? `<text x="12" y="58" font-size="9" fill="${text}" opacity="0.95">${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}</text>` : ''}
   </g>`;
 }
 
 function edgeSvg(e, fromPos, toPos, markerId) {
-  const x1 = fromPos.x + 196, y1 = fromPos.y + 33;
-  const x2 = toPos.x, y2 = toPos.y + 33;
+  const x1 = fromPos.x + 168, y1 = fromPos.y + 29;
+  const x2 = toPos.x, y2 = toPos.y + 29;
   const dx = Math.max(42, (x2 - x1) * 0.45);
   return `<path class="sg-edge" data-from="${escapeHtml(e.from)}" data-to="${escapeHtml(e.to)}" d="M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#${markerId})"></path>`;
 }
@@ -193,7 +193,7 @@ function storyGraphHtml(c) {
   const edges = c.edges || [];
   const sourceId = nodes[0] && nodes[0].id;
   const { layers } = computeLayers(nodes, edges);
-  const nodeW = 196, nodeH = 66, gapX = 164, gapY = 20;
+  const nodeW = 168, nodeH = 58, gapX = 140, gapY = 18;
   const maxLayer = Math.max(...[...layers.keys()].map(Number));
   const maxCount = Math.max(...[...layers.values()].map((a) => a.length));
   const svgW = Math.max(420, (maxLayer + 1) * (nodeW + gapX) + 16);
@@ -403,7 +403,7 @@ function branchTableHtml(active) {
     }
     for (const b of branches) {
       const path = pathToTerminal(c, b.branchId);
-      const pathText = path.map((n) => n.label || n.id).join(' → ');
+      const pathText = path.map((n) => short(n.label || n.id, 8)).join(' → ');
       rows.push({ c, b, pathText });
     }
   }
@@ -415,24 +415,22 @@ function branchTableHtml(active) {
     const detailHtml = chainCard(c).replace('<details class="story-card">', '<details class="story-card" open>');
     return `<tr class="branch-row" data-graph-node="${escapeHtml(graphNodeId)}" data-detail-id="${escapeHtml(detailId)}" title="点击展开/折叠">
       <td><span class="row-chevron">▸</span><span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span></td>
-      <td class="muted">${escapeHtml(c.sourceId || '—')}</td>
       <td class="path-cell">${escapeHtml(pathText || '—')}</td>
       <td><b>${escapeHtml(b.symbol || '—')}</b></td>
       <td class="${dirCls}">${bDir}</td>
       <td>${storyStatusBadge(b.status)}</td>
       <td class="num">${b.proofIndex != null ? `p=${b.proofIndex}` : '—'}</td>
-      <td class="muted impact-cell">${escapeHtml(b.impactRationale || '—')}</td>
     </tr>
-    <tr class="branch-detail-row" id="${escapeHtml(detailId)}" style="display:none"><td colspan="8">${detailHtml}</td></tr>`;
+    <tr class="branch-detail-row" id="${escapeHtml(detailId)}" style="display:none"><td colspan="6">${detailHtml}</td></tr>`;
   }).join('');
   return `<table class="branch-table branch-table-wide">
-    <thead><tr><th>分支</th><th>源</th><th>传导路径</th><th>终点</th><th>方向</th><th>状态</th><th>证明</th><th>为什么是这里</th></tr></thead>
-    <tbody>${trs || '<tr><td colspan="8" class="muted">当前故事池为空</td></tr>'}</tbody></table>`;
+    <thead><tr><th>分支</th><th>传导路径</th><th>终点</th><th>方向</th><th>状态</th><th>证明</th></tr></thead>
+    <tbody>${trs || '<tr><td colspan="6" class="muted">当前故事池为空</td></tr>'}</tbody></table>`;
 }
 
 function marketMapHtml(active) {
   const chains = active || [];
-  const nodeW = 196, nodeH = 66, gapX = 164, gapY = 20;
+  const nodeW = 168, nodeH = 58, gapX = 140, gapY = 18;
   // 全局分层：每列一个 depth，跨链纵向堆叠
   const colItems = new Map();
   const colCounts = new Map();

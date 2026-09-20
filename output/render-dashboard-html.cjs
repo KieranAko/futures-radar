@@ -677,8 +677,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   #history-search { padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; width: 240px; }
 
   /* KPI 统计卡 */
-  .summary-bar { display: flex; gap: 12px; flex-wrap: wrap; margin: 4px 0 18px; }
-  .stat { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; min-width: 160px; }
+  .summary-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 4px 0 18px; }
+  .stat { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
   .stat-icon { width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
   .stat-icon.blue { background: #eef4ff; }
   .stat-icon.green { background: #e7f6ec; }
@@ -937,7 +937,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .branch-priority { white-space: nowrap; }
   .story-sub-detail { margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 6px; }
   .story-sub-detail summary { cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 600; }
-  .branch-table-wide { min-width: 960px; }
+  .branch-table-wide { min-width: 720px; }
   .row-chevron { display: inline-block; margin-right: 6px; color: var(--muted); font-size: 11px; transition: transform .15s ease; }
   .branch-row.open .row-chevron, .closed-row.open .row-chevron { transform: rotate(90deg); }
   .branch-row { cursor: pointer; }
