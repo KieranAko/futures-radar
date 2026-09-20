@@ -253,7 +253,7 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
   const barsAttr = JSON.stringify(bars.map((b) => ({ d: b.date, o: b.open, h: b.high, l: b.low, c: b.close }))).replace(/'/g, '&#39;');
   const ma20Attr = JSON.stringify(ma20);
   const ma60Attr = JSON.stringify(ma60);
-  return `<div class="price-chart-wrap" data-bars='${barsAttr}' data-ma20='${ma20Attr}' data-ma60='${ma60Attr}' data-pad='${padX},0,${padY},0'><div class="chart-day-info">${infoHtml}</div>${parts.join('')}</div>`;
+  return `<div class="price-chart-wrap" data-bars='${barsAttr}' data-ma20='${ma20Attr}' data-ma60='${ma60Attr}' data-pad='${padX},${padX},${padY},${padY}'><div class="chart-day-info">${infoHtml}</div>${parts.join('')}</div>`;
 }
 
 function rangeBar(period, p68, p95, close) {
