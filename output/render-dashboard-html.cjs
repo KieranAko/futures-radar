@@ -250,7 +250,9 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
   const lastChg5 = chg5[n - 1];
   const infoColor = lastChg == null || lastChg >= 0 ? '#b91c1c' : '#047857';
   const lb = (name) => `<b style="color:#1f2328;font-weight:700">${name}</b>`;
-  const infoHtml = `<b style="color:#1f2328;font-weight:700">${escapeHtml(lastB.date)}</b> · ${lb('开盘')} ${fmt(lastB.open)} · ${lb('最高')} ${fmt(lastB.high)} · ${lb('最低')} ${fmt(lastB.low)} · ${lb('收盘')} <b style="color:${infoColor}">${fmt(lastB.close)}</b>${lastChg != null ? ` · ${lb('涨跌')} <b style="color:${infoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)}（${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%）</b>` : ''}${lastChg5 != null ? ` · ${lb('5日涨跌')} <b style="color:${lastChg5 >= 0 ? '#b91c1c' : '#047857'}">${lastChg5 >= 0 ? '+' : ''}${lastChg5.toFixed(1)}%</b>` : ''} · <b style="color:#2563eb;font-weight:700">MA20</b> ${ma20[n - 1] != null ? fmt(ma20[n - 1]) : '—'} · <b style="color:#d97706;font-weight:700">MA60</b> ${ma60[n - 1] != null ? fmt(ma60[n - 1]) : '—'}`;
+  const chgSpan = lastChg != null ? `<span>${lb('涨跌')} <b style="color:${infoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)}（${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%）</b></span>` : `<span>${lb('涨跌')} —</span>`;
+  const chg5Span = lastChg5 != null ? `<span>${lb('5日涨跌')} <b style="color:${lastChg5 >= 0 ? '#b91c1c' : '#047857'}">${lastChg5 >= 0 ? '+' : ''}${lastChg5.toFixed(1)}%</b></span>` : `<span>${lb('5日涨跌')} —</span>`;
+  const infoHtml = `<span><b style="color:#1f2328;font-weight:700">${escapeHtml(lastB.date)}</b></span><span>${lb('开盘')} ${fmt(lastB.open)}</span><span>${lb('最高')} ${fmt(lastB.high)}</span><span>${lb('最低')} ${fmt(lastB.low)}</span><span>${lb('收盘')} <b style="color:${infoColor}">${fmt(lastB.close)}</b></span>${chgSpan}${chg5Span}<span><b style="color:#2563eb;font-weight:700">MA20</b> ${ma20[n - 1] != null ? fmt(ma20[n - 1]) : '—'}</span><span><b style="color:#d97706;font-weight:700">MA60</b> ${ma60[n - 1] != null ? fmt(ma60[n - 1]) : '—'}</span>`;
   const barsAttr = JSON.stringify(bars.map((b) => ({ d: b.date, o: b.open, h: b.high, l: b.low, c: b.close }))).replace(/'/g, '&#39;');
   const ma20Attr = JSON.stringify(ma20);
   const ma60Attr = JSON.stringify(ma60);
@@ -570,15 +572,15 @@ function signalChartHoverScript() {
       var color = chg == null || chg >= 0 ? '#b91c1c' : '#047857';
       var c5 = chg5[i];
       var c5Color = c5 == null || c5 >= 0 ? '#b91c1c' : '#047857';
-      var html = '<b style="color:#1f2328;font-weight:700">' + esc(b.d) + '</b>'
-        + ' · <b style="color:#1f2328;font-weight:700">开盘</b> ' + nf(b.o)
-        + ' · <b style="color:#1f2328;font-weight:700">最高</b> ' + nf(b.h)
-        + ' · <b style="color:#1f2328;font-weight:700">最低</b> ' + nf(b.l)
-        + ' · <b style="color:#1f2328;font-weight:700">收盘</b> <b style="color:' + color + '">' + nf(b.c) + '</b>'
-        + (chg != null ? ' · <b style="color:#1f2328;font-weight:700">涨跌</b> <b style="color:' + color + '">' + (chg >= 0 ? '+' : '') + nf(chg) + '（' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%）</b>' : '')
-        + (c5 != null ? ' · <b style="color:#1f2328;font-weight:700">5日涨跌</b> <b style="color:' + c5Color + '">' + (c5 >= 0 ? '+' : '') + c5.toFixed(1) + '%</b>' : '');
+      var html = '<span><b style="color:#1f2328;font-weight:700">' + esc(b.d) + '</b></span>'
+        + '<span><b style="color:#1f2328;font-weight:700">开盘</b> ' + nf(b.o) + '</span>'
+        + '<span><b style="color:#1f2328;font-weight:700">最高</b> ' + nf(b.h) + '</span>'
+        + '<span><b style="color:#1f2328;font-weight:700">最低</b> ' + nf(b.l) + '</span>'
+        + '<span><b style="color:#1f2328;font-weight:700">收盘</b> <b style="color:' + color + '">' + nf(b.c) + '</b></span>'
+        + '<span><b style="color:#1f2328;font-weight:700">涨跌</b> ' + (chg != null ? '<b style="color:' + color + '">' + (chg >= 0 ? '+' : '') + nf(chg) + '（' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%）</b>' : '—') + '</span>'
+        + '<span><b style="color:#1f2328;font-weight:700">5日涨跌</b> ' + (c5 != null ? '<b style="color:' + c5Color + '">' + (c5 >= 0 ? '+' : '') + c5.toFixed(1) + '%</b>' : '—') + '</span>';
       if (!isLifecycle) {
-        html += ' · <b style="color:#2563eb;font-weight:700">MA20</b> ' + (ma20[i] != null ? nf(ma20[i]) : '—') + ' · <b style="color:#d97706;font-weight:700">MA60</b> ' + (ma60[i] != null ? nf(ma60[i]) : '—');
+        html += '<span><b style="color:#2563eb;font-weight:700">MA20</b> ' + (ma20[i] != null ? nf(ma20[i]) : '—') + '</span><span><b style="color:#d97706;font-weight:700">MA60</b> ' + (ma60[i] != null ? nf(ma60[i]) : '—') + '</span>';
       }
       return html;
     }
@@ -982,8 +984,10 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .sig-chart-head { font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 4px; }
   .sig-chart-block .lifecycle svg { width: 100%; height: auto; max-height: none; }
   .lifecycle { position: relative; }
-  .chart-day-info { font-size: 12px; color: var(--muted); padding: 2px 0 4px; min-height: 22px; font-variant-numeric: tabular-nums; }
+  .chart-day-info { display: grid; grid-template-columns: 100px 76px 76px 76px 76px 150px 110px; gap: 2px 16px; align-items: baseline; font-size: 12px; color: var(--muted); padding: 2px 0 4px; min-height: 22px; font-variant-numeric: tabular-nums; overflow-x: auto; }
+  .price-chart-wrap .chart-day-info { grid-template-columns: 100px 76px 76px 76px 76px 150px 110px 96px 96px; }
   .chart-day-info b { font-weight: 700; }
+  .chart-day-info > span { white-space: nowrap; }
   .chart-crosshair { display: none; pointer-events: none; }
   .chart-hover-tip { display: none; position: absolute; z-index: 6; background: #1f2328; color: #ffffff; font-size: 12px; line-height: 1.5; padding: 4px 10px; border-radius: 6px; pointer-events: none; white-space: nowrap; box-shadow: 0 6px 18px rgba(15,23,42,.25); transform: translateY(-100%); }
   .zp-zone { cursor: pointer; }
