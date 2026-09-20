@@ -772,6 +772,10 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .lg-secondary { background: #f3f4f6; border: 1px solid #9ca3af; }
   .lg-confirmed { background: #ecfdf5; border: 1px solid #047857; }
   .lg-broken { background: #fef2f2; border: 1px solid #b91c1c; }
+  .node-table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; }
+  .node-table th, .node-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 12px; vertical-align: top; }
+  .node-table th { color: var(--muted); font-weight: 500; white-space: nowrap; }
+  .node-table .muted { font-size: 11px; margin-top: 2px; }
   .branch-table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; }
   .branch-table th, .branch-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 12px; }
   .branch-table th { color: var(--muted); font-weight: 500; }

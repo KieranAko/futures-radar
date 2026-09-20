@@ -68,6 +68,25 @@ function fmtSigned(v) {
   return (n > 0 ? '+' : '') + fmtVal(n);
 }
 
+function nodeTableHtml(nodes) {
+  const rows = (nodes || []).map((n) => {
+    const cur = n.lastValue ?? n.observedValue;
+    const prev = n.prevValue;
+    const mom = Number.isFinite(Number(cur)) && Number.isFinite(Number(prev)) ? Number(cur) - Number(prev) : null;
+    return `<tr class="story-node ${nodeClass(n)}">
+      <td><b>${escapeHtml(n.label || n.id)}</b><div class="muted">${escapeHtml(n.indicatorId || n.concept || '—')}</div></td>
+      <td>${NODE_STATUS_LABEL[n.status] || escapeHtml(n.status)}</td>
+      <td>${n.expectation === 1 ? '↑' : n.expectation === -1 ? '↓' : '—'}</td>
+      <td>${fmtVal(prev)}</td>
+      <td><b>${fmtVal(cur)}</b> ${escapeHtml(n.unit || '')}</td>
+      <td class="${mom > 0 ? 'mom-up' : mom < 0 ? 'mom-down' : ''}">${fmtSigned(mom)}</td>
+      <td>${credBadge(n.credibility)}</td>
+      <td class="muted">${escapeHtml(n.windowStartDate || '—')} → ${escapeHtml(n.windowDeadlineDate || '—')}</td>
+    </tr>`;
+  }).join('');
+  return `<table class="node-table"><thead><tr><th>节点</th><th>状态</th><th>预期</th><th>前值</th><th>当前</th><th>环比</th><th>可信度</th><th>观察窗口</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
 function nodeRow(n) {
   const exp = n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : '';
   const path = n.resolution ? n.resolution.path : 'T0';
@@ -519,7 +538,7 @@ function chainCard(c) {
     ${branchSummaryHtml(c)}
     <details class="story-sub-detail">
       <summary>节点明细（${c.nodes ? c.nodes.length : 0}）</summary>
-      <div class="story-nodes">${(c.nodes || []).map(nodeRow).join('')}</div>
+      <div class="story-nodes">${nodeTableHtml(c.nodes)}</div>
     </details>
     <details class="story-sub-detail">
       <summary>最近事件（${(c.events || []).slice(-5).length}）</summary>
@@ -585,7 +604,7 @@ function closedChainModalHtml(c) {
           <div class="story-head"><span class="story-chain-id">${escapeHtml(c.chainId)}</span>${storyStatusBadge(c.status)}<span class="story-source">源 ${escapeHtml(c.sourceId || c.sector || '—')}</span><span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认 · ${escapeHtml(c.closeReason || '—')}</span></div>
         </div>
         <div class="story-body">${graphLegendHtml()}${storyGraphHtml(c)}
-          <details class="story-sub-detail"><summary>节点明细（${(c.nodes || []).length}）</summary><div class="story-nodes">${nodes || '<span class="muted">暂无节点明细</span>'}</div></details>
+          <details class="story-sub-detail"><summary>节点明细（${(c.nodes || []).length}）</summary><div class="story-nodes">${nodeTableHtml(c.nodes) || '<span class="muted">暂无节点明细</span>'}</div></details>
           <details class="story-sub-detail"><summary>最近事件（${(c.events || []).slice(-5).length}）</summary><div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div></details>
         </div>
       </div>
