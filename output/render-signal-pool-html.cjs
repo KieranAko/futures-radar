@@ -216,6 +216,16 @@ function lifecycleChart(sig, versions, bars) {
   const entryDate = a && a.entryDate || (skipped && lastR && lastR.entryDate ? lastR.entryDate : null);
   const exitPrice = a && a.exitPrice != null ? Number(a.exitPrice) : null;
   const exitDate = a && a.exitDate || null;
+  const parseLevel = (text) => {
+    const m = String(text == null ? '' : text).match(/-?\d+(?:\.\d+)?/);
+    return m ? Number(m[0]) : null;
+  };
+  const t1Level = parseLevel(av && av.targets && av.targets.t1);
+  const t2Level = parseLevel(av && av.targets && av.targets.t2);
+  const dirSign = sig.direction === 'bearish' ? -1 : 1;
+  const startClose = sig.priceTracking && Number.isFinite(Number(sig.priceTracking.startClose)) ? Number(sig.priceTracking.startClose) : null;
+  const favLevel = startClose != null && sig.priceTracking.maxFavorablePts != null ? startClose + Number(sig.priceTracking.maxFavorablePts) * dirSign : null;
+  const advLevel = startClose != null && sig.priceTracking.maxAdversePts != null ? startClose + Number(sig.priceTracking.maxAdversePts) * dirSign : null;
 
   const W = 1080;
   const H = 220;
@@ -234,7 +244,7 @@ function lifecycleChart(sig, versions, bars) {
     min = Math.min(min, b.low);
     max = Math.max(max, b.high);
   }
-  for (const v of [triggerLevel, stopPrice, entryPrice, exitPrice]) {
+  for (const v of [triggerLevel, stopPrice, entryPrice, exitPrice, t1Level, t2Level, favLevel, advLevel]) {
     if (v != null) {
       min = Math.min(min, v);
       max = Math.max(max, v);
@@ -271,6 +281,12 @@ function lifecycleChart(sig, versions, bars) {
     const tip = `${escapeHtml(b.date)}&#10;开 ${fmt(b.open)} 高 ${fmt(b.high)} 低 ${fmt(b.low)} 收 ${fmt(b.close)}${chg != null ? `&#10;涨跌 ${chg >= 0 ? '+' : ''}${fmt(chg)}（${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(1)}%）` : ''}`;
     parts.push(`<rect x="${(cx - bodyW / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bodyW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}"><title>${tip}</title></rect>`);
   }
+  const textStyle = 'paint-order:stroke;stroke:#ffffff;stroke-width:3px;';
+  const dirBadge = sig.direction === 'bearish' ? '空' : sig.direction === 'bullish' ? '多' : '';
+  if (dirBadge) {
+    const dirColor = sig.direction === 'bearish' ? '#047857' : '#b91c1c';
+    parts.push(`<text x="${padL}" y="${padT + 4}" font-size="11" font-weight="700" fill="${dirColor}" style="${textStyle}">计划 ${dirBadge}</text>`);
+  }
 
   const xOfDate = (date) => {
     if (!date) return null;
@@ -283,6 +299,13 @@ function lifecycleChart(sig, versions, bars) {
     }
     return null;
   };
+
+  const signalDayIdx = win.findIndex((b) => b.date === sig.createdDate);
+  if (signalDayIdx > 0 && signalDayIdx < n - 1) {
+    const sx = x(signalDayIdx);
+    parts.push(`<line x1="${sx.toFixed(1)}" y1="${padT}" x2="${sx.toFixed(1)}" y2="${(H - padB).toFixed(1)}" stroke="#6b7280" stroke-width="1" stroke-dasharray="2 3" opacity="0.55"/>`);
+    parts.push(`<text x="${sx.toFixed(1)}" y="${(padT + 10).toFixed(1)}" font-size="10" fill="#6b7280" text-anchor="middle" style="${textStyle}">信号日 ${escapeHtml(win[signalDayIdx].date.slice(5))}</text>`);
+  }
 
   const dashedLevel = (level, color, label) => {
     if (level == null) return '';
@@ -306,22 +329,59 @@ function lifecycleChart(sig, versions, bars) {
     }
     return sorted;
   };
-  const textStyle = 'paint-order:stroke;stroke:#ffffff;stroke-width:3px;';
 
   const levels = [
     { level: triggerLevel, color: '#b45309', label: '触发' },
     { level: stopPrice, color: '#b91c1c', label: '止损' },
     { level: entryPrice, color: skipped ? '#b91c1c' : '#047857', label: skipped ? '放弃' : '入场' },
-    { level: exitPrice, color: '#b91c1c', label: '离场' }
+    { level: exitPrice, color: '#b91c1c', label: '离场' },
+    { level: t1Level, color: '#2563eb', label: '目标1' },
+    { level: t2Level, color: '#7c3aed', label: '目标2' },
+    { level: favLevel, color: '#475569', label: '最有利', labelValue: sig.priceTracking && sig.priceTracking.maxFavorablePts != null ? Number(sig.priceTracking.maxFavorablePts) : null, dash: '1 4', opacity: 0.45 },
+    { level: advLevel, color: '#475569', label: '最不利', labelValue: sig.priceTracking && sig.priceTracking.maxAdversePts != null ? Number(sig.priceTracking.maxAdversePts) : null, dash: '1 4', opacity: 0.45 }
   ].filter((l) => l.level != null);
+  // 去重：价格几乎相同的价位只保留优先级更高的一条（如 最不利 == 止损）
+  const dedupThreshold = (max - min) * 0.008;
+  const uniqueLevels = [];
   for (const l of levels) {
-    const yy = y(l.level);
-    parts.push(`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="${l.color}" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>`);
+    if (!uniqueLevels.some((u) => Math.abs(u.level - l.level) < dedupThreshold)) uniqueLevels.push(l);
   }
-  const levelLabels = avoidOverlap(levels.map((l) => ({ y: y(l.level) + 4, text: `${l.label} ${fmt(l.level, 0)}`, color: l.color })), 13);
-  for (const t of levelLabels) {
-    const ty = Math.max(padT + 4, Math.min(H - 8, t.y));
-    parts.push(`<text x="${(W - padR + 4).toFixed(1)}" y="${ty.toFixed(1)}" font-size="10" fill="${t.color}" style="${textStyle}">${escapeHtml(t.text)}</text>`);
+  for (const l of uniqueLevels) {
+    const yy = y(l.level);
+    parts.push(`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="${l.color}" stroke-width="1" stroke-dasharray="${l.dash || '4 4'}" opacity="${l.opacity == null ? 0.6 : l.opacity}"/>`);
+  }
+  // 右侧标签放在图内右端：相邻价位合并成一行，避免互相压字。
+  // 信息密度控制：主要价位已足够多时不再标最有利/最不利；已有事件圆点标注的触发/入场/离场不再重复。
+  const hasTriggerMarker = !!a && !!a.triggerDate;
+  const hasEntryMarker = !!entryDate && entryPrice != null;
+  const hasExitMarker = !!exitDate && exitPrice != null;
+  const majorCount = uniqueLevels.filter((l) => !l.dash).length;
+  const labelLevels = uniqueLevels.filter((l) => {
+    if (l.dash && majorCount >= 4) return false;
+    if (hasTriggerMarker && l.label === '触发') return false;
+    if (hasEntryMarker && (l.label === '入场' || l.label === '放弃')) return false;
+    if (hasExitMarker && l.label === '离场') return false;
+    return true;
+  });
+  const levelTexts = labelLevels.map((l) => ({
+    y: y(l.level),
+    text: `${l.label} ${l.labelValue != null ? `${l.labelValue >= 0 ? '+' : ''}${fmt(l.labelValue, 0)}` : fmt(l.level, 0)}`,
+    color: l.color
+  })).sort((a, b) => a.y - b.y);
+  const groups = [];
+  for (const t of levelTexts) {
+    const last = groups[groups.length - 1];
+    if (last && t.y - last.y < 18 && last.texts.length < 4) {
+      last.texts.push(t.text);
+      last.y = (last.y + t.y) / 2;
+      last.color = '#475569';
+    } else {
+      groups.push({ y: t.y, texts: [t.text], color: t.color });
+    }
+  }
+  for (const g of groups) {
+    const ty = Math.max(padT + 4, Math.min(H - 8, g.y + 4));
+    parts.push(`<text x="${(W - padR - 8).toFixed(1)}" y="${ty.toFixed(1)}" font-size="10" font-weight="600" fill="${g.color}" text-anchor="end" style="${textStyle}">${escapeHtml(g.texts.join(' · '))}</text>`);
   }
 
   const markerLabels = avoidOverlap(markers.map((m) => ({
@@ -330,11 +390,16 @@ function lifecycleChart(sig, versions, bars) {
     cy: m.cy,
     text: m.label,
     color: m.color,
-    anchor: m.cx > W - padR - 110 ? 'end' : 'start'
+    anchor: m.cx > padL + 150 ? 'end' : 'start'
   })), 14);
   for (const m of markerLabels) {
     const tx = m.anchor === 'end' ? m.x - 6 : m.x + 6;
-    const ty = Math.max(padT + 4, Math.min(H - 8, m.y));
+    let ty = Math.max(padT + 4, Math.min(H - 8, m.y));
+    for (const g of groups) {
+      const gy = g.y + 4;
+      if (Math.abs(ty - gy) < 13) ty = ty >= gy ? ty + 14 : ty - 14;
+    }
+    ty = Math.max(padT + 4, Math.min(H - 8, ty));
     parts.push(`<circle cx="${m.x.toFixed(1)}" cy="${m.cy.toFixed(1)}" r="4" fill="${m.color}" stroke="#fff" stroke-width="1.5"/>`);
     parts.push(`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" font-size="11" font-weight="600" fill="${m.color}" text-anchor="${m.anchor}" style="${textStyle}">${escapeHtml(m.text)}</text>`);
   }
