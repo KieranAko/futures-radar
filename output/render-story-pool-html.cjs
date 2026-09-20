@@ -584,7 +584,7 @@ function closedChainModalHtml(c) {
           <div class="story-subtitle">${escapeHtml(c.themeDetail || '')}</div>
           <div class="story-head"><span class="story-chain-id">${escapeHtml(c.chainId)}</span>${storyStatusBadge(c.status)}<span class="story-source">源 ${escapeHtml(c.sourceId || c.sector || '—')}</span><span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认 · ${escapeHtml(c.closeReason || '—')}</span></div>
         </div>
-        <div class="story-body"><div class="story-nodes">${nodes || '<span class="muted">暂无节点明细</span>'}</div><div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div></div>
+        <div class="story-body">${graphLegendHtml()}${storyGraphHtml(c)}<div class="story-nodes">${nodes || '<span class="muted">暂无节点明细</span>'}</div><div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div></div>
       </div>
     </div>
   </div>`;
