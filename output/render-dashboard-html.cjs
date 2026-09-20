@@ -251,7 +251,7 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
   const infoColor = lastChg == null || lastChg >= 0 ? '#b91c1c' : '#047857';
   const lb = (name) => `<b style="color:#1f2328;font-weight:700">${name}</b>`;
   const cell = (label, valueHtml) => `<span>${lb(label)}<span>${valueHtml}</span></span>`;
-  const chgSpan = lastChg != null ? cell('涨跌', `<b style="color:${infoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)}（${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%）</b>`) : cell('涨跌', '—');
+  const chgSpan = lastChg != null ? cell('涨跌', `<b style="color:${infoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)} 点 / ${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%</b>`) : cell('涨跌', '—');
   const chg5Span = lastChg5 != null ? cell('5日涨跌', `<b style="color:${lastChg5 >= 0 ? '#b91c1c' : '#047857'}">${lastChg5 >= 0 ? '+' : ''}${lastChg5.toFixed(1)}%</b>`) : cell('5日涨跌', '—');
   const infoHtml = `<span><b style="color:#1f2328;font-weight:700">${escapeHtml(lastB.date)}</b></span>${cell('开盘', fmt(lastB.open))}${cell('最高', fmt(lastB.high))}${cell('最低', fmt(lastB.low))}${cell('收盘', `<b style="color:${infoColor}">${fmt(lastB.close)}</b>`)}${chgSpan}${chg5Span}${cell('MA20', `<b style="color:#2563eb">${ma20[n - 1] != null ? fmt(ma20[n - 1]) : '—'}</b>`)}${cell('MA60', `<b style="color:#d97706">${ma60[n - 1] != null ? fmt(ma60[n - 1]) : '—'}</b>`)}`;
   const barsAttr = JSON.stringify(bars.map((b) => ({ d: b.date, o: b.open, h: b.high, l: b.low, c: b.close }))).replace(/'/g, '&#39;');
@@ -586,7 +586,7 @@ function signalChartHoverScript() {
           + sigCell('最高', nf(b.h))
           + sigCell('最低', nf(b.l))
           + sigCell('收盘', '<b style="color:' + color + '">' + nf(b.c) + '</b>')
-          + sigCell('涨跌', chg != null ? '<b style="color:' + color + '">' + (chg >= 0 ? '+' : '') + nf(chg) + '（' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%）</b>' : '—')
+          + sigCell('涨跌', chg != null ? '<b style="color:' + color + '">' + (chg >= 0 ? '+' : '') + nf(chg) + ' 点 / ' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%</b>' : '—')
           + sigCell('5日涨跌', c5 != null ? '<b style="color:' + c5Color + '">' + (c5 >= 0 ? '+' : '') + c5.toFixed(1) + '%</b>' : '—');
       } else {
         var cell = function (label, valueHtml) { return '<span><b style="color:#1f2328;font-weight:700">' + label + '</b><span>' + valueHtml + '</span></span>'; };
@@ -595,7 +595,7 @@ function signalChartHoverScript() {
           + cell('最高', nf(b.h))
           + cell('最低', nf(b.l))
           + cell('收盘', '<b style="color:' + color + '">' + nf(b.c) + '</b>')
-          + cell('涨跌', chg != null ? '<b style="color:' + color + '">' + (chg >= 0 ? '+' : '') + nf(chg) + '（' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%）</b>' : '—')
+          + cell('涨跌', chg != null ? '<b style="color:' + color + '">' + (chg >= 0 ? '+' : '') + nf(chg) + ' 点 / ' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%</b>' : '—')
           + cell('5日涨跌', c5 != null ? '<b style="color:' + c5Color + '">' + (c5 >= 0 ? '+' : '') + c5.toFixed(1) + '%</b>' : '—')
           + cell('MA20', '<b style="color:#2563eb">' + (ma20[i] != null ? nf(ma20[i]) : '—') + '</b>')
           + cell('MA60', '<b style="color:#d97706">' + (ma60[i] != null ? nf(ma60[i]) : '—') + '</b>');
