@@ -535,14 +535,14 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
 
   /* App shell */
   header { background: var(--card); border-bottom: 1px solid var(--border); }
-  .header-inner { max-width: 1320px; margin: 0 auto; padding: 0 22px; display: flex; align-items: center; gap: 20px; height: 56px; }
+  .header-inner { max-width: 1480px; margin: 0 auto; padding: 0 22px; display: flex; align-items: center; gap: 20px; height: 56px; }
   .brand { font-size: 15px; font-weight: 700; white-space: nowrap; }
   .tabs { display: flex; gap: 4px; flex: 1; }
   .tab { border: none; background: transparent; color: var(--muted); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; }
   .tab.active { background: #eef4ff; color: var(--accent); font-weight: 600; }
   .run-meta { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
-  main { max-width: 1320px; margin: 0 auto; padding: 18px 22px 48px; }
+  main { max-width: 1480px; margin: 0 auto; padding: 18px 22px 48px; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
@@ -684,7 +684,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .muted { color: var(--muted); font-size: 12px; }
 
   /* 信号池：双栏布局 */
-  .pool-layout { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
+  .pool-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
   .pool-main { min-width: 0; }
   .pool-side { position: sticky; top: 70px; display: flex; flex-direction: column; gap: 12px; }
   .side-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
@@ -752,7 +752,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .story-body { border-top: 1px solid var(--border); padding: 12px 16px; }
   .story-subtitle { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
   .story-graph { position: relative; margin: 4px 0 10px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: #fbfcfd; overflow-x: auto; }
-  .sg-svg { display: block; min-width: 320px; }
+  .sg-svg { display: block; width: 100%; height: auto; min-width: 320px; }
   .sg-node { transition: opacity .15s ease; }
   .sg-edge { transition: opacity .15s ease; cursor: pointer; }
   .sg-dim { opacity: 0.18; }
