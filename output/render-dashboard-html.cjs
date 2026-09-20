@@ -751,6 +751,13 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .story-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; margin-top: 6px; }
   .story-body { border-top: 1px solid var(--border); padding: 12px 16px; }
   .story-subtitle { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+  .story-branches { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .story-branch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: #fafbfc; }
+  .branch-priority { font-size: 11px; padding: 1px 6px; border-radius: 4px; }
+  .branch-priority.bp-primary { background: #eef2ff; color: #3730a3; }
+  .branch-priority.bp-secondary { background: #f3f4f6; color: #4b5563; }
+  .branch-symbol { font-weight: 600; }
+  .branch-dir, .branch-status, .branch-proof { color: var(--muted); font-size: 12px; }
   .story-status { font-size: 12px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
   .story-status.st-ok { background: #ecfdf5; color: #047857; }
   .story-status.st-bad { background: #fef2f2; color: #b91c1c; }

@@ -335,6 +335,87 @@ describe('story-chain v2：T2 找数据策略与可信度', () => {
   });
 });
 
+describe('story-chain /3：DAG 扇出与汇合、terminal 分支', () => {
+  function v3Def(overrides = {}) {
+    return {
+      schema: 'futures-radar-story-chain/3',
+      chainId: 'CH-SC0-20260918-01',
+      createdAt: '2026-09-18',
+      sourceId: 'macro.SC0.change5d',
+      theme: '原油坍塌的能化传导',
+      themeDetail: 'SC0 成本坍塌向能化传导，燃料油与 LPG 补跌空间分化',
+      nodes: [
+        { id: 'n1', indicatorId: 'macro.SC0.change5d', expectation: -1, label: '原油下跌' },
+        { id: 'n2', indicatorId: 'sector.energy_chemical.oi.flow5d', expectation: -1, label: '能化资金流出' },
+        { id: 'n5', indicatorId: 'sector.energy_chemical.index.ret5d', expectation: -1, label: '能化指数走弱' },
+        { id: 'n3', indicatorId: 'symbol.FU0.price.ret5d', expectation: -1, label: '燃料油补跌', terminal: true, priority: 'primary', impactRationale: '燃料油对 SC0 成本弹性最大，且前期跌幅滞后，补跌空间最大', proofIndex: 2 },
+        { id: 'n4', indicatorId: 'symbol.PG0.price.ret5d', expectation: -1, label: 'LPG 下行', terminal: true, priority: 'secondary', impactRationale: 'LPG 成本支撑直接下移，但弹性弱于燃料油', proofIndex: 2 },
+      ],
+      edges: [
+        { id: 'e1', from: 'n1', to: 'n2', latencyDays: 5, logic: '原油下跌→能化资金流出' },
+        { id: 'e2', from: 'n2', to: 'n3', latencyDays: 5, logic: '能化资金流出→燃料油补跌' },
+        { id: 'e3', from: 'n1', to: 'n5', latencyDays: 3, logic: '原油下跌→能化指数走弱' },
+        { id: 'e4', from: 'n5', to: 'n4', latencyDays: 7, logic: '能化指数走弱→LPG 成本支撑下移' },
+        { id: 'e5', from: 'n5', to: 'n3', latencyDays: 3, logic: '能化指数走弱→燃料油补跌（汇合）' },
+      ],
+      maxLifespanTradingDays: 20,
+      ...overrides,
+    };
+  }
+
+  it('合法 DAG 链通过校验并注册（一源一链）', () => {
+    const root = tmpRoot();
+    const r = sc.registerChain(v3Def(), { root });
+    assert.equal(r.ok, true);
+    assert.equal(r.status, 'pending');
+    const c = sc.loadChain(r.chainId, root);
+    assert.equal(c.schema, 'futures-radar-story-chain/3');
+    assert.equal(c.sourceId, 'macro.SC0.change5d');
+    assert.equal(c.terminals.length, 2);
+    assert.equal(c.terminals[0].priority, 'primary');
+  });
+
+  it('同 sourceId 重复注册被拒；supersede 换代旧链', () => {
+    const root = tmpRoot();
+    sc.registerChain(v3Def(), { root });
+    const dup = sc.registerChain(v3Def({ chainId: 'CH-SC0-20260918-02' }), { root });
+    assert.equal(dup.phase, 'source_occupied');
+    const rep = sc.registerChain(v3Def({ chainId: 'CH-SC0-20260918-02' }), { root, supersede: true });
+    assert.equal(rep.ok, true);
+    assert.equal(rep.superseded, 'CH-SC0-20260918-01');
+  });
+
+  it('sourceId 必须等于首节点；terminal 必须可交易；图不允许环', () => {
+    assert.match(sc.validateChainDefinition(v3Def({ sourceId: 'macro.DXY.change5d' })).errors.join('|'), /sourceId/);
+    const badTerminal = v3Def();
+    badTerminal.nodes[3].indicatorId = 'sector.energy_chemical.oi.flow5d';
+    assert.match(sc.validateChainDefinition(badTerminal).errors.join('|'), /terminal/);
+    const cycle = v3Def();
+    cycle.edges.push({ id: 'e4', from: 'n3', to: 'n1', latencyDays: 5, logic: '反向循环传导路径' });
+    assert.match(sc.validateChainDefinition(cycle).errors.join('|'), /环/);
+  });
+
+  it('汇合边合法；proofIndex 不能超过祖先数', () => {
+    assert.equal(sc.validateChainDefinition(v3Def()).ok, true);
+    const badProof = v3Def();
+    badProof.nodes[3].proofIndex = 99; // n4 祖先数只有 2（n1,n5）
+    assert.match(sc.validateChainDefinition(badProof).errors.join('|'), /proofIndex/);
+  });
+
+  it('DAG 状态机：源头与干流确认后主支 proven，次支仍 pending', () => {
+    const root = tmpRoot();
+    sc.registerChain(v3Def(), { root });
+    const chain = sc.loadChain('CH-SC0-20260918-01', root);
+    sc.applyObservation(chain, '2026-09-18', { 'macro.SC0.change5d': { value: -10, direction: -1, asOf: '2026-09-18' } }, { tradingDates: TRADING });
+    sc.applyObservation(chain, '2026-09-19', { 'macro.SC0.change5d': { value: -11, direction: -1, asOf: '2026-09-19' } }, { tradingDates: TRADING });
+    sc.applyObservation(chain, '2026-09-22', { 'sector.energy_chemical.oi.flow5d': { value: -2, direction: -1, asOf: '2026-09-22' } }, { tradingDates: TRADING });
+    sc.applyObservation(chain, '2026-09-23', { 'sector.energy_chemical.oi.flow5d': { value: -3, direction: -1, asOf: '2026-09-23' } }, { tradingDates: TRADING });
+    assert.equal(chain.status, 'proven');
+    assert.equal(chain.terminals[0].status, 'proven'); // FU0 主支
+    assert.equal(chain.terminals[1].status, 'pending'); // PG0 次支
+  });
+});
+
 describe('story-chain 席位血缘（前向记录）', () => {
   it('observeAll 同步 pending→proven 台账，视图携带席位血缘', () => {
     const root = tmpRoot();

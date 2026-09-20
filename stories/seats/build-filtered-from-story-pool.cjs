@@ -55,19 +55,87 @@ function trackingSeatEntries(poolSignals) {
   return out;
 }
 
+function branchRefsOfChain(c) {
+  if (c && Array.isArray(c.terminals) && c.terminals.length > 0) {
+    return c.terminals
+      .filter((t) => ['resolving', 'pending', 'proven'].includes(t.status))
+      .map((t) => ({
+        branchId: t.nodeId,
+        symbol: t.symbol,
+        direction: t.direction,
+        priority: t.priority || 'secondary',
+        status: t.status,
+        impactRationale: t.impactRationale || null,
+        proofIndex: t.proofIndex || null,
+      }));
+  }
+  if (c && c.representative) {
+    const dir = c.direction === -1 || c.direction === 'bearish' || c.direction === 'short'
+      ? -1
+      : c.direction === 1 || c.direction === 'bullish' || c.direction === 'long' ? 1 : null;
+    if (dir !== null) {
+      return [{
+        branchId: null,
+        symbol: c.representative,
+        direction: dir,
+        priority: 'primary',
+        status: c.status || 'pending',
+        impactRationale: null,
+        proofIndex: c.entryProofIndex || null,
+      }];
+    }
+  }
+  return [];
+}
+
 function storySeatEntries(chains) {
-  return (chains || []).map((c, i) => ({
-    symbol: c.representative,
-    rank: 80 + i,
-    directionHint: c.direction === -1 ? 'bearish' : 'bullish',
-    directionBias: c.direction === -1 ? 'bearish' : 'bullish',
-    decision: 'KEEP',
-    confidence: 'medium',
-    reason: `故事传导链 ${c.chainId}（${c.status}）：${c.theme || ''}`,
-    informationGap: '故事传导链席位：只要有故事链即完整六问深挖',
-    tracking: true,
-    storyChainId: c.chainId,
-  }));
+  const bySymbol = new Map();
+  const order = [];
+  for (const c of chains || []) {
+    for (const ref of branchRefsOfChain(c)) {
+      if (!bySymbol.has(ref.symbol)) {
+        bySymbol.set(ref.symbol, []);
+        order.push(ref.symbol);
+      }
+      bySymbol.get(ref.symbol).push({
+        chainId: c.chainId,
+        theme: c.theme || '',
+        themeDetail: c.themeDetail || null,
+        status: ref.status,
+        ...ref,
+      });
+    }
+  }
+  const PRIORITY = { primary: 0, secondary: 1 };
+  const STATUS = { proven: 0, pending: 1, resolving: 2 };
+  return order.map((symbol, i) => {
+    const refs = bySymbol.get(symbol).sort((a, b) =>
+      (PRIORITY[a.priority] ?? 2) - (PRIORITY[b.priority] ?? 2)
+      || (STATUS[a.status] ?? 3) - (STATUS[b.status] ?? 3)
+      || String(a.chainId).localeCompare(String(b.chainId))
+    );
+    const primary = refs[0];
+    return {
+      symbol,
+      rank: 80 + i,
+      directionHint: primary.direction === -1 ? 'bearish' : 'bullish',
+      directionBias: primary.direction === -1 ? 'bearish' : 'bullish',
+      decision: 'KEEP',
+      confidence: 'medium',
+      reason: `故事传导链席位：${refs.map((r) => `${r.chainId}${r.branchId ? '/' + r.branchId : ''}(${r.status})`).join('、')}`,
+      informationGap: '故事传导链席位：只要有故事链即完整六问深挖',
+      tracking: true,
+      storyChainId: primary.chainId,
+      storyRefs: refs.map((r) => ({
+        chainId: r.chainId,
+        branchId: r.branchId,
+        priority: r.priority,
+        direction: r.direction,
+        status: r.status,
+        impactRationale: r.impactRationale,
+      })),
+    };
+  });
 }
 
 /**

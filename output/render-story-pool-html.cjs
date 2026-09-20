@@ -102,8 +102,22 @@ function nodeRow(n) {
 function chainCard(c) {
   const confirmed = (c.nodes || []).filter((n) => n.status === 'confirmed').length;
   const total = c.nodes ? c.nodes.length : 0;
-  const dir = c.direction === -1 ? '🔻 空' : '🔺 多';
+  const dir = c.direction === -1 ? '🔻 空' : c.direction === 1 ? '🔺 多' : '—';
   const unresolved = c.unresolvedNodes ? ` · 🔍 未解析 ${c.unresolvedNodes}` : '';
+  const branches = (c.branches && c.branches.length > 0)
+    ? c.branches
+    : [{ branchId: null, symbol: c.representative, direction: c.direction, priority: 'primary', status: c.status, proofIndex: c.entryProofIndex, impactRationale: null }];
+  const branchHtml = branches.map((b) => {
+    const bDir = b.direction === -1 ? '🔻 空' : b.direction === 1 ? '🔺 多' : '—';
+    return `<div class="story-branch">
+      <span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span>
+      <span class="branch-symbol">${escapeHtml(b.symbol || '—')}</span>
+      <span class="branch-dir">${bDir}</span>
+      <span class="branch-status">${escapeHtml(b.status || '—')}</span>
+      ${b.proofIndex != null ? `<span class="branch-proof">p=${b.proofIndex}</span>` : ''}
+      ${b.impactRationale ? `<div class="muted">${escapeHtml(b.impactRationale)}</div>` : ''}
+    </div>`;
+  }).join('');
   const events = (c.events || []).slice(-5).map((e) =>
     `<div class="story-event"><span class="event-date">${escapeHtml(e.date || '')}</span> · <b>${EVENT_LABEL[e.type] || escapeHtml(e.type || '')}</b>${e.nodeId ? ` · 节点 ${escapeHtml(e.nodeId)}` : ''}：${escapeHtml(e.detail || '')}</div>`
   ).join('');
@@ -114,15 +128,16 @@ function chainCard(c) {
       <span class="story-chain-id">${escapeHtml(c.chainId)}</span>
       ${storyStatusBadge(c.status)}
       <span class="story-dir">${dir}</span>
-      <span class="story-sector">板块 ${escapeHtml(c.sector || '—')}</span>
-      <span class="story-rep">代表 ${escapeHtml(c.representative || '—')}</span>
-      <span class="story-proof">证明点 p=${c.entryProofIndex ?? '—'} · ${confirmed}/${total} 节点已确认${unresolved}</span>
+      <span class="story-source">源 ${escapeHtml(c.sourceId || c.sector || '—')}</span>
+      ${branches.map((b) => `<span class="story-rep">${escapeHtml(b.symbol || '—')} ${b.direction === -1 ? '空' : b.direction === 1 ? '多' : ''}</span>`).join('')}
+      <span class="story-proof">确认 ${confirmed}/${total} 节点${unresolved}</span>
       ${(c.seats || []).length ? `<span class="story-seats">席位血缘：${c.seats.map((s) => `${escapeHtml(s.runId)} → ${escapeHtml(s.symbol)}`).join('、')}</span>` : ''}
       ${c.linkedSignalId ? `<span class="story-link">→ 信号 ${escapeHtml(c.linkedSignalId)}</span>` : ''}
     </span>
   </summary>
   <div class="story-body">
     ${c.themeDetail ? `<div class="story-subtitle">${escapeHtml(c.themeDetail)}</div>` : ''}
+    <div class="story-branches">${branchHtml}</div>
     <div class="story-progress"><div class="story-progress-fill" style="width:${total ? Math.round(confirmed / total * 100) : 0}%"></div></div>
     <div class="story-nodes">${(c.nodes || []).map(nodeRow).join('')}</div>
     <div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div>

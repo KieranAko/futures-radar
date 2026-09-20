@@ -42,38 +42,22 @@
 
 ```json
 {
-  "schema": "futures-radar-story-chain/2",
-  "chainId": "CH-<SECTOR>-<YYYYMMDD>-<NN>",
+  "schema": "futures-radar-story-chain/3",
+  "chainId": "CH-<SOURCE>-<YYYYMMDD>-<NN>",
   "createdAt": "YYYY-MM-DD",
-  "theme": "黑色流动性退潮",
-  "themeDetail": "DR007 抬头收紧流动性，黑色资金持续流出，螺纹钢等待需求证伪",
-  "sector": "black | nonferrous | precious | energy_chemical | agriculture | new_materials | shipping",
-  "direction": 1,
-  "representative": "RB0",
-  "entryProofIndex": 2,
-  "theoryRef": "可选，审计用，不约束推理",
+  "sourceId": "macro.SC0.change5d",
+  "theme": "原油坍塌的能化传导",
+  "themeDetail": "SC0 成本坍塌向能化与航运成本传导，燃料油补跌尚未走完",
   "nodes": [
-    { "id": "n1", "indicatorId": "macro.DR007.change5d", "expectation": 1, "label": "流动性收紧" },
-    { "id": "n2", "indicatorId": "sector.black.oi.flow5d", "expectation": -1, "label": "黑色资金流出" },
-    {
-      "id": "n3",
-      "concept": "全国建材成交量 5 日累计（反映黑色终端需求）",
-      "dataPlan": {
-        "paths": ["T2"],
-        "unit": "万吨",
-        "baseline": 65,
-        "searchHints": ["Mysteel 建材成交", "钢联 全国建筑钢材成交量"],
-        "maxFreshDays": 7
-      },
-      "expectation": -1,
-      "label": "终端需求走弱"
-    },
-    { "id": "n4", "indicatorId": "symbol.RB0.price.ret5d", "expectation": -1, "label": "螺纹转弱" }
+    { "id": "n1", "indicatorId": "macro.SC0.change5d", "expectation": -1, "label": "原油下跌" },
+    { "id": "n2", "indicatorId": "sector.energy_chemical.oi.flow5d", "expectation": -1, "label": "能化资金流出" },
+    { "id": "n3", "indicatorId": "symbol.FU0.price.ret5d", "expectation": -1, "label": "燃料油补跌", "terminal": true, "priority": "primary", "impactRationale": "燃料油对 SC0 成本弹性最大，且前期跌幅滞后，补跌空间最大", "proofIndex": 2 },
+    { "id": "n4", "indicatorId": "symbol.PG0.price.ret5d", "expectation": -1, "label": "LPG 下行", "terminal": true, "priority": "secondary", "impactRationale": "LPG 成本支撑直接下移，但弹性弱于燃料油", "proofIndex": 2 }
   ],
   "edges": [
-    { "id": "e1", "from": "n1", "to": "n2", "latencyDays": 5, "logic": "流动性收紧→黑色系需求敏感品种资金流出" },
-    { "id": "e2", "from": "n2", "to": "n3", "latencyDays": 5, "logic": "资金流出伴随终端需求走弱" },
-    { "id": "e3", "from": "n3", "to": "n4", "latencyDays": 5, "logic": "需求走弱→代表品种螺纹钢转弱" }
+    { "id": "e1", "from": "n1", "to": "n2", "latencyDays": 5, "logic": "原油下跌→能化资金流出" },
+    { "id": "e2", "from": "n2", "to": "n3", "latencyDays": 5, "logic": "能化资金流出→燃料油补跌" },
+    { "id": "e3", "from": "n1", "to": "n4", "latencyDays": 7, "logic": "原油下跌→LPG 成本支撑下移" }
   ],
   "maxLifespanTradingDays": 20
 }
@@ -91,15 +75,14 @@
 
 硬约束（脚本校验，违反即拒收）：
 
-- 节点 ≥2，边 = 节点数 − 1，且边严格按节点声明顺序连接（线性传导）；
-- `theme` 必填（4–14 字主标题，禁止 `→`）；`themeDetail` 必填（10–60 字叙事副标题，禁止 `→`）；看板故事池 Tab 以主标题为卡片标题，展开后显示副标题；
-- `entryProofIndex` 必须满足 **2 ≤ p < 节点数**（链至少 3 节点才可交易）；单日同向只记 observing，**连续 2 个数据日同向才 confirmed**，连续 2 个数据日反向才断链（T2 事件快照除外：一次新快照即可判定）；
+- schema `/3`；`sourceId` 等于首节点指标或概念，且同源同时只允许一条活跃链（replace=true 换代）；
+- 图必须无环（DAG）：允许扇出与汇合，禁止自环/重复边；源节点不允许有入边；
+- terminal 必须是 `symbol.*` 可交易节点，且该 symbol 在 active 白名单内；
+- 每个 terminal：`priority` = primary|secondary；`impactRationale` 8–80 字；`proofIndex` 整数且 `2 ≤ proofIndex ≤ 祖先节点数`；从源到终点的最短路径至少 3 个节点；
+- 节点 `expectation` 仅 ±1；`latencyDays` 1..10；`maxLifespanTradingDays` ≤20；
+- `theme` 4–14 字且不含 `→`；`themeDetail` 10–60 字且不含 `→`；
 - 链首节点必须是宏观/事件源（`macro.*` 或 T2 concept）；板块成员 <3 时板块指标不可监测；SC0 不得以自身价格作故事源；
-- T0 节点：`indicatorId` 必须在目录内（板块/品种模板需实例化到具体板块/代表品种）；
-- T2 节点：必须带 `concept`（≥8 字）+ `dataPlan.paths` 含 T2 + `baseline` + `unit`；`maxFreshDays` 1..30；
-- `direction`、`expectation` 只能是 +1 或 −1；`latencyDays` 1..10；`maxLifespanTradingDays` ≤20；
-- `representative` 必须是该板块 active 白名单品种；
-- 同板块同时只能有 1 条活跃链（含 resolving）；替换旧链须显式 `--supersede`（旧链历史留痕，不可改写）。
+- T0 节点：`indicatorId` 必须在目录内；T2 节点：必须带 `concept`（≥8 字）+ `dataPlan.paths` 含 T2 + `baseline` + `unit`，`maxFreshDays` 1..30。
 
 ## 五、禁止事项
 
@@ -107,22 +90,22 @@
 2. 禁止把链终点写成「价格涨」而中间无任何可观测环节（那不是传导，是愿望）；
 3. 禁止引用目录外指标或发明数据源；
 4. 禁止在链注册后改边、改节点、改证明点——错了就断链退役，重新开链；
-5. 禁止为每个板块都凑一条链。没有清晰传导逻辑的板块，不注册（空池合法）。
+5. 禁止为每个板块都凑一条链。没有清晰传导逻辑的源头，不注册（空池合法）。
 
 ## 六、注册与观测
 
 ```bash
-node strategies/story-chain-cli.cjs register --file <chain.json> [--supersede]
-node strategies/story-chain-cli.cjs resolve --chainId <id> --brief      # 为 T2 节点生成检索任务
-node strategies/story-chain-cli.cjs resolve --chainId <id> --file <results.json>  # 校验并入库
-node strategies/story-chain-cli.cjs resolve --chainId <id> --void       # 检索失败作废
-node strategies/story-chain-cli.cjs observe --runId <runId>      # 生产 run
-node strategies/story-chain-cli.cjs observe --date <YYYY-MM-DD>  # 历史回放
-node strategies/story-chain-cli.cjs list
-node strategies/story-chain-cli.cjs view
-# 生产桥（filter-llm 后，单向顺序；信号验证反哺故事链暂不启用）
-node strategies/story-pool/apply-story-seats.cjs --runId <runId>
+node stories/cli/story-chain-cli.cjs register --file <chain.json> [--supersede]
+node stories/cli/story-chain-cli.cjs resolve --chainId <id> --brief      # 为 T2 节点生成检索任务
+node stories/cli/story-chain-cli.cjs resolve --chainId <id> --file <results.json>  # 校验并入库
+node stories/cli/story-chain-cli.cjs resolve --chainId <id> --void       # 检索失败作废
+node stories/cli/story-chain-cli.cjs observe --runId <runId>      # 生产 run
+node stories/cli/story-chain-cli.cjs observe --date <YYYY-MM-DD>  # 历史回放
+node stories/cli/story-chain-cli.cjs list
+node stories/cli/story-chain-cli.cjs view
+# 生产桥（故事池 active 分支 → filtered.json；信号验证反哺故事链暂不启用）
+node stories/seats/build-filtered-from-story-pool.cjs --runId <runId>
 ```
 
-状态机：`resolving（T2 待解析，证明点冻结）→ pending（单日同向=observing）→ proven（前 p 个节点连续两日确认，p≥2）→ completed | falsified | expired | void`。
+分支状态机：`resolving（有 T2 祖先未解析）→ pending（有活路但确认数不足）→ proven（确认上游数 ≥ proofIndex）→ completed（全部分支终点确认）| falsified（该分支无活路）`。链状态由分支聚合。
 脚本只负责观测与判决；你在链存活期唯一的权力是解释与换代。
