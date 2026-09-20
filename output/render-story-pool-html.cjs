@@ -729,7 +729,7 @@ function dagScript() {
     rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : '—') + '</b></div>');
     if (n.lastValue != null) {
       rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + Number(n.lastValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + n.lastValueAt + '）</b></div>');
-      if (n.prevValue != null) rows.push('<div class="sg-detail-row"><span>前值 → 当前</span><b>' + Number(n.prevValue).toFixed(2) + ' → ' + Number(n.lastValue).toFixed(2) + '</b></div>');
+      if (n.prevValue != null) rows.push('<div class="sg-detail-row"><span>前值 → 当前</span><b>' + Number(n.prevValue).toFixed(2) + '（' + (n.prevValueAt || '—') + '） → ' + Number(n.lastValue).toFixed(2) + '（' + n.lastValueAt + '）</b></div>');
     }
     if (n.windowStartDate) rows.push('<div class="sg-detail-row"><span>观察窗口</span><b>' + n.windowStartDate + ' → ' + (n.windowDeadlineDate || '—') + '</b></div>');
     if (n.brokenReason) rows.push('<div class="sg-detail-row"><span>断裂原因</span><b>' + n.brokenReason + '</b></div>');
