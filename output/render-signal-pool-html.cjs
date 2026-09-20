@@ -227,8 +227,8 @@ function lifecycleChart(sig, versions, bars) {
   const favLevel = startClose != null && sig.priceTracking.maxFavorablePts != null ? startClose + Number(sig.priceTracking.maxFavorablePts) * dirSign : null;
   const advLevel = startClose != null && sig.priceTracking.maxAdversePts != null ? startClose + Number(sig.priceTracking.maxAdversePts) * dirSign : null;
 
-  const W = 1080;
-  const H = 220;
+  const W = 960;
+  const H = 400;
   const padL = 46;
   const padR = 64;
   const padT = 20;

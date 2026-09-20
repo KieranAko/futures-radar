@@ -847,7 +847,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .ver-chip.vc-skip { background: #f1f3f5; color: #6b7280; }
   .sig-chart-block { margin: 10px 0 2px; }
   .sig-chart-head { font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 4px; }
-  .sig-chart-block .lifecycle svg { width: 100%; height: auto; max-height: none; }
+  .sig-chart-block .lifecycle svg { width: 100%; max-width: 900px; height: auto; max-height: none; }
   .sig-chart-missing { border: 1px dashed var(--border); border-radius: 8px; padding: 12px; text-align: center; }
   .signal-obs { margin-top: 8px; font-size: 12px; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 6px; }
   @media (max-width: 1080px) { .pool-layout { grid-template-columns: 1fr; } .pool-side { position: static; } }
