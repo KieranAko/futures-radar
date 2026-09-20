@@ -335,9 +335,12 @@ function graphScript() {
     });
   });
 
-  function toggleDetail(id) {
+  function toggleDetail(id, mainRow) {
     var d = document.getElementById(id);
-    if (d) d.style.display = d.style.display === 'none' ? 'table-row' : 'none';
+    if (!d) return;
+    var open = d.style.display !== 'none';
+    if (open) { d.style.display = 'none'; d.classList.remove('open'); if (mainRow) mainRow.classList.remove('open'); }
+    else { d.style.display = 'table-row'; d.classList.add('open'); if (mainRow) mainRow.classList.add('open'); }
   }
   document.querySelectorAll('.branch-row').forEach(function (row) {
     row.addEventListener('click', function () {
@@ -347,11 +350,11 @@ function graphScript() {
         graph._highlight(nid);
         if (graph.scrollIntoView) graph.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-      toggleDetail(row.getAttribute('data-detail-id'));
+      toggleDetail(row.getAttribute('data-detail-id'), row);
     });
   });
   document.querySelectorAll('.closed-row').forEach(function (row) {
-    row.addEventListener('click', function () { toggleDetail(row.getAttribute('data-detail-id')); });
+    row.addEventListener('click', function () { toggleDetail(row.getAttribute('data-detail-id'), row); });
   });
 })();
 </script>`;
@@ -566,7 +569,7 @@ function closedTable(closed) {
   if (!closed || closed.length === 0) return '<p class="muted">暂无已出池故事。</p>';
   const rows = closed.map((c) => {
     const detailId = `closed-detail-${c.chainId}`;
-    return `<tr class="closed-row" data-detail-id="${escapeHtml(detailId)}">
+    return `<tr class="closed-row status-${escapeHtml(c.status || 'unknown')}" data-detail-id="${escapeHtml(detailId)}">
     <td class="closed-theme"><b>${escapeHtml(c.theme || '（未命名主题）')}</b><div class="muted">${escapeHtml(c.chainId)}</div></td>
     <td>${escapeHtml(c.sector || '—')}</td><td>${storyStatusBadge(c.status)}</td>
     <td>${c.proven ? '✅' : '—'}</td><td>${c.confirmedNodes}/${c.totalNodes}</td>
