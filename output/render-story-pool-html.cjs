@@ -68,6 +68,43 @@ function fmtSigned(v) {
   return (n > 0 ? '+' : '') + fmtVal(n);
 }
 
+function dagNodeCard(n) {
+  const cur = n.lastValue ?? n.observedValue;
+  const dir = n.expectation === 1 ? '↑' : n.expectation === -1 ? '↓' : '—';
+  return `<div class="dg-node ${nodeClass(n)}${n.terminal ? ' terminal' : ''}" data-node-id="${escapeHtml(n.id)}">
+    <div class="dg-node-head"><span class="node-state">${n.status === 'confirmed' ? '✔' : n.status === 'broken' ? '✘' : '·'}</span><b>${escapeHtml(n.label || n.id)}</b><span class="dg-node-dir">${dir}</span></div>
+    <div class="dg-node-val">${fmtVal(cur)} ${escapeHtml(n.unit || '')}</div>
+    <div class="dg-node-foot">${n.terminal ? `${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}` : NODE_STATUS_LABEL[n.status] || escapeHtml(n.status)}</div>
+  </div>`;
+}
+
+function dagPanelHtml(c) {
+  const nodes = c.nodes || [];
+  const edges = c.edges || [];
+  const { layers } = computeLayers(nodes, edges);
+  const maxLayer = Math.max(...[...layers.keys()].map(Number));
+  const columns = [];
+  for (let d = 0; d <= maxLayer; d++) columns.push(layers.get(d) || []);
+  const columnsHtml = columns.map((ids) => `<div class="dg-layer">${ids.map((id) => {
+    const n = nodes.find((x) => x.id === id);
+    return n ? dagNodeCard(n) : '';
+  }).join('')}</div>`).join('');
+  const graphNodes = nodes.map((n) => ({
+    id: n.id, label: n.label || n.id, status: n.status, terminal: !!n.terminal,
+    priority: n.priority || null, proofIndex: n.proofIndex ?? null, expectation: n.expectation,
+    credibility: n.credibility, unit: n.unit || '', lastValue: n.lastValue ?? null,
+    lastValueAt: n.lastValueAt || null, prevValue: n.prevValue ?? null, prevValueAt: n.prevValueAt || null,
+    observedAt: n.observedAt || null, windowStartDate: n.windowStartDate || null,
+    windowDeadlineDate: n.windowDeadlineDate || null, brokenReason: n.brokenReason || null,
+  }));
+  const graphEdges = edges.map((e) => ({ from: e.from, to: e.to, logic: e.logic || '', latencyDays: e.latencyDays }));
+  return `<div class="dg-canvas" data-nodes='${jsonAttr(graphNodes)}' data-edges='${jsonAttr(graphEdges)}'>
+    <svg class="dg-edges"></svg>
+    <div class="dg-layers">${columnsHtml}</div>
+    <div class="dg-detail"></div>
+  </div>`;
+}
+
 function nodeChipHtml(n) {
   const cur = n.lastValue ?? n.observedValue;
   return `<div class="node-chip ${nodeClass(n)}${n.terminal ? ' terminal' : ''}">
@@ -80,15 +117,6 @@ function chainPanelHtml(c) {
   const branches = (c.branches && c.branches.length > 0)
     ? c.branches
     : [{ branchId: (c.nodes && c.nodes[c.nodes.length - 1] && c.nodes[c.nodes.length - 1].id) || null, symbol: c.representative, direction: c.direction, priority: 'primary', status: c.status, proofIndex: c.entryProofIndex, impactRationale: null }];
-  const branchBlocks = branches.map((b) => {
-    const path = pathToTerminal(c, b.branchId);
-    const chips = path.map((n) => nodeChipHtml(n)).join('<span class="path-arrow">→</span>');
-    return `<div class="branch-path">
-      <div class="branch-path-head"><span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span><b>${escapeHtml(b.symbol || '—')}</b><span class="${b.direction === -1 ? 'down' : b.direction === 1 ? 'up' : ''}">${b.direction === -1 ? '空' : b.direction === 1 ? '多' : '—'}</span><span>${storyStatusBadge(b.status)}</span></div>
-      <div class="branch-path-row">${chips}</div>
-      <div class="branch-path-foot muted">${b.impactRationale ? escapeHtml(b.impactRationale) : '—'}</div>
-    </div>`;
-  }).join('');
   return `<div class="story-panel">
     <div class="story-panel-head">
       <span class="story-theme">${escapeHtml(c.theme || '（未命名主题）')}</span>
@@ -97,7 +125,8 @@ function chainPanelHtml(c) {
       <span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认</span>
     </div>
     ${c.themeDetail ? `<div class="story-subtitle">${escapeHtml(c.themeDetail)}</div>` : ''}
-    <div class="story-branches">${branchBlocks}</div>
+    ${dagPanelHtml(c)}
+    <div class="story-branch-meta">${branches.map((b) => `<span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span> ${escapeHtml(b.symbol)} <span class="${b.direction === -1 ? 'down' : b.direction === 1 ? 'up' : ''}">${b.direction === -1 ? '空' : b.direction === 1 ? '多' : '—'}</span>${b.impactRationale ? ` <span class="muted">${escapeHtml(b.impactRationale)}</span>` : ''}`).join(' · ')}</div>
   </div>`;
 }
 
@@ -660,6 +689,79 @@ function closedChainModalHtml(c) {
   </div>`;
 }
 
+function dagScript() {
+  return `<script>
+(function () {
+  function drawDag(g) {
+    var nodes = JSON.parse(g.getAttribute('data-nodes') || '[]');
+    var edges = JSON.parse(g.getAttribute('data-edges') || '[]');
+    var svg = g.querySelector('.dg-edges');
+    var canvas = g;
+    svg.setAttribute('width', canvas.scrollWidth);
+    svg.setAttribute('height', canvas.scrollHeight);
+    svg.innerHTML = '';
+    var pos = {};
+    g.querySelectorAll('.dg-node').forEach(function (el) {
+      var r = el.getBoundingClientRect(); var c = g.getBoundingClientRect();
+      pos[el.getAttribute('data-node-id')] = { x: r.left - c.left, y: r.top - c.top, w: r.width, h: r.height };
+    });
+    edges.forEach(function (e) {
+      var a = pos[e.from], b = pos[e.to];
+      if (!a || !b) return;
+      var x1 = a.x + a.w, y1 = a.y + a.h / 2;
+      var x2 = b.x, y2 = b.y + b.h / 2;
+      var dx = Math.max(24, (x2 - x1) * 0.45);
+      var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M ' + x1 + ' ' + y1 + ' C ' + (x1 + dx) + ' ' + y1 + ', ' + (x2 - dx) + ' ' + y2 + ', ' + x2 + ' ' + y2);
+      path.setAttribute('fill', 'none'); path.setAttribute('stroke', '#94a3b8'); path.setAttribute('stroke-width', '1.6');
+      path.setAttribute('class', 'dg-edge'); path.setAttribute('data-from', e.from); path.setAttribute('data-to', e.to);
+      svg.appendChild(path);
+      var marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      marker.setAttribute('cx', x2 - 5); marker.setAttribute('cy', y2); marker.setAttribute('r', 3); marker.setAttribute('fill', '#94a3b8');
+      svg.appendChild(marker);
+    });
+  }
+  function showNodeDetail(g, n) {
+    var d = g.querySelector('.dg-detail');
+    var rows = [];
+    rows.push('<div class="sg-detail-head"><b>' + n.label + '</b><button class="sg-detail-close">×</button></div>');
+    rows.push('<div class="sg-detail-row"><span>状态</span><b>' + n.status + (n.terminal ? ' · ' + (n.priority === 'primary' ? '主支' : '次支') : '') + '</b></div>');
+    rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : '—') + '</b></div>');
+    if (n.lastValue != null) {
+      rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + Number(n.lastValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + n.lastValueAt + '）</b></div>');
+      if (n.prevValue != null) rows.push('<div class="sg-detail-row"><span>前值 → 当前</span><b>' + Number(n.prevValue).toFixed(2) + ' → ' + Number(n.lastValue).toFixed(2) + '</b></div>');
+    }
+    if (n.windowStartDate) rows.push('<div class="sg-detail-row"><span>观察窗口</span><b>' + n.windowStartDate + ' → ' + (n.windowDeadlineDate || '—') + '</b></div>');
+    if (n.brokenReason) rows.push('<div class="sg-detail-row"><span>断裂原因</span><b>' + n.brokenReason + '</b></div>');
+    d.innerHTML = '<div class="sg-detail-card">' + rows.join('') + '</div>';
+    d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; });
+  }
+  document.querySelectorAll('.dg-canvas').forEach(function (g) {
+    drawDag(g);
+    var nodes = JSON.parse(g.getAttribute('data-nodes') || '[]');
+    var edges = JSON.parse(g.getAttribute('data-edges') || '[]');
+    g.querySelectorAll('.dg-node').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var n = nodes.find(function (x) { return x.id === el.getAttribute('data-node-id'); });
+        if (n) showNodeDetail(g, n);
+      });
+    });
+    g.querySelector('.dg-edges').addEventListener('click', function (ev) {
+      if (ev.target && ev.target.getAttribute && ev.target.getAttribute('data-from')) {
+        var e = edges.find(function (x) { return x.from === ev.target.getAttribute('data-from') && x.to === ev.target.getAttribute('data-to'); });
+        if (e) {
+          var d = g.querySelector('.dg-detail');
+          d.innerHTML = '<div class="sg-detail-card"><div class="sg-detail-head"><b>传导边</b><button class="sg-detail-close">×</button></div><div class="sg-detail-row"><span>逻辑</span><b>' + e.logic + '</b></div><div class="sg-detail-row"><span>时间窗</span><b>' + e.latencyDays + ' 个交易日</b></div></div>';
+          d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; });
+        }
+      }
+    });
+  });
+  window.addEventListener('resize', function () { document.querySelectorAll('.dg-canvas').forEach(drawDag); });
+})();
+</script>`;
+}
+
 function storyPoolHtml(view, kpiDeltas = null) {
   const stats = view && view.stats ? view.stats : {};
   const active = view && Array.isArray(view.active) ? view.active : [];
@@ -692,7 +794,8 @@ function storyPoolHtml(view, kpiDeltas = null) {
         <li>active 分支进入生产席位，按品种聚合 storyRefs 后深挖</li>
       </ul></div>
     </aside>
-  </div>`;
+  </div>
+  ${dagScript()}`;
 }
 
 module.exports = { storyPoolHtml, escapeHtml };

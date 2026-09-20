@@ -908,6 +908,21 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .node-chip.node-confirmed { background: #f0fdf4; }
   .node-chip.node-broken { background: #fef2f2; }
   .branch-path-foot { font-size: 12px; line-height: 1.6; margin-top: 4px; }
+  .dg-canvas { position: relative; margin: 8px 0 4px; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius); background: #fbfcfd; overflow-x: auto; }
+  .dg-edges { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .dg-layers { position: relative; z-index: 1; display: flex; gap: 48px; align-items: flex-start; }
+  .dg-layer { flex: 0 0 210px; display: flex; flex-direction: column; gap: 14px; }
+  .dg-node { position: relative; border: 1px solid var(--border); border-radius: 8px; background: #fff; padding: 8px 10px; min-height: 74px; cursor: pointer; }
+  .dg-node.terminal { border-width: 2px; border-color: #6366f1; }
+  .dg-node-head { display: flex; align-items: center; gap: 6px; }
+  .dg-node-head b { font-size: 13px; }
+  .dg-node-dir { color: var(--muted); }
+  .dg-node-val { margin-top: 4px; font-size: 13px; font-weight: 600; }
+  .dg-node-foot { margin-top: 2px; font-size: 11px; color: var(--muted); }
+  .dg-node.node-confirmed { background: #f0fdf4; }
+  .dg-node.node-broken { background: #fef2f2; }
+  .dg-node .node-state { width: 14px; text-align: center; }
+  .dg-detail { position: absolute; top: 8px; right: 8px; z-index: 3; max-width: 280px; }
 
   .story-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0; margin-bottom: 12px; overflow: hidden; }
   .story-card > summary { list-style: none; cursor: pointer; padding: 12px 16px; display: block; }
