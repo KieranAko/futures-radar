@@ -376,7 +376,7 @@ function oppLayout(opps, raw, mainSeries, signalDate, planMap, storyMap = {}) {
 
 // ── 历史报告分页 ─────────────────────────────────────────────
 function historyTable(entries) {
-  const rows = entries.map((h) => `<tr><td>${escapeHtml(h.runId)}</td><td>${escapeHtml(h.date)}</td><td>${escapeHtml(h.oppSymbols || '—')}</td><td class="row-action"><a href="${escapeHtml(h.href)}">打开 →</a></td></tr>`).join('');
+  const rows = entries.map((h, i) => `<tr class="${i === 0 ? 'current' : ''}"><td>${escapeHtml(h.runId)}${i === 0 ? ' <span class="badge-current">当前</span>' : ''}</td><td>${escapeHtml(h.date)}</td><td>${escapeHtml(h.oppSymbols || '—')}</td><td class="row-action"><a href="${escapeHtml(h.href)}">打开 →</a></td></tr>`).join('');
   return rows;
 }
 
@@ -493,6 +493,45 @@ function storyWatchHtml(storyView) {
   return `<div class="watch-list"><h3>故事池观察清单（无 proven 席位，本期不深挖）</h3>${rows}</div>`;
 }
 
+function signalTableRowsHtml(signals, { closed = false, details = {}, mainSeries = null, raw = null } = {}) {
+  const rows = [];
+  for (const s of signals) {
+    const d = details[s.signalId] || {};
+    const sig = { ...s, versions: d.versions || [] };
+    const bars = seriesBars(mainSeries, raw, s.symbol, s.contract);
+    const detailId = `signal-detail-${s.signalId}`;
+    const statusText = closed
+      ? (s.closeReason || '已出池')
+      : s.poolStatus === 'downgraded' ? '非生效观察' : statusBadge(s.poolStatus);
+    const dateText = closed
+      ? (s.closedAt ? String(s.closedAt).slice(0, 10) : '—')
+      : (s.lastSeenDate || '—');
+    const ver = s.versionCount != null ? s.versionCount : (sig.versions ? sig.versions.length : 0);
+    const card = signalCard(sig, { closed, bars });
+    rows.push(`<tr class="signal-row${closed ? ' closed' : ''}" data-detail-id="${escapeHtml(detailId)}" title="点击展开/折叠">
+      <td><span class="row-chevron">▸</span><b>${escapeHtml(s.signalId)}</b></td>
+      <td>${escapeHtml(s.name || s.symbol)} <span class="muted">${escapeHtml(s.symbol)}</span></td>
+      <td>${directionLabel(s.direction)}</td>
+      <td>${statusText}</td>
+      <td>${escapeHtml(s.createdDate || '—')}</td>
+      <td>${escapeHtml(dateText)}</td>
+      <td class="num">${ver}</td>
+      <td class="muted">${escapeHtml(s.storyChainId || '—')}</td>
+    </tr>
+    <tr class="signal-detail-row" id="${escapeHtml(detailId)}" style="display:none"><td colspan="8">${card}</td></tr>`);
+  }
+  return rows.join('');
+}
+
+function signalTableHtml(signals, opts = {}) {
+  if (!signals || signals.length === 0) return '<p class="muted">暂无信号。</p>';
+  const cols = opts.closed
+    ? ['信号', '品种', '方向', '状态', '入池', '出池时间', '版本', '故事来源']
+    : ['信号', '品种', '方向', '状态', '入池', '最近更新', '版本', '故事来源'];
+  const head = cols.map((c) => `<th>${c}</th>`).join('');
+  return `<div class="signal-table-wrap"><table class="signal-table"><thead><tr>${head}</tr></thead><tbody>${signalTableRowsHtml(signals, opts)}</tbody></table></div>`;
+}
+
 function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = null, history, raw, mainSeries, signalDate, strategyPlan, costAnchorAvailable = false }) {
   const opps = reportModel && Array.isArray(reportModel.opportunities) ? reportModel.opportunities : [];
   const pool = signalPoolView && Array.isArray(signalPoolView.pool) ? signalPoolView.pool : [];
@@ -506,14 +545,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
     if (c && c.chainId) storyMap[c.chainId] = c;
   }
   const oppHtml = opps.length ? oppLayout(opps, raw, mainSeries, signalDate, Object.fromEntries(planMap), storyMap) : storyWatchHtml(storyView);
-  const poolCards = pool.map((s) => {
-    const d = details[s.signalId] || {};
-    return signalCard({ ...s, versions: d.versions || [] }, { bars: seriesBars(mainSeries, raw, s.symbol, s.contract) });
-  }).join('\n');
-  const closedCards = recentClosed.map((s) => {
-    const d = details[s.signalId] || {};
-    return signalCard({ ...s, versions: d.versions || [] }, { closed: true, bars: seriesBars(mainSeries, raw, s.symbol, s.contract) });
-  }).join('\n');
+  const poolTable = signalTableHtml(pool, { details, mainSeries, raw });
+  const closedTable = signalTableHtml(recentClosed, { closed: true, details, mainSeries, raw });
 
   const downgradedCount = pool.filter((s) => s.poolStatus === 'downgraded').length;
   const activeCount = pool.length - downgradedCount;
@@ -699,6 +732,19 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .sig-stats-row.sig-main { font-weight: 600; color: var(--text); }
   .sig-stats-row.sig-sub { padding-left: 26px; color: var(--muted); font-size: 12px; }
   .sig-stats-row b { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .signal-table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--card); margin: 6px 0 12px; }
+  .signal-table { width: 100%; border-collapse: collapse; }
+  .signal-table th, .signal-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 12px; line-height: 1.6; white-space: nowrap; }
+  .signal-table th { background: #f7f8fa; color: var(--muted); font-weight: 600; }
+  .signal-table tbody tr:last-child td { border-bottom: none; }
+  .signal-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .signal-row { cursor: pointer; }
+  .signal-row:hover td { background: #f6f8fb; }
+  .signal-row.open td { background: #f1f5f9; }
+  .signal-row.closed { opacity: .72; }
+  .signal-row.open .row-chevron { transform: rotate(90deg); }
+  .signal-detail-row td { padding: 12px 14px; background: #fbfcfd; }
+  .signal-detail-row.open td { animation: story-detail-in .18s ease; }
   .side-notes { margin: 0; padding-left: 18px; font-size: 12px; color: var(--muted); line-height: 1.8; }
   @media (max-width: 1080px) { .pool-layout { grid-template-columns: 1fr; } .pool-side { position: static; } }
 
@@ -886,6 +932,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   table.index tr:last-child th, table.index tr:last-child td { border-bottom: none; }
   table.index th { background: #f7f8fa; font-weight: 600; white-space: nowrap; }
   table.index tbody tr:hover { background: #fafbfc; }
+  table.index tbody tr.current { background: #eef4ff; }
+  .badge-current { display: inline-block; margin-left: 6px; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: var(--accent); color: #fff; }
   table.index td.row-action { text-align: right; white-space: nowrap; }
   table.index a { color: var(--accent); text-decoration: none; }
   table.index tr.hidden { display: none; }
@@ -944,9 +992,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
     <div class="pool-layout">
       <div class="pool-main">
         <h2>池内信号（全量追踪）</h2>
-        ${poolCards || '<p class="muted">当前池内无信号。</p>'}
+        ${poolTable}
         <h2>最近出池信号（最新 5 个）</h2>
-        ${closedCards || '<p class="muted">暂无出池信号。</p>'}
+        ${closedTable}
       </div>
       <aside class="pool-side">
         <div class="side-card"><h3>历史统计</h3>${statsTable(stats)}</div>
@@ -984,6 +1032,17 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
       item.classList.add('active');
       const pane = document.querySelector('.opp-pane[data-opp="' + item.dataset.opp + '"]');
       if (pane) pane.classList.add('active');
+    });
+  });
+
+  // 信号池表格：点击行展开/折叠详情
+  document.querySelectorAll('.signal-row').forEach((row) => {
+    row.addEventListener('click', () => {
+      const d = document.getElementById(row.dataset.detailId);
+      if (!d) return;
+      const open = d.style.display !== 'none';
+      if (open) { d.style.display = 'none'; d.classList.remove('open'); row.classList.remove('open'); }
+      else { d.style.display = 'table-row'; d.classList.add('open'); row.classList.add('open'); }
     });
   });
 
