@@ -914,15 +914,13 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .dg-layers { position: relative; z-index: 1; display: flex; gap: 32px; align-items: flex-start; }
   .dg-layer { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
   .dg-node { position: relative; border: 1px solid var(--border); border-radius: 8px; background: #fff; padding: 10px 12px; min-height: 72px; cursor: pointer; }
-  .dg-node.source { background: #eef4ff; border-color: #bfdbfe; }
-  .dg-node.terminal { border-width: 2px; border-color: #818cf8; background: #f8faff; }
+  .dg-node.node-confirmed { border-color: #047857; background: #f0fdf4; }
+  .dg-node.node-broken { border-color: #b91c1c; background: #fef2f2; }
   .dg-node-head { display: flex; align-items: center; gap: 6px; }
   .dg-node-head b { font-size: 13px; }
   .dg-node-dir { color: var(--muted); }
   .dg-node-val { margin-top: 4px; font-size: 13px; font-weight: 600; }
   .dg-node-foot { margin-top: 2px; font-size: 11px; color: var(--muted); }
-  .dg-node.node-confirmed { background: #f0fdf4; }
-  .dg-node.node-broken { background: #fef2f2; }
   .dg-node .node-state { width: 14px; text-align: center; }
   .dg-detail { position: absolute; top: 8px; right: 8px; z-index: 10; max-width: 340px; }
 
