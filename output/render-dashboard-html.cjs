@@ -780,8 +780,11 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .instr-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
   .story-jump { font-size: 12px; margin-top: 4px; padding: 2px 8px; border: 1px solid #dbeafe; border-radius: 6px; background: #eef4ff; color: #2563eb; cursor: pointer; font-family: inherit; }
   .story-jump:hover { background: #dbeafe; }
-  .story-flash { animation: story-flash 1.6s ease; }
-  @keyframes story-flash { 0% { box-shadow: 0 0 0 3px rgba(37,99,235,.35); background: #eef4ff; } 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); } }
+  .story-flash { animation: story-flash 2.1s ease; }
+  @keyframes story-flash {
+    0%, 28%, 56% { box-shadow: 0 0 0 3px rgba(37,99,235,.45); background: #eef4ff; }
+    14%, 42%, 70%, 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+  }
   .instr-badges { display: inline-flex; align-items: center; gap: 10px; }
   .confidence { display: inline-flex; gap: 3px; }
   .confidence .cm { width: 16px; height: 7px; border-radius: 3px; background: #e5e7eb; }
@@ -1298,7 +1301,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
         setTimeout(() => {
           target.scrollIntoView({ behavior: 'smooth', block: 'center' });
           target.classList.add('story-flash');
-          setTimeout(() => target.classList.remove('story-flash'), 1700);
+          setTimeout(() => target.classList.remove('story-flash'), 2300);
         }, 50);
       }
     });
