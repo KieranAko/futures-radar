@@ -984,10 +984,10 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .sig-chart-head { font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 4px; }
   .sig-chart-block .lifecycle svg { width: 100%; height: auto; max-height: none; }
   .lifecycle { position: relative; }
-  .chart-day-info { display: grid; grid-template-columns: 100px 76px 76px 76px 76px 150px 110px; gap: 2px 16px; align-items: baseline; font-size: 12px; color: var(--muted); padding: 2px 0 4px; min-height: 22px; font-variant-numeric: tabular-nums; overflow-x: auto; }
-  .price-chart-wrap .chart-day-info { grid-template-columns: 100px 76px 76px 76px 76px 150px 110px 96px 96px; }
+  .chart-day-info { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px 8px; align-items: baseline; font-size: 12px; color: var(--muted); padding: 2px 0 4px; min-height: 22px; font-variant-numeric: tabular-nums; overflow-x: auto; }
+  .price-chart-wrap .chart-day-info { grid-template-columns: repeat(9, minmax(0, 1fr)); }
   .chart-day-info b { font-weight: 700; }
-  .chart-day-info > span { white-space: nowrap; }
+  .chart-day-info > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .chart-crosshair { display: none; pointer-events: none; }
   .chart-hover-tip { display: none; position: absolute; z-index: 6; background: #1f2328; color: #ffffff; font-size: 12px; line-height: 1.5; padding: 4px 10px; border-radius: 6px; pointer-events: none; white-space: nowrap; box-shadow: 0 6px 18px rgba(15,23,42,.25); transform: translateY(-100%); }
   .zp-zone { cursor: pointer; }
