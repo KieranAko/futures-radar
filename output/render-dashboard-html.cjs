@@ -783,6 +783,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .story-sub-detail { margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 6px; }
   .story-sub-detail summary { cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 600; }
   .branch-table-wide { min-width: 960px; }
+  .row-chevron { display: inline-block; margin-right: 6px; color: var(--muted); font-size: 11px; transition: transform .15s ease; }
+  .branch-row.open .row-chevron, .closed-row.open .row-chevron { transform: rotate(90deg); }
   .branch-row { cursor: pointer; }
   .branch-row:hover td { background: #f6f8fb; }
   .branch-row.open td { background: #f1f5f9; }

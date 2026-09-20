@@ -412,8 +412,8 @@ function branchTableHtml(active) {
     const graphNodeId = `${c.chainId}::${b.branchId || ''}`;
     const detailId = `branch-detail-${c.chainId}-${b.branchId || 'main'}`;
     const detailHtml = chainCard(c).replace('<details class="story-card">', '<details class="story-card" open>');
-    return `<tr class="branch-row" data-graph-node="${escapeHtml(graphNodeId)}" data-detail-id="${escapeHtml(detailId)}">
-      <td><span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span></td>
+    return `<tr class="branch-row" data-graph-node="${escapeHtml(graphNodeId)}" data-detail-id="${escapeHtml(detailId)}" title="点击展开/折叠">
+      <td><span class="row-chevron">▸</span><span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span></td>
       <td class="muted">${escapeHtml(c.sourceId || '—')}</td>
       <td>${escapeHtml(pathText || '—')}</td>
       <td><b>${escapeHtml(b.symbol || '—')}</b></td>
@@ -569,8 +569,8 @@ function closedTable(closed) {
   if (!closed || closed.length === 0) return '<p class="muted">暂无已出池故事。</p>';
   const rows = closed.map((c) => {
     const detailId = `closed-detail-${c.chainId}`;
-    return `<tr class="closed-row status-${escapeHtml(c.status || 'unknown')}" data-detail-id="${escapeHtml(detailId)}">
-    <td class="closed-theme"><b>${escapeHtml(c.theme || '（未命名主题）')}</b><div class="muted">${escapeHtml(c.chainId)}</div></td>
+    return `<tr class="closed-row status-${escapeHtml(c.status || 'unknown')}" data-detail-id="${escapeHtml(detailId)}" title="点击展开/折叠">
+    <td class="closed-theme"><span class="row-chevron">▸</span><b>${escapeHtml(c.theme || '（未命名主题）')}</b><div class="muted">${escapeHtml(c.chainId)}</div></td>
     <td>${escapeHtml(c.sector || '—')}</td><td>${storyStatusBadge(c.status)}</td>
     <td>${c.proven ? '✅' : '—'}</td><td>${c.confirmedNodes}/${c.totalNodes}</td>
     <td>${escapeHtml(c.closeReason || '—')}</td><td>${escapeHtml(c.createdAt)} → ${escapeHtml(c.closedAt || '—')}</td>
