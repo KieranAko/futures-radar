@@ -841,20 +841,26 @@ function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyThe
   const timeline = signalTimelineHtml(sig, versions, { closed: isClosed });
   const chart = lifecycleChart(sig, versions, bars);
   const chartHtml = chart || '<div class="sig-chart-missing muted">暂无价格序列，无法绘制价格轨迹。</div>';
-  return `<div class="story-panel signal-panel ${isClosed ? 'is-closed' : ''}">
-    <div class="story-panel-head">
-      <span class="story-theme">${escapeHtml(sig.name || sig.symbol || '—')} <span class="muted">${escapeHtml(sig.symbol || '')}</span></span>
+  const headHtml = `<span class="story-theme">${escapeHtml(sig.name || sig.symbol || '—')} <span class="muted">${escapeHtml(sig.symbol || '')}</span></span>
       <span class="story-status ${badgeCls}">${escapeHtml(statusText)}</span>
       ${dirHtml}
       ${storyHtml}
-      <span class="story-proof">${versions.length} 版本${currentNum ? ` · 当前 ${escapeHtml(currentNum)}` : ''}${sig.createdDate ? ` · 入池 ${escapeHtml(sig.createdDate)}` : ''}</span>
-    </div>
-    ${sig.thesis ? `<div class="story-subtitle">${escapeHtml(typeof sig.thesis === 'string' ? sig.thesis : (sig.thesis.summary || ''))}</div>` : ''}
+      <span class="story-proof">${versions.length} 版本${currentNum ? ` · 当前 ${escapeHtml(currentNum)}` : ''}${sig.createdDate ? ` · 入池 ${escapeHtml(sig.createdDate)}` : ''}</span>`;
+  const bodyHtml = `${sig.thesis ? `<div class="story-subtitle">${escapeHtml(typeof sig.thesis === 'string' ? sig.thesis : (sig.thesis.summary || ''))}</div>` : ''}
     ${priceLine}
     <div class="sig-chart-block"><div class="sig-chart-head">📈 价格轨迹</div>${chartHtml}</div>
     ${!isClosed ? signalObservationLine(sig) : ''}
     ${signalAnchorGrid(sig, { closed: isClosed })}
-    ${timeline}
+    ${timeline}`;
+  if (isClosed) {
+    return `<details class="story-panel signal-panel is-closed">
+    <summary class="story-panel-head">${headHtml}</summary>
+    <div class="sig-panel-body">${bodyHtml}</div>
+  </details>`;
+  }
+  return `<div class="story-panel signal-panel">
+    <div class="story-panel-head">${headHtml}</div>
+    ${bodyHtml}
   </div>`;
 }
 

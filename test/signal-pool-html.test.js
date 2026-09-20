@@ -141,11 +141,12 @@ describe('signal-pool-html 看板渲染', () => {
     assert.ok(!html.includes('<details class="version">'));
   });
 
-  it('出池信号与池内信号统一为同一种信号面板', () => {
+  it('出池信号与池内信号同面板样式，且默认折叠', () => {
     const view = makeView();
     const html = signalClosedPanelsHtml(view);
-    assert.ok(html.includes('class="story-panel signal-panel is-closed"'));
+    assert.ok(html.includes('<details class="story-panel signal-panel is-closed">'));
     assert.ok(html.includes('class="sig-timeline"'));
+    assert.ok(html.includes('sig-panel-body'));
     assert.ok(html.includes('PTA'));
     assert.ok(!html.includes('sig-closed-table'));
     assert.ok(!html.includes('<tr'));

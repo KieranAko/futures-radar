@@ -800,6 +800,11 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
 
   /* 信号池 · 故事池式面板 */
   .signal-panel.is-closed { border-left: 3px solid #94a3b8; }
+  details.signal-panel > summary { list-style: none; cursor: pointer; }
+  details.signal-panel > summary::-webkit-details-marker { display: none; }
+  details.signal-panel > summary::before { content: "▸"; color: var(--muted); margin-right: 8px; font-size: 12px; transition: transform .15s ease; display: inline-block; vertical-align: middle; }
+  details.signal-panel[open] > summary::before { transform: rotate(90deg); }
+  .sig-panel-body { padding-top: 10px; border-top: 1px solid var(--border); margin-top: 4px; }
   .sig-dir { font-size: 13px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
   .sig-dir.up { background: #fdeaea; color: var(--up); }
   .sig-dir.down { background: #e7f6ec; color: var(--down); }
