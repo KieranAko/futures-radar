@@ -635,7 +635,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Futures Radar · 看板</title>
 <style>
-  :root { --bg:#f7f8fa; --card:#ffffff; --border:#e5e7eb; --text:#1f2328; --muted:#6b7280; --accent:#2563eb; --up:#b91c1c; --down:#047857; --radius:10px; }
+  :root { --bg:#f5f6f8; --card:#ffffff; --border:#e5e7eb; --text:#1f2328; --muted:#6b7280; --accent:#2563eb; --up:#b91c1c; --down:#047857; --radius:8px; --header-bg:#fafafa; --row-hover:#f5f7fa; --zebra:#fafafa; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 13px/1.7 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
 
@@ -819,7 +819,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .signal-table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--card); margin: 6px 0 12px; }
   .signal-table { width: 100%; border-collapse: collapse; }
   .signal-table th, .signal-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 12px; line-height: 1.6; white-space: nowrap; }
-  .signal-table th { background: #f7f8fa; color: var(--muted); font-weight: 600; }
+  .signal-table th { background: var(--header-bg); color: #374151; font-weight: 600; }
+  .signal-table tbody tr:nth-child(even) td { background: var(--zebra); }
+  .signal-table tbody tr:hover td { background: var(--row-hover); }
   .signal-table tbody tr:last-child td { border-bottom: none; }
   .signal-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
   .signal-row { cursor: pointer; }
@@ -838,7 +840,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .closed-scroll { max-height: 300px; overflow-y: auto; scrollbar-gutter: stable; }
   .closed-table table { width: 100%; min-width: 860px; table-layout: fixed; border-collapse: collapse; }
   .closed-head-wrap, .closed-scroll { min-width: 860px; }
-  .closed-head th { border-bottom: none; background: #f7f8fa; }
+  .closed-head th { border-bottom: none; background: var(--header-bg); color: #374151; font-weight: 600; }
+  .closed-scroll tbody tr:nth-child(even) td { background: var(--zebra); }
+  .closed-scroll tbody tr:hover td { background: var(--row-hover); }
   @media (max-width: 1080px) { .closed-scroll { max-height: 260px; } }
 
   .anchor-panel { background: #f0f6ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 10px 12px; margin: 8px 0; }
@@ -876,7 +880,10 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   table.stats { width: 100%; border-collapse: collapse; }
   table.stats th, table.stats td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; line-height: 1.6; }
   table.stats tr:last-child th, table.stats tr:last-child td { border-bottom: none; }
-  table.stats th { color: var(--muted); font-weight: 500; }
+  table.stats th { color: #374151; font-weight: 600; background: var(--header-bg); }
+  table.stats tbody tr:nth-child(even) td { background: var(--zebra); }
+  table.stats tbody tr:hover td { background: var(--row-hover); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   table.stats tr.sub th, table.stats tr.sub td { padding-top: 0; }
   table.stats tr.sub td { color: var(--muted); font-size: 12px; line-height: 1.7; }
   table.stats tr.sub + tr th, table.stats tr.sub + tr td { padding-top: 6px; }
@@ -922,7 +929,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .branch-table .path-cell { font-size: 12px; color: #374151; line-height: 1.5; }
   .branch-table .impact-cell { line-height: 1.5; }
   .branch-table th, .branch-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 12px; line-height: 1.6; }
-  .branch-table th { color: var(--muted); font-weight: 600; white-space: nowrap; background: #f7f8fa; }
+  .branch-table th { color: #374151; font-weight: 600; white-space: nowrap; background: var(--header-bg); }
+  .branch-table tbody tr:nth-child(even) td { background: var(--zebra); }
+  .branch-table tbody tr:hover td { background: var(--row-hover); }
   .branch-table tbody tr:last-child td { border-bottom: none; }
   .branch-table th:first-child, .branch-table td:first-child { white-space: nowrap; }
   .branch-priority { white-space: nowrap; }
@@ -1017,8 +1026,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   table.index { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   table.index th, table.index td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
   table.index tr:last-child th, table.index tr:last-child td { border-bottom: none; }
-  table.index th { background: #f7f8fa; font-weight: 600; white-space: nowrap; }
-  table.index tbody tr:hover { background: #fafbfc; }
+  table.index th { background: var(--header-bg); font-weight: 600; white-space: nowrap; }
+  table.index tbody tr:nth-child(even) { background: var(--zebra); }
+  table.index tbody tr:hover { background: var(--row-hover); }
   table.index tbody tr.current { background: #eef4ff; }
   .badge-current { display: inline-block; margin-left: 6px; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: var(--accent); color: #fff; }
   table.index td.row-action { text-align: right; white-space: nowrap; }

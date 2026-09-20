@@ -420,7 +420,7 @@ function branchTableHtml(active) {
       <td><b>${escapeHtml(b.symbol || '—')}</b></td>
       <td class="${dirCls}">${bDir}</td>
       <td>${storyStatusBadge(b.status)}</td>
-      <td>${b.proofIndex != null ? `p=${b.proofIndex}` : '—'}</td>
+      <td class="num">${b.proofIndex != null ? `p=${b.proofIndex}` : '—'}</td>
       <td class="muted impact-cell">${escapeHtml(b.impactRationale || '—')}</td>
     </tr>
     <tr class="branch-detail-row" id="${escapeHtml(detailId)}" style="display:none"><td colspan="8">${detailHtml}</td></tr>`;
@@ -573,7 +573,7 @@ function closedTable(closed) {
     return `<tr class="closed-row status-${escapeHtml(c.status || 'unknown')}" data-detail-id="${escapeHtml(detailId)}" title="点击展开/折叠">
     <td class="closed-theme"><span class="row-chevron">▸</span><b>${escapeHtml(c.theme || '（未命名主题）')}</b><div class="muted">${escapeHtml(c.chainId)}</div></td>
     <td>${escapeHtml(c.sector || '—')}</td><td>${storyStatusBadge(c.status)}</td>
-    <td>${c.proven ? '✅' : '—'}</td><td>${c.confirmedNodes}/${c.totalNodes}</td>
+    <td>${c.proven ? '✅' : '—'}</td><td class="num">${c.confirmedNodes}/${c.totalNodes}</td>
     <td>${escapeHtml(c.closeReason || '—')}</td><td>${escapeHtml(c.createdAt)} → ${escapeHtml(c.closedAt || '—')}</td>
   </tr>
   <tr class="closed-detail-row" id="${escapeHtml(detailId)}" style="display:none"><td colspan="7">${closedChainCardInline(c)}</td></tr>`;
