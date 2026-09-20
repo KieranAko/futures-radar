@@ -295,7 +295,10 @@ function graphScript() {
       if (n.theme) rows.push('<div class="sg-detail-row"><span>故事</span><b>' + short(n.theme, 20) + '</b></div>');
       rows.push('<div class="sg-detail-row"><span>状态</span><b>' + short(n.status, 10) + (n.terminal ? ' · ' + (n.priority === 'primary' ? '主支' : '次支') : '') + '</b></div>');
       rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : '—') + '</b></div>');
-      if (n.lastValue != null && Number.isFinite(Number(n.lastValue))) rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + Number(n.lastValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + short(n.lastValueAt, 10) + '）</b></div>');
+      if (n.lastValue != null && Number.isFinite(Number(n.lastValue))) {
+        rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + Number(n.lastValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + short(n.lastValueAt, 10) + '）</b></div>');
+        if (n.prevValue != null && Number.isFinite(Number(n.prevValue))) rows.push('<div class="sg-detail-row"><span>前值 → 当前</span><b>' + Number(n.prevValue).toFixed(2) + ' → ' + Number(n.lastValue).toFixed(2) + '</b></div>');
+      }
       if (n.brokenReason) rows.push('<div class="sg-detail-row"><span>断裂原因</span><b>' + short(n.brokenReason, 24) + '</b></div>');
       rows.push('<div class="sg-detail-note">完整字段见下方「节点明细」</div>');
       detail.innerHTML = '<div class="sg-detail-card">' + rows.join('') + '</div>';
@@ -536,14 +539,7 @@ function chainCard(c) {
     ${graphLegendHtml()}
     ${storyGraphHtml(c)}
     ${branchSummaryHtml(c)}
-    <details class="story-sub-detail">
-      <summary>节点明细（${c.nodes ? c.nodes.length : 0}）</summary>
-      <div class="story-nodes">${nodeTableHtml(c.nodes)}</div>
-    </details>
-    <details class="story-sub-detail">
-      <summary>最近事件（${(c.events || []).slice(-5).length}）</summary>
-      <div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div>
-    </details>
+    <div class="sg-hint">点击图中节点查看数值，点击边查看传导逻辑</div>
   </div>
 </details>`;
 }
@@ -603,10 +599,7 @@ function closedChainModalHtml(c) {
           <div class="story-subtitle">${escapeHtml(c.themeDetail || '')}</div>
           <div class="story-head"><span class="story-chain-id">${escapeHtml(c.chainId)}</span>${storyStatusBadge(c.status)}<span class="story-source">源 ${escapeHtml(c.sourceId || c.sector || '—')}</span><span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认 · ${escapeHtml(c.closeReason || '—')}</span></div>
         </div>
-        <div class="story-body">${graphLegendHtml()}${storyGraphHtml(c)}
-          <details class="story-sub-detail"><summary>节点明细（${(c.nodes || []).length}）</summary><div class="story-nodes">${nodeTableHtml(c.nodes) || '<span class="muted">暂无节点明细</span>'}</div></details>
-          <details class="story-sub-detail"><summary>最近事件（${(c.events || []).slice(-5).length}）</summary><div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div></details>
-        </div>
+        <div class="story-body">${graphLegendHtml()}${storyGraphHtml(c)}<div class="sg-hint">点击图中节点查看数值，点击边查看传导逻辑</div></div>
       </div>
     </div>
   </div>`;

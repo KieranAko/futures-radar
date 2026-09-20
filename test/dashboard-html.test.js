@@ -110,11 +110,12 @@ describe('dashboard-html 四 Tab 看板', () => {
     assert.ok(html.includes('story-subtitle'));
     assert.ok(html.includes('story-theme'));
     assert.ok(html.includes('class="story-card"'));
-    assert.ok(html.includes('node-confirmed'));
-    assert.ok(html.includes('前值'));
-    assert.ok(html.includes('环比'));
-    assert.ok(html.includes('+1.34'));
-    assert.ok(html.includes('cred-high'));
+    assert.ok(html.includes('story-graph-market'));
+    assert.ok(html.includes('sg-hint'));
+    assert.ok(html.includes('branch-row'));
+    assert.ok(html.includes('分支'));
+    assert.ok(html.includes('传导路径'));
+    assert.ok(html.includes('为什么是这里'));
     assert.ok(html.includes('SIG-RB0-20260918-01'));
     assert.ok(html.includes('节点命中率（按取数路径）'));
     assert.ok(html.includes('href="runs/r1/report.html"'));
