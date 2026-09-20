@@ -403,14 +403,8 @@ function statsTable(stats) {
   const execBy = execLayer.byEvent || {};
   const total = stats.totalClosed == null ? 0 : stats.totalClosed;
 
-  const rowStyle = 'display:flex;justify-content:space-between;align-items:baseline;padding:5px 12px;border-bottom:1px solid #f1f3f5;';
-  const mainStyle = 'font-weight:600;color:#1f2328;';
-  const subStyle = 'padding-left:26px;color:#6b7280;font-size:12px;';
-  const numStyle = 'font-variant-numeric:tabular-nums;font-weight:600;';
-  const headStyle = 'padding:7px 12px;font-weight:600;color:#374151;background:#f7f8fa;border-bottom:1px solid #e5e7eb;';
-
   const row = (label, value, isMain = true, isLast = false) =>
-    `<div style="${rowStyle}${isMain ? mainStyle : subStyle}${isLast ? 'border-bottom:none;' : ''}"><span>${escapeHtml(label)}</span><b style="${numStyle}">${value}</b></div>`;
+    `<div class="sig-stats-row ${isMain ? 'sig-main' : 'sig-sub'}${isLast ? ' is-last' : ''}"><span>${escapeHtml(label)}</span><b>${value}</b></div>`;
 
   const subRows = (pairs) => pairs.filter(([, v]) => v > 0).map(([k, v]) => row(k, v, false)).join('');
 
@@ -454,11 +448,11 @@ function statsTable(stats) {
     execNoexecSubs
   ].filter(Boolean).join('');
 
-  return `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;font-size:13px;line-height:1.6;">
-    <div style="${headStyle}">历史已出池信号 ${total}</div>
-    <div style="${headStyle}border-top:1px solid #e5e7eb;">方向层面</div>
+  return `<div class="sig-stats">
+    <div class="sig-stats-head">历史已出池信号 ${total}</div>
+    <div class="sig-stats-head">方向层面</div>
     ${dirBody}
-    <div style="${headStyle}border-top:1px solid #e5e7eb;">交易执行层面</div>
+    <div class="sig-stats-head">交易执行层面</div>
     ${execBody}
   </div>`;
 }
