@@ -348,9 +348,8 @@ function lifecycleChart(sig, versions, bars) {
   xDate(n - 1, 'end');
 
   parts.push('</svg>');
-  parts.push('<div class="muted" style="font-size:12px">蜡烛图：信号生命周期价格走势；虚线：触发/止损/入场/离场价位；圆点：关键执行事件</div>');
 
-  return `<div class="lifecycle"><h4>生命周期（蜡烛图 + 执行标记）</h4>${parts.join('')}</div>`;
+  return `<div class="lifecycle">${parts.join('')}</div>`;
 }
 
 function signalCard(sig, { closed = false, bars = null } = {}) {
@@ -696,6 +695,7 @@ function signalVersionData(sig, v, isCurrent) {
     timeStop: invalidation.timeStop || '',
     regimeGrade: regime.grade || '',
     regimeDirection: regime.direction || '',
+    verificationStatus: v.verification && v.verification.status ? v.verification.status : '',
     verificationLabel: signalVersionVerificationLabel(v),
     entryPrice,
     exitPrice,
@@ -725,7 +725,11 @@ function signalTimelineItem(sig, v, isCurrent) {
     rows.push(`<div class="tl-row"><span class="tl-label">失效</span><span class="tl-text">${inv}</span></div>`);
   }
   if (d.regimeGrade) rows.push(`<div class="tl-row"><span class="tl-label">环境</span><span class="tl-text">${escapeHtml(regimeGradeLabel(d.regimeGrade))} · ${escapeHtml(regimeDirLabel(d.regimeDirection))}</span></div>`);
-  rows.push(`<div class="tl-row"><span class="tl-label">验证</span><span class="tl-text">${escapeHtml(d.verificationLabel || '待验证')}</span></div>`);
+  const verificationText = d.verificationStatus === 'pending_data' ? '待数据验证'
+    : d.verificationStatus === 'pending_verification' ? '待验证'
+    : d.verificationLabel && d.verificationLabel !== d.stateLabel ? d.verificationLabel
+    : '';
+  if (verificationText) rows.push(`<div class="tl-row"><span class="tl-label">验证</span><span class="tl-text">${escapeHtml(verificationText)}</span></div>`);
   if (d.terminalExec && d.entryPrice != null && d.exitPrice != null) {
     const sign = d.pnlPts >= 0 ? '+' : '';
     rows.push(`<div class="tl-row tl-result"><span class="tl-label">结果</span><span class="tl-text"><b>入场 ${fmt(d.entryPrice, 0)} → 离场 ${fmt(d.exitPrice, 0)}</b> · <span class="${d.pnlPts >= 0 ? 'up' : 'down'}">${sign}${fmt(d.pnlPts, 0)} 点</span>${d.exitDate ? ` · ${escapeHtml(d.exitDate)}` : ''}</span></div>`);
