@@ -259,10 +259,10 @@ function lifecycleChart(sig, versions, bars) {
   const parts = [];
   parts.push(`<svg class="lifecycle-chart" viewBox="0 0 ${W} ${H}" role="img">`);
   parts.push(`<defs>
-    <pattern id="zp-plan" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="#d97706" stroke-width="1.2" opacity="0.28"/></pattern>
-    <pattern id="zp-target" width="6" height="6" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="#2563eb" stroke-width="1.2" opacity="0.28"/></pattern>
-    <pattern id="zp-actual" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="#64748b" stroke-width="1" opacity="0.2"/></pattern>
-    <pattern id="zp-invalid" width="7" height="7" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="7" stroke="#ef4444" stroke-width="1" opacity="0.16"/></pattern>
+    <pattern id="zp-plan" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="#d97706" stroke-width="1.6" opacity="0.5"/></pattern>
+    <pattern id="zp-target" width="6" height="6" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="#2563eb" stroke-width="1.6" opacity="0.5"/></pattern>
+    <pattern id="zp-actual" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="6" stroke="#64748b" stroke-width="1.2" opacity="0.3"/></pattern>
+    <pattern id="zp-invalid" width="7" height="7" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="7" stroke="#ef4444" stroke-width="1.2" opacity="0.28"/></pattern>
   </defs>`);
   for (let i = 0; i <= 4; i++) {
     const gy = padT + (i / 4) * (H - padT - padB);
@@ -272,15 +272,17 @@ function lifecycleChart(sig, versions, bars) {
   }
   const textStyle = 'paint-order:stroke;stroke:#ffffff;stroke-width:3px;';
   const zoneGap = (max - min) * 0.008;
+  const ZONE_BASE = { 'zp-plan': '#d97706', 'zp-target': '#2563eb', 'zp-actual': '#64748b', 'zp-invalid': '#ef4444' };
   const zone = (v1, v2, pattern, label, color) => {
     const y1 = y(v1);
     const y2 = y(v2);
     const top = Math.min(y1, y2);
     const h = Math.abs(y2 - y1);
     if (h < 4) return '';
-    let out = `<rect x="${padL}" y="${top.toFixed(1)}" width="${(W - padL - padR).toFixed(1)}" height="${h.toFixed(1)}" fill="url(#${pattern})"/>`;
-    if (label && h >= 18) {
-      out += `<text x="${(padL + 8).toFixed(1)}" y="${(top + h / 2 + 4).toFixed(1)}" font-size="10" font-weight="600" fill="${color}" style="${textStyle}">${escapeHtml(label)}</text>`;
+    const base = ZONE_BASE[pattern] || color;
+    let out = `<rect x="${padL}" y="${top.toFixed(1)}" width="${(W - padL - padR).toFixed(1)}" height="${h.toFixed(1)}" fill="${base}" opacity="0.1"/><rect x="${padL}" y="${top.toFixed(1)}" width="${(W - padL - padR).toFixed(1)}" height="${h.toFixed(1)}" fill="url(#${pattern})"/>`;
+    if (label && h >= 16) {
+      out += `<text x="${(padL + 8).toFixed(1)}" y="${(top + h / 2 + 4).toFixed(1)}" font-size="11" font-weight="700" fill="${color}" style="${textStyle}">${escapeHtml(label)}</text>`;
     }
     return out;
   };
@@ -345,7 +347,7 @@ function lifecycleChart(sig, versions, bars) {
     if (cx == null || price == null) return;
     markers.push({ cx, cy: y(Number(price)), color, label, anchor });
   };
-  if (a && a.triggerDate && triggerLevel != null) addMarker(xOfDate(a.triggerDate), triggerLevel, '#b45309', `触发 ${a.triggerDate} @ ${fmt(triggerLevel, 0)}`, 'end');
+  if (a && a.triggerDate && triggerLevel != null) addMarker(xOfDate(a.triggerDate), triggerLevel, '#d97706', `触发 ${a.triggerDate} @ ${fmt(triggerLevel, 0)}`, 'end');
   if (entryDate && entryPrice != null) addMarker(xOfDate(entryDate), entryPrice, skipped ? '#b91c1c' : '#047857', `${skipped ? '放弃执行' : '入场'} ${entryDate} @ ${fmt(entryPrice, 0)}`, skipped ? 'start' : 'end');
   if (exitDate && exitPrice != null) addMarker(xOfDate(exitDate), exitPrice, '#b91c1c', `离场 ${exitDate} @ ${fmt(exitPrice, 0)}`, 'start');
 
@@ -358,7 +360,7 @@ function lifecycleChart(sig, versions, bars) {
   };
 
   const levels = [
-    { level: triggerLevel, color: '#b45309', label: '触发' },
+    { level: triggerLevel, color: '#d97706', label: '触发' },
     { level: stopPrice, color: '#b91c1c', label: '止损' },
     { level: entryPrice, color: skipped ? '#b91c1c' : '#047857', label: skipped ? '放弃' : '入场' },
     { level: exitPrice, color: '#b91c1c', label: '离场' },
@@ -377,9 +379,23 @@ function lifecycleChart(sig, versions, bars) {
   for (const l of uniqueLevels) {
     const yy = y(l.level);
     const isSolid = l.dash === undefined && solidLevels.has(l.label);
-    const dash = l.dash !== undefined ? l.dash : (l.label === '触发' ? '8 4' : isSolid ? null : '6 4');
-    const opacity = l.opacity != null ? l.opacity : 0.75;
-    const strokeWidth = isSolid ? 1.4 : 1;
+    const isTarget = l.label === '目标1' || l.label === '目标2';
+    let dash = l.dash !== undefined ? l.dash : (l.label === '触发' ? '10 5' : isSolid ? null : '6 3');
+    let opacity = l.opacity != null ? l.opacity : 0.95;
+    let strokeWidth = 1;
+    if (isSolid) {
+      dash = null;
+      opacity = 1;
+      strokeWidth = 2;
+    } else if (l.label === '触发') {
+      strokeWidth = 1.6;
+    } else if (isTarget) {
+      strokeWidth = 1.6;
+      opacity = 0.9;
+    } else if (l.dash === '1 4') {
+      opacity = 0.6;
+      strokeWidth = 1.1;
+    }
     parts.push(`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${(W - padR).toFixed(1)}" y2="${yy.toFixed(1)}" stroke="${l.color}" stroke-width="${strokeWidth}"${dash ? ` stroke-dasharray="${dash}"` : ''} opacity="${opacity}"/>`);
   }
   // 右侧标签放在图内右端：相邻价位合并成一行，避免互相压字。
@@ -413,7 +429,7 @@ function lifecycleChart(sig, versions, bars) {
   }
   for (const g of groups) {
     const ty = Math.max(padT + 4, Math.min(H - 8, g.y + 4));
-    parts.push(`<text x="${(W - padR - 8).toFixed(1)}" y="${ty.toFixed(1)}" font-size="10" font-weight="600" fill="${g.color}" text-anchor="end" style="${textStyle}">${escapeHtml(g.texts.join(' · '))}</text>`);
+    parts.push(`<text x="${(W - padR - 8).toFixed(1)}" y="${ty.toFixed(1)}" font-size="11" font-weight="700" fill="${g.color}" text-anchor="end" style="${textStyle}">${escapeHtml(g.texts.join(' · '))}</text>`);
   }
 
   const markerLabels = avoidOverlap(markers.map((m) => ({
