@@ -985,7 +985,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .sig-chart-block .lifecycle svg { width: 100%; height: auto; max-height: none; }
   .lifecycle { position: relative; }
   .chart-day-info { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px 8px; align-items: baseline; font-size: 12px; color: var(--muted); padding: 2px 0 4px; min-height: 22px; font-variant-numeric: tabular-nums; overflow-x: auto; }
-  .price-chart-wrap .chart-day-info { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+  .price-chart-wrap .chart-day-info { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: baseline; }
+  .price-chart-wrap .chart-day-info > span { white-space: nowrap; overflow: visible; text-overflow: clip; }
   .chart-day-info b { font-weight: 700; }
   .chart-day-info > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .chart-crosshair { display: none; pointer-events: none; }
