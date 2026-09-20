@@ -144,7 +144,7 @@ describe('dashboard-html 四 Tab 看板', () => {
 
   it('机会分析 tab 渲染机会卡片字段', () => {
     const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [] });
-    assert.ok(html.includes('聚丙烯（PP2701）'));
+    assert.ok(html.includes('聚丙烯 <span class="muted">（PP2701）</span>'));
     assert.ok(html.includes('SC0 原油 5日 +29.37% 成本端推动'));
     assert.ok(html.includes('趋势与成本偏多'));
     assert.ok(html.includes('放量突破 9086'));
@@ -152,12 +152,16 @@ describe('dashboard-html 四 Tab 看板', () => {
     assert.ok(html.includes('涨跌停幅度 4%'));
   });
 
-  it('信号池 tab 复用信号卡片与版本详情', () => {
+  it('信号池 tab 采用故事池式面板与版本时间线', () => {
     const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [] });
     assert.ok(html.includes('池内信号（全量追踪）'));
-    assert.ok(html.includes('SIG-PP0-20260910-01'));
-    assert.ok(html.includes('<details class="version">'));
+    assert.ok(html.includes('class="story-panel signal-panel'));
+    assert.ok(html.includes('class="sig-timeline"'));
+    assert.ok(html.includes('tl-item tl-bad current'));
+    assert.ok(html.includes('tl-row'));
     assert.ok(html.includes('回踩 8798–8845'));
+    assert.ok(html.includes('tl-current-tag'));
+    assert.ok(html.includes('sig-closed-table'));
   });
 
   it('机会卡片含价格趋势图/区间条/多空面板/chips', () => {

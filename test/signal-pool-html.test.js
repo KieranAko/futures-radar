@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { renderSignalPoolHtml, escapeHtml } = require('../output/render-signal-pool-html.cjs');
+const { renderSignalPoolHtml, escapeHtml, signalPoolPanelsHtml, signalClosedTableHtml } = require('../output/render-signal-pool-html.cjs');
 
 function makeView() {
   const signal = {
@@ -124,5 +124,27 @@ describe('signal-pool-html 看板渲染', () => {
     }, { runId: 'r1' });
     assert.ok(html.includes('当前池内无信号。'));
     assert.ok(html.includes('暂无出池信号。'));
+  });
+
+  it('故事池式信号面板：版本时间线、当前版本高亮、无嵌套版本 details', () => {
+    const view = makeView();
+    const html = signalPoolPanelsHtml(view);
+    assert.ok(html.includes('class="story-panel signal-panel'));
+    assert.ok(html.includes('class="sig-timeline"'));
+    assert.ok(html.includes('tl-item tl-ok current'));
+    assert.ok(html.includes('>V1</span>'));
+    assert.ok(html.includes('tl-current-tag'));
+    assert.ok(html.includes('tl-row'));
+    assert.ok(!html.includes('<details class="version">'));
+  });
+
+  it('出池信号表格：行内展开完整面板', () => {
+    const view = makeView();
+    const html = signalClosedTableHtml(view);
+    assert.ok(html.includes('sig-closed-row'));
+    assert.ok(html.includes('sig-closed-detail-row'));
+    assert.ok(html.includes('PTA'));
+    assert.ok(html.includes('方向层'));
+    assert.ok(html.includes('执行层'));
   });
 });

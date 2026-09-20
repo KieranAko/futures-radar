@@ -29,6 +29,7 @@ const {
 } = require('./render-strategy-section.cjs');
 const {
   versionStateOf,
+  signalStatusOf,
   eventLabel,
   directionResultLabel,
   executionResultLabel
@@ -613,6 +614,305 @@ function renderSignalPoolHtml(view, opts = {}) {
 `;
 }
 
+// ── 信号池 · 故事池式面板（版本时间线列表） ─────────────────────
+// 结构对齐故事池：每个信号 = 一个面板；版本按时间轴纵向排布（Ant 时间线风格）。
+// 时间线圆点颜色 = 版本终态（盈利绿 / 亏损红 / 未执行灰），当前版本蓝框 + 当前版本标记。
+// 面板头 = 人类可读主题（品种名）+ 状态 + 方向 + 故事来源；每个版本一整行富文本，无需二次点击。
+const SIGNAL_STATE_CLASS = {
+  target_hit: 'tl-ok',
+  time_exit_profit: 'tl-ok',
+  stopped_out: 'tl-bad',
+  time_exit_loss: 'tl-bad',
+  gap_skipped: 'tl-skip',
+  trigger_missed: 'tl-skip',
+  confirmed: 'tl-skip',
+  watch_missed: 'tl-skip',
+  suspended: 'tl-skip',
+  unverifiable: 'tl-skip'
+};
+const SIGNAL_TERMINAL_EXEC = new Set(['target_hit', 'time_exit_profit', 'stopped_out', 'time_exit_loss']);
+const SIGNAL_NOEXEC = new Set(['gap_skipped', 'trigger_missed', 'confirmed', 'watch_missed', 'suspended', 'unverifiable']);
+
+function versionNum(v) {
+  const s = String((v && v.versionId) || '');
+  const i = s.indexOf(':V');
+  if (i >= 0) return s.slice(i + 2) || '?';
+  return s || '?';
+}
+
+function dirText(dir) {
+  return dir === 'bullish' ? '多' : dir === 'bearish' ? '空' : '—';
+}
+
+function dirClass(dir) {
+  return dir === 'bullish' ? 'up' : dir === 'bearish' ? 'down' : '';
+}
+
+function regimeGradeLabel(grade) {
+  return grade === 'extreme' ? '波动极端' : grade === 'elevated' ? '波动抬升' : grade === 'normal' ? '波动正常' : '—';
+}
+
+function regimeDirLabel(dir) {
+  return dir === 'rising' ? '上行' : dir === 'falling' ? '下行' : dir === 'stable' ? '平稳' : '—';
+}
+
+function signalVersionData(sig, v, isCurrent) {
+  const state = versionStateOf(v);
+  const r = v.verification && v.verification.lastResult;
+  const entry = v.entry || {};
+  const stop = v.stop || {};
+  const targets = v.targets || {};
+  const invalidation = v.invalidation || {};
+  const regime = v.regime || {};
+  const triggerLevel = entry.triggerLevel != null ? Number(entry.triggerLevel) : null;
+  const stopPrice = stop.stopPrice != null ? Number(stop.stopPrice) : null;
+  const entryPrice = r && r.entryPrice != null ? Number(r.entryPrice) : null;
+  const exitPrice = r && r.exitPrice != null ? Number(r.exitPrice) : null;
+  const pnlPts = entryPrice != null && exitPrice != null ? exitPrice - entryPrice : null;
+  return {
+    id: `V${versionNum(v)}`,
+    kind: 'signal-version',
+    label: `V${versionNum(v)}`,
+    versionId: v.versionId || '',
+    state,
+    stateLabel: eventLabel(state, 'execution'),
+    statusClass: SIGNAL_STATE_CLASS[state] || 'tl-pending',
+    terminalExec: SIGNAL_TERMINAL_EXEC.has(state),
+    noexec: SIGNAL_NOEXEC.has(state),
+    current: !!isCurrent,
+    direction: sig.direction,
+    signalDate: v.signalDate || '',
+    trigger: entry.trigger || '',
+    triggerLevel,
+    stopPrice,
+    stopBasis: stop.basis || '',
+    t1: targets.t1 || '',
+    t2: targets.t2 || '',
+    targetsBasis: targets.basis || '',
+    execution: entry.execution || entry.triggerTiming || '',
+    hardInvalidations: Array.isArray(invalidation.hard) ? invalidation.hard : [],
+    timeStop: invalidation.timeStop || '',
+    regimeGrade: regime.grade || '',
+    regimeDirection: regime.direction || '',
+    verificationLabel: signalVersionVerificationLabel(v),
+    entryPrice,
+    exitPrice,
+    pnlPts,
+    exitType: r && r.exitType ? r.exitType : null,
+    exitDate: r && r.exitDate ? r.exitDate : null,
+    attribution: r && Array.isArray(r.attribution) ? r.attribution.map((a) => (a && a.detail) || '').filter(Boolean) : []
+  };
+}
+
+function signalTimelineItem(sig, v, isCurrent) {
+  const d = signalVersionData(sig, v, isCurrent);
+  const rows = [];
+  if (d.trigger) {
+    rows.push(`<div class="tl-row"><span class="tl-label">触发</span><span class="tl-text">${escapeHtml(d.trigger)}</span></div>`);
+  }
+  if (d.execution) rows.push(`<div class="tl-row"><span class="tl-label">执行</span><span class="tl-text">${escapeHtml(d.execution)}</span></div>`);
+  if (d.triggerLevel != null || d.stopPrice != null || d.t1) {
+    const parts = [];
+    if (d.triggerLevel != null) parts.push(`触发 <b>${fmt(d.triggerLevel, 0)}</b>`);
+    if (d.stopPrice != null) parts.push(`止损 <b>${fmt(d.stopPrice, 0)}</b>${d.stopBasis ? ` <span class="muted">${escapeHtml(d.stopBasis)}</span>` : ''}`);
+    if (d.t1) parts.push(`目标 <b>${escapeHtml(d.t1)}</b>${d.t2 ? ` / <b>${escapeHtml(d.t2)}</b>` : ''}${d.targetsBasis ? ` <span class="muted">${escapeHtml(d.targetsBasis)}</span>` : ''}`);
+    rows.push(`<div class="tl-row"><span class="tl-label">价位</span><span class="tl-text">${parts.join(' · ')}</span></div>`);
+  }
+  if (d.hardInvalidations.length || d.timeStop) {
+    const inv = [...d.hardInvalidations, ...(d.timeStop ? [d.timeStop] : [])].map((x) => escapeHtml(x)).join('；');
+    rows.push(`<div class="tl-row"><span class="tl-label">失效</span><span class="tl-text">${inv}</span></div>`);
+  }
+  if (d.regimeGrade) rows.push(`<div class="tl-row"><span class="tl-label">环境</span><span class="tl-text">${escapeHtml(regimeGradeLabel(d.regimeGrade))} · ${escapeHtml(regimeDirLabel(d.regimeDirection))}</span></div>`);
+  rows.push(`<div class="tl-row"><span class="tl-label">验证</span><span class="tl-text">${escapeHtml(d.verificationLabel || '待验证')}</span></div>`);
+  if (d.terminalExec && d.entryPrice != null && d.exitPrice != null) {
+    const sign = d.pnlPts >= 0 ? '+' : '';
+    rows.push(`<div class="tl-row tl-result"><span class="tl-label">结果</span><span class="tl-text"><b>入场 ${fmt(d.entryPrice, 0)} → 离场 ${fmt(d.exitPrice, 0)}</b> · <span class="${d.pnlPts >= 0 ? 'up' : 'down'}">${sign}${fmt(d.pnlPts, 0)} 点</span>${d.exitDate ? ` · ${escapeHtml(d.exitDate)}` : ''}</span></div>`);
+  } else if (d.noexec) {
+    const exit = versionExitDetail(v);
+    if (exit) rows.push(`<div class="tl-row tl-result"><span class="tl-label">结果</span><span class="tl-text">${escapeHtml(exit)}</span></div>`);
+  }
+  if (d.attribution.length) {
+    rows.push(`<div class="tl-row"><span class="tl-label">归因</span><span class="tl-text">${escapeHtml(d.attribution.join('；'))}</span></div>`);
+  }
+  const chipCls = d.statusClass === 'tl-ok' ? 'vc-ok' : d.statusClass === 'tl-bad' ? 'vc-bad' : d.statusClass === 'tl-skip' ? 'vc-skip' : 'vc-pending';
+  return `<div class="tl-item ${d.statusClass}${isCurrent ? ' current' : ''}">
+    <span class="tl-dot"></span>
+    <div class="tl-card">
+      <div class="tl-head">
+        <span class="ver-chip ${chipCls}">${escapeHtml(d.id)}</span>
+        <span class="tl-date">${escapeHtml(d.signalDate || '—')}</span>
+        <span class="tl-state">${escapeHtml(d.stateLabel)}</span>
+        <span class="tl-dir ${dirClass(sig.direction)}">${escapeHtml(dirText(sig.direction))}</span>
+        ${isCurrent ? '<span class="tl-current-tag">当前版本</span>' : ''}
+      </div>
+      <div class="tl-body">${rows.join('')}</div>
+    </div>
+  </div>`;
+}
+
+function signalTimelineHtml(sig, versions, { closed = false } = {}) {
+  if (!Array.isArray(versions) || versions.length === 0) return '<p class="muted">暂无版本记录。</p>';
+  const sorted = [...versions].sort((a, b) => {
+    const na = Number(versionNum(a));
+    const nb = Number(versionNum(b));
+    if (Number.isFinite(na) && Number.isFinite(nb) && na !== nb) return na - nb;
+    return String(a.signalDate || '').localeCompare(String(b.signalDate || ''));
+  });
+  const currentId = sig.currentVersionId || (sig.currentVersion && sig.currentVersion.versionId) || null;
+  const items = sorted.map((v, i) => {
+    const isCurrent = !closed && (currentId ? currentId === v.versionId : i === sorted.length - 1);
+    return signalTimelineItem(sig, v, isCurrent);
+  });
+  return `<div class="sig-timeline">${items.join('')}</div>`;
+}
+
+function signalAnchorGrid(sig, { closed = false } = {}) {
+  const a = sig.anchor;
+  const p = sig.priceTracking || {};
+  if (!a && (!p || (p.startClose == null && p.latestClose == null))) return '';
+  const entryCell = a && a.entryPrice != null ? `${fmt(a.entryPrice)}` : (a && a.status === 'skipped_gap' ? '—（执行偏离放弃）' : a && a.status === 'invalidated_not_triggered' ? '—（未触发）' : a && a.status === 'triggered_pending_entry' ? 'T+2 待定' : '—');
+  const latest = p.latestClose != null ? fmt(p.latestClose) : '—';
+  let pnlCell = '—';
+  if (closed && a && a.entryPrice != null && a.exitPrice != null && a.realizedPnlPts != null) {
+    const sign = a.realizedPnlPts >= 0 ? '+' : '';
+    const cls = a.realizedPnlPts >= 0 ? 'up' : 'down';
+    const exitLabel = a.exitType === 'time_exit' ? `时间离场${a.exitDate ? ' ' + a.exitDate : ''}` : a.exitType === 'stopped_out' ? `止损离场${a.exitDate ? ' ' + a.exitDate : ''}` : a.exitType === 'target1_hit' ? `目标1兑现${a.exitDate ? ' ' + a.exitDate : ''}` : '已离场';
+    pnlCell = `<span class="${cls}">${sign}${fmt(a.realizedPnlPts)} 点（${a.realizedPnlPct >= 0 ? '+' : ''}${a.realizedPnlPct}%）</span> · ${exitLabel}`;
+  } else if (a && a.status === 'holding' && a.floatingPnlPts != null) {
+    const sign = a.floatingPnlPts >= 0 ? '+' : '';
+    const cls = a.floatingPnlPts >= 0 ? 'up' : 'down';
+    pnlCell = `<span class="${cls}">${sign}${fmt(a.floatingPnlPts)} 点（${a.floatingPnlPct >= 0 ? '+' : ''}${a.floatingPnlPct}%）</span> · 持仓中`;
+  } else if (a && a.status === 'holding') {
+    pnlCell = '持仓中';
+  }
+  const prog = progressBar(sig.fulfillProgress);
+  const dist = sig.invalidationDistance != null ? `${fmt(sig.invalidationDistance)} ATR` : '—';
+  return `<div class="anchor-panel">
+    <div class="anchor-head">锚定策略：V${a ? versionNum(a) : '—'} · ${a ? escapeHtml(eventLabel(a.executionStatus === 'executable' ? 'armed' : a.executionStatus === 'skip' ? 'suspended' : a.executionStatus === 'watch' ? 'watching' : (a.executionStatus || '—'), 'execution')) : '—'}${a && a.signalDate ? ` · ${escapeHtml(a.signalDate)}` : ''}</div>
+    <div class="anchor-grid">
+      <div class="anchor-item"><span>入场价格</span><b>${entryCell}</b></div>
+      <div class="anchor-item"><span>最新价格</span><b>${latest}</b></div>
+      <div class="anchor-item"><span>盈亏</span><b>${pnlCell}</b></div>
+      <div class="anchor-item"><span>兑现进度</span>${prog}</div>
+      <div class="anchor-item"><span>失效距离</span><b>${dist}</b></div>
+    </div>
+  </div>`;
+}
+
+function signalObservationLine(sig) {
+  const obs = Array.isArray(sig.observations) ? sig.observations.slice(-1)[0] : null;
+  if (!obs) return '';
+  const labels = [];
+  const seen = new Set();
+  for (const e of Array.isArray(obs.events) ? obs.events : []) {
+    const label = typeof e === 'string' ? e : (e && e.label) || (e && e.code) || null;
+    if (!label || seen.has(label)) continue;
+    seen.add(label);
+    labels.push(label);
+  }
+  const ev = labels.length ? labels.join(' · ') : '—';
+  return `<div class="signal-obs">最近观察 ${escapeHtml(obs.date || '—')} · ${escapeHtml(ev)}</div>`;
+}
+
+function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyTheme = null } = {}) {
+  const sig = { ...(detail || {}), ...s, versions: (detail && Array.isArray(detail.versions) ? detail.versions : []) };
+  const versions = sig.versions;
+  const isClosed = closed || sig.poolStatus === 'closed';
+  const st = signalStatusOf(sig);
+  const statusText = poolStatusLabel(sig);
+  const badgeCls = isClosed ? 'sig-closed' : (st === 'holding' || st === 'ready' || st === 'armed') ? 'st-run' : 'st-watch';
+  const currentId = sig.currentVersionId || (sig.currentVersion && sig.currentVersion.versionId) || null;
+  const currentNum = !isClosed && currentId ? `V${String(currentId).includes(':V') ? String(currentId).split(':V')[1] : '?'}` : null;
+  const dirHtml = `<span class="sig-dir ${dirClass(sig.direction)}">${escapeHtml(dirText(sig.direction))}</span>`;
+  const storyHtml = storyTheme ? `<span class="story-source">故事 ${escapeHtml(storyTheme)}</span>` : '';
+  const p = sig.priceTracking || {};
+  let priceLine = '';
+  if (p.startClose != null || p.latestClose != null) {
+    const chg = pctChange(p.startClose, p.latestClose);
+    const fav = p.maxFavorablePts == null ? '—' : `${p.maxFavorablePts >= 0 ? '+' : ''}${fmt(p.maxFavorablePts)}`;
+    const adv = p.maxAdversePts == null ? '—' : `${p.maxAdversePts <= 0 ? '' : '+'}${fmt(p.maxAdversePts)}`;
+    priceLine = `<div class="sig-price-line">价格追踪：入池 ${fmt(p.startClose)} → 最新 <b>${fmt(p.latestClose)}</b>${chg ? ` <span class="${chg.startsWith('+') ? 'up' : 'down'}">（${chg}）</span>` : ''} · 最大有利 ${fav} · 最大不利 ${adv}</div>`;
+  }
+  const timeline = signalTimelineHtml(sig, versions, { closed: isClosed });
+  const chart = lifecycleChart(sig, versions, bars);
+  return `<div class="story-panel signal-panel ${isClosed ? 'is-closed' : ''}">
+    <div class="story-panel-head">
+      <span class="story-theme">${escapeHtml(sig.name || sig.symbol || '—')} <span class="muted">${escapeHtml(sig.symbol || '')}</span></span>
+      <span class="story-status ${badgeCls}">${escapeHtml(statusText)}</span>
+      ${dirHtml}
+      ${storyHtml}
+      <span class="story-proof">${versions.length} 版本${currentNum ? ` · 当前 ${escapeHtml(currentNum)}` : ''}${sig.createdDate ? ` · 入池 ${escapeHtml(sig.createdDate)}` : ''}</span>
+    </div>
+    ${sig.thesis ? `<div class="story-subtitle">${escapeHtml(typeof sig.thesis === 'string' ? sig.thesis : (sig.thesis.summary || ''))}</div>` : ''}
+    ${priceLine}
+    ${timeline}
+    ${signalAnchorGrid(sig, { closed: isClosed })}
+    ${!isClosed ? signalObservationLine(sig) : ''}
+    ${chart ? `<details class="sig-extra"><summary>📈 价格轨迹</summary><div class="sig-extra-body">${chart}</div></details>` : ''}
+  </div>`;
+}
+
+function signalPoolPanelsHtml(view, opts = {}) {
+  const pool = view && Array.isArray(view.pool) ? view.pool : [];
+  const details = view && view.details ? view.details : {};
+  const storyThemes = opts.storyThemes || {};
+  const barsOf = typeof opts.barsOf === 'function' ? opts.barsOf : () => null;
+  if (pool.length === 0) return '<p class="muted">当前池内无信号。</p>';
+  return pool.map((s) => signalPanelHtml(s, details[s.signalId] || {}, {
+    storyTheme: storyThemes[s.storyChainId] || null,
+    bars: barsOf(s)
+  })).join('\n');
+}
+
+function signalClosedTableHtml(view, opts = {}) {
+  const closed = view && Array.isArray(view.recentClosed) ? view.recentClosed : [];
+  const details = view && view.details ? view.details : {};
+  const storyThemes = opts.storyThemes || {};
+  const barsOf = typeof opts.barsOf === 'function' ? opts.barsOf : () => null;
+  if (closed.length === 0) return '<p class="muted">暂无出池信号。</p>';
+  const rows = closed.map((s) => {
+    const d = details[s.signalId] || {};
+    const detailId = `sig-closed-detail-${s.signalId}`;
+    const dirAttribution = s.directionResult ? directionResultLabel(s.directionResult, s.directionEvidence) : (s.closeClass ? closeClassLabel(s.closeClass) : '—');
+    const execAttribution = s.executionResult ? executionResultLabel(s.executionResult, s.executionEvent) : '—';
+    const panel = signalPanelHtml(s, d, {
+      closed: true,
+      storyTheme: storyThemes[s.storyChainId] || null,
+      bars: barsOf(s)
+    });
+    return `<tr class="closed-row sig-closed-row status-${escapeHtml(s.poolStatus || 'closed')}" data-detail-id="${escapeHtml(detailId)}" title="点击展开/折叠">
+      <td><span class="row-chevron">▸</span><b>${escapeHtml(s.name || s.symbol || '—')}</b> <span class="muted">${escapeHtml(s.symbol || '')}</span></td>
+      <td class="${dirClass(s.direction)}">${escapeHtml(dirText(s.direction))}</td>
+      <td>${escapeHtml(s.createdDate || '—')}</td>
+      <td>${escapeHtml(s.closedAt ? String(s.closedAt).slice(0, 10) : '—')}</td>
+      <td>${escapeHtml(dirAttribution)}</td>
+      <td>${escapeHtml(execAttribution)}</td>
+      <td class="num">${s.versionCount != null ? s.versionCount : (d.versions ? d.versions.length : 0)}</td>
+    </tr>
+    <tr class="closed-detail-row sig-closed-detail-row" id="${escapeHtml(detailId)}" style="display:none"><td colspan="7">${panel}</td></tr>`;
+  }).join('');
+  return `<div class="closed-table sig-closed-table">
+    <div class="closed-head-wrap"><table class="stats closed-head"><tr><th>品种</th><th>方向</th><th>入池</th><th>出池</th><th>方向层</th><th>执行层</th><th>版本</th></tr></table></div>
+    <div class="closed-scroll"><table class="stats closed-body">${rows}</table></div>
+  </div>`;
+}
+
+function signalPoolScript() {
+  return `<script>
+(function () {
+  document.querySelectorAll('.sig-closed-row').forEach(function (row) {
+    row.addEventListener('click', function () {
+      var d = document.getElementById(row.getAttribute('data-detail-id'));
+      if (!d) return;
+      var open = d.style.display !== 'none';
+      if (open) { d.style.display = 'none'; d.classList.remove('open'); row.classList.remove('open'); }
+      else { d.style.display = 'table-row'; d.classList.add('open'); row.classList.add('open'); }
+    });
+  });
+})();
+</script>`;
+}
+
 function main() {
   // 已废弃独立 signal-pool.html：信号池看板统一并入 dashboard.html（render-markdown.cjs）。
   // 本模块仅作为渲染库被 render-dashboard-html.cjs 复用（signalCard/statsTable/escapeHtml）。
@@ -628,6 +928,11 @@ module.exports = {
   signalCard,
   statsTable,
   fieldRow,
+  signalPanelHtml,
+  signalPoolPanelsHtml,
+  signalClosedTableHtml,
+  signalPoolScript,
+  signalAnchorGrid,
   main
 };
 

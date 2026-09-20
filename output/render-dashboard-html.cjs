@@ -21,9 +21,11 @@ const {
   confidenceLabel
 } = require('./render-strategy-section.cjs');
 const {
-  signalCard,
   statsTable,
-  escapeHtml
+  escapeHtml,
+  signalPoolPanelsHtml,
+  signalClosedTableHtml,
+  signalPoolScript
 } = require('./render-signal-pool-html.cjs');
 const { storyPoolHtml } = require('./render-story-pool-html.cjs');
 const storyChain = require('../stories/lib/story-chain.cjs');
@@ -520,56 +522,19 @@ function storyWatchHtml(storyView) {
   return `<div class="watch-list"><h3>故事池观察清单（无 proven 席位，本期不深挖）</h3>${rows}</div>`;
 }
 
-function signalTableRowsHtml(signals, { closed = false, details = {}, mainSeries = null, raw = null } = {}) {
-  const rows = [];
-  for (const s of signals) {
-    const d = details[s.signalId] || {};
-    const sig = { ...s, versions: d.versions || [] };
-    const bars = seriesBars(mainSeries, raw, s.symbol, s.contract);
-    const detailId = `signal-detail-${s.signalId}`;
-    const statusText = closed
-      ? (s.closeReason || '已出池')
-      : s.poolStatus === 'downgraded' ? '非生效观察' : statusBadge(s.poolStatus);
-    const dateText = closed
-      ? (s.closedAt ? String(s.closedAt).slice(0, 10) : '—')
-      : (s.lastSeenDate || '—');
-    const ver = s.versionCount != null ? s.versionCount : (sig.versions ? sig.versions.length : 0);
-    const card = signalCard(sig, { closed, bars }).replace('<details class="card', '<details class="card" open');
-    rows.push(`<tr class="signal-row${closed ? ' closed' : ''}" data-detail-id="${escapeHtml(detailId)}" title="点击展开/折叠">
-      <td><span class="row-chevron">▸</span><b>${escapeHtml(s.signalId)}</b></td>
-      <td>${escapeHtml(s.name || s.symbol)} <span class="muted">${escapeHtml(s.symbol)}</span></td>
-      <td>${directionLabel(s.direction)}</td>
-      <td>${statusText}</td>
-      <td>${escapeHtml(s.createdDate || '—')}</td>
-      <td>${escapeHtml(dateText)}</td>
-      <td class="num">${ver}</td>
-      <td class="muted">${escapeHtml(s.storyChainId || '—')}</td>
-    </tr>
-    <tr class="signal-detail-row" id="${escapeHtml(detailId)}" style="display:none"><td colspan="8">${card}</td></tr>`);
-  }
-  return rows.join('');
-}
-
-function signalTableHtml(signals, opts = {}) {
-  if (!signals || signals.length === 0) return '<p class="muted">暂无信号。</p>';
-  const cols = opts.closed
-    ? ['信号', '品种', '方向', '状态', '入池', '出池时间', '版本', '故事来源']
-    : ['信号', '品种', '方向', '状态', '入池', '最近更新', '版本', '故事来源'];
-  const head = cols.map((c) => `<th>${c}</th>`).join('');
-  return `<div class="signal-table-wrap"><table class="signal-table"><thead><tr>${head}</tr></thead><tbody>${signalTableRowsHtml(signals, opts)}</tbody></table></div>`;
-}
-
 function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = null, history, raw, mainSeries, signalDate, strategyPlan, costAnchorAvailable = false }) {
   const opps = reportModel && Array.isArray(reportModel.opportunities) ? reportModel.opportunities : [];
   const pool = signalPoolView && Array.isArray(signalPoolView.pool) ? signalPoolView.pool : [];
-  const recentClosed = signalPoolView && Array.isArray(signalPoolView.recentClosed) ? signalPoolView.recentClosed : [];
   const stats = signalPoolView && signalPoolView.historyStats ? signalPoolView.historyStats : {};
-  const details = signalPoolView && signalPoolView.details ? signalPoolView.details : {};
 
   const planMap = new Map((strategyPlan && Array.isArray(strategyPlan.plans) ? strategyPlan.plans : []).map((p) => [p.symbol, p]));
   const storyMap = {};
+  const storyThemeMap = {};
   for (const c of [...((storyView && storyView.active) || []), ...((storyView && storyView.recentClosed) || [])]) {
-    if (c && c.chainId) storyMap[c.chainId] = c;
+    if (c && c.chainId) {
+      storyMap[c.chainId] = c;
+      storyThemeMap[c.chainId] = c.theme || c.sourceId || '';
+    }
   }
   const downgradedCount = pool.filter((s) => s.poolStatus === 'downgraded').length;
   const activeCount = pool.length - downgradedCount;
@@ -621,8 +586,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   if (signalDate) writeKpiSnapshot(signalDate, kpiCurrent);
 
   const oppHtml = opps.length ? oppLayout(opps, raw, mainSeries, signalDate, Object.fromEntries(planMap), storyMap) : storyWatchHtml(storyView);
-  const poolTable = signalTableHtml(pool, { details, mainSeries, raw });
-  const closedTable = signalTableHtml(recentClosed, { closed: true, details, mainSeries, raw });
+  const barsOf = (s) => seriesBars(mainSeries, raw, s.symbol, s.contract);
+  const poolPanels = signalPoolPanelsHtml(signalPoolView || {}, { storyThemes: storyThemeMap, barsOf });
+  const sigClosedTable = signalClosedTableHtml(signalPoolView || {}, { storyThemes: storyThemeMap, barsOf });
 
   const histRows = historyTable(history);
   const pagination = paginationControl(history.length, 10);
@@ -832,6 +798,52 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .signal-detail-row td { padding: 12px 14px; background: #fbfcfd; }
   .signal-detail-row.open td { animation: story-detail-in .18s ease; }
   .side-notes { margin: 0; padding-left: 18px; font-size: 12px; color: var(--muted); line-height: 1.8; }
+
+  /* 信号池 · 故事池式面板 */
+  .signal-panel.is-closed { border-left: 3px solid #94a3b8; }
+  .sig-dir { font-size: 13px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+  .sig-dir.up { background: #fdeaea; color: var(--up); }
+  .sig-dir.down { background: #e7f6ec; color: var(--down); }
+  .story-status.sig-closed { background: #f1f3f5; color: #6b7280; }
+  .sig-price-line { font-size: 12px; color: var(--muted); background: #f7f8fa; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; margin: 8px 0 2px; }
+  .sig-timeline { position: relative; margin: 10px 0 6px; }
+  .tl-item { position: relative; padding: 0 0 14px 34px; }
+  .tl-item::before { content: ""; position: absolute; left: 12px; top: 26px; bottom: -4px; width: 2px; background: #e5e7eb; }
+  .tl-item:last-child::before { display: none; }
+  .tl-dot { position: absolute; left: 6px; top: 7px; width: 14px; height: 14px; border-radius: 50%; background: #9ca3af; border: 2px solid #fff; box-shadow: 0 0 0 2px rgba(156,163,175,.35); }
+  .tl-item.tl-ok .tl-dot { background: #047857; box-shadow: 0 0 0 2px rgba(4,120,87,.22); }
+  .tl-item.tl-bad .tl-dot { background: #b91c1c; box-shadow: 0 0 0 2px rgba(185,28,28,.2); }
+  .tl-item.tl-pending .tl-dot { background: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,.18); }
+  .tl-item.tl-skip .tl-dot { background: #cbd5e1; box-shadow: 0 0 0 2px rgba(203,213,225,.5); }
+  .tl-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
+  .tl-item.tl-ok .tl-card { border-left: 3px solid #047857; }
+  .tl-item.tl-bad .tl-card { border-left: 3px solid #b91c1c; }
+  .tl-item.tl-skip .tl-card { background: #fbfcfd; }
+  .tl-item.current .tl-card { border-color: #2563eb; background: #eef4ff; box-shadow: 0 0 0 2px rgba(37,99,235,.12); }
+  .tl-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tl-date { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .tl-state { font-size: 12px; font-weight: 600; color: #374151; }
+  .tl-dir { font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 4px; }
+  .tl-dir.up { background: #fdeaea; color: var(--up); }
+  .tl-dir.down { background: #e7f6ec; color: var(--down); }
+  .tl-current-tag { background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
+  .tl-body { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .tl-row { display: flex; gap: 10px; font-size: 13px; line-height: 1.7; }
+  .tl-label { flex: 0 0 52px; color: var(--muted); font-size: 12px; padding-top: 1px; }
+  .tl-text { flex: 1; min-width: 0; word-break: break-word; }
+  .tl-row.tl-result .tl-text b { color: var(--text); }
+  .ver-chip { flex: 0 0 auto; display: inline-block; font-size: 11px; font-weight: 700; border-radius: 4px; padding: 0 6px; margin-right: 2px; background: #f1f3f5; color: #4b5563; font-variant-numeric: tabular-nums; }
+  .ver-chip.vc-pending { background: #eef4ff; color: #2563eb; }
+  .ver-chip.vc-ok { background: #ecfdf5; color: #047857; }
+  .ver-chip.vc-bad { background: #fef2f2; color: #b91c1c; }
+  .ver-chip.vc-skip { background: #f1f3f5; color: #6b7280; }
+  .signal-obs { margin-top: 8px; font-size: 12px; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 6px; }
+  details.sig-extra { margin-top: 8px; border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; background: #fbfcfd; }
+  details.sig-extra summary { cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 600; }
+  .sig-extra-body { padding: 6px 0 2px; }
+  .sig-closed-table table { min-width: 780px; }
+  .sig-closed-row td.closed-theme { max-width: 240px; }
+  .sig-closed-row .muted { margin-left: 4px; }
   @media (max-width: 1080px) { .pool-layout { grid-template-columns: 1fr; } .pool-side { position: static; } }
 
   /* 故事池：最近出池 20 条——表头固定在滚动区外，滚动区初始约可见 5 行 */
@@ -1133,13 +1145,14 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
     <div class="pool-layout">
       <div class="pool-main">
         <h2>池内信号（全量追踪）</h2>
-        ${poolTable}
+        ${poolPanels}
         <h2>最近出池信号（最新 5 个）</h2>
-        ${closedTable}
+        ${sigClosedTable}
+        ${signalPoolScript()}
       </div>
       <aside class="pool-side">
         <div class="side-card"><h3>历史统计</h3>${statsTable(stats)}</div>
-        <div class="side-card"><h3>口径说明</h3><ul class="side-notes"><li>入池：armed（生效观察）策略诞生信号</li><li>追踪：每期完整分析席位 + 版本追加</li><li>事件即状态：armed → triggered → holding → 终态</li><li>出池：方向层 + 执行层两层归因，出池方式只做附注</li></ul></div>
+        <div class="side-card"><h3>口径说明</h3><ul class="side-notes"><li>每个信号 = 一个面板：版本按时间轴纵向排布，一眼看到每期出了什么策略，无需展开</li><li>时间线圆点：绿=盈利终态 · 红=亏损终态 · 灰=未执行/跳过 · 蓝框=当前版本</li><li>入池：armed（生效观察）策略诞生信号；每期追加版本</li><li>出池：方向层 + 执行层两层归因，出池方式只做附注</li></ul></div>
       </aside>
     </div>
   </section>
