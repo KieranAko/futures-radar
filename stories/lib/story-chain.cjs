@@ -1325,7 +1325,7 @@ function buildView({ root = null } = {}) {
           }];
       return {
         chainId: c.chainId,
-        sourceId: c.sourceId || null,
+        sourceId: c.sourceId || (c.nodes && c.nodes[0] && (c.nodes[0].indicatorId || c.nodes[0].concept)) || null,
         theme: c.theme || '（legacy 链，无主题）',
         themeDetail: c.themeDetail || null,
         sector: c.sector || null,
