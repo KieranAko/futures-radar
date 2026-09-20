@@ -1006,6 +1006,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .price-chart-wrap .chart-day-info { grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 2px 8px; }
   .chart-day-info b { font-weight: 700; }
   .chart-day-info > span { display: flex; flex-direction: column; gap: 1px; align-items: center; text-align: center; white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.45; }
+  .chart-day-info > span > b, .chart-day-info > span > span { display: block; width: 100%; text-align: center; }
   .chart-crosshair { display: none; pointer-events: none; }
   .chart-hover-tip { display: none; position: absolute; z-index: 6; background: #1f2328; color: #ffffff; font-size: 12px; line-height: 1.5; padding: 4px 10px; border-radius: 6px; pointer-events: none; white-space: nowrap; box-shadow: 0 6px 18px rgba(15,23,42,.25); transform: translateY(-100%); }
   .zp-zone { cursor: pointer; }
