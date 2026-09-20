@@ -68,13 +68,13 @@ function fmtSigned(v) {
   return (n > 0 ? '+' : '') + fmtVal(n);
 }
 
-function dagNodeCard(n, isSource = false) {
+function dagNodeCard(n, isSource = false, isCurrent = false) {
   const cur = n.lastValue ?? n.observedValue;
   const dir = n.expectation === 1 ? '<span class="up">多</span>' : n.expectation === -1 ? '<span class="down">空</span>' : '—';
   return `<div class="dg-node ${nodeClass(n)}${n.terminal ? ' terminal' : ''}" data-node-id="${escapeHtml(n.id)}">
     <div class="dg-node-head"><b>${escapeHtml(n.label || n.id)}</b><span class="dg-node-dir">${dir}</span></div>
     <div class="dg-node-val">${fmtVal(cur)} ${escapeHtml(n.unit || '')}</div>
-    <div class="dg-node-foot">${n.terminal ? `${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}` : NODE_STATUS_LABEL[n.status] || escapeHtml(n.status)}</div>
+    <div class="dg-node-foot">${n.terminal ? `${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}` : (isCurrent ? '当前节点 · ' : '') + (NODE_STATUS_LABEL[n.status] || escapeHtml(n.status))}</div>
   </div>`;
 }
 
@@ -87,7 +87,7 @@ function dagPanelHtml(c) {
   for (let d = 0; d <= maxLayer; d++) columns.push(layers.get(d) || []);
   const columnsHtml = columns.map((ids) => `<div class="dg-layer">${ids.map((id) => {
     const n = nodes.find((x) => x.id === id);
-    return n ? dagNodeCard(n, n.id === nodes[0].id) : '';
+    return n ? dagNodeCard(n, n.id === nodes[0].id, n.id === c.activeNode) : '';
   }).join('')}</div>`).join('');
   const graphNodes = nodes.map((n) => ({
     id: n.id, label: n.label || n.id, status: n.status, terminal: !!n.terminal,

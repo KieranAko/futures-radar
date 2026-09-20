@@ -916,6 +916,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .dg-node { position: relative; border: 1px solid var(--border); border-radius: 8px; background: #fff; padding: 10px 12px; min-height: 72px; cursor: pointer; }
   .dg-node.node-confirmed { border-color: #047857; background: #f0fdf4; }
   .dg-node.node-broken { border-color: #b91c1c; background: #fef2f2; }
+  .dg-node.current { border-color: #2563eb; background: #eef4ff; box-shadow: 0 0 0 2px rgba(37,99,235,.12); }
   .dg-node-head { display: flex; align-items: center; gap: 6px; }
   .dg-node-head b { font-size: 13px; }
   .dg-node-dir { color: var(--muted); }
