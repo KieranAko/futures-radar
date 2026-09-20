@@ -581,7 +581,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .stat-meta b { display: block; font-size: 19px; line-height: 1.3; font-variant-numeric: tabular-nums; }
   .stat-meta span { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
-  section h2 { font-size: 15px; margin: 20px 0 10px; padding: 8px 12px; border-left: 3px solid var(--accent); background: #f1f5f9; border-radius: 6px; }
+  section h2 { font-size: 15px; margin: 20px 0 10px; padding: 8px 12px; border: 1px solid var(--border); border-left: 3px solid var(--accent); background: var(--card); border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
 
   /* 卡片通用 */
   .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin: 10px 0; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
