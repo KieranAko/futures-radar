@@ -559,7 +559,7 @@ function credStatsTable(stats) {
 function activeChainModalHtml(c) {
   return `<div class="story-modal" id="story-modal-${escapeHtml(c.chainId)}">
     <div class="story-modal-backdrop"></div>
-    <div class="story-modal-body">
+    <div class="story-modal-body story-modal-body-sm">
       <button class="story-modal-close" data-chain-id="${escapeHtml(c.chainId)}" aria-label="关闭">×</button>
       ${chainCard(c)}
     </div>
