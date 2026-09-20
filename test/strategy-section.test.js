@@ -307,7 +307,7 @@ describe('strategy-section: 信号池追踪渲染', () => {
     assert.ok(out.includes('## 四、信号池追踪'));
     assert.ok(out.includes('池内 **1** 个信号全量追踪'));
     assert.ok(out.includes('SIG-TA0-20260911-01'));
-    assert.ok(out.includes('已触发待入场（连续 1 期无生效策略）'));
+    assert.ok(out.includes('已触发待入场（连续 1 期未产生可执行策略）'));
     assert.ok(out.includes('最近出池信号（最新 5 个）'));
     assert.ok(out.includes('SIG-PP0-20260910-01'));
     assert.ok(out.includes('反向翻转'));

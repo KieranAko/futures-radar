@@ -197,8 +197,7 @@ function anchorPanel(sig) {
 }
 
 function lifecycleChart(sig, versions, bars) {
-  const a = sig.anchor;
-  if (!a) return '';
+  const a = sig.anchor || null;
   const fullBars = Array.isArray(bars) ? bars : [];
   const createdIdx = fullBars.findIndex((b) => b.date === sig.createdDate);
   const startIdx = createdIdx === -1
@@ -207,15 +206,16 @@ function lifecycleChart(sig, versions, bars) {
   const win = fullBars.slice(startIdx);
   if (win.length < 2) return '';
 
-  const av = versions.find((v) => v.versionId === a.versionId) || null;
+  const anchorVersionId = a ? a.versionId : (sig.currentVersionId || (versions[versions.length - 1] && versions[versions.length - 1].versionId) || null);
+  const av = versions.find((v) => v.versionId === anchorVersionId) || versions[versions.length - 1] || null;
   const lastR = av && av.verification && av.verification.lastResult;
-  const skipped = a.status === 'skipped_gap';
-  const triggerLevel = a.triggerLevel != null ? Number(a.triggerLevel) : (av && av.entry && av.entry.triggerLevel != null ? Number(av.entry.triggerLevel) : null);
+  const skipped = !!a && a.status === 'skipped_gap';
+  const triggerLevel = a && a.triggerLevel != null ? Number(a.triggerLevel) : (av && av.entry && av.entry.triggerLevel != null ? Number(av.entry.triggerLevel) : null);
   const stopPrice = av && av.stop && av.stop.stopPrice != null ? Number(av.stop.stopPrice) : null;
-  const entryPrice = a.entryPrice != null ? Number(a.entryPrice) : (skipped && lastR && lastR.entryPrice != null ? Number(lastR.entryPrice) : null);
-  const entryDate = a.entryDate || (skipped && lastR && lastR.entryDate ? lastR.entryDate : null);
-  const exitPrice = a.exitPrice != null ? Number(a.exitPrice) : null;
-  const exitDate = a.exitDate || null;
+  const entryPrice = a && a.entryPrice != null ? Number(a.entryPrice) : (skipped && lastR && lastR.entryPrice != null ? Number(lastR.entryPrice) : null);
+  const entryDate = a && a.entryDate || (skipped && lastR && lastR.entryDate ? lastR.entryDate : null);
+  const exitPrice = a && a.exitPrice != null ? Number(a.exitPrice) : null;
+  const exitDate = a && a.exitDate || null;
 
   const W = 1080;
   const H = 220;
@@ -247,7 +247,7 @@ function lifecycleChart(sig, versions, bars) {
   const y = (v) => padT + ((max - v) / (max - min)) * (H - padT - padB);
 
   const parts = [];
-  parts.push(`<svg class="lifecycle-chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">`);
+  parts.push(`<svg class="lifecycle-chart" viewBox="0 0 ${W} ${H}" role="img">`);
   for (let i = 0; i <= 4; i++) {
     const gy = padT + (i / 4) * (H - padT - padB);
     const gv = max - (i / 4) * (max - min);
@@ -295,7 +295,7 @@ function lifecycleChart(sig, versions, bars) {
     if (cx == null || price == null) return;
     markers.push({ cx, cy: y(Number(price)), color, label, anchor });
   };
-  if (a.triggerDate && triggerLevel != null) addMarker(xOfDate(a.triggerDate), triggerLevel, '#b45309', `触发 ${a.triggerDate} @ ${fmt(triggerLevel, 0)}`, 'end');
+  if (a && a.triggerDate && triggerLevel != null) addMarker(xOfDate(a.triggerDate), triggerLevel, '#b45309', `触发 ${a.triggerDate} @ ${fmt(triggerLevel, 0)}`, 'end');
   if (entryDate && entryPrice != null) addMarker(xOfDate(entryDate), entryPrice, skipped ? '#b91c1c' : '#047857', `${skipped ? '放弃执行' : '入场'} ${entryDate} @ ${fmt(entryPrice, 0)}`, skipped ? 'start' : 'end');
   if (exitDate && exitPrice != null) addMarker(xOfDate(exitDate), exitPrice, '#b91c1c', `离场 ${exitDate} @ ${fmt(exitPrice, 0)}`, 'start');
 
@@ -710,35 +710,35 @@ function signalTimelineItem(sig, v, isCurrent) {
   const d = signalVersionData(sig, v, isCurrent);
   const rows = [];
   if (d.trigger) {
-    rows.push(`<div class="tl-row"><span class="tl-label">触发</span><span class="tl-text">${escapeHtml(d.trigger)}</span></div>`);
+    rows.push(`<div class="tl-row"><span class="tl-label">触发条件</span><span class="tl-text">${escapeHtml(d.trigger)}</span></div>`);
   }
-  if (d.execution) rows.push(`<div class="tl-row"><span class="tl-label">执行</span><span class="tl-text">${escapeHtml(d.execution)}</span></div>`);
+  if (d.execution) rows.push(`<div class="tl-row"><span class="tl-label">执行方式</span><span class="tl-text">${escapeHtml(d.execution)}</span></div>`);
   if (d.triggerLevel != null || d.stopPrice != null || d.t1) {
     const parts = [];
     if (d.triggerLevel != null) parts.push(`触发 <b>${fmt(d.triggerLevel, 0)}</b>`);
     if (d.stopPrice != null) parts.push(`止损 <b>${fmt(d.stopPrice, 0)}</b>${d.stopBasis ? ` <span class="muted">${escapeHtml(d.stopBasis)}</span>` : ''}`);
     if (d.t1) parts.push(`目标 <b>${escapeHtml(d.t1)}</b>${d.t2 ? ` / <b>${escapeHtml(d.t2)}</b>` : ''}${d.targetsBasis ? ` <span class="muted">${escapeHtml(d.targetsBasis)}</span>` : ''}`);
-    rows.push(`<div class="tl-row"><span class="tl-label">价位</span><span class="tl-text">${parts.join(' · ')}</span></div>`);
+    rows.push(`<div class="tl-row"><span class="tl-label">价位计划</span><span class="tl-text">${parts.join(' · ')}</span></div>`);
   }
   if (d.hardInvalidations.length || d.timeStop) {
     const inv = [...d.hardInvalidations, ...(d.timeStop ? [d.timeStop] : [])].map((x) => escapeHtml(x)).join('；');
-    rows.push(`<div class="tl-row"><span class="tl-label">失效</span><span class="tl-text">${inv}</span></div>`);
+    rows.push(`<div class="tl-row"><span class="tl-label">失效条件</span><span class="tl-text">${inv}</span></div>`);
   }
-  if (d.regimeGrade) rows.push(`<div class="tl-row"><span class="tl-label">环境</span><span class="tl-text">${escapeHtml(regimeGradeLabel(d.regimeGrade))} · ${escapeHtml(regimeDirLabel(d.regimeDirection))}</span></div>`);
+  if (d.regimeGrade) rows.push(`<div class="tl-row"><span class="tl-label">市场环境</span><span class="tl-text">${escapeHtml(regimeGradeLabel(d.regimeGrade))} · ${escapeHtml(regimeDirLabel(d.regimeDirection))}</span></div>`);
   const verificationText = d.verificationStatus === 'pending_data' ? '待数据验证'
     : d.verificationStatus === 'pending_verification' ? '待验证'
     : d.verificationLabel && d.verificationLabel !== d.stateLabel ? d.verificationLabel
     : '';
-  if (verificationText) rows.push(`<div class="tl-row"><span class="tl-label">验证</span><span class="tl-text">${escapeHtml(verificationText)}</span></div>`);
+  if (verificationText) rows.push(`<div class="tl-row"><span class="tl-label">验证状态</span><span class="tl-text">${escapeHtml(verificationText)}</span></div>`);
   if (d.terminalExec && d.entryPrice != null && d.exitPrice != null) {
     const sign = d.pnlPts >= 0 ? '+' : '';
-    rows.push(`<div class="tl-row tl-result"><span class="tl-label">结果</span><span class="tl-text"><b>入场 ${fmt(d.entryPrice, 0)} → 离场 ${fmt(d.exitPrice, 0)}</b> · <span class="${d.pnlPts >= 0 ? 'up' : 'down'}">${sign}${fmt(d.pnlPts, 0)} 点</span>${d.exitDate ? ` · ${escapeHtml(d.exitDate)}` : ''}</span></div>`);
+    rows.push(`<div class="tl-row tl-result"><span class="tl-label">交易结果</span><span class="tl-text"><b>入场 ${fmt(d.entryPrice, 0)} → 离场 ${fmt(d.exitPrice, 0)}</b> · <span class="${d.pnlPts >= 0 ? 'up' : 'down'}">${sign}${fmt(d.pnlPts, 0)} 点</span>${d.exitDate ? ` · ${escapeHtml(d.exitDate)}` : ''}</span></div>`);
   } else if (d.noexec) {
     const exit = versionExitDetail(v);
-    if (exit) rows.push(`<div class="tl-row tl-result"><span class="tl-label">结果</span><span class="tl-text">${escapeHtml(exit)}</span></div>`);
+    if (exit) rows.push(`<div class="tl-row tl-result"><span class="tl-label">交易结果</span><span class="tl-text">${escapeHtml(exit)}</span></div>`);
   }
   if (d.attribution.length) {
-    rows.push(`<div class="tl-row"><span class="tl-label">归因</span><span class="tl-text">${escapeHtml(d.attribution.join('；'))}</span></div>`);
+    rows.push(`<div class="tl-row"><span class="tl-label">结果归因</span><span class="tl-text">${escapeHtml(d.attribution.join('；'))}</span></div>`);
   }
   const chipCls = d.statusClass === 'tl-ok' ? 'vc-ok' : d.statusClass === 'tl-bad' ? 'vc-bad' : d.statusClass === 'tl-skip' ? 'vc-skip' : 'vc-pending';
   return `<div class="tl-item ${d.statusClass}${isCurrent ? ' current' : ''}">
@@ -775,9 +775,27 @@ function signalTimelineHtml(sig, versions, { closed = false } = {}) {
   return `<div class="sig-timeline">${items.join('')}</div>`;
 }
 
+function anchorStateLabel(a) {
+  const st = a && a.status;
+  if (st === 'holding') return '持仓中';
+  if (st === 'triggered_pending_entry') return '待入场';
+  if (st === 'verified') return a.exitType === 'stopped_out' ? '止损离场' : a.exitType === 'target1_hit' ? '目标兑现' : '时间离场';
+  if (st === 'skipped_gap') return '跳空放弃';
+  if (st === 'invalidated_not_triggered') return '未触发';
+  const code = a.executionStatus === 'executable' ? 'armed' : a.executionStatus === 'skip' ? 'suspended' : a.executionStatus === 'watch' ? 'watching' : null;
+  return code ? eventLabel(code, 'execution') : '—';
+}
+
 function signalAnchorGrid(sig, { closed = false } = {}) {
-  const a = sig.anchor;
   const p = sig.priceTracking || {};
+  const versions = Array.isArray(sig.versions) ? sig.versions : [];
+  const curVersion = versions.find((v) => v.versionId === sig.currentVersionId) || versions[versions.length - 1] || null;
+  const a = sig.anchor || (curVersion ? {
+    versionId: curVersion.versionId,
+    signalDate: curVersion.signalDate,
+    executionStatus: curVersion.executionStatus,
+    status: (curVersion.verification && curVersion.verification.status) || 'pending_verification'
+  } : null);
   if (!a && (!p || (p.startClose == null && p.latestClose == null))) return '';
   const entryCell = a && a.entryPrice != null ? `${fmt(a.entryPrice)}` : (a && a.status === 'skipped_gap' ? '—（执行偏离放弃）' : a && a.status === 'invalidated_not_triggered' ? '—（未触发）' : a && a.status === 'triggered_pending_entry' ? 'T+2 待定' : '—');
   const latest = p.latestClose != null ? fmt(p.latestClose) : '—';
@@ -797,13 +815,13 @@ function signalAnchorGrid(sig, { closed = false } = {}) {
   const prog = progressBar(sig.fulfillProgress);
   const dist = sig.invalidationDistance != null ? `${fmt(sig.invalidationDistance)} ATR` : '—';
   return `<div class="anchor-panel">
-    <div class="anchor-head">锚定策略：V${a ? versionNum(a) : '—'} · ${a ? escapeHtml(eventLabel(a.executionStatus === 'executable' ? 'armed' : a.executionStatus === 'skip' ? 'suspended' : a.executionStatus === 'watch' ? 'watching' : (a.executionStatus || '—'), 'execution')) : '—'}${a && a.signalDate ? ` · ${escapeHtml(a.signalDate)}` : ''}</div>
+    <div class="anchor-head">当前锚定：V${a ? versionNum(a) : '—'} · ${a ? anchorStateLabel(a) : '—'}${a && a.signalDate ? ` · ${escapeHtml(a.signalDate.slice(5))}` : ''}</div>
     <div class="anchor-grid">
-      <div class="anchor-item"><span>入场价格</span><b>${entryCell}</b></div>
-      <div class="anchor-item"><span>最新价格</span><b>${latest}</b></div>
+      <div class="anchor-item"><span>入场</span><b>${entryCell}</b></div>
+      <div class="anchor-item"><span>最新</span><b>${latest}</b></div>
       <div class="anchor-item"><span>盈亏</span><b>${pnlCell}</b></div>
-      <div class="anchor-item"><span>兑现进度</span>${prog}</div>
-      <div class="anchor-item"><span>失效距离</span><b>${dist}</b></div>
+      <div class="anchor-item"><span>兑现</span>${prog}</div>
+      <div class="anchor-item"><span>距失效</span><b>${dist}</b></div>
     </div>
   </div>`;
 }
@@ -820,7 +838,7 @@ function signalObservationLine(sig) {
     labels.push(label);
   }
   const ev = labels.length ? labels.join(' · ') : '—';
-  return `<div class="signal-obs">最近观察 ${escapeHtml(obs.date || '—')} · ${escapeHtml(ev)}</div>`;
+  return `<div class="signal-obs">最近观察：${escapeHtml(obs.date ? obs.date.slice(5) : '—')} · ${escapeHtml(ev)}</div>`;
 }
 
 function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyTheme = null } = {}) {
@@ -837,10 +855,13 @@ function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyThe
   const p = sig.priceTracking || {};
   let priceLine = '';
   if (p.startClose != null || p.latestClose != null) {
-    const chg = pctChange(p.startClose, p.latestClose);
+    const chgNum = p.startClose != null && p.latestClose != null && Number(p.startClose) !== 0
+      ? (Number(p.latestClose) - Number(p.startClose)) / Number(p.startClose) * 100
+      : null;
+    const chgText = chgNum == null ? '' : Math.abs(chgNum) < 0.05 ? ' <span class="muted">（持平）</span>' : ` <span class="${chgNum >= 0 ? 'up' : 'down'}">（${chgNum >= 0 ? '+' : ''}${chgNum.toFixed(1)}%）</span>`;
     const fav = p.maxFavorablePts == null ? '—' : `${p.maxFavorablePts >= 0 ? '+' : ''}${fmt(p.maxFavorablePts)}`;
     const adv = p.maxAdversePts == null ? '—' : `${p.maxAdversePts <= 0 ? '' : '+'}${fmt(p.maxAdversePts)}`;
-    priceLine = `<div class="sig-price-line">价格追踪：入池 ${fmt(p.startClose)} → 最新 <b>${fmt(p.latestClose)}</b>${chg ? ` <span class="${chg.startsWith('+') ? 'up' : 'down'}">（${chg}）</span>` : ''} · 最大有利 ${fav} · 最大不利 ${adv}</div>`;
+    priceLine = `<div class="sig-price-line">价格：入池 ${fmt(p.startClose)} → 最新 <b>${fmt(p.latestClose)}</b>${chgText} · 最大有利 ${fav} · 最大不利 ${adv}</div>`;
   }
   const timeline = signalTimelineHtml(sig, versions, { closed: isClosed });
   const chart = lifecycleChart(sig, versions, bars);

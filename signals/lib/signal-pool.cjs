@@ -277,6 +277,102 @@ function appendVersion(signal, plan, p) {
   return version;
 }
 
+// ── 同一天只允许一个策略：同交易日重复 plan 覆盖旧版而非追加 ──
+function versionNumber(v) {
+  const s = String((v && v.versionId) || '');
+  const i = s.lastIndexOf(':V');
+  if (i >= 0) {
+    const n = Number(s.slice(i + 2));
+    if (Number.isFinite(n)) return n;
+  }
+  return 0;
+}
+
+function sameDayVersionOf(signal, date) {
+  if (!date) return null;
+  return (signal.versions || []).find((v) => v.signalDate === date) || null;
+}
+
+function refreshPoolState(signal, version) {
+  signal.lastSeenRunId = version.runId;
+  signal.lastSeenDate = version.signalDate;
+  signal.currentVersionId = version.versionId;
+  if (version.state === 'armed') {
+    signal.poolStatus = 'active';
+    signal.consecutiveNonExecutable = 0;
+  } else {
+    signal.poolStatus = 'downgraded';
+    signal.consecutiveNonExecutable = (signal.consecutiveNonExecutable || 0) + 1;
+  }
+}
+
+const MARKET_PROGRESSED_STATUSES = new Set([
+  'holding', 'triggered_pending_entry', 'verified',
+  'skipped_gap', 'invalidated_not_triggered', 'confirmed', 'watch_missed',
+  'target_hit', 'time_exit_profit', 'stopped_out', 'time_exit_loss', 'unverifiable'
+]);
+
+function refreshVersionFromPlan(signal, version, plan, p) {
+  const idx = (signal.versions || []).findIndex((v) => v.versionId === version.versionId);
+  const prev = idx > 0 ? signal.versions[idx - 1] : null;
+  const refreshed = versionFromPlan(signal, idx + 1, plan, p, prev);
+  Object.assign(version, refreshed, {
+    versionId: version.versionId,
+    verification: { status: 'pending_verification', terminal: false, verifiedRunId: null, lastResult: null }
+  });
+  return version;
+}
+
+// 视图/持久化前归一：同一天只保留最新版本，并按交易日重新编号 V1..Vn。
+// 返回是否有变化；历史重复版本只收敛不丢弃有效信息（最新计划覆盖旧计划）。
+function normalizeVersions(signal) {
+  const versions = Array.isArray(signal.versions) ? signal.versions : [];
+  if (versions.length === 0) return false;
+  const byDate = new Map();
+  for (const v of versions) {
+    const key = v.signalDate || '';
+    const prev = byDate.get(key);
+    if (!prev || versionNumber(v) > versionNumber(prev)) byDate.set(key, v);
+  }
+  const collapsed = [...byDate.values()].sort((a, b) => {
+    const d = String(a.signalDate || '').localeCompare(String(b.signalDate || ''));
+    if (d !== 0) return d;
+    return versionNumber(a) - versionNumber(b);
+  });
+  const keptNewIds = new Map();
+  let changed = collapsed.length !== versions.length;
+  collapsed.forEach((v, i) => {
+    const newId = `${signal.signalId}:V${i + 1}`;
+    keptNewIds.set(v.signalDate || '', newId);
+    if (v.versionId !== newId) changed = true;
+    if (v.verification && v.verification.lastResult && v.verification.lastResult.recordId === v.versionId) {
+      v.verification.lastResult.recordId = newId;
+    }
+    v.versionId = newId;
+  });
+  const oldToNew = new Map();
+  for (const v of versions) {
+    oldToNew.set(v.versionId, keptNewIds.get(v.signalDate || '') || v.versionId);
+  }
+  signal.versions = collapsed;
+  if (signal.currentVersionId && oldToNew.has(signal.currentVersionId)) {
+    const mapped = oldToNew.get(signal.currentVersionId);
+    if (mapped && signal.currentVersionId !== mapped) {
+      signal.currentVersionId = mapped;
+      changed = true;
+    }
+  } else if (!collapsed.some((v) => v.versionId === signal.currentVersionId)) {
+    signal.currentVersionId = collapsed[collapsed.length - 1].versionId;
+    changed = true;
+  }
+  for (const o of Array.isArray(signal.observations) ? signal.observations : []) {
+    for (const e of Array.isArray(o.events) ? o.events : []) {
+      if (e && e.versionId && oldToNew.has(e.versionId)) e.versionId = oldToNew.get(e.versionId);
+    }
+  }
+  return changed;
+}
+
 // ── 出池质量分类（方向 × 执行）────────────────────────────
 // 维度 A：信号预测方向（价格追踪口径，与是否执行无关）。
 //   终值优先：多头 latest > startClose，空头 latest < startClose。
@@ -811,9 +907,10 @@ function buildView(runId, ledger, root = null) {
   for (const row of ledger.signals) {
     const sig = loadSignal(row.signalId, root);
     if (sig) {
+      const migratedVersions = normalizeVersions(sig);
       const migratedClass = backfillCloseClass(sig);
       const migratedProjection = backfillExitProjection(sig);
-      if (migratedClass || migratedProjection) saveSignal(sig, root);
+      if (migratedVersions || migratedClass || migratedProjection) saveSignal(sig, root);
       all.push(sig);
     }
   }
@@ -884,12 +981,16 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
   const activeBySymbol = new Map();
   for (const row of ledger.signals) {
     const sig = loadSignal(row.signalId, root);
-    if (sig && sig.poolStatus !== 'closed') activeBySymbol.set(sig.symbol, sig);
+    if (sig && sig.poolStatus !== 'closed') {
+      if (normalizeVersions(sig)) saveSignal(sig, root);
+      activeBySymbol.set(sig.symbol, sig);
+    }
   }
 
   const cache = new Map();
   let createdThisRun = 0;
   let versionsAddedThisRun = 0;
+  let versionsUpdatedThisRun = 0;
 
   // 1) 入池 / 版本追加 / 反向翻转（先处理本期 plan）
   for (const p of plans) {
@@ -909,6 +1010,17 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
     }
 
     if (existing.direction === dir) {
+      // 同一天只允许一个策略：同交易日新 plan 覆盖旧版本，不追加 V2/V3…
+      const sameDay = sameDayVersionOf(existing, plan.meta.signalDate);
+      if (sameDay) {
+        if (sameDay.runId !== plan.meta.runId && !MARKET_PROGRESSED_STATUSES.has(sameDay.verification && sameDay.verification.status)) {
+          refreshVersionFromPlan(existing, sameDay, plan, p);
+          refreshPoolState(existing, sameDay);
+          versionsUpdatedThisRun++;
+          saveSignal(existing, root);
+        }
+        continue;
+      }
       // 幂等：同一 run 已追加过该信号版本则不重复追加
       const already = existing.versions.some((v) => v.runId === plan.meta.runId);
       if (!already) {
@@ -1022,6 +1134,7 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
     meta: {
       createdThisRun,
       versionsAddedThisRun,
+      versionsUpdatedThisRun,
       poolCount: view.pool.length,
       closedTotal: view.historyStats.totalClosed
     }
@@ -1064,6 +1177,10 @@ module.exports = {
   // lifecycle
   createSignal,
   appendVersion,
+  versionNumber,
+  sameDayVersionOf,
+  refreshVersionFromPlan,
+  normalizeVersions,
   closeSignal,
   computeVerdict,
   directionVerdictOf,

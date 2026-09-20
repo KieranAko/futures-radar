@@ -17,8 +17,9 @@ const {
 } = require('../signals/lib/signal-pool.cjs');
 
 function makePlan(runId, symbol, overrides = {}) {
+  const { signalDate = '2026-08-26', ...planOverrides } = overrides;
   return {
-    meta: { runId, signalDate: '2026-08-26', inputsSha: 'x', generatedAt: '2026-08-26T00:00:00Z' },
+    meta: { runId, signalDate, inputsSha: 'x', generatedAt: `${signalDate}T00:00:00Z` },
     plans: [{
       symbol,
       name: symbol,
@@ -33,7 +34,7 @@ function makePlan(runId, symbol, overrides = {}) {
       targets: { t1: '110（50%）', t2: '2R', basis: 'p68' },
       riskAssessment: { atr5: 5, maxHoldingDays: 2, regimeGrade: 'normal', regimeDirection: 'stable' },
       invalidation: { hard: ['收盘跌破 95'], timeStop: 'T+5' },
-      ...overrides
+      ...planOverrides
     }]
   };
 }
@@ -98,7 +99,7 @@ describe('signal-pool 信号池核心生命周期', () => {
       updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
       const { view } = updateSignalPool({
         runId: 'run-2', raw, rootOverride: root,
-        plan: makePlan('run-2', 'PP0', { executionStatus: 'watch' })
+        plan: makePlan('run-2', 'PP0', { signalDate: '2026-08-27', executionStatus: 'watch' })
       });
       assert.equal(view.pool.length, 1);
       let sig = loadSignal(view.pool[0].signalId, root);
@@ -107,12 +108,12 @@ describe('signal-pool 信号池核心生命周期', () => {
       assert.equal(sig.poolStatus, 'downgraded');
       assert.equal(sig.consecutiveNonExecutable, 1);
 
-      updateSignalPool({ runId: 'run-3', raw, rootOverride: root, plan: makePlan('run-3', 'PP0', { executionStatus: 'skip' }) });
+      updateSignalPool({ runId: 'run-3', raw, rootOverride: root, plan: makePlan('run-3', 'PP0', { signalDate: '2026-08-28', executionStatus: 'skip' }) });
       sig = loadSignal(sig.signalId, root);
       assert.equal(sig.versions[2].stateTransition, '维持观察');
       assert.equal(sig.consecutiveNonExecutable, 2);
 
-      updateSignalPool({ runId: 'run-4', raw, rootOverride: root, plan: makePlan('run-4', 'PP0') });
+      updateSignalPool({ runId: 'run-4', raw, rootOverride: root, plan: makePlan('run-4', 'PP0', { signalDate: '2026-08-29' }) });
       sig = loadSignal(sig.signalId, root);
       assert.equal(sig.versions[3].stateTransition, '升级执行');
       assert.equal(sig.poolStatus, 'active');
@@ -152,14 +153,16 @@ describe('signal-pool 信号池核心生命周期', () => {
   it('skip 版本验证为 suppressed，不进入交易模拟', () => {
     const root = tmpRoot();
     try {
-      const raw = makeRaw('PP0', ['2026-08-24', '2026-08-25', '2026-08-26'], [98, 99, 100], [100, 101, 102], [97, 98, 99], [100, 100, 100]);
+      const raw = makeRaw('PP0',
+        ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28'],
+        [98, 99, 100, 100, 100], [100, 101, 102, 102, 102], [97, 98, 99, 99, 99], [100, 100, 100, 100, 100]);
       updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
-      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { executionStatus: 'skip' }) });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { signalDate: '2026-08-27', executionStatus: 'skip' }) });
       const ledger = loadLedger(root);
       const sig = loadSignal(ledger.signals[0].signalId, root);
       assert.equal(sig.versions.length, 2);
       // 本期 skip 版本下期才验证；追加第三期后 V2 应 suppressed
-      updateSignalPool({ runId: 'run-3', raw, rootOverride: root, plan: makePlan('run-3', 'PP0') });
+      updateSignalPool({ runId: 'run-3', raw, rootOverride: root, plan: makePlan('run-3', 'PP0', { signalDate: '2026-08-28' }) });
       const sig2 = loadSignal(ledger.signals[0].signalId, root);
       const v2 = sig2.versions[1];
       assert.equal(v2.verification.status, 'suppressed');
@@ -318,7 +321,7 @@ describe('signal-pool 信号池核心生命周期', () => {
       updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
       updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: { meta: { runId: 'run-2', signalDate: '2026-08-27', inputsSha: 'x' }, plans: [] } });
       for (let i = 3; i <= 5; i++) {
-        updateSignalPool({ runId: `run-${i}`, raw, rootOverride: root, plan: makePlan(`run-${i}`, 'PP0', { executionStatus: 'skip' }) });
+        updateSignalPool({ runId: `run-${i}`, raw, rootOverride: root, plan: makePlan(`run-${i}`, 'PP0', { signalDate: `2026-08-${26 + i}`, executionStatus: 'skip' }) });
       }
       const ledger = loadLedger(root);
       const sig = loadSignal(ledger.signals[0].signalId, root);
@@ -341,9 +344,9 @@ describe('signal-pool 信号池核心生命周期', () => {
       updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
       updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: { meta: { runId: 'run-2', signalDate: '2026-08-27', inputsSha: 'x' }, plans: [] } });
       for (let i = 3; i <= 5; i++) {
-        updateSignalPool({ runId: `run-${i}`, raw, rootOverride: root, plan: makePlan(`run-${i}`, 'PP0', { executionStatus: 'skip' }) });
+        updateSignalPool({ runId: `run-${i}`, raw, rootOverride: root, plan: makePlan(`run-${i}`, 'PP0', { signalDate: `2026-08-${26 + i}`, executionStatus: 'skip' }) });
       }
-      updateSignalPool({ runId: 'run-5', raw, rootOverride: root, plan: makePlan('run-5', 'PP0', { executionStatus: 'skip' }) });
+      updateSignalPool({ runId: 'run-5', raw, rootOverride: root, plan: makePlan('run-5', 'PP0', { signalDate: '2026-08-31', executionStatus: 'skip' }) });
       const ledger = loadLedger(root);
       const sig = loadSignal(ledger.signals[0].signalId, root);
       assert.equal(sig.poolStatus, 'active');
@@ -359,12 +362,39 @@ describe('signal-pool 信号池核心生命周期', () => {
     try {
       const raw = { contracts: {} };
       updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
-      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { executionStatus: 'watch' }) });
-      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { signalDate: '2026-08-27', executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { signalDate: '2026-08-27', executionStatus: 'watch' }) });
       const ledger = loadLedger(root);
       const sig = loadSignal(ledger.signals[0].signalId, root);
       assert.equal(sig.versions.length, 2);
       assert.equal(sig.versions.filter((v) => v.runId === 'run-2').length, 1);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('同一天多个 plan 不追加版本：最新计划覆盖旧版本', () => {
+    const root = tmpRoot();
+    try {
+      const raw = { contracts: {} };
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
+      const { view, meta } = updateSignalPool({
+        runId: 'run-2', raw, rootOverride: root,
+        plan: makePlan('run-2', 'PP0', { signalDate: '2026-08-26', entry: { trigger: '收盘站稳 105 上方', triggerLevel: 105 } })
+      });
+      assert.equal(meta.versionsAddedThisRun, 0);
+      assert.equal(meta.versionsUpdatedThisRun, 1);
+      const sig = loadSignal(view.pool[0].signalId, root);
+      assert.equal(sig.versions.length, 1);
+      assert.equal(sig.versions[0].runId, 'run-2');
+      assert.equal(sig.versions[0].signalDate, '2026-08-26');
+      assert.equal(sig.versions[0].entry.triggerLevel, 105);
+      assert.equal(sig.currentVersionId, sig.versions[0].versionId);
+      // 同一 run 重复执行不再次覆盖
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { signalDate: '2026-08-26', entry: { trigger: '收盘站稳 999 上方', triggerLevel: 999 } }) });
+      const sig2 = loadSignal(sig.signalId, root);
+      assert.equal(sig2.versions.length, 1);
+      assert.equal(sig2.versions[0].entry.triggerLevel, 105);
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }
@@ -454,9 +484,9 @@ describe('signal-pool 出池质量分类（方向 × 执行）', () => {
         [100, 100, 100, 101, 101, 101, 101, 101]);
       const plan = makePlan('run-1', 'PP0', { riskAssessment: { atr5: 5, maxHoldingDays: 5, regimeGrade: 'normal', regimeDirection: 'stable' } });
       updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
-      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { executionStatus: 'watch' }) });
-      updateSignalPool({ runId: 'run-3', raw, rootOverride: root, plan: makePlan('run-3', 'PP0', { executionStatus: 'watch' }) });
-      updateSignalPool({ runId: 'run-4', raw, rootOverride: root, plan: makePlan('run-4', 'PP0', { executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { signalDate: '2026-08-27', executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-3', raw, rootOverride: root, plan: makePlan('run-3', 'PP0', { signalDate: '2026-08-28', executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-4', raw, rootOverride: root, plan: makePlan('run-4', 'PP0', { signalDate: '2026-08-29', executionStatus: 'watch' }) });
       const ledger = loadLedger(root);
       const sig = loadSignal(ledger.signals[0].signalId, root);
       assert.equal(sig.poolStatus, 'closed');
@@ -484,9 +514,9 @@ describe('signal-pool 出池质量分类（方向 × 执行）', () => {
         [100, 100, 100, 105, 120, 120, 120, 120]);
       const plan = makePlan('run-1', 'PP0', { riskAssessment: { atr5: 5, maxHoldingDays: 5, regimeGrade: 'normal', regimeDirection: 'stable' } });
       updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
-      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { executionStatus: 'watch' }) });
-      updateSignalPool({ runId: 'run-3', raw, rootOverride: root, plan: makePlan('run-3', 'PP0', { executionStatus: 'watch' }) });
-      updateSignalPool({ runId: 'run-4', raw, rootOverride: root, plan: makePlan('run-4', 'PP0', { executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { signalDate: '2026-08-27', executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-3', raw, rootOverride: root, plan: makePlan('run-3', 'PP0', { signalDate: '2026-08-28', executionStatus: 'watch' }) });
+      updateSignalPool({ runId: 'run-4', raw, rootOverride: root, plan: makePlan('run-4', 'PP0', { signalDate: '2026-08-29', executionStatus: 'watch' }) });
       const ledger = loadLedger(root);
       const sig = loadSignal(ledger.signals[0].signalId, root);
       assert.equal(sig.poolStatus, 'closed');

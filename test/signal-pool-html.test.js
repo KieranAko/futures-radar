@@ -85,7 +85,7 @@ describe('signal-pool-html 看板渲染', () => {
     assert.ok(html.includes('池内信号（全量追踪）'));
     assert.ok(html.includes('SIG-PP0-20260910-01'));
     assert.ok(html.includes('聚丙烯（PP2701）'));
-    assert.ok(html.includes('全部暂停（连续 1 期无生效策略）'));
+    assert.ok(html.includes('全部暂停（连续 1 期未产生可执行策略）'));
     assert.ok(html.includes('最近出池信号（最新 5 个）'));
     assert.ok(html.includes('SIG-TA0-20260901-01'));
     assert.ok(html.includes('历史统计'));

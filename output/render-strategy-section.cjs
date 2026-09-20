@@ -190,7 +190,7 @@ function renderFeedbackV2(feedback) {
 function poolStatusLabel(s) {
   const st = s.signalStatus || signalStatusOf(s);
   if (st === 'closed') return '已出池';
-  const downgrade = s.consecutiveNonExecutable ? `（连续 ${s.consecutiveNonExecutable} 期无生效策略）` : '';
+  const downgrade = s.consecutiveNonExecutable ? `（连续 ${s.consecutiveNonExecutable} 期未产生可执行策略）` : '';
   if (st === 'holding') return `持仓中${downgrade}`;
   if (st === 'ready') return `已触发待入场${downgrade}`;
   if (st === 'armed') return '生效观察';

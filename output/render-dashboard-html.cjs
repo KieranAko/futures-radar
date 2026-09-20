@@ -837,7 +837,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .tl-current-tag { background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
   .tl-body { padding: 8px 14px 10px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 4px; }
   .tl-row { display: flex; gap: 10px; font-size: 13px; line-height: 1.7; }
-  .tl-label { flex: 0 0 52px; color: var(--muted); font-size: 12px; padding-top: 1px; }
+  .tl-label { flex: 0 0 64px; color: var(--muted); font-size: 12px; padding-top: 1px; }
   .tl-text { flex: 1; min-width: 0; word-break: break-word; }
   .tl-row.tl-result .tl-text b { color: var(--text); }
   .ver-chip { flex: 0 0 auto; display: inline-block; font-size: 11px; font-weight: 700; border-radius: 4px; padding: 0 6px; margin-right: 2px; background: #f1f3f5; color: #4b5563; font-variant-numeric: tabular-nums; }
@@ -1157,7 +1157,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
       </div>
       <aside class="pool-side">
         <div class="side-card"><h3>历史统计</h3>${statsTable(stats)}</div>
-        <div class="side-card"><h3>口径说明</h3><ul class="side-notes"><li>池内与出池信号统一为同一种信号面板：版本时间线 + 价格轨迹图</li><li>时间线头部常显（版本/日期/状态/方向），点击展开完整策略文本；当前版本默认展开</li><li>时间线圆点：绿=盈利终态 · 红=亏损终态 · 灰=未执行/跳过 · 蓝框=当前版本</li><li>出池：方向层 + 执行层两层归因，出池方式只做附注</li></ul></div>
+        <div class="side-card"><h3>口径说明</h3><ul class="side-notes"><li>池内与出池信号统一为同一种信号面板：版本时间线 + 价格轨迹图</li><li>每个信号每个交易日只保留一条最新策略，后续交易日才追加新版本</li><li>时间线头部常显（版本/日期/状态/方向），点击展开完整策略文本；当前版本默认展开</li><li>时间线圆点：绿=盈利终态 · 红=亏损终态 · 灰=未执行/跳过 · 蓝框=当前版本</li><li>出池：方向层 + 执行层两层归因，出池方式只做附注</li></ul></div>
       </aside>
     </div>
   </section>
