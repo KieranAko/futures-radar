@@ -576,7 +576,7 @@ function closedChainModalHtml(c) {
   const events = (c.events || []).slice(-5).map((e) => `<div class="story-event"><span class="event-date">${escapeHtml(e.date || '')}</span> · <b>${EVENT_LABEL[e.type] || escapeHtml(e.type || '')}</b>${e.nodeId ? ` · 节点 ${escapeHtml(e.nodeId)}` : ''}：${escapeHtml(e.detail || '')}</div>`).join('');
   return `<div class="story-modal" id="story-modal-${escapeHtml(c.chainId)}">
     <div class="story-modal-backdrop"></div>
-    <div class="story-modal-body">
+    <div class="story-modal-body story-modal-body-sm">
       <button class="story-modal-close" data-chain-id="${escapeHtml(c.chainId)}" aria-label="关闭">×</button>
       <div class="story-card" style="margin:0;border:none">
         <div class="story-summary">
