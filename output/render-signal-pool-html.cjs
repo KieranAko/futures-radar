@@ -427,10 +427,7 @@ function lifecycleChart(sig, versions, bars) {
       groups.push({ y: t.y, texts: [t.text], color: t.color });
     }
   }
-  for (const g of groups) {
-    const ty = Math.max(padT + 4, Math.min(H - 8, g.y + 4));
-    parts.push(`<text x="${(W - padR - 8).toFixed(1)}" y="${ty.toFixed(1)}" font-size="11" font-weight="700" fill="${g.color}" text-anchor="end" style="${textStyle}">${escapeHtml(g.texts.join(' · '))}</text>`);
-  }
+  // 右侧不再写价位文字：关键价位统一放到图下图例，避免遮挡蜡烛。
 
   const markerLabels = avoidOverlap(markers.map((m) => ({
     y: m.anchor === 'start' ? m.cy - 8 : m.cy + 16,
@@ -468,7 +465,20 @@ function lifecycleChart(sig, versions, bars) {
 
   parts.push('</svg>');
 
-  return `<div class="lifecycle">${parts.join('')}</div>`;
+  const legendSwatch = (color, dash) => `<i style="width:16px;height:0;border-top:3px ${dash || 'solid'} ${color};display:inline-block;vertical-align:middle;"></i>`;
+  const legendValue = (l) => l.labelValue != null ? `${l.labelValue >= 0 ? '+' : ''}${fmt(l.labelValue, 0)}` : fmt(l.level, 0);
+  const levelLegend = uniqueLevels.map((l) => {
+    const dash = l.dash !== undefined ? 'dashed' : solidLevels.has(l.label) ? 'solid' : l.label === '触发' ? 'dashed' : 'dashed';
+    return `<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;">${legendSwatch(l.color, dash)}<b style="font-weight:600;color:#1f2328;">${escapeHtml(l.label)}</b> ${legendValue(l)}</span>`;
+  });
+  const zoneLegend = [];
+  if (stopPrice != null) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(239,68,68,.18);outline:1px solid rgba(239,68,68,.5);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">失效区</b></span>`);
+  if (favLevel != null && advLevel != null && Math.abs(favLevel - advLevel) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(100,116,139,.18);outline:1px solid rgba(100,116,139,.5);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">实际波动</b></span>`);
+  if (triggerLevel != null && stopPrice != null && Math.abs(triggerLevel - stopPrice) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(217,119,6,.2);outline:1px solid rgba(217,119,6,.55);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">计划区间</b></span>`);
+  if (t1Level != null && t2Level != null && Math.abs(t1Level - t2Level) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(37,99,235,.2);outline:1px solid rgba(37,99,235,.55);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">目标区间</b></span>`);
+  const legendHtml = `<div class="chart-legend" style="display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:12px;color:#6b7280;">${[...levelLegend, ...zoneLegend].join('')}</div>`;
+
+  return `<div class="lifecycle">${parts.join('')}${legendHtml}</div>`;
 }
 
 function signalCard(sig, { closed = false, bars = null } = {}) {
