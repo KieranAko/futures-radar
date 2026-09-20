@@ -591,9 +591,10 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .card[open] > summary::before { transform: rotate(90deg); }
   .card-body { padding: 4px 16px 16px; border-top: 1px solid var(--border); }
 
-  /* 机会分析：主从布局 */
-  .opp-layout { display: flex; gap: 16px; align-items: flex-start; }
-  .opp-nav { width: 250px; flex: 0 0 250px; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 70px; }
+  /* 机会分析：主从布局（与信号池/故事池保持左右对称：主内容左、侧栏右） */
+  .opp-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+  .opp-nav { order: 2; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 70px; }
+  .opp-content { order: 1; min-width: 0; }
   .opp-nav-item { display: flex; align-items: flex-start; gap: 10px; text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
   .opp-nav-item.active { border-color: var(--accent); background: #eef4ff; }
   .nav-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex: 0 0 8px; }
@@ -607,7 +608,6 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .nav-badge.bearish { background: #e7f6ec; color: var(--down); }
   .nav-badge.neutral { background: #f1f3f5; color: var(--muted); }
   .nav-sub { display: block; font-size: 12px; color: var(--muted); line-height: 1.5; }
-  .opp-content { flex: 1; min-width: 0; }
   .opp-pane { display: none; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
   .opp-pane.active { display: block; }
 
@@ -884,8 +884,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .page-info { font-size: 12px; color: var(--muted); }
 
   @media (max-width: 900px) {
-    .opp-layout { flex-direction: column; }
-    .opp-nav { width: 100%; flex-direction: row; flex-wrap: wrap; position: static; }
+    .opp-layout { grid-template-columns: 1fr; }
+    .opp-nav { order: 0; width: 100%; flex-direction: row; flex-wrap: wrap; position: static; }
     .opp-nav-item { flex-direction: row; align-items: center; }
   }
   @media print { header { position: static; } .tab { display: none; } .tab-panel { display: block !important; } .pagination { display: none; } details:not([open]) > *:not(summary) { display: block !important; } details > summary::before { content: ""; } }
