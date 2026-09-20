@@ -217,10 +217,10 @@ function lifecycleChart(sig, versions, bars) {
   const exitPrice = a.exitPrice != null ? Number(a.exitPrice) : null;
   const exitDate = a.exitDate || null;
 
-  const W = 780;
-  const H = 240;
+  const W = 1080;
+  const H = 220;
   const padL = 46;
-  const padR = 84;
+  const padR = 64;
   const padT = 20;
   const padB = 26;
   const n = win.length;
