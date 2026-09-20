@@ -1324,7 +1324,7 @@ function buildView({ root = null } = {}) {
             intact: t.intact !== false,
           }))
         : [{
-            branchId: null,
+            branchId: (c.nodes && c.nodes[c.nodes.length - 1] && c.nodes[c.nodes.length - 1].id) || null,
             symbol: c.representative || null,
             direction: c.direction,
             priority: 'primary',
@@ -1375,12 +1375,54 @@ function buildView({ root = null } = {}) {
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
   const closed = chains.filter((c) => isTerminal(c.status))
-    .map((c) => ({
-      chainId: c.chainId, theme: c.theme || '（legacy 链，无主题）', themeDetail: c.themeDetail || null, sector: c.sector, status: c.status, closeReason: c.closeReason,
-      createdAt: c.createdAt, closedAt: c.closedAt,
-      confirmedNodes: c.nodes.filter((n) => n.status === 'confirmed').length,
-      totalNodes: c.nodes.length, proven: c.provenAt !== null,
-    }))
+    .map((c) => {
+      const branches = (c.terminals && c.terminals.length > 0)
+        ? c.terminals.map((t) => ({
+            branchId: t.nodeId, symbol: t.symbol, direction: t.direction, priority: t.priority,
+            status: t.status, proofIndex: t.proofIndex, impactRationale: t.impactRationale,
+            confirmedUpstream: t.confirmedUpstream || 0, intact: t.intact !== false,
+          }))
+        : [{
+            branchId: (c.nodes && c.nodes[c.nodes.length - 1] && c.nodes[c.nodes.length - 1].id) || null,
+            symbol: c.representative || null, direction: c.direction, priority: 'primary', status: c.status,
+            proofIndex: c.entryProofIndex || null, impactRationale: null, confirmedUpstream: null, intact: true,
+          }];
+      return {
+        chainId: c.chainId,
+        sourceId: c.sourceId || (c.nodes && c.nodes[0] && (c.nodes[0].indicatorId || c.nodes[0].concept)) || null,
+        theme: c.theme || '（legacy 链，无主题）',
+        themeDetail: c.themeDetail || null,
+        sector: c.sector || null,
+        direction: c.direction ?? (branches[0] && branches[0].direction) ?? null,
+        representative: c.representative || (branches[0] && branches[0].symbol) || null,
+        status: c.status,
+        closeReason: c.closeReason,
+        createdAt: c.createdAt,
+        closedAt: c.closedAt,
+        confirmedNodes: c.nodes.filter((n) => n.status === 'confirmed').length,
+        totalNodes: c.nodes.length,
+        proven: c.provenAt !== null,
+        branches,
+        nodes: c.nodes.map((n) => ({
+          id: n.id, indicatorId: n.indicatorId, concept: n.concept, expectation: n.expectation,
+          label: n.label, status: n.status, credibility: n.credibility, brokenReason: n.brokenReason,
+          unit: n.unit || null,
+          observedValue: n.observedValue, observedDirection: n.observedDirection,
+          observedAt: n.observedAt,
+          windowStartDate: n.windowStartDate || null,
+          windowDeadlineDate: n.windowDeadlineDate || null,
+          lastValue: n.lastValue, lastValueAt: n.lastValueAt,
+          prevValue: n.prevValue, prevValueAt: n.prevValueAt,
+          resolution: n.resolution ? { path: n.resolution.path, sourceTier: n.resolution.sourceTier, asOf: n.resolution.asOf } : null,
+          terminal: !!n.terminal,
+          priority: n.terminal ? (n.priority || 'secondary') : null,
+          impactRationale: n.terminal ? (n.impactRationale || null) : null,
+          proofIndex: n.terminal ? (n.proofIndex || null) : null,
+        })),
+        edges: (c.edges || []).map((e) => ({ from: e.from, to: e.to, logic: e.logic, latencyDays: e.latencyDays })),
+        events: c.events.slice(-5),
+      };
+    })
     .sort((a, b) => (b.closedAt || '').localeCompare(a.closedAt || '')).slice(0, 20);
 
   const evaluatedNodes = chains.reduce((a, c) => a + c.nodes.filter((n) => n.status === 'confirmed' || n.status === 'broken').length, 0);

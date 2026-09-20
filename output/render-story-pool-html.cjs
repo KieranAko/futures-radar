@@ -138,7 +138,7 @@ function computeLayers(nodes, edges) {
   return { depth, layers };
 }
 
-function nodeSvg(n, x, y, sourceId, markerId) {
+function nodeSvg(n, x, y, sourceId, markerId, idPrefix = '') {
   const w = 196, h = 66;
   const isSource = n.id === sourceId;
   const isTerminal = !!n.terminal;
@@ -154,7 +154,7 @@ function nodeSvg(n, x, y, sourceId, markerId) {
   const sub = n.indicatorId || n.concept || '';
   const dir = n.expectation === 1 ? '↑' : n.expectation === -1 ? '↓' : '';
   const statusShort = status === 'confirmed' ? '✔' : status === 'broken' ? '✘' : '·';
-  return `<g class="sg-node" data-id="${escapeHtml(n.id)}" transform="translate(${x},${y})" style="cursor:pointer">
+  return `<g class="sg-node" data-id="${escapeHtml(idPrefix + n.id)}" transform="translate(${x},${y})" style="cursor:pointer">
     <rect width="${w}" height="${h}" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="${isTerminal ? 2.5 : 1.5}"></rect>
     <text x="12" y="25" font-size="13" font-weight="700" fill="${text}">${escapeHtml(short(label, 12))}</text>
     <text x="12" y="43" font-size="10" fill="${text}" opacity="0.78">${escapeHtml(short(sub, 24))}</text>
@@ -274,6 +274,7 @@ function graphScript() {
     function showNodeDetail(n) {
       var rows = [];
       rows.push('<div class="sg-detail-head"><b>' + short(n.label, 20) + '</b><button class="sg-detail-close" aria-label="关闭">×</button></div>');
+      if (n.theme) rows.push('<div class="sg-detail-row"><span>故事</span><b>' + short(n.theme, 20) + '</b></div>');
       rows.push('<div class="sg-detail-row"><span>状态</span><b>' + short(n.status, 10) + (n.terminal ? ' · ' + (n.priority === 'primary' ? '主支' : '次支') : '') + '</b></div>');
       rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : '—') + '</b></div>');
       if (n.lastValue != null) rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + n.lastValue + (n.unit ? ' ' + n.unit : '') + '（' + short(n.lastValueAt, 10) + '）</b></div>');
@@ -288,6 +289,8 @@ function graphScript() {
         + '<div class="sg-detail-row"><span>时间窗</span><b>' + e.latencyDays + ' 个交易日</b></div>'
         + '</div>';
     }
+    g._highlight = highlightPath;
+    g._clear = clearDim;
     nodeEls.forEach(function (n) {
       n.addEventListener('mouseenter', function () { highlightPath(n.getAttribute('data-id')); });
       n.addEventListener('mouseleave', clearDim);
@@ -310,8 +313,168 @@ function graphScript() {
       if (ev.target && ev.target.classList && ev.target.classList.contains('sg-detail-close')) { detail.innerHTML = ''; }
     });
   });
+
+  document.querySelectorAll('.branch-row').forEach(function (row) {
+    row.addEventListener('click', function () {
+      var graph = document.querySelector('.story-graph-market');
+      if (!graph || !graph._highlight) return;
+      var nid = row.getAttribute('data-graph-node');
+      graph._highlight(nid);
+      if (graph.scrollIntoView) graph.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+
+  function openModal(id) { var m = document.getElementById('story-modal-' + id); if (m) m.classList.add('open'); }
+  function closeModal(m) { if (m) m.classList.remove('open'); }
+  document.querySelectorAll('.story-detail-btn, .closed-detail-btn').forEach(function (btn) {
+    btn.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      openModal(btn.getAttribute('data-chain-id'));
+    });
+  });
+  document.querySelectorAll('.story-modal-close').forEach(function (btn) {
+    btn.addEventListener('click', function () { closeModal(btn.closest('.story-modal')); });
+  });
+  document.querySelectorAll('.story-modal-backdrop').forEach(function (bd) {
+    bd.addEventListener('click', function () { closeModal(bd.closest('.story-modal')); });
+  });
 })();
 </script>`;
+}
+
+function chainNodesAndEdges(c) {
+  return { nodes: c.nodes || [], edges: c.edges || [] };
+}
+
+function pathToTerminal(c, branchId) {
+  const { nodes, edges } = chainNodesAndEdges(c);
+  const target = branchId || (c.branches && c.branches[0] && c.branches[0].branchId) || (nodes[nodes.length - 1] && nodes[nodes.length - 1].id);
+  const source = nodes[0] && nodes[0].id;
+  if (!target || !source) return [];
+  const adj = new Map(nodes.map((n) => [n.id, []]));
+  for (const e of edges || []) if (adj.has(e.from)) adj.get(e.from).push(e.to);
+  const prev = new Map();
+  const q = [source]; prev.set(source, null);
+  while (q.length) {
+    const id = q.shift();
+    if (id === target) break;
+    for (const to of adj.get(id) || []) if (!prev.has(to)) { prev.set(to, id); q.push(to); }
+  }
+  if (!prev.has(target)) return [];
+  const path = [];
+  let cur = target;
+  while (cur) { path.unshift(cur); cur = prev.get(cur); }
+  return path.map((id) => nodes.find((n) => n.id === id)).filter(Boolean);
+}
+
+function branchTableHtml(active) {
+  const rows = [];
+  for (const c of active || []) {
+    const branches = (c.branches && c.branches.length > 0) ? c.branches : [];
+    for (const b of branches) {
+      const path = pathToTerminal(c, b.branchId);
+      const pathText = path.map((n) => n.label || n.id).join(' → ');
+      rows.push({ c, b, pathText });
+    }
+  }
+  const trs = rows.map(({ c, b, pathText }) => {
+    const bDir = b.direction === -1 ? '空' : b.direction === 1 ? '多' : '—';
+    const graphNodeId = `${c.chainId}::${b.branchId || ''}`;
+    return `<tr class="branch-row" data-graph-node="${escapeHtml(graphNodeId)}" data-chain-id="${escapeHtml(c.chainId)}">
+      <td><span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span></td>
+      <td class="muted">${escapeHtml(c.sourceId || '—')}</td>
+      <td>${escapeHtml(pathText || '—')}</td>
+      <td><b>${escapeHtml(b.symbol || '—')}</b></td>
+      <td>${bDir}</td>
+      <td>${escapeHtml(b.status || '—')}</td>
+      <td>${b.proofIndex != null ? `p=${b.proofIndex}` : '—'}</td>
+      <td class="muted">${escapeHtml(b.impactRationale || '—')}</td>
+      <td><button class="story-detail-btn" data-chain-id="${escapeHtml(c.chainId)}" title="查看故事详情">详情</button></td>
+    </tr>`;
+  }).join('');
+  return `<table class="branch-table branch-table-wide">
+    <thead><tr><th>分支</th><th>源</th><th>传导路径</th><th>终点</th><th>方向</th><th>状态</th><th>证明</th><th>为什么是这里</th><th></th></tr></thead>
+    <tbody>${trs || '<tr><td colspan="9" class="muted">当前故事池为空</td></tr>'}</tbody></table>`;
+}
+
+function marketMapHtml(active) {
+  const chains = active || [];
+  const nodeW = 196, nodeH = 66, gapX = 164, gapY = 20;
+  // 全局分层：每列一个 depth，跨链纵向堆叠
+  const colItems = new Map();
+  const colCounts = new Map();
+  const positions = new Map();
+  const nodesOut = [];
+  const edgesOut = [];
+  for (const c of chains) {
+    const { nodes, edges } = chainNodesAndEdges(c);
+    const { layers } = computeLayers(nodes, edges);
+    for (const [d, ids] of layers) {
+      if (!colItems.has(Number(d))) colItems.set(Number(d), []);
+      for (const id of ids) colItems.get(Number(d)).push({ c, id });
+    }
+    for (const e of edges || []) edgesOut.push({ c, e });
+  }
+  const maxDepth = Math.max(0, ...[...colItems.keys()].map(Number));
+  const columns = [];
+  for (let d = 0; d <= maxDepth; d++) columns.push(colItems.get(d) || []);
+  const colHeight = columns.map((items) => items.length * (nodeH + gapY) + 12);
+  const svgH = Math.max(120, ...colHeight);
+  const svgW = Math.max(420, (maxDepth + 1) * (nodeW + gapX) + 16);
+  columns.forEach((items, d) => {
+    items.forEach((item, i) => {
+      positions.set(`${item.c.chainId}::${item.id}`, { x: 10 + d * (nodeW + gapX), y: 10 + i * (nodeH + gapY) });
+    });
+  });
+  const markerId = 'sg-arrow-market';
+  const edgesSvg = [];
+  for (const { c, e } of edgesOut) {
+    const from = positions.get(`${c.chainId}::${e.from}`);
+    const to = positions.get(`${c.chainId}::${e.to}`);
+    if (!from || !to) continue;
+    const x1 = from.x + nodeW, y1 = from.y + nodeH / 2;
+    const x2 = to.x, y2 = to.y + nodeH / 2;
+    const dx = Math.max(42, (x2 - x1) * 0.45);
+    edgesSvg.push(`<path class="sg-edge" data-from="${escapeHtml(c.chainId + '::' + e.from)}" data-to="${escapeHtml(c.chainId + '::' + e.to)}" d="M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#${markerId})"></path>`);
+  }
+  const nodeSvgList = [];
+  for (const c of chains) {
+    const { nodes } = chainNodesAndEdges(c);
+    for (const n of nodes) {
+      const p = positions.get(`${c.chainId}::${n.id}`);
+      if (!p) continue;
+      nodeSvgList.push(nodeSvg(n, p.x, p.y, nodes[0] && nodes[0].id, markerId, `${c.chainId}::`));
+    }
+  }
+  // 构建 data 节点/边（带 chainId 前缀）
+  const graphNodes = [];
+  for (const c of chains) {
+    const { nodes } = chainNodesAndEdges(c);
+    for (const n of nodes) {
+      graphNodes.push({
+        id: `${c.chainId}::${n.id}`, chainId: c.chainId, theme: c.theme || '',
+        label: n.label || n.id, indicatorId: n.indicatorId || n.concept || '',
+        status: n.status, terminal: !!n.terminal, priority: n.priority || null, proofIndex: n.proofIndex ?? null,
+        expectation: n.expectation, credibility: n.credibility, unit: n.unit || '',
+        lastValue: n.lastValue ?? null, lastValueAt: n.lastValueAt || null,
+        prevValue: n.prevValue ?? null, prevValueAt: n.prevValueAt || null,
+        observedAt: n.observedAt || null, windowStartDate: n.windowStartDate || null,
+        windowDeadlineDate: n.windowDeadlineDate || null, brokenReason: n.brokenReason || null,
+      });
+    }
+  }
+  const graphEdges = [];
+  for (const { c, e } of edgesOut) {
+    graphEdges.push({ from: `${c.chainId}::${e.from}`, to: `${c.chainId}::${e.to}`, logic: e.logic || '', latencyDays: e.latencyDays });
+  }
+  return `<div class="story-graph story-graph-market" data-nodes='${jsonAttr(graphNodes)}' data-edges='${jsonAttr(graphEdges)}'>
+    <svg viewBox="0 0 ${svgW} ${svgH}" class="sg-svg">
+      <defs><marker id="${markerId}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"></path></marker></defs>
+      ${edgesSvg.join('')}
+      ${nodeSvgList.join('')}
+    </svg>
+    <div class="sg-detail"></div>
+  </div>`;
 }
 
 function graphLegendHtml() {
@@ -370,8 +533,8 @@ function chainCard(c) {
 function closedTable(closed) {
   if (!closed || closed.length === 0) return '<p class="muted">暂无已出池故事。</p>';
   const rows = closed.map((c) => `<tr>
-    <td class="closed-theme">${escapeHtml(c.theme || '（未命名主题）')}${c.themeDetail ? `<div class="muted">${escapeHtml(c.themeDetail)}</div>` : ''}<div class="muted">${escapeHtml(c.chainId)}</div></td>
-    <td>${escapeHtml(c.sector)}</td><td>${storyStatusBadge(c.status)}</td>
+    <td class="closed-theme"><button class="closed-detail-btn" data-chain-id="${escapeHtml(c.chainId)}">${escapeHtml(c.theme || '（未命名主题）')}</button><div class="muted">${escapeHtml(c.chainId)}</div></td>
+    <td>${escapeHtml(c.sector || '—')}</td><td>${storyStatusBadge(c.status)}</td>
     <td>${c.proven ? '✅' : '—'}</td><td>${c.confirmedNodes}/${c.totalNodes}</td>
     <td>${escapeHtml(c.closeReason || '—')}</td><td>${escapeHtml(c.createdAt)} → ${escapeHtml(c.closedAt || '—')}</td>
   </tr>`).join('');
@@ -394,6 +557,39 @@ function credStatsTable(stats) {
     <tr><td>低</td><td>${c.low || 0}</td></tr><tr><td>未知</td><td>${c.unknown || 0}</td></tr></table>`;
 }
 
+function activeChainModalHtml(c) {
+  return `<div class="story-modal" id="story-modal-${escapeHtml(c.chainId)}">
+    <div class="story-modal-backdrop"></div>
+    <div class="story-modal-body">
+      <button class="story-modal-close" data-chain-id="${escapeHtml(c.chainId)}" aria-label="关闭">×</button>
+      ${chainCard(c)}
+    </div>
+  </div>`;
+}
+
+function closedChainModalHtml(c) {
+  const nodes = (c.nodes || []).map((n) => `<div class="story-node ${nodeClass(n)}">
+    <div class="node-line node-title"><span class="node-state">${n.status === 'confirmed' ? '✔' : n.status === 'broken' ? '✘' : '·'}</span><span class="node-label">${escapeHtml(n.label || n.id)}</span><span class="node-status">${NODE_STATUS_LABEL[n.status] || escapeHtml(n.status)}</span><span class="node-dir">${n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : ''}</span></div>
+    <div class="node-line node-values"><span class="node-value">前值 ${fmtVal(n.prevValue)}${n.prevValueAt ? `（${escapeHtml(n.prevValueAt)}）` : ''} → 当前 <b>${fmtVal(n.lastValue)}</b>${n.lastValueAt ? `（${escapeHtml(n.lastValueAt)}）` : ''} · 环比 <b>${Number.isFinite(Number(n.lastValue)) && Number.isFinite(Number(n.prevValue)) ? fmtSigned(Number(n.lastValue) - Number(n.prevValue)) : '—'}</b> ${escapeHtml(n.unit || '')}</span></div>
+    <div class="node-line node-meta-line"><span class="node-meta">${escapeHtml(n.indicatorId || n.concept || '—')}</span><span class="node-path">${escapeHtml(n.resolution ? n.resolution.path : 'T0')}</span></div>
+  </div>`).join('');
+  const events = (c.events || []).slice(-5).map((e) => `<div class="story-event"><span class="event-date">${escapeHtml(e.date || '')}</span> · <b>${EVENT_LABEL[e.type] || escapeHtml(e.type || '')}</b>${e.nodeId ? ` · 节点 ${escapeHtml(e.nodeId)}` : ''}：${escapeHtml(e.detail || '')}</div>`).join('');
+  return `<div class="story-modal" id="story-modal-${escapeHtml(c.chainId)}">
+    <div class="story-modal-backdrop"></div>
+    <div class="story-modal-body">
+      <button class="story-modal-close" data-chain-id="${escapeHtml(c.chainId)}" aria-label="关闭">×</button>
+      <div class="story-card" style="margin:0;border:none">
+        <div class="story-summary">
+          <span class="story-theme">${escapeHtml(c.theme || '（未命名主题）')}</span>
+          <div class="story-subtitle">${escapeHtml(c.themeDetail || '')}</div>
+          <div class="story-head"><span class="story-chain-id">${escapeHtml(c.chainId)}</span>${storyStatusBadge(c.status)}<span class="story-source">源 ${escapeHtml(c.sourceId || c.sector || '—')}</span><span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认 · ${escapeHtml(c.closeReason || '—')}</span></div>
+        </div>
+        <div class="story-body"><div class="story-nodes">${nodes || '<span class="muted">暂无节点明细</span>'}</div><div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
 function storyPoolHtml(view) {
   const stats = view && view.stats ? view.stats : {};
   const active = view && Array.isArray(view.active) ? view.active : [];
@@ -408,8 +604,8 @@ function storyPoolHtml(view) {
   </div>
   <div class="pool-layout">
     <div class="pool-main">
-      <h2>活跃故事（点击标题折叠/展开）</h2>
-      ${active.map(chainCard).join('') || '<p class="muted">当前故事池为空——没有清晰传导逻辑的板块不注册。</p>'}
+      <h2>活跃故事传导总览</h2>
+      ${active.length ? `${graphLegendHtml()}${marketMapHtml(active)}${branchTableHtml(active)}` : '<p class="muted">当前故事池为空——没有清晰传导逻辑的源头不注册。</p>'}
       <h2>最近出池故事（最新 20 条）</h2>
       ${closedTable(closed)}
     </div>
@@ -425,6 +621,8 @@ function storyPoolHtml(view) {
       </ul></div>
     </aside>
   </div>
+  ${active.map(activeChainModalHtml).join('')}
+  ${closed.map(closedChainModalHtml).join('')}
   ${graphScript()}`;
 }
 

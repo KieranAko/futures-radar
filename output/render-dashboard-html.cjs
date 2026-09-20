@@ -777,6 +777,16 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .branch-table th { color: var(--muted); font-weight: 500; }
   .story-sub-detail { margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 6px; }
   .story-sub-detail summary { cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 600; }
+  .branch-table-wide { min-width: 960px; }
+  .branch-row { cursor: pointer; }
+  .branch-row:hover td { background: #f6f8fb; }
+  .story-detail-btn, .closed-detail-btn { border: 1px solid var(--border); background: var(--card); border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; color: var(--text); }
+  .closed-detail-btn { border: none; background: transparent; padding: 0; font-weight: 600; cursor: pointer; color: var(--text); font-size: 13px; text-align: left; }
+  .story-modal { display: none; position: fixed; inset: 0; z-index: 50; }
+  .story-modal.open { display: block; }
+  .story-modal-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,.45); }
+  .story-modal-body { position: absolute; inset: 24px 24px 24px 24px; max-width: 960px; margin: 0 auto; background: var(--card); border-radius: 12px; overflow: auto; padding: 18px 20px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+  .story-modal-close { position: absolute; top: 10px; right: 12px; border: none; background: transparent; font-size: 24px; line-height: 1; cursor: pointer; color: var(--muted); z-index: 2; }
   .story-branches { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
   .story-branch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: #fafbfc; }
   .branch-priority { font-size: 11px; padding: 1px 6px; border-radius: 4px; }
