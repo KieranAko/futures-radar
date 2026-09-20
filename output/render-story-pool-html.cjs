@@ -70,7 +70,7 @@ function fmtSigned(v) {
 
 function dagNodeCard(n, isSource = false) {
   const cur = n.lastValue ?? n.observedValue;
-  const dir = n.expectation === 1 ? '↑' : n.expectation === -1 ? '↓' : '—';
+  const dir = n.expectation === 1 ? '<span class="up">多</span>' : n.expectation === -1 ? '<span class="down">空</span>' : '—';
   return `<div class="dg-node ${nodeClass(n)}${n.terminal ? ' terminal' : ''}" data-node-id="${escapeHtml(n.id)}">
     <div class="dg-node-head"><b>${escapeHtml(n.label || n.id)}</b><span class="dg-node-dir">${dir}</span></div>
     <div class="dg-node-val">${fmtVal(cur)} ${escapeHtml(n.unit || '')}</div>
@@ -356,7 +356,7 @@ function graphScript() {
       rows.push('<div class="sg-detail-head"><b>' + short(n.label, 20) + '</b><button class="sg-detail-close" aria-label="关闭">×</button></div>');
       if (n.theme) rows.push('<div class="sg-detail-row"><span>故事</span><b>' + short(n.theme, 20) + '</b></div>');
       rows.push('<div class="sg-detail-row"><span>状态</span><b>' + short(n.status, 10) + (n.terminal ? ' · ' + (n.priority === 'primary' ? '主支' : '次支') : '') + '</b></div>');
-      rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : '—') + '</b></div>');
+      rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '<span class="up">多</span>' : n.expectation === -1 ? '<span class="down">空</span>' : '—') + '</b></div>');
       if (n.lastValue != null && Number.isFinite(Number(n.lastValue))) {
         rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + Number(n.lastValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + short(n.lastValueAt, 10) + '）</b></div>');
         if (n.prevValue != null && Number.isFinite(Number(n.prevValue))) rows.push('<div class="sg-detail-row"><span>前值 → 当前</span><b>' + Number(n.prevValue).toFixed(2) + ' → ' + Number(n.lastValue).toFixed(2) + '</b></div>');
@@ -726,7 +726,7 @@ function dagScript() {
     var rows = [];
     rows.push('<div class="sg-detail-head"><b>' + n.label + '</b><button class="sg-detail-close">×</button></div>');
     rows.push('<div class="sg-detail-row"><span>状态</span><b>' + n.status + (n.terminal ? ' · ' + (n.priority === 'primary' ? '主支' : '次支') : '') + '</b></div>');
-    rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : '—') + '</b></div>');
+    rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '<span class="up">多</span>' : n.expectation === -1 ? '<span class="down">空</span>' : '—') + '</b></div>');
     if (n.prevValue != null) rows.push('<div class="sg-detail-row"><span>前值</span><b>' + Number(n.prevValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + (n.prevValueAt || '—') + '）</b></div>');
     if (n.lastValue != null) rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + Number(n.lastValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + n.lastValueAt + '）</b></div>');
     if (n.prevValue != null && n.lastValue != null) {
