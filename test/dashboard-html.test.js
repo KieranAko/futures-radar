@@ -136,8 +136,11 @@ describe('dashboard-html 四 Tab 看板', () => {
     }));
     const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), storyView, history: [] });
     assert.ok(html.includes('最近出池故事（最新 20 条）'));
+    assert.ok(html.includes('class="closed-table"'));
+    assert.ok(html.includes('class="closed-head-wrap"'));
     assert.ok(html.includes('class="closed-scroll"'));
-    assert.ok(html.includes('.closed-scroll { max-height: 300px;'));
+    assert.ok(html.includes('.closed-head-wrap { scrollbar-gutter: stable;'));
+    assert.ok(html.indexOf('closed-head-wrap') < html.indexOf('closed-scroll'), '表头应在滚动区之外');
     for (let i = 0; i < 20; i++) {
       assert.ok(html.includes(`CH-CLOSED-${String(i).padStart(2, '0')}`), `missing closed chain ${i}`);
     }

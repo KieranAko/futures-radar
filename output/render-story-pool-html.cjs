@@ -137,7 +137,10 @@ function closedTable(closed) {
     <td>${c.proven ? '✅' : '—'}</td><td>${c.confirmedNodes}/${c.totalNodes}</td>
     <td>${escapeHtml(c.closeReason || '—')}</td><td>${escapeHtml(c.createdAt)} → ${escapeHtml(c.closedAt || '—')}</td>
   </tr>`).join('');
-  return `<table class="stats"><tr><th>主题</th><th>板块</th><th>终态</th><th>曾证明</th><th>节点</th><th>出池原因</th><th>生命周期</th></tr>${rows}</table>`;
+  return `<div class="closed-table">
+    <div class="closed-head-wrap"><table class="stats closed-head"><tr><th>主题</th><th>板块</th><th>终态</th><th>曾证明</th><th>节点</th><th>出池原因</th><th>生命周期</th></tr></table></div>
+    <div class="closed-scroll"><table class="stats closed-body">${rows}</table></div>
+  </div>`;
 }
 
 function pathStatsTable(stats) {
@@ -170,7 +173,7 @@ function storyPoolHtml(view) {
       <h2>活跃故事（点击标题折叠/展开）</h2>
       ${active.map(chainCard).join('') || '<p class="muted">当前故事池为空——没有清晰传导逻辑的板块不注册。</p>'}
       <h2>最近出池故事（最新 20 条）</h2>
-      <div class="closed-scroll">${closedTable(closed)}</div>
+      ${closedTable(closed)}
     </div>
     <aside class="pool-side">
       <div class="side-card"><h3>节点命中率（按取数路径）</h3>${pathStatsTable(stats)}</div>
