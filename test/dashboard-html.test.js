@@ -120,6 +120,29 @@ describe('dashboard-html 四 Tab 看板', () => {
     assert.ok(!html.includes('https://'));
   });
 
+  it('最近出池故事：标题保留 20 条，容器固定高度可滚动且 20 条全部渲染', () => {
+    const storyView = makeStoryView();
+    storyView.recentClosed = Array.from({ length: 20 }, (_, i) => ({
+      chainId: `CH-CLOSED-${String(i).padStart(2, '0')}`,
+      theme: `出池故事 ${i}`,
+      sector: 'black',
+      status: 'falsified',
+      proven: false,
+      confirmedNodes: 1,
+      totalNodes: 3,
+      closeReason: '证伪',
+      createdAt: '2026-09-01',
+      closedAt: `2026-09-${String(10 + (i % 10)).padStart(2, '0')}`
+    }));
+    const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), storyView, history: [] });
+    assert.ok(html.includes('最近出池故事（最新 20 条）'));
+    assert.ok(html.includes('class="closed-scroll"'));
+    assert.ok(html.includes('.closed-scroll { max-height: 300px;'));
+    for (let i = 0; i < 20; i++) {
+      assert.ok(html.includes(`CH-CLOSED-${String(i).padStart(2, '0')}`), `missing closed chain ${i}`);
+    }
+  });
+
   it('机会分析 tab 渲染机会卡片字段', () => {
     const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [] });
     assert.ok(html.includes('聚丙烯（PP2701）'));

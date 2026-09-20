@@ -170,7 +170,7 @@ function storyPoolHtml(view) {
       <h2>活跃故事（点击标题折叠/展开）</h2>
       ${active.map(chainCard).join('') || '<p class="muted">当前故事池为空——没有清晰传导逻辑的板块不注册。</p>'}
       <h2>最近出池故事（最新 20 条）</h2>
-      ${closedTable(closed)}
+      <div class="closed-scroll">${closedTable(closed)}</div>
     </div>
     <aside class="pool-side">
       <div class="side-card"><h3>节点命中率（按取数路径）</h3>${pathStatsTable(stats)}</div>

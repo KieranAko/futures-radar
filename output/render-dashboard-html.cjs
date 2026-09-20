@@ -692,6 +692,12 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .side-notes { margin: 0; padding-left: 18px; font-size: 12px; color: var(--muted); line-height: 1.8; }
   @media (max-width: 1080px) { .pool-layout { grid-template-columns: 1fr; } .pool-side { position: static; } }
 
+  /* 故事池：最近出池 20 条固定高度滚动，初始约可见 5 行 */
+  .closed-scroll { max-height: 300px; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+  .closed-scroll table { min-width: 860px; }
+  .closed-scroll th { position: sticky; top: 0; background: var(--card); z-index: 1; }
+  @media (max-width: 1080px) { .closed-scroll { max-height: 260px; } }
+
   .anchor-panel { background: #f0f6ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 10px 12px; margin: 8px 0; }
   .anchor-head { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
   .anchor-sub { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
