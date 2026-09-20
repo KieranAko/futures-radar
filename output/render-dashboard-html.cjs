@@ -785,6 +785,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .branch-table-wide { min-width: 960px; }
   .branch-row { cursor: pointer; }
   .branch-row:hover td { background: #f6f8fb; }
+  .closed-row { cursor: pointer; }
+  .closed-row:hover td { background: #f6f8fb; }
+  .branch-detail-row td, .closed-detail-row td { padding: 10px 12px; background: #fbfcfd; }
   .story-detail-btn, .closed-detail-btn { border: 1px solid var(--border); background: var(--card); border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; color: var(--text); }
   .closed-detail-btn { border: none; background: transparent; padding: 0; font-weight: 600; cursor: pointer; color: var(--text); font-size: 13px; text-align: left; }
   .story-modal { display: none; position: fixed; inset: 0; z-index: 50; }

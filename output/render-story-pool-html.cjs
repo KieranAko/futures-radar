@@ -335,38 +335,23 @@ function graphScript() {
     });
   });
 
+  function toggleDetail(id) {
+    var d = document.getElementById(id);
+    if (d) d.style.display = d.style.display === 'none' ? 'table-row' : 'none';
+  }
   document.querySelectorAll('.branch-row').forEach(function (row) {
     row.addEventListener('click', function () {
       var graph = document.querySelector('.story-graph-market');
-      if (!graph || !graph._highlight) return;
       var nid = row.getAttribute('data-graph-node');
-      graph._highlight(nid);
-      if (graph.scrollIntoView) graph.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (graph && graph._highlight) {
+        graph._highlight(nid);
+        if (graph.scrollIntoView) graph.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      toggleDetail(row.getAttribute('data-detail-id'));
     });
   });
-
-  document.querySelectorAll('.story-detail-btn').forEach(function (btn) {
-    btn.addEventListener('click', function (ev) {
-      ev.stopPropagation();
-      var id = btn.getAttribute('data-chain-id');
-      var panel = document.getElementById('story-inline-' + id);
-      if (panel) panel.classList.toggle('open');
-    });
-  });
-
-  function openModal(id) { var m = document.getElementById('story-modal-' + id); if (m) m.classList.add('open'); }
-  function closeModal(m) { if (m) m.classList.remove('open'); }
-  document.querySelectorAll('.closed-detail-btn').forEach(function (btn) {
-    btn.addEventListener('click', function (ev) {
-      ev.stopPropagation();
-      openModal(btn.getAttribute('data-chain-id'));
-    });
-  });
-  document.querySelectorAll('.story-modal-close').forEach(function (btn) {
-    btn.addEventListener('click', function () { closeModal(btn.closest('.story-modal')); });
-  });
-  document.querySelectorAll('.story-modal-backdrop').forEach(function (bd) {
-    bd.addEventListener('click', function () { closeModal(bd.closest('.story-modal')); });
+  document.querySelectorAll('.closed-row').forEach(function (row) {
+    row.addEventListener('click', function () { toggleDetail(row.getAttribute('data-detail-id')); });
   });
 })();
 </script>`;
@@ -381,6 +366,7 @@ function pathToTerminal(c, branchId) {
   const target = branchId || (c.branches && c.branches[0] && c.branches[0].branchId) || (nodes[nodes.length - 1] && nodes[nodes.length - 1].id);
   const source = nodes[0] && nodes[0].id;
   if (!target || !source) return [];
+  if (!edges || edges.length === 0) return nodes.slice();
   const adj = new Map(nodes.map((n) => [n.id, []]));
   for (const e of edges || []) if (adj.has(e.from)) adj.get(e.from).push(e.to);
   const prev = new Map();
@@ -400,7 +386,18 @@ function pathToTerminal(c, branchId) {
 function branchTableHtml(active) {
   const rows = [];
   for (const c of active || []) {
-    const branches = (c.branches && c.branches.length > 0) ? c.branches : [];
+    let branches = (c.branches && c.branches.length > 0) ? c.branches : [];
+    if (branches.length === 0 && c.representative) {
+      branches = [{
+        branchId: (c.nodes && c.nodes[c.nodes.length - 1] && c.nodes[c.nodes.length - 1].id) || null,
+        symbol: c.representative,
+        direction: c.direction,
+        priority: 'primary',
+        status: c.status,
+        proofIndex: c.entryProofIndex || null,
+        impactRationale: null,
+      }];
+    }
     for (const b of branches) {
       const path = pathToTerminal(c, b.branchId);
       const pathText = path.map((n) => n.label || n.id).join(' → ');
@@ -410,7 +407,9 @@ function branchTableHtml(active) {
   const trs = rows.map(({ c, b, pathText }) => {
     const bDir = b.direction === -1 ? '空' : b.direction === 1 ? '多' : '—';
     const graphNodeId = `${c.chainId}::${b.branchId || ''}`;
-    return `<tr class="branch-row" data-graph-node="${escapeHtml(graphNodeId)}" data-chain-id="${escapeHtml(c.chainId)}">
+    const detailId = `branch-detail-${c.chainId}-${b.branchId || 'main'}`;
+    const detailHtml = chainCard(c).replace('<details class="story-card">', '<details class="story-card" open>');
+    return `<tr class="branch-row" data-graph-node="${escapeHtml(graphNodeId)}" data-detail-id="${escapeHtml(detailId)}">
       <td><span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span></td>
       <td class="muted">${escapeHtml(c.sourceId || '—')}</td>
       <td>${escapeHtml(pathText || '—')}</td>
@@ -419,12 +418,12 @@ function branchTableHtml(active) {
       <td>${escapeHtml(b.status || '—')}</td>
       <td>${b.proofIndex != null ? `p=${b.proofIndex}` : '—'}</td>
       <td class="muted">${escapeHtml(b.impactRationale || '—')}</td>
-      <td><button class="story-detail-btn" data-chain-id="${escapeHtml(c.chainId)}" title="查看故事详情">详情</button></td>
-    </tr>`;
+    </tr>
+    <tr class="branch-detail-row" id="${escapeHtml(detailId)}" style="display:none"><td colspan="8">${detailHtml}</td></tr>`;
   }).join('');
   return `<table class="branch-table branch-table-wide">
-    <thead><tr><th>分支</th><th>源</th><th>传导路径</th><th>终点</th><th>方向</th><th>状态</th><th>证明</th><th>为什么是这里</th><th></th></tr></thead>
-    <tbody>${trs || '<tr><td colspan="9" class="muted">当前故事池为空</td></tr>'}</tbody></table>`;
+    <thead><tr><th>分支</th><th>源</th><th>传导路径</th><th>终点</th><th>方向</th><th>状态</th><th>证明</th><th>为什么是这里</th></tr></thead>
+    <tbody>${trs || '<tr><td colspan="8" class="muted">当前故事池为空</td></tr>'}</tbody></table>`;
 }
 
 function marketMapHtml(active) {
@@ -552,14 +551,29 @@ function chainCard(c) {
 </details>`;
 }
 
+function closedChainCardInline(c) {
+  return `<div class="story-card" style="margin:0;border:none">
+    <div class="story-summary">
+      <span class="story-theme">${escapeHtml(c.theme || '（未命名主题）')}</span>
+      <div class="story-subtitle">${escapeHtml(c.themeDetail || '')}</div>
+      <div class="story-head"><span class="story-chain-id">${escapeHtml(c.chainId)}</span>${storyStatusBadge(c.status)}<span class="story-source">源 ${escapeHtml(c.sourceId || c.sector || '—')}</span><span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认 · ${escapeHtml(c.closeReason || '—')}</span></div>
+    </div>
+    <div class="story-body">${graphLegendHtml()}${storyGraphHtml(c)}</div>
+  </div>`;
+}
+
 function closedTable(closed) {
   if (!closed || closed.length === 0) return '<p class="muted">暂无已出池故事。</p>';
-  const rows = closed.map((c) => `<tr>
-    <td class="closed-theme"><button class="closed-detail-btn" data-chain-id="${escapeHtml(c.chainId)}">${escapeHtml(c.theme || '（未命名主题）')}</button><div class="muted">${escapeHtml(c.chainId)}</div></td>
+  const rows = closed.map((c) => {
+    const detailId = `closed-detail-${c.chainId}`;
+    return `<tr class="closed-row" data-detail-id="${escapeHtml(detailId)}">
+    <td class="closed-theme"><b>${escapeHtml(c.theme || '（未命名主题）')}</b><div class="muted">${escapeHtml(c.chainId)}</div></td>
     <td>${escapeHtml(c.sector || '—')}</td><td>${storyStatusBadge(c.status)}</td>
     <td>${c.proven ? '✅' : '—'}</td><td>${c.confirmedNodes}/${c.totalNodes}</td>
     <td>${escapeHtml(c.closeReason || '—')}</td><td>${escapeHtml(c.createdAt)} → ${escapeHtml(c.closedAt || '—')}</td>
-  </tr>`).join('');
+  </tr>
+  <tr class="closed-detail-row" id="${escapeHtml(detailId)}" style="display:none"><td colspan="7">${closedChainCardInline(c)}</td></tr>`;
+  }).join('');
   return `<div class="closed-table">
     <div class="closed-head-wrap"><table class="stats closed-head"><tr><th>主题</th><th>板块</th><th>终态</th><th>曾证明</th><th>节点</th><th>出池原因</th><th>生命周期</th></tr></table></div>
     <div class="closed-scroll"><table class="stats closed-body">${rows}</table></div>
@@ -622,7 +636,7 @@ function storyPoolHtml(view) {
   <div class="pool-layout">
     <div class="pool-main">
       <h2>活跃故事传导总览</h2>
-      ${active.length ? `${graphLegendHtml()}${marketMapHtml(active)}${branchTableHtml(active)}${active.map(activeInlinePanelHtml).join('')}` : '<p class="muted">当前故事池为空——没有清晰传导逻辑的源头不注册。</p>'}
+      ${active.length ? `${graphLegendHtml()}${marketMapHtml(active)}${branchTableHtml(active)}` : '<p class="muted">当前故事池为空——没有清晰传导逻辑的源头不注册。</p>'}
       <h2>最近出池故事（最新 20 条）</h2>
       ${closedTable(closed)}
     </div>
@@ -638,7 +652,6 @@ function storyPoolHtml(view) {
       </ul></div>
     </aside>
   </div>
-  ${closed.map(closedChainModalHtml).join('')}
   ${graphScript()}`;
 }
 

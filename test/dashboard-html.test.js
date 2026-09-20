@@ -111,7 +111,8 @@ describe('dashboard-html 四 Tab 看板', () => {
     assert.ok(html.includes('story-theme'));
     assert.ok(html.includes('class="story-card"'));
     assert.ok(html.includes('story-graph-market'));
-    assert.ok(html.includes('story-inline-panel'));
+    assert.ok(html.includes('branch-detail-row'));
+    assert.ok(html.includes('closed-detail-row'));
     assert.ok(html.includes('branch-row'));
     assert.ok(html.includes('分支'));
     assert.ok(html.includes('传导路径'));
