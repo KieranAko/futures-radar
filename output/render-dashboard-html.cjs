@@ -793,6 +793,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .story-modal-body { position: absolute; inset: 24px 24px 24px 24px; max-width: 960px; margin: 0 auto; background: var(--card); border-radius: 12px; overflow: auto; padding: 18px 20px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
   .story-modal-close { position: absolute; top: 10px; right: 12px; border: none; background: transparent; font-size: 24px; line-height: 1; cursor: pointer; color: var(--muted); z-index: 2; }
   .story-modal-body-sm { max-width: 900px; max-height: 62vh; inset: 36px 18px 36px 18px; margin: 0 auto; }
+  .story-inline-panel { display: none; margin: 8px 0 12px; }
+  .story-inline-panel.open { display: block; }
   .story-branches { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
   .story-branch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: #fafbfc; }
   .branch-priority { font-size: 11px; padding: 1px 6px; border-radius: 4px; }

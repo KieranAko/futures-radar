@@ -345,9 +345,18 @@ function graphScript() {
     });
   });
 
+  document.querySelectorAll('.story-detail-btn').forEach(function (btn) {
+    btn.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      var id = btn.getAttribute('data-chain-id');
+      var panel = document.getElementById('story-inline-' + id);
+      if (panel) panel.classList.toggle('open');
+    });
+  });
+
   function openModal(id) { var m = document.getElementById('story-modal-' + id); if (m) m.classList.add('open'); }
   function closeModal(m) { if (m) m.classList.remove('open'); }
-  document.querySelectorAll('.story-detail-btn, .closed-detail-btn').forEach(function (btn) {
+  document.querySelectorAll('.closed-detail-btn').forEach(function (btn) {
     btn.addEventListener('click', function (ev) {
       ev.stopPropagation();
       openModal(btn.getAttribute('data-chain-id'));
@@ -539,7 +548,6 @@ function chainCard(c) {
     ${graphLegendHtml()}
     ${storyGraphHtml(c)}
     ${branchSummaryHtml(c)}
-    <div class="sg-hint">点击图中节点查看数值，点击边查看传导逻辑</div>
   </div>
 </details>`;
 }
@@ -571,15 +579,9 @@ function credStatsTable(stats) {
     <tr><td>低</td><td>${c.low || 0}</td></tr><tr><td>未知</td><td>${c.unknown || 0}</td></tr></table>`;
 }
 
-function activeChainModalHtml(c) {
+function activeInlinePanelHtml(c) {
   const card = chainCard(c).replace('<details class="story-card">', '<details class="story-card" open>');
-  return `<div class="story-modal" id="story-modal-${escapeHtml(c.chainId)}">
-    <div class="story-modal-backdrop"></div>
-    <div class="story-modal-body story-modal-body-sm">
-      <button class="story-modal-close" data-chain-id="${escapeHtml(c.chainId)}" aria-label="关闭">×</button>
-      ${card}
-    </div>
-  </div>`;
+  return `<div class="story-inline-panel" id="story-inline-${escapeHtml(c.chainId)}">${card}</div>`;
 }
 
 function closedChainModalHtml(c) {
@@ -599,7 +601,7 @@ function closedChainModalHtml(c) {
           <div class="story-subtitle">${escapeHtml(c.themeDetail || '')}</div>
           <div class="story-head"><span class="story-chain-id">${escapeHtml(c.chainId)}</span>${storyStatusBadge(c.status)}<span class="story-source">源 ${escapeHtml(c.sourceId || c.sector || '—')}</span><span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认 · ${escapeHtml(c.closeReason || '—')}</span></div>
         </div>
-        <div class="story-body">${graphLegendHtml()}${storyGraphHtml(c)}<div class="sg-hint">点击图中节点查看数值，点击边查看传导逻辑</div></div>
+        <div class="story-body">${graphLegendHtml()}${storyGraphHtml(c)}</div>
       </div>
     </div>
   </div>`;
@@ -620,7 +622,7 @@ function storyPoolHtml(view) {
   <div class="pool-layout">
     <div class="pool-main">
       <h2>活跃故事传导总览</h2>
-      ${active.length ? `${graphLegendHtml()}${marketMapHtml(active)}${branchTableHtml(active)}` : '<p class="muted">当前故事池为空——没有清晰传导逻辑的源头不注册。</p>'}
+      ${active.length ? `${graphLegendHtml()}${marketMapHtml(active)}${branchTableHtml(active)}${active.map(activeInlinePanelHtml).join('')}` : '<p class="muted">当前故事池为空——没有清晰传导逻辑的源头不注册。</p>'}
       <h2>最近出池故事（最新 20 条）</h2>
       ${closedTable(closed)}
     </div>
@@ -636,7 +638,6 @@ function storyPoolHtml(view) {
       </ul></div>
     </aside>
   </div>
-  ${active.map(activeChainModalHtml).join('')}
   ${closed.map(closedChainModalHtml).join('')}
   ${graphScript()}`;
 }
