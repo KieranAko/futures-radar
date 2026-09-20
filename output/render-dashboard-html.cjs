@@ -908,7 +908,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .node-chip.node-confirmed { background: #f0fdf4; }
   .node-chip.node-broken { background: #fef2f2; }
   .branch-path-foot { font-size: 12px; line-height: 1.6; margin-top: 4px; }
-  .dg-canvas { position: relative; margin: 8px 0 4px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: #fbfcfd; overflow: hidden; }
+  .dg-canvas { position: relative; margin: 8px 0 4px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: #fbfcfd; overflow: visible; }
   .dg-edges { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
   .dg-layers { position: relative; z-index: 1; display: flex; gap: 32px; align-items: flex-start; }
   .dg-layer { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
@@ -923,7 +923,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .dg-node.node-confirmed { background: #f0fdf4; }
   .dg-node.node-broken { background: #fef2f2; }
   .dg-node .node-state { width: 14px; text-align: center; }
-  .dg-detail { position: absolute; top: 8px; right: 8px; z-index: 3; max-width: 280px; }
+  .dg-detail { position: absolute; top: 8px; right: 8px; z-index: 10; max-width: 340px; }
 
   .story-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0; margin-bottom: 12px; overflow: hidden; }
   .story-card > summary { list-style: none; cursor: pointer; padding: 12px 16px; display: block; }
