@@ -762,6 +762,20 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .sg-detail-close { border: none; background: transparent; font-size: 16px; line-height: 1; cursor: pointer; color: var(--muted); }
   .sg-detail-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; color: var(--muted); }
   .sg-detail-row b { color: var(--text); font-weight: 600; text-align: right; }
+  .sg-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: var(--muted); margin: 2px 0 6px; }
+  .sg-legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .lg-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .lg-source { background: #1f2937; }
+  .lg-mid { background: #f8fafc; border: 1px solid #cbd5e1; }
+  .lg-primary { background: #eef2ff; border: 1px solid #6366f1; }
+  .lg-secondary { background: #f3f4f6; border: 1px solid #9ca3af; }
+  .lg-confirmed { background: #ecfdf5; border: 1px solid #047857; }
+  .lg-broken { background: #fef2f2; border: 1px solid #b91c1c; }
+  .branch-table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; }
+  .branch-table th, .branch-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .branch-table th { color: var(--muted); font-weight: 500; }
+  .story-sub-detail { margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 6px; }
+  .story-sub-detail summary { cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 600; }
   .story-branches { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
   .story-branch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: #fafbfc; }
   .branch-priority { font-size: 11px; padding: 1px 6px; border-radius: 4px; }

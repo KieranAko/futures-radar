@@ -214,17 +214,17 @@ function branchSummaryHtml(c) {
     ? c.branches
     : [{ branchId: null, symbol: c.representative, direction: c.direction, priority: 'primary', status: c.status, proofIndex: c.entryProofIndex, impactRationale: null }];
   const rows = branches.map((b) => {
-    const bDir = b.direction === -1 ? '🔻 空' : b.direction === 1 ? '🔺 多' : '—';
-    return `<div class="story-branch">
-      <span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span>
-      <span class="branch-symbol">${escapeHtml(b.symbol || '—')}</span>
-      <span class="branch-dir">${bDir}</span>
-      <span class="branch-status">${escapeHtml(b.status || '—')}</span>
-      ${b.proofIndex != null ? `<span class="branch-proof">p=${b.proofIndex}</span>` : ''}
-      ${b.impactRationale ? `<div class="muted">${escapeHtml(b.impactRationale)}</div>` : ''}
-    </div>`;
+    const bDir = b.direction === -1 ? '空' : b.direction === 1 ? '多' : '—';
+    return `<tr>
+      <td><span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span></td>
+      <td><b>${escapeHtml(b.symbol || '—')}</b></td>
+      <td>${bDir}</td>
+      <td>${escapeHtml(b.status || '—')}</td>
+      <td>${b.proofIndex != null ? `p=${b.proofIndex}` : '—'}</td>
+      <td class="muted">${escapeHtml(b.impactRationale || '—')}</td>
+    </tr>`;
   }).join('');
-  return `<div class="story-branches">${rows}</div>`;
+  return `<table class="branch-table"><thead><tr><th>分支</th><th>品种</th><th>方向</th><th>状态</th><th>证明</th><th>为什么是这里</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function graphScript() {
@@ -319,6 +319,17 @@ function graphScript() {
 </script>`;
 }
 
+function graphLegendHtml() {
+  return `<div class="sg-legend">
+    <span><i class="lg-dot lg-source"></i>源</span>
+    <span><i class="lg-dot lg-mid"></i>中间</span>
+    <span><i class="lg-dot lg-primary"></i>主支终点</span>
+    <span><i class="lg-dot lg-secondary"></i>次支终点</span>
+    <span><i class="lg-dot lg-confirmed"></i>已确认</span>
+    <span><i class="lg-dot lg-broken"></i>已断裂</span>
+  </div>`;
+}
+
 function chainCard(c) {
   const confirmed = (c.nodes || []).filter((n) => n.status === 'confirmed').length;
   const total = c.nodes ? c.nodes.length : 0;
@@ -346,11 +357,17 @@ function chainCard(c) {
   </summary>
   <div class="story-body">
     ${c.themeDetail ? `<div class="story-subtitle">${escapeHtml(c.themeDetail)}</div>` : ''}
+    ${graphLegendHtml()}
     ${storyGraphHtml(c)}
     ${branchSummaryHtml(c)}
-    <div class="story-progress"><div class="story-progress-fill" style="width:${total ? Math.round(confirmed / total * 100) : 0}%"></div></div>
-    <div class="story-nodes">${(c.nodes || []).map(nodeRow).join('')}</div>
-    <div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div>
+    <details class="story-sub-detail">
+      <summary>节点明细（${c.nodes ? c.nodes.length : 0}）</summary>
+      <div class="story-nodes">${(c.nodes || []).map(nodeRow).join('')}</div>
+    </details>
+    <details class="story-sub-detail">
+      <summary>最近事件（${(c.events || []).slice(-5).length}）</summary>
+      <div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div>
+    </details>
   </div>
 </details>`;
 }
@@ -405,11 +422,11 @@ function storyPoolHtml(view) {
       <div class="side-card"><h3>节点命中率（按取数路径）</h3>${pathStatsTable(stats)}</div>
       <div class="side-card"><h3>已确认节点可信度分布</h3>${credStatsTable(stats)}</div>
       <div class="side-card"><h3>口径说明</h3><ul class="side-notes">
-        <li>链 = 1 主题 + ≥2 节点 + ≥1 顺序边 + 1 板块 + 1 代表品种 + 1 方向 + 自声明证明点 p</li>
-        <li>证明按前缀顺序；任一边反向/超时即证伪；p 达标前只观察不下注</li>
+        <li>一条链 = 一个源 + 若干可观测节点 + 若干可交易终点（DAG，允许扇出/汇合）</li>
+        <li>终点必须是冲击最大的可交易品种；分支独立证明/证伪</li>
         <li>当前值 = 节点指标最近一次观测值（T0 每日更新 / T2 为解析快照）</li>
         <li>T0 文件库稳定源 / T2 WebSearch 检索源（取数路径 ≠ 可信度）</li>
-        <li>proven 链下期进入生产席位，经策略计划进入信号池前向验证（linkedSignalId 回链）</li>
+        <li>active 分支进入生产席位，按品种聚合 storyRefs 后深挖</li>
       </ul></div>
     </aside>
   </div>
