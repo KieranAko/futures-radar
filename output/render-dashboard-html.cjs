@@ -686,6 +686,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   /* 信号池：双栏布局 */
   .pool-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
   .pool-main { min-width: 0; }
+  .pool-main > h2:first-child { margin-top: 0; }
   .pool-side { position: sticky; top: 70px; display: flex; flex-direction: column; gap: 12px; }
   .side-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
   .side-card h3 { margin: 0 0 8px; font-size: 13px; }
