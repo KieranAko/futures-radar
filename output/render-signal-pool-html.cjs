@@ -480,7 +480,8 @@ function lifecycleChart(sig, versions, bars) {
   const lastChgPct = lastPrev != null && Number(lastPrev) !== 0 ? (lastBar.close / lastPrev - 1) * 100 : null;
   const lastChg5 = chg5[n - 1];
   const lastInfoColor = lastChg == null || lastChg >= 0 ? '#b91c1c' : '#047857';
-  const lastInfoHtml = `<b style="color:${lastInfoColor}">${escapeHtml(lastBar.date)}</b> · 开 ${fmt(lastBar.open)} · 高 ${fmt(lastBar.high)} · 低 ${fmt(lastBar.low)} · 收 <b style="color:${lastInfoColor}">${fmt(lastBar.close)}</b>${lastChg != null ? ` · 涨跌 <b style="color:${lastInfoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)}（${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%）</b>` : ''}${lastChg5 != null ? ` · 5日涨跌 <b style="color:${lastChg5 >= 0 ? '#b91c1c' : '#047857'}">${lastChg5 >= 0 ? '+' : ''}${lastChg5.toFixed(1)}%</b>` : ''}`;
+  const lb = (name) => `<b style="color:#1f2328;font-weight:700">${name}</b>`;
+  const lastInfoHtml = `<b style="color:#1f2328;font-weight:700">${escapeHtml(lastBar.date)}</b> · ${lb('开盘')} ${fmt(lastBar.open)} · ${lb('最高')} ${fmt(lastBar.high)} · ${lb('最低')} ${fmt(lastBar.low)} · ${lb('收盘')} <b style="color:${lastInfoColor}">${fmt(lastBar.close)}</b>${lastChg != null ? ` · ${lb('涨跌')} <b style="color:${lastInfoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)}（${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%）</b>` : ''}${lastChg5 != null ? ` · ${lb('5日涨跌')} <b style="color:${lastChg5 >= 0 ? '#b91c1c' : '#047857'}">${lastChg5 >= 0 ? '+' : ''}${lastChg5.toFixed(1)}%</b>` : ''}`;
   const barsAttr = JSON.stringify(win.map((b) => ({ d: b.date, o: b.open, h: b.high, l: b.low, c: b.close }))).replace(/'/g, '&#39;');
 
   return `<div class="lifecycle" data-bars='${barsAttr}' data-pad='${padL},${padR},${padT},${padB}'><div class="chart-day-info">${lastInfoHtml}</div>${parts.join('')}${legendHtml}<div class="chart-hover-tip"></div></div>`;

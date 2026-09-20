@@ -249,7 +249,8 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
   const lastChgPct = lastPrev != null && Number(lastPrev) !== 0 ? (lastB.close / lastPrev - 1) * 100 : null;
   const lastChg5 = chg5[n - 1];
   const infoColor = lastChg == null || lastChg >= 0 ? '#b91c1c' : '#047857';
-  const infoHtml = `<b style="color:${infoColor}">${escapeHtml(lastB.date)}</b> · 开 ${fmt(lastB.open)} · 高 ${fmt(lastB.high)} · 低 ${fmt(lastB.low)} · 收 <b style="color:${infoColor}">${fmt(lastB.close)}</b>${lastChg != null ? ` · 涨跌 <b style="color:${infoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)}（${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%）</b>` : ''}${lastChg5 != null ? ` · 5日涨跌 <b style="color:${lastChg5 >= 0 ? '#b91c1c' : '#047857'}">${lastChg5 >= 0 ? '+' : ''}${lastChg5.toFixed(1)}%</b>` : ''} · MA20 <b>${ma20[n - 1] != null ? fmt(ma20[n - 1]) : '—'}</b> · MA60 <b>${ma60[n - 1] != null ? fmt(ma60[n - 1]) : '—'}</b>`;
+  const lb = (name) => `<b style="color:#1f2328;font-weight:700">${name}</b>`;
+  const infoHtml = `<b style="color:#1f2328;font-weight:700">${escapeHtml(lastB.date)}</b> · ${lb('开盘')} ${fmt(lastB.open)} · ${lb('最高')} ${fmt(lastB.high)} · ${lb('最低')} ${fmt(lastB.low)} · ${lb('收盘')} <b style="color:${infoColor}">${fmt(lastB.close)}</b>${lastChg != null ? ` · ${lb('涨跌')} <b style="color:${infoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)}（${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%）</b>` : ''}${lastChg5 != null ? ` · ${lb('5日涨跌')} <b style="color:${lastChg5 >= 0 ? '#b91c1c' : '#047857'}">${lastChg5 >= 0 ? '+' : ''}${lastChg5.toFixed(1)}%</b>` : ''} · <b style="color:#2563eb;font-weight:700">MA20</b> ${ma20[n - 1] != null ? fmt(ma20[n - 1]) : '—'} · <b style="color:#d97706;font-weight:700">MA60</b> ${ma60[n - 1] != null ? fmt(ma60[n - 1]) : '—'}`;
   const barsAttr = JSON.stringify(bars.map((b) => ({ d: b.date, o: b.open, h: b.high, l: b.low, c: b.close }))).replace(/'/g, '&#39;');
   const ma20Attr = JSON.stringify(ma20);
   const ma60Attr = JSON.stringify(ma60);
@@ -569,11 +570,15 @@ function signalChartHoverScript() {
       var color = chg == null || chg >= 0 ? '#b91c1c' : '#047857';
       var c5 = chg5[i];
       var c5Color = c5 == null || c5 >= 0 ? '#b91c1c' : '#047857';
-      var html = '<b style="color:' + color + '">' + esc(b.d) + '</b> · 开 ' + nf(b.o) + ' · 高 ' + nf(b.h) + ' · 低 ' + nf(b.l) + ' · 收 <b style="color:' + color + '">' + nf(b.c) + '</b>'
-        + (chg != null ? ' · 涨跌 <b style="color:' + color + '">' + (chg >= 0 ? '+' : '') + nf(chg) + '（' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%）</b>' : '')
-        + (c5 != null ? ' · 5日涨跌 <b style="color:' + c5Color + '">' + (c5 >= 0 ? '+' : '') + c5.toFixed(1) + '%</b>' : '');
+      var html = '<b style="color:#1f2328;font-weight:700">' + esc(b.d) + '</b>'
+        + ' · <b style="color:#1f2328;font-weight:700">开盘</b> ' + nf(b.o)
+        + ' · <b style="color:#1f2328;font-weight:700">最高</b> ' + nf(b.h)
+        + ' · <b style="color:#1f2328;font-weight:700">最低</b> ' + nf(b.l)
+        + ' · <b style="color:#1f2328;font-weight:700">收盘</b> <b style="color:' + color + '">' + nf(b.c) + '</b>'
+        + (chg != null ? ' · <b style="color:#1f2328;font-weight:700">涨跌</b> <b style="color:' + color + '">' + (chg >= 0 ? '+' : '') + nf(chg) + '（' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%）</b>' : '')
+        + (c5 != null ? ' · <b style="color:#1f2328;font-weight:700">5日涨跌</b> <b style="color:' + c5Color + '">' + (c5 >= 0 ? '+' : '') + c5.toFixed(1) + '%</b>' : '');
       if (!isLifecycle) {
-        html += ' · MA20 <b>' + (ma20[i] != null ? nf(ma20[i]) : '—') + '</b> · MA60 <b>' + (ma60[i] != null ? nf(ma60[i]) : '—') + '</b>';
+        html += ' · <b style="color:#2563eb;font-weight:700">MA20</b> ' + (ma20[i] != null ? nf(ma20[i]) : '—') + ' · <b style="color:#d97706;font-weight:700">MA60</b> ' + (ma60[i] != null ? nf(ma60[i]) : '—');
       }
       return html;
     }
