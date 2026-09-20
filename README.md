@@ -82,6 +82,12 @@ node pipeline/run.cjs --runId <id> --from render-markdown
 - 测试：`npm test`，825/825 通过
 - 最新生产运行：`output/runs/20260920-1606-auto/report.md`
 
+## 许可
+
+- **源码**：PolyForm Shield 1.0.0（源码可见、可学习与非商业使用；禁止商业性使用与竞争性使用，详见 `LICENSE`）
+- **文档**：CC BY-NC-ND 4.0（署名、非商业、禁止演绎，详见 `LICENSE-DOCS.md`）
+- 本仓库是 **source-available**，不是 OSI 定义的开源软件。
+
 ---
 
 *免责声明：本项目所有输出均为分析工具产物，不构成投资建议，不执行真实交易。*
