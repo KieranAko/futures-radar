@@ -174,8 +174,8 @@ function nodeSvg(n, x, y, sourceId, markerId, idPrefix = '') {
   const statusShort = status === 'confirmed' ? '✔' : status === 'broken' ? '✘' : '·';
   return `<g class="sg-node" data-id="${escapeHtml(idPrefix + n.id)}" transform="translate(${x},${y})" style="cursor:pointer">
     <rect width="${w}" height="${h}" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="${isTerminal ? 2.5 : 1.5}"></rect>
-    <text x="12" y="25" font-size="12" font-weight="700" fill="${text}">${escapeHtml(short(label, 12))}</text>
-    <text x="12" y="43" font-size="9" fill="${text}" opacity="0.78">${escapeHtml(short(sub, 24))}</text>
+    <text x="12" y="25" font-size="12" font-weight="700" fill="${text}">${escapeHtml(short(label, 8))}</text>
+    <text x="12" y="43" font-size="9" fill="${text}" opacity="0.78">${escapeHtml(short(sub, 14))}</text>
     <text x="${w - 12}" y="25" font-size="11" fill="${text}" text-anchor="end">${dir}${statusShort}</text>
     ${isTerminal ? `<text x="12" y="58" font-size="9" fill="${text}" opacity="0.95">${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}</text>` : ''}
   </g>`;
@@ -386,6 +386,17 @@ function pathToTerminal(c, branchId) {
   return path.map((id) => nodes.find((n) => n.id === id)).filter(Boolean);
 }
 
+function branchDetailInline(c, b, pathText) {
+  const nodes = (c.nodes || []).map((n) => `<div class="bd-node ${nodeClass(n)}"><span class="node-state">${n.status === 'confirmed' ? '✔' : n.status === 'broken' ? '✘' : '·'}</span><span class="node-label">${escapeHtml(short(n.label || n.id, 16))}</span><span class="node-status">${NODE_STATUS_LABEL[n.status] || escapeHtml(n.status)}</span><span class="node-value">${fmtVal(n.lastValue ?? n.observedValue)} ${escapeHtml(n.unit || '')}</span></div>`).join('');
+  return `<div class="branch-detail">
+    <div class="bd-row"><span class="bd-label">分支</span><span>${b.priority === 'primary' ? '主支' : '次支'} · ${escapeHtml(b.symbol || '—')} · ${b.direction === -1 ? '空' : '多'}</span></div>
+    <div class="bd-row"><span class="bd-label">路径</span><span>${escapeHtml(pathText || '—')}</span></div>
+    <div class="bd-row"><span class="bd-label">证明</span><span>${b.proofIndex != null ? `p=${b.proofIndex}` : '—'} · ${escapeHtml(b.status || '—')}</span></div>
+    <div class="bd-row"><span class="bd-label">为什么是这里</span><span>${escapeHtml(b.impactRationale || '—')}</span></div>
+    <div class="bd-nodes">${nodes}</div>
+  </div>`;
+}
+
 function branchTableHtml(active) {
   const rows = [];
   for (const c of active || []) {
@@ -412,7 +423,7 @@ function branchTableHtml(active) {
     const dirCls = b.direction === -1 ? 'down' : b.direction === 1 ? 'up' : '';
     const graphNodeId = `${c.chainId}::${b.branchId || ''}`;
     const detailId = `branch-detail-${c.chainId}-${b.branchId || 'main'}`;
-    const detailHtml = chainCard(c).replace('<details class="story-card">', '<details class="story-card" open>');
+    const detailHtml = branchDetailInline(c, b, pathText);
     return `<tr class="branch-row" data-graph-node="${escapeHtml(graphNodeId)}" data-detail-id="${escapeHtml(detailId)}" title="点击展开/折叠">
       <td><span class="row-chevron">▸</span><span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span></td>
       <td class="path-cell">${escapeHtml(pathText || '—')}</td>

@@ -868,7 +868,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
 
   .card h4 { margin: 12px 0 6px; font-size: 13px; color: var(--muted); }
   .lifecycle { margin: 10px 0; }
-  .lifecycle svg { width: 100%; height: auto; background: #fbfdff; border: 1px solid var(--border); border-radius: 8px; }
+  .lifecycle svg { width: 100%; height: auto; max-height: 200px; background: #fbfdff; border: 1px solid var(--border); border-radius: 8px; }
   details.version { border: 1px solid var(--border); border-radius: 8px; margin: 8px 0; background: #fbfcfd; }
   details.version > summary { cursor: pointer; padding: 8px 12px; font-size: 13px; list-style: none; }
   details.version > summary::-webkit-details-marker { display: none; }
@@ -953,6 +953,14 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .closed-row.status-falsified td:first-child, .closed-row.status-expired td:first-child, .closed-row.status-void td:first-child { border-left-color: #b91c1c; }
   .closed-row.status-superseded td:first-child { border-left-color: #94a3b8; }
   .branch-detail-row td, .closed-detail-row td { padding: 12px 14px; background: #fbfcfd; border-left: 3px solid #e2e8f0; }
+  .branch-detail { display: flex; flex-direction: column; gap: 6px; }
+  .bd-row { display: flex; gap: 10px; font-size: 12px; line-height: 1.6; }
+  .bd-label { flex: 0 0 72px; color: var(--muted); }
+  .bd-nodes { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+  .bd-node { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #fff; border: 1px solid var(--border); }
+  .bd-node .node-state { width: 14px; text-align: center; }
+  .bd-node .node-label { font-weight: 600; }
+  .bd-node .node-status, .bd-node .node-value { color: var(--muted); }
   .branch-detail-row.open td, .closed-detail-row.open td { animation: story-detail-in .18s ease; }
   @keyframes story-detail-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
   .story-detail-btn, .closed-detail-btn { border: 1px solid var(--border); background: var(--card); border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; color: var(--text); }
