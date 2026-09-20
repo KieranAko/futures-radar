@@ -363,13 +363,11 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}) 
 
   const detail = [];
   if (driver.primary || driver.secondary) {
-    detail.push(`<h4>Q1 驱动</h4><p>${escapeHtml(driver.primary || '')}${driver.secondary ? `<br><span class="muted">${escapeHtml(driver.secondary)}</span>` : ''}</p>`);
-    if (driver.evidence) detail.push(`<p class="muted">证据：${escapeHtml(driver.evidence)}</p>`);
-    if (driver.source) detail.push(`<p class="muted">来源：${escapeHtml(driver.source)}</p>`);
+    detail.push(`<div class="q-item"><h4>Q1 驱动</h4><div>${escapeHtml(driver.primary || '')}${driver.secondary ? `<br><span class="muted">${escapeHtml(driver.secondary)}</span>` : ''}${driver.evidence ? `<br><span class="muted">证据：${escapeHtml(driver.evidence)}</span>` : ''}${driver.source ? `<br><span class="muted">来源：${escapeHtml(driver.source)}</span>` : ''}</div></div>`);
   }
-  if (t.trendOrImpulse && t.trendOrImpulse.assessment) detail.push(`<h4>Q2 趋势/脉冲</h4><p>${escapeHtml(t.trendOrImpulse.assessment)}</p>`);
-  if (odds.bias || odds.reasoning) detail.push(`<h4>Q3 赔率</h4><p>${escapeHtml(odds.bias || '')} · ${escapeHtml(odds.reasoning || '')}</p>`);
-  if (cr.uncertainties && cr.uncertainties.length) detail.push(`<h4>不确定项</h4><ul>${cr.uncertainties.map((u) => `<li>${escapeHtml(u)}</li>`).join('')}</ul>`);
+  if (t.trendOrImpulse && t.trendOrImpulse.assessment) detail.push(`<div class="q-item"><h4>Q2 趋势/脉冲</h4><div>${escapeHtml(t.trendOrImpulse.assessment)}</div></div>`);
+  if (odds.bias || odds.reasoning) detail.push(`<div class="q-item"><h4>Q3 赔率</h4><div>${escapeHtml(odds.bias || '')} · ${escapeHtml(odds.reasoning || '')}</div></div>`);
+  if (cr.uncertainties && cr.uncertainties.length) detail.push(`<div class="q-item"><h4>不确定项</h4><ul>${cr.uncertainties.map((u) => `<li>${escapeHtml(u)}</li>`).join('')}</ul></div>`);
 
   const story = opp.storyChainId ? (storyMap[opp.storyChainId] || null) : null;
   return `<article class="opp-pane ${active ? 'active' : ''} dir-${escapeHtml(dir)}" data-opp="${escapeHtml(opp.symbol)}">
@@ -702,7 +700,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .card > summary::-webkit-details-marker { display: none; }
   .card > summary::before { content: "▸"; color: var(--muted); transition: transform .15s; }
   .card[open] > summary::before { transform: rotate(90deg); }
-  .card-body { padding: 4px 16px 16px; border-top: 1px solid var(--border); }
+  .card-body { padding: 12px 16px 16px; border-top: 1px solid var(--border); }
 
   /* 机会分析：主从布局（与信号池/故事池保持左右对称：主内容左、侧栏右） */
   .opp-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
@@ -795,6 +793,11 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .chip.gray { background: #f7f8fa; color: #4b5563; }
   details.detail { margin-top: 10px; border: 1px dashed var(--border); border-radius: 8px; padding: 4px 10px; }
   details.detail summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  .q-item { padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .q-item:last-child { border-bottom: none; }
+  .q-item h4 { margin: 0 0 4px; font-size: 13px; color: var(--muted); }
+  .q-item div, .q-item ul { font-size: 13px; line-height: 1.7; }
+  .q-item ul { margin: 0; padding-left: 18px; }
   .up { color: var(--up); font-weight: 600; }
   .down { color: var(--down); font-weight: 600; }
   .muted { color: var(--muted); font-size: 12px; }
@@ -856,8 +859,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   table.timeline th { color: var(--muted); font-weight: 500; }
 
   table.fields { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 6px 0; }
-  table.fields th { width: 88px; text-align: left; vertical-align: top; color: var(--muted); font-weight: 500; padding: 5px 10px 5px 0; white-space: nowrap; }
-  table.fields td { vertical-align: top; padding: 5px 0; word-break: break-word; }
+  table.fields th { width: 88px; text-align: left; vertical-align: top; color: var(--muted); font-weight: 600; padding: 6px 10px 6px 0; white-space: nowrap; }
+  table.fields td { vertical-align: top; padding: 6px 0; word-break: break-word; font-size: 13px; }
+
   .card h4 { margin: 12px 0 6px; font-size: 13px; color: var(--muted); }
   .lifecycle { margin: 10px 0; }
   .lifecycle svg { width: 100%; height: auto; background: #fbfdff; border: 1px solid var(--border); border-radius: 8px; }
@@ -914,7 +918,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .node-table th, .node-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 12px; vertical-align: top; }
   .node-table th { color: var(--muted); font-weight: 500; white-space: nowrap; }
   .node-table .muted { font-size: 11px; margin-top: 2px; }
-  .branch-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 6px 0 12px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card); }
+  .branch-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; margin: 6px 0 12px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card); }
+  .branch-table .path-cell { font-size: 12px; color: #374151; line-height: 1.5; }
+  .branch-table .impact-cell { line-height: 1.5; }
   .branch-table th, .branch-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 12px; line-height: 1.6; }
   .branch-table th { color: var(--muted); font-weight: 600; white-space: nowrap; background: #f7f8fa; }
   .branch-table tbody tr:last-child td { border-bottom: none; }

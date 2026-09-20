@@ -409,18 +409,19 @@ function branchTableHtml(active) {
   }
   const trs = rows.map(({ c, b, pathText }) => {
     const bDir = b.direction === -1 ? '空' : b.direction === 1 ? '多' : '—';
+    const dirCls = b.direction === -1 ? 'down' : b.direction === 1 ? 'up' : '';
     const graphNodeId = `${c.chainId}::${b.branchId || ''}`;
     const detailId = `branch-detail-${c.chainId}-${b.branchId || 'main'}`;
     const detailHtml = chainCard(c).replace('<details class="story-card">', '<details class="story-card" open>');
     return `<tr class="branch-row" data-graph-node="${escapeHtml(graphNodeId)}" data-detail-id="${escapeHtml(detailId)}" title="点击展开/折叠">
       <td><span class="row-chevron">▸</span><span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span></td>
       <td class="muted">${escapeHtml(c.sourceId || '—')}</td>
-      <td>${escapeHtml(pathText || '—')}</td>
+      <td class="path-cell">${escapeHtml(pathText || '—')}</td>
       <td><b>${escapeHtml(b.symbol || '—')}</b></td>
-      <td>${bDir}</td>
-      <td>${escapeHtml(b.status || '—')}</td>
+      <td class="${dirCls}">${bDir}</td>
+      <td>${storyStatusBadge(b.status)}</td>
       <td>${b.proofIndex != null ? `p=${b.proofIndex}` : '—'}</td>
-      <td class="muted">${escapeHtml(b.impactRationale || '—')}</td>
+      <td class="muted impact-cell">${escapeHtml(b.impactRationale || '—')}</td>
     </tr>
     <tr class="branch-detail-row" id="${escapeHtml(detailId)}" style="display:none"><td colspan="8">${detailHtml}</td></tr>`;
   }).join('');
