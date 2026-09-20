@@ -26,14 +26,14 @@ const SKILL_ROOT = path.join(__dirname, '../../../..');
 const BACKTEST_DIR = path.join(SKILL_ROOT, 'research', 'backtest');
 const DATA_DIR = path.join(BACKTEST_DIR, 'data');
 const SYMBOLS_PATH = path.join(SKILL_ROOT, 'config', 'symbols.json');
-const PYTHON_SCRIPT = path.join(SKILL_ROOT, 'collector', 'futures_collector.py');
+const PYTHON_SCRIPT = path.join(SKILL_ROOT, 'collection', 'futures_collector.py');
 const CACHE_PATH = path.join(DATA_DIR, 'historical-cache.json');
 const META_PATH = path.join(DATA_DIR, 'cache-meta.json');
 const STATE_PATH = path.join(DATA_DIR, 'ga1-state.json');
 const FALS_DIR = path.join(__dirname, 'data');
 const ROLL_JUMPS_PATH = path.join(FALS_DIR, 'ga1-roll-jumps.json');
 
-const { ParallelCollector } = require(path.join(SKILL_ROOT, 'collector', 'parallel-collector.cjs'));
+const { ParallelCollector } = require(path.join(SKILL_ROOT, 'collection', 'parallel-collector.cjs'));
 const dataStore = require(path.join(SKILL_ROOT, 'data-store', 'index.cjs'));
 
 const RUN_ID = 'ga-1-full-history';

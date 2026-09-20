@@ -30,7 +30,7 @@ if (!runId) {
 const RUN_DIR = path.join(runtimeRoot, 'runs', runId);
 fs.mkdirSync(RUN_DIR, { recursive: true }); // 独立运行时先建 run 目录（管道场景由 probe 阶段创建，此处幂等）
 const SYMBOLS_PATH = path.join(skillRoot, 'config', 'symbols.json');
-const PYTHON_SCRIPT = path.join(skillRoot, 'collector', 'futures_collector.py');
+const PYTHON_SCRIPT = path.join(skillRoot, 'collection', 'futures_collector.py');
 
 // ── Main ─────────────────────────────────────────────────────
 async function main() {

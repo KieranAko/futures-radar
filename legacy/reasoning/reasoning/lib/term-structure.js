@@ -36,7 +36,7 @@ export async function fetchNearFarCloses(contractCodes, signalDate, {
   retries = 2,
   backoffBaseMs = 20000
 } = {}) {
-  const script = path.join(SKILL_ROOT, 'collector', 'futures-term-structure.py');
+  const script = path.join(SKILL_ROOT, 'collection', 'futures-term-structure.py');
 
   const spawnOnce = () =>
     new Promise((resolve, reject) => {

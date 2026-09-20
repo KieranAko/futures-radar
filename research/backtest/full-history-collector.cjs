@@ -21,7 +21,7 @@ const SKILL_ROOT = path.join(__dirname, '../..');
 const BACKTEST_DIR = __dirname;
 const DATA_DIR = path.join(BACKTEST_DIR, 'data');
 const SYMBOLS_PATH = path.join(SKILL_ROOT, 'config', 'symbols.json');
-const PYTHON_SCRIPT = path.join(SKILL_ROOT, 'collector', 'futures_collector.py');
+const PYTHON_SCRIPT = path.join(SKILL_ROOT, 'collection', 'futures_collector.py');
 const CACHE_PATH = path.join(DATA_DIR, 'historical-cache.json');
 const META_PATH = path.join(DATA_DIR, 'cache-meta.json');
 

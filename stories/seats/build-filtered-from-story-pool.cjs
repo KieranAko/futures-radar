@@ -76,7 +76,8 @@ function storySeatEntries(chains) {
  */
 function buildFilteredFromStoryPool({ runId, filteredAt, provenChains = [], poolSignals = [] }) {
   const storySeats = storySeatEntries(provenChains);
-  const trackingSeats = trackingSeatEntries(poolSignals);
+  const storySymbols = new Set(storySeats.map((c) => c.symbol));
+  const trackingSeats = trackingSeatEntries(poolSignals).filter((c) => !storySymbols.has(c.symbol));
   const candidates = [...storySeats, ...trackingSeats];
   return {
     meta: {
@@ -85,7 +86,7 @@ function buildFilteredFromStoryPool({ runId, filteredAt, provenChains = [], pool
       inputCount: 0,
       outputCount: candidates.filter((c) => c.decision === 'KEEP').length,
       hardFilterRejectsImmutable: true,
-      note: `V2 初筛：故事池活跃链席位 ${storySeats.length}（resolving/pending/proven 都分析）+ 信号池追踪席位 ${trackingSeats.length}（孤儿/legacy 信号不入深挖）；filter-llm 已退役`,
+      note: `V2 初筛：故事池活跃链席位 ${storySeats.length}（resolving/pending/proven 都分析）+ 信号池追踪席位 ${trackingSeats.length}（已去重，孤儿/legacy 信号不入深挖）；filter-llm 已退役`,
       storySeats: storySeats.length,
       trackingSeats: trackingSeats.length,
     },
@@ -150,28 +151,19 @@ function patchCandidatesFile(candidatesPath, entries, rawJson = {}, runId = null
   }
   candidates.meta = candidates.meta || {};
   if (runId && !candidates.meta.runId) candidates.meta.runId = runId;
-  const candList = Array.isArray(candidates.candidates) ? candidates.candidates : [];
-  const existing = new Set(candList.map((c) => c.symbol));
+  candidates.meta.generatedBy = 'stories/seats/build-filtered-from-story-pool.cjs';
+  candidates.meta.note = 'V2 故事席位候选（不来自波动率扫描）';
   const symbolsConfig = JSON.parse(fs.readFileSync(path.join(skillRoot, 'config', 'symbols.json'), 'utf8'));
   const cfgMap = new Map((symbolsConfig.symbols || []).map((c) => [c.symbol, c]));
-  let rank = Math.max(0, ...candList.map((c) => Number(c.rank) || 0)) + 1;
+  const candList = [];
+  const seen = new Set();
+  let rank = 1;
   for (const e of entries) {
+    if (!e || seen.has(e.symbol)) continue;
+    seen.add(e.symbol);
     const cfg = cfgMap.get(e.symbol) || {};
     const contract = (rawJson.contracts || {})[e.symbol] || {};
     const ind = basicIndicators(contract);
-    if (existing.has(e.symbol)) {
-      // 已存在的席位（历史 patched 零值）也要用文件库真实数据刷新
-      const row = candList.find((c) => c.symbol === e.symbol);
-      if (row) {
-        row.indicators = ind.indicators;
-        row.trend = ind.trend;
-        row.liquidity = ind.liquidity;
-        row.storyChainId = e.storyChainId || row.storyChainId || null;
-        row.signalId = e.signalId || row.signalId || null;
-        row.tracking = true;
-      }
-      continue;
-    }
     candList.push({
       symbol: e.symbol,
       name: cfg.name || e.symbol,

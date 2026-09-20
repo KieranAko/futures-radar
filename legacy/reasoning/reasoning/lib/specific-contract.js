@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_ROOT = path.resolve(__dirname, '..', '..');
-const TERM_STRUCTURE_PY = path.join(SKILL_ROOT, 'collector', 'futures-term-structure.py');
+const TERM_STRUCTURE_PY = path.join(SKILL_ROOT, 'collection', 'futures-term-structure.py');
 
 const MIN_BARS_PRICE = 20; // ma20 最低窗口
 const MIN_BARS_MA60 = 60; // ma60 最低窗口

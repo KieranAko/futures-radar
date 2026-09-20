@@ -1,7 +1,7 @@
 // output/render-strategy-section.cjs — t9：报告「五、交易策略板块（执行参考）」渲染器
 //
 // 契约：strategies/report-strategy-section.md §3（t7）
-// 输入：output/runs/<runId>/strategy-plan.json（t8 产出）+ strategies/strategy-library.json（证据 URL）
+// 输入：output/runs/<runId>/strategy-plan.json（t8 产出）+ analysis/strategy/strategy-library.json（证据 URL）
 // 输出：markdown 章节片段（纯函数，字符串进字符串出）
 //
 // FORBIDDEN（与 render-markdown.cjs 同纪律）:

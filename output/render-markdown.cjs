@@ -224,7 +224,7 @@ if (fs.existsSync(strategyPlanPath)) {
   try {
     strategyPlan = JSON.parse(fs.readFileSync(strategyPlanPath, 'utf8'));
     if (strategyPlan && Array.isArray(strategyPlan.plans) && strategyPlan.plans.length > 0) {
-      const library = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'strategies', 'strategy-library.json'), 'utf8'));
+      const library = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'analysis', 'strategy', 'strategy-library.json'), 'utf8'));
       const familyEvidencePath = path.join(__dirname, '..', 'strategies', 'family-evidence.json');
       const familyEvidence = fs.existsSync(familyEvidencePath) ? JSON.parse(fs.readFileSync(familyEvidencePath, 'utf8')) : null;
       const closeMap = Object.fromEntries(model.opportunities.map((o) => [o.symbol, o.marketFacts && o.marketFacts.close]));

@@ -140,7 +140,7 @@ async function runCfmmcVerification(rawData, opts = {}) {
     }
     throw new Error('cannot find skill root');
   })();
-  const scriptPath = path.join(skillRoot, 'collector', 'cfmmc_daily.py');
+  const scriptPath = path.join(skillRoot, 'collection', 'cfmmc_daily.py');
   const date = opts.date || (() => {
     const d = new Date();
     return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');

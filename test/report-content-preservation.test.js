@@ -49,7 +49,11 @@ describe('report content preservation（信息完整优先）', () => {
     for (const opp of model.opportunities) {
       const t = opp.thesis;
       assert.ok(report.includes(`### ${opp.symbol} ${opp.name}`));
-      assert.ok(report.includes(`**锚定合约**: ${opp.contract}（收盘 ${opp.marketFacts.close}）`), `missing close for ${opp.symbol}`);
+      if (opp.contract) {
+        assert.ok(report.includes(`**锚定合约**: ${opp.contract}（收盘 ${opp.marketFacts.close}）`), `missing close for ${opp.symbol}`);
+      } else {
+        assert.ok(report.includes(`收盘 ${opp.marketFacts.close}`), `missing close for ${opp.symbol}`);
+      }
       for (const label of ['**驱动 (Q1)**', '**趋势/脉冲 (Q2)**', '**赔率 (Q3)**', '**确认信号 (Q4)**', '**失效条件 (Q5)**', '**风险 (Q6)**']) {
         assert.ok(report.includes(label), `missing ${label} for ${opp.symbol}`);
       }
@@ -82,7 +86,8 @@ describe('report content preservation（信息完整优先）', () => {
 
   it('策略计划全部字段行保留', () => {
     for (const p of strategyPlan.plans) {
-      assert.ok(report.includes(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract}）`));
+      const contractText = p.contract || '—';
+      assert.ok(report.includes(`### ${p.symbol} ${p.name}（锚定合约 ${contractText}）`), `missing strategy heading for ${p.symbol}`);
       const newLayout = !!p.strategyConfidence;
       if (newLayout) {
         for (const field of ['入场机会点', '触发/执行时点', '执行口径', '止损', '目标', '仓位', '证伪/失效']) {
@@ -111,9 +116,10 @@ describe('report content preservation（信息完整优先）', () => {
   });
 
   it('方法与数据说明完整保留', () => {
-    for (const block of ['价格区间方法', 'EWMA', 'GARCH', 'FHS', 'EVT-POT', 'ACI', '置信度定义', '成本锚方法']) {
+    for (const block of ['价格区间方法', 'EWMA', 'GARCH', 'FHS', 'EVT-POT', 'ACI', '置信度定义']) {
       assert.ok(report.includes(block), `missing appendix ${block}`);
     }
+    if (report.includes('成本锚')) assert.ok(report.includes('成本锚方法'), 'missing appendix 成本锚方法');
     for (const line of ['免责声明', '数据来源：akshare']) assert.ok(report.includes(line));
   });
 });

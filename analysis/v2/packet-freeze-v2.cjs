@@ -125,7 +125,7 @@ function buildPacket(raw, sym, signalDate, macroSnapshot, sectorSnapshot, regist
       signalDate
     ),
     term_structure: basis
-      ? { br: basis.br, domBasisRate: basis.domBasisRate, asOf: normDate(basis.date), note: 'GA-8 ≤信号日最新行；br=(S−F)/S，正=现货升水' }
+      ? { br: basis.br, domBasisRate: basis.domBasisRate, dominantContract: basis.domContract || null, asOf: normDate(basis.date), note: 'GA-8 ≤信号日最新行；br=(S−F)/S，正=现货升水' }
       : null,
     macro_context: macroSnapshot?.indicators ? { indicators: macroSnapshot.indicators } : null,
     sector_context: sector
@@ -264,6 +264,32 @@ function main() {
   const outFile = path.join(runPath, 'analyze', 'packets-v2.json');
   writeJson(outFile, out);
   console.log(`packets-v2: ${outFile} (${Object.keys(packets).length} symbols)`);
+
+  // 生产兼容：main-series.json 供 probability 与 strategy-plan 取锚定合约。
+  // V2 无网络、不解析主力合约；合约名取自 GA-8 基差库 domContract，
+  // bars 用 raw.json 主力连续序列（probability 在干净序列不可用时的既有回退口径）。
+  const mainSeries = {};
+  for (const [sym, packet] of Object.entries(packets)) {
+    const c = raw.contracts?.[sym];
+    const o = c?.ohlcv;
+    mainSeries[sym] = {
+      contract: packet.term_structure?.dominantContract || null,
+      bars: o && Array.isArray(o.dates)
+        ? o.dates.map((date, i) => ({
+            date,
+            open: o.open?.[i] ?? null,
+            high: o.high?.[i] ?? null,
+            low: o.low?.[i] ?? null,
+            close: o.close?.[i] ?? null,
+            volume: o.volume?.[i] ?? null,
+            openInterest: o.openInterest?.[i] ?? null,
+          }))
+        : [],
+    };
+  }
+  writeJson(path.join(runPath, 'analyze', 'main-series.json'), mainSeries);
+  console.log(`main-series: ${path.join(runPath, 'analyze', 'main-series.json')} (${Object.keys(mainSeries).length} symbols)`);
+
   return out;
 }
 

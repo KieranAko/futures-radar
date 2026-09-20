@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const { patchCandidatesFile } = require('../stories/seats/build-filtered-from-story-pool.cjs');
+const { patchCandidatesFile, buildFilteredFromStoryPool } = require('../stories/seats/build-filtered-from-story-pool.cjs');
 
 describe('story-filtered candidates.json 创建/修补', () => {
   it('candidates.json 不存在时，用故事席位创建候选文件', () => {
@@ -40,6 +40,36 @@ describe('story-filtered candidates.json 创建/修补', () => {
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
     }
+  });
+
+  it('故事席位与信号池追踪席位同品种时去重，KEEP 不重复', () => {
+    const filtered = buildFilteredFromStoryPool({
+      runId: 'r-test',
+      filteredAt: '2026-09-20T00:00:00Z',
+      provenChains: [{
+        chainId: 'CH-1',
+        sector: 'black',
+        representative: 'RB0',
+        direction: 'bearish',
+        theme: 'test',
+        status: 'proven',
+      }],
+      poolSignals: [{
+        signalId: 'SIG-1',
+        symbol: 'RB0',
+        storyChainId: 'CH-1',
+        direction: 'bearish',
+        createdDate: '2026-09-01',
+        thesis: 'test',
+        currentVersionId: 'v1',
+        versions: [{ versionId: 'v1', confidence: 'medium' }],
+        poolStatus: 'active',
+      }],
+    });
+    assert.equal(filtered.candidates.length, 1);
+    assert.equal(filtered.candidates[0].symbol, 'RB0');
+    assert.equal(filtered.meta.storySeats, 1);
+    assert.equal(filtered.meta.trackingSeats, 0);
   });
 
   it('candidates.json 已存在时，补齐席位并保留既有 meta.runId', () => {

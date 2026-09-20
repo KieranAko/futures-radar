@@ -11,7 +11,7 @@ const cp = require('child_process');
 const { skillRoot } = require('../shared/workspace.cjs');
 const { retryWithBackoff } = require('./backoff.cjs');
 
-const DEFAULT_SCRIPT = path.join(skillRoot, 'collector', 'macro_collector.py');
+const DEFAULT_SCRIPT = path.join(skillRoot, 'collection', 'macro_collector.py');
 
 function fetchSeries(fetchSpec, { pythonCmd = 'python', scriptPath = null, timeoutMs = 90000, signalDate = null } = {}) {
   const script = scriptPath || DEFAULT_SCRIPT;
