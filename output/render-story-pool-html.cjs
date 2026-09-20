@@ -736,6 +736,16 @@ function dagScript() {
     d.innerHTML = '<div class="sg-detail-card">' + rows.join('') + '</div>';
     d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; });
   }
+  document.querySelectorAll('.closed-row').forEach(function (row) {
+    row.addEventListener('click', function () {
+      var d = document.getElementById(row.getAttribute('data-detail-id'));
+      if (!d) return;
+      var open = d.style.display !== 'none';
+      if (open) { d.style.display = 'none'; d.classList.remove('open'); row.classList.remove('open'); }
+      else { d.style.display = 'table-row'; d.classList.add('open'); row.classList.add('open'); }
+    });
+  });
+
   document.querySelectorAll('.dg-canvas').forEach(function (g) {
     drawDag(g);
     var nodes = JSON.parse(g.getAttribute('data-nodes') || '[]');
