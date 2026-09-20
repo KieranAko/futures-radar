@@ -376,7 +376,7 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}) 
       <div class="instr-title">
         <div class="instr-name">${escapeHtml(opp.name || opp.symbol)} <span class="muted">（${escapeHtml(opp.contract || opp.symbol)}）</span></div>
         <div class="instr-sub">${directionLabel(dir)} · ${confidenceLabel(t.finalConfidence)}置信 · 收盘 ${close}</div>
-        ${story ? `<div class="story-origin">🔗 故事：${escapeHtml(story.theme || '')}</div>` : ''}
+        ${story ? `<button type="button" class="story-jump" data-story-jump="${escapeHtml(story.chainId)}">🔗 故事：${escapeHtml(story.theme || '')}</button>` : ''}
       </div>
       <div class="instr-badges">${confidenceMeter(t.finalConfidence)}${regimePill(opp.marketFacts && opp.marketFacts.volatilityRegime)}</div>
     </div>
@@ -519,6 +519,38 @@ function storyWatchHtml(storyView) {
     </div>`;
   }).join('');
   return `<div class="watch-list"><h3>故事池观察清单（无 proven 席位，本期不深挖）</h3>${rows}</div>`;
+}
+
+function signalChartHoverScript() {
+  return `<script>
+(function () {
+  document.querySelectorAll('.lifecycle').forEach(function (lc) {
+    var tip = lc.querySelector('.chart-hover-tip');
+    if (!tip) return;
+    function moveTip(ev) {
+      var r = lc.getBoundingClientRect();
+      var x = ev.clientX - r.left;
+      var y = ev.clientY - r.top;
+      var w = tip.offsetWidth || 160;
+      tip.style.left = Math.min(Math.max(6, x + 12), Math.max(6, r.width - w - 6)) + 'px';
+      tip.style.top = Math.max(6, y - 10) + 'px';
+    }
+    lc.querySelectorAll('.zp-zone').forEach(function (el) {
+      el.addEventListener('mouseenter', function (ev) {
+        el.classList.add('hover');
+        tip.textContent = el.getAttribute('data-label') || '';
+        tip.style.display = 'block';
+        moveTip(ev);
+      });
+      el.addEventListener('mousemove', moveTip);
+      el.addEventListener('mouseleave', function () {
+        el.classList.remove('hover');
+        tip.style.display = 'none';
+      });
+    });
+  });
+})();
+</script>`;
 }
 
 function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = null, history, raw, mainSeries, signalDate, strategyPlan, costAnchorAvailable = false }) {
@@ -693,7 +725,10 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .instr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
   .instr-name { font-size: 17px; font-weight: 700; }
   .instr-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .story-origin { font-size: 12px; margin-top: 4px; }
+  .story-jump { font-size: 12px; margin-top: 4px; padding: 2px 8px; border: 1px solid #dbeafe; border-radius: 6px; background: #eef4ff; color: #2563eb; cursor: pointer; font-family: inherit; }
+  .story-jump:hover { background: #dbeafe; }
+  .story-flash { animation: story-flash 1.6s ease; }
+  @keyframes story-flash { 0% { box-shadow: 0 0 0 3px rgba(37,99,235,.35); background: #eef4ff; } 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); } }
   .instr-badges { display: inline-flex; align-items: center; gap: 10px; }
   .confidence { display: inline-flex; gap: 3px; }
   .confidence .cm { width: 16px; height: 7px; border-radius: 3px; background: #e5e7eb; }
@@ -848,6 +883,11 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .sig-chart-block { margin: 10px 0 2px; }
   .sig-chart-head { font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 4px; }
   .sig-chart-block .lifecycle svg { width: 100%; height: auto; max-height: none; }
+  .lifecycle { position: relative; }
+  .chart-hover-tip { display: none; position: absolute; z-index: 6; background: #1f2328; color: #ffffff; font-size: 12px; line-height: 1.5; padding: 4px 10px; border-radius: 6px; pointer-events: none; white-space: nowrap; box-shadow: 0 6px 18px rgba(15,23,42,.25); transform: translateY(-100%); }
+  .zp-zone { cursor: pointer; }
+  .zp-zone.hover { filter: brightness(1.18); }
+  .zp-zone.hover .zp-base { opacity: 0.22 !important; }
   .sig-chart-missing { border: 1px dashed var(--border); border-radius: 8px; padding: 12px; text-align: center; }
   .signal-obs { margin-top: 8px; font-size: 12px; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 6px; }
   @media (max-width: 1080px) { .pool-layout { grid-template-columns: 1fr; } .pool-side { position: static; } }
@@ -1154,6 +1194,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
         ${poolPanels}
         <h2>最近出池信号（最新 5 个）</h2>
         ${sigClosedPanels}
+        ${signalChartHoverScript()}
       </div>
       <aside class="pool-side">
         <div class="side-card"><h3>历史统计</h3>${statsTable(stats)}</div>
@@ -1178,6 +1219,32 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
       panels.forEach((p) => p.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // 故事跳转：机会分析/信号池卡片头部的故事按钮 → 切到故事池并定位对应故事
+  document.querySelectorAll('[data-story-jump]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const chainId = btn.dataset.storyJump;
+      document.querySelector('.tab[data-tab="stories"]').click();
+      let target = document.getElementById('story-chain-' + chainId);
+      if (!target) {
+        const detailRow = document.getElementById('closed-detail-' + chainId);
+        if (detailRow) {
+          const row = detailRow.previousElementSibling;
+          detailRow.style.display = 'table-row';
+          detailRow.classList.add('open');
+          if (row) row.classList.add('open');
+          target = detailRow;
+        }
+      }
+      if (target) {
+        setTimeout(() => {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          target.classList.add('story-flash');
+          setTimeout(() => target.classList.remove('story-flash'), 1700);
+        }, 50);
+      }
     });
   });
 

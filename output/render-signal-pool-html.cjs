@@ -268,26 +268,27 @@ function lifecycleChart(sig, versions, bars) {
   const textStyle = 'paint-order:stroke;stroke:#ffffff;stroke-width:3px;';
   const zoneGap = (max - min) * 0.008;
   const ZONE_BASE = { 'zp-plan': '#d97706', 'zp-target': '#2563eb', 'zp-invalid': '#ef4444' };
-  const zone = (v1, v2, pattern, label, color) => {
+  const zone = (v1, v2, pattern, label, color, tooltip) => {
     const y1 = y(v1);
     const y2 = y(v2);
     const top = Math.min(y1, y2);
     const h = Math.abs(y2 - y1);
     if (h < 4) return '';
     const base = ZONE_BASE[pattern] || color;
-    let out = `<rect x="${padL}" y="${top.toFixed(1)}" width="${(W - padL - padR).toFixed(1)}" height="${h.toFixed(1)}" fill="${base}" opacity="0.1"/><rect x="${padL}" y="${top.toFixed(1)}" width="${(W - padL - padR).toFixed(1)}" height="${h.toFixed(1)}" fill="url(#${pattern})"/>`;
+    let out = `<g class="zp-zone" data-label="${escapeHtml(tooltip || label)}"><rect class="zp-base" x="${padL}" y="${top.toFixed(1)}" width="${(W - padL - padR).toFixed(1)}" height="${h.toFixed(1)}" fill="${base}" opacity="0.1"/><rect class="zp-hatch" x="${padL}" y="${top.toFixed(1)}" width="${(W - padL - padR).toFixed(1)}" height="${h.toFixed(1)}" fill="url(#${pattern})"/>`;
     if (label && h >= 16) {
       out += `<text x="${(padL + 8).toFixed(1)}" y="${(top + h / 2 + 4).toFixed(1)}" font-size="11" font-weight="700" fill="${color}" style="${textStyle}">${escapeHtml(label)}</text>`;
     }
+    out += '</g>';
     return out;
   };
   // 背景区间块：失效区 / 计划区间（触发↔止损）/ 目标区间（目标1↔目标2）
   if (stopPrice != null) {
-    if (sig.direction === 'bullish') parts.push(zone(stopPrice, min + (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c'));
-    else parts.push(zone(stopPrice, max - (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c'));
+    if (sig.direction === 'bullish') parts.push(zone(stopPrice, min + (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c', `失效区：价格跌破止损 ${fmt(stopPrice, 0)} 后逻辑失效`));
+    else parts.push(zone(stopPrice, max - (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c', `失效区：价格站上止损 ${fmt(stopPrice, 0)} 后逻辑失效`));
   }
-  if (triggerLevel != null && stopPrice != null && Math.abs(triggerLevel - stopPrice) > zoneGap) parts.push(zone(triggerLevel, stopPrice, 'zp-plan', '计划区间', '#b45309'));
-  if (t1Level != null && t2Level != null && Math.abs(t1Level - t2Level) > zoneGap) parts.push(zone(t1Level, t2Level, 'zp-target', '目标区间', '#2563eb'));
+  if (triggerLevel != null && stopPrice != null && Math.abs(triggerLevel - stopPrice) > zoneGap) parts.push(zone(triggerLevel, stopPrice, 'zp-plan', '计划区间', '#b45309', `计划区间：触发 ${fmt(triggerLevel, 0)} ~ 止损 ${fmt(stopPrice, 0)}`));
+  if (t1Level != null && t2Level != null && Math.abs(t1Level - t2Level) > zoneGap) parts.push(zone(t1Level, t2Level, 'zp-target', '目标区间', '#2563eb', `目标区间：目标1 ${fmt(t1Level, 0)} ~ 目标2 ${fmt(t2Level, 0)}`));
   for (let i = 0; i < n; i++) {
     const b = win[i];
     const cx = x(i);
@@ -455,6 +456,12 @@ function lifecycleChart(sig, versions, bars) {
   }
   xDate(n - 1, 'end');
 
+  const lastBar = win[win.length - 1];
+  const lastUp = lastBar.close >= lastBar.open;
+  const lastColor = lastUp ? '#b91c1c' : '#047857';
+  parts.push(`<circle cx="${x(n - 1).toFixed(1)}" cy="${y(lastBar.close).toFixed(1)}" r="3.2" fill="${lastColor}" stroke="#ffffff" stroke-width="1.4"/>`);
+  parts.push(`<text x="${(W - padR - 8).toFixed(1)}" y="${(padT + 4).toFixed(1)}" font-size="11" font-weight="700" fill="${lastColor}" text-anchor="end" style="${textStyle}">最新收盘 ${fmt(lastBar.close)} · ${escapeHtml(lastBar.date.slice(5))}</text>`);
+
   parts.push('</svg>');
 
   const legendSwatch = (color, dash) => `<i style="width:16px;height:0;border-top:3px ${dash || 'solid'} ${color};display:inline-block;vertical-align:middle;"></i>`;
@@ -469,7 +476,7 @@ function lifecycleChart(sig, versions, bars) {
   if (t1Level != null && t2Level != null && Math.abs(t1Level - t2Level) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(37,99,235,.2);outline:1px solid rgba(37,99,235,.55);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">目标区间</b></span>`);
   const legendHtml = `<div class="chart-legend" style="display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:12px;color:#6b7280;">${[...levelLegend, ...zoneLegend].join('')}</div>`;
 
-  return `<div class="lifecycle">${parts.join('')}${legendHtml}</div>`;
+  return `<div class="lifecycle">${parts.join('')}${legendHtml}<div class="chart-hover-tip"></div></div>`;
 }
 
 function signalCard(sig, { closed = false, bars = null } = {}) {
@@ -961,7 +968,7 @@ function signalObservationLine(sig) {
   return `<div class="signal-obs">最近观察：${escapeHtml(obs.date ? obs.date.slice(5) : '—')} · ${escapeHtml(ev)}</div>`;
 }
 
-function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyTheme = null } = {}) {
+function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyTheme = null, storyChainId = null } = {}) {
   const sig = { ...(detail || {}), ...s, versions: (detail && Array.isArray(detail.versions) ? detail.versions : []) };
   const versions = sig.versions;
   const isClosed = closed || sig.poolStatus === 'closed';
@@ -971,7 +978,7 @@ function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyThe
   const currentId = sig.currentVersionId || (sig.currentVersion && sig.currentVersion.versionId) || null;
   const currentNum = !isClosed && currentId ? `V${String(currentId).includes(':V') ? String(currentId).split(':V')[1] : '?'}` : null;
   const dirHtml = `<span class="sig-dir ${dirClass(sig.direction)}">${escapeHtml(dirText(sig.direction))}</span>`;
-  const storyHtml = storyTheme ? `<span class="story-source">故事 ${escapeHtml(storyTheme)}</span>` : '';
+  const storyHtml = storyTheme && storyChainId ? `<button type="button" class="story-jump" data-story-jump="${escapeHtml(storyChainId)}">🔗 故事：${escapeHtml(storyTheme)}</button>` : '';
   const p = sig.priceTracking || {};
   let priceLine = '';
   if (p.startClose != null || p.latestClose != null) {
@@ -1017,6 +1024,7 @@ function signalPoolPanelsHtml(view, opts = {}) {
   if (pool.length === 0) return '<p class="muted">当前池内无信号。</p>';
   return pool.map((s) => signalPanelHtml(s, details[s.signalId] || {}, {
     storyTheme: storyThemes[s.storyChainId] || null,
+    storyChainId: s.storyChainId || null,
     bars: barsOf(s)
   })).join('\n');
 }
@@ -1030,6 +1038,7 @@ function signalClosedPanelsHtml(view, opts = {}) {
   return closed.map((s) => signalPanelHtml(s, details[s.signalId] || {}, {
     closed: true,
     storyTheme: storyThemes[s.storyChainId] || null,
+    storyChainId: s.storyChainId || null,
     bars: barsOf(s)
   })).join('\n');
 }

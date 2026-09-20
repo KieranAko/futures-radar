@@ -124,6 +124,8 @@ describe('dashboard-html 四 Tab 看板', () => {
     assert.ok(html.includes('branch-path'));
     assert.ok(html.includes('node-chip'));
     assert.ok(html.includes('closed-detail-row'));
+    assert.ok(html.includes('data-story-jump'));
+    assert.ok(html.includes('id="story-chain-CH-BLACK-20260917-01"'));
     assert.ok(html.includes('节点命中率（按取数路径）'));
     assert.ok(html.includes('节点命中率（按取数路径）'));
     assert.ok(html.includes('href="runs/r1/report.html"'));

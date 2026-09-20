@@ -117,7 +117,7 @@ function chainPanelHtml(c) {
   const branches = (c.branches && c.branches.length > 0)
     ? c.branches
     : [{ branchId: (c.nodes && c.nodes[c.nodes.length - 1] && c.nodes[c.nodes.length - 1].id) || null, symbol: c.representative, direction: c.direction, priority: 'primary', status: c.status, proofIndex: c.entryProofIndex, impactRationale: null }];
-  return `<div class="story-panel">
+  return `<div class="story-panel" id="story-chain-${escapeHtml(c.chainId)}">
     <div class="story-panel-head">
       <span class="story-theme">${escapeHtml(c.theme || '（未命名主题）')}</span>
       ${storyStatusBadge(c.status)}
