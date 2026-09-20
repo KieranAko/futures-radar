@@ -227,24 +227,18 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
   };
   maLine(ma20, '#2563eb');
   maLine(ma60, '#d97706');
-  if (signalDate) {
-    const idx = bars.findIndex((b) => b.date === signalDate);
-    if (idx >= 0) {
-      const x = padX + idx * step + step / 2;
-      parts.push(`<line x1="${x}" y1="${padY}" x2="${x}" y2="${H - padY}" stroke="#6b7280" stroke-dasharray="4 4" stroke-width="1"/>`);
-      parts.push(`<text x="${x}" y="${H - 14}" text-anchor="middle" class="chart-label">信号 ${escapeHtml(signalDate.slice(5))}</text>`);
-    }
-  }
-  const xDate = (idx, anchor) => parts.push(`<text x="${padX + idx * step + step / 2}" y="${H - 4}" text-anchor="${anchor}" class="chart-label">${escapeHtml(bars[idx].date.slice(5))}</text>`);
-  xDate(0, 'middle');
+  const signalIdx = signalDate ? bars.findIndex((b) => b.date === signalDate) : -1;
+  const labelIdxs = new Set([0, n - 1]);
   if (n > 6) {
-    xDate(Math.floor((n - 1) * 0.25), 'middle');
-    xDate(Math.floor((n - 1) * 0.5), 'middle');
-    xDate(Math.floor((n - 1) * 0.75), 'middle');
+    labelIdxs.add(Math.floor((n - 1) * 0.25));
+    labelIdxs.add(Math.floor((n - 1) * 0.5));
+    labelIdxs.add(Math.floor((n - 1) * 0.75));
   } else if (n > 2) {
-    xDate(Math.floor((n - 1) / 2), 'middle');
+    labelIdxs.add(Math.floor((n - 1) / 2));
   }
-  xDate(n - 1, 'middle');
+  if (signalIdx >= 0) labelIdxs.add(signalIdx);
+  const xDate = (idx, anchor, highlight = false) => parts.push(`<text x="${padX + idx * step + step / 2}" y="${H - 4}" text-anchor="${anchor}" class="chart-label"${highlight ? ' fill="#2563eb" font-weight="700" style="paint-order:stroke;stroke:#ffffff;stroke-width:3px;"' : ''}>${escapeHtml(bars[idx].date.slice(5))}</text>`);
+  for (const idx of [...labelIdxs].sort((a, b) => a - b)) xDate(idx, 'middle', idx === signalIdx);
   parts.push(`<line class="chart-crosshair" x1="${(padX + (n - 1) * step + step / 2).toFixed(1)}" y1="${padY}" x2="${(padX + (n - 1) * step + step / 2).toFixed(1)}" y2="${(H - padY).toFixed(1)}" stroke="#1f2328" stroke-width="1" stroke-dasharray="3 3" opacity="0.7"/>`);
   parts.push('</svg>');
   parts.push('<div class="legend"><span class="legend-item"><i style="background:#b91c1c"></i>涨</span><span class="legend-item"><i style="background:#047857"></i>跌</span><span class="legend-item"><i style="background:#2563eb"></i>MA20</span><span class="legend-item"><i style="background:#d97706"></i>MA60</span></div>');
@@ -559,6 +553,7 @@ function signalChartHoverScript() {
     var ma20 = smaArr(closes, 20);
     var ma60 = smaArr(closes, 60);
     var chg5 = closes.map(function (c, i) { return i >= 5 && closes[i - 5] ? (c / closes[i - 5] - 1) * 100 : null; });
+    var isLifecycle = lc.classList.contains('lifecycle');
     function dayHtml(i) {
       var b = bars[i];
       if (!b) return '';
@@ -568,10 +563,13 @@ function signalChartHoverScript() {
       var color = chg == null || chg >= 0 ? '#b91c1c' : '#047857';
       var c5 = chg5[i];
       var c5Color = c5 == null || c5 >= 0 ? '#b91c1c' : '#047857';
-      return '<b style="color:' + color + '">' + esc(b.d) + '</b> · 开 ' + nf(b.o) + ' · 高 ' + nf(b.h) + ' · 低 ' + nf(b.l) + ' · 收 <b style="color:' + color + '">' + nf(b.c) + '</b>'
+      var html = '<b style="color:' + color + '">' + esc(b.d) + '</b> · 开 ' + nf(b.o) + ' · 高 ' + nf(b.h) + ' · 低 ' + nf(b.l) + ' · 收 <b style="color:' + color + '">' + nf(b.c) + '</b>'
         + (chg != null ? ' · 涨跌 <b style="color:' + color + '">' + (chg >= 0 ? '+' : '') + nf(chg) + '（' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%）</b>' : '')
-        + (c5 != null ? ' · 5日涨跌 <b style="color:' + c5Color + '">' + (c5 >= 0 ? '+' : '') + c5.toFixed(1) + '%</b>' : '')
-        + ' · MA20 <b>' + (ma20[i] != null ? nf(ma20[i]) : '—') + '</b> · MA60 <b>' + (ma60[i] != null ? nf(ma60[i]) : '—') + '</b>';
+        + (c5 != null ? ' · 5日涨跌 <b style="color:' + c5Color + '">' + (c5 >= 0 ? '+' : '') + c5.toFixed(1) + '%</b>' : '');
+      if (!isLifecycle) {
+        html += ' · MA20 <b>' + (ma20[i] != null ? nf(ma20[i]) : '—') + '</b> · MA60 <b>' + (ma60[i] != null ? nf(ma60[i]) : '—') + '</b>';
+      }
+      return html;
     }
     function nearestIndex(ev) {
       if (!svg || !bars.length) return -1;
