@@ -629,7 +629,7 @@ function storyPoolHtml(view, kpiDeltas = null) {
   const active = view && Array.isArray(view.active) ? view.active : [];
   const closed = view && Array.isArray(view.recentClosed) ? view.recentClosed : [];
   const d = kpiDeltas || {};
-  const delta = (v) => (v === null || v === undefined) ? '' : `<em class="stat-delta ${v > 0 ? 'up' : v < 0 ? 'down' : ''}">${v > 0 ? '+' : ''}${v} vs 上期</em>`;
+  const delta = (v) => (v === null || v === undefined) ? '' : `<em class="stat-delta ${v > 0 ? 'up' : v < 0 ? 'down' : ''}">${v > 0 ? '+' : ''}${v}</em>`;
   return `
   <div class="summary-bar">
     <span class="stat"><span class="stat-icon blue">🔗</span><span class="stat-meta"><b>${stats.totalChains || 0}</b><span>故事总数${delta(d.totalChains)}</span></span></span>

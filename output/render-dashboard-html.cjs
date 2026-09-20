@@ -54,7 +54,7 @@ function regimePill(regime) {
 }
 
 function statCard(icon, label, value, tone = 'blue', delta = null) {
-  const d = delta === null || delta === undefined ? '' : `<em class="stat-delta ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}">${delta > 0 ? '+' : ''}${delta} vs 上期</em>`;
+  const d = delta === null || delta === undefined ? '' : `<em class="stat-delta ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}">${delta > 0 ? '+' : ''}${delta}</em>`;
   return `<div class="stat"><span class="stat-icon ${tone}">${icon}</span><div class="stat-meta"><b>${value}</b><span>${label}${d}</span></div></div>`;
 }
 
