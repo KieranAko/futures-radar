@@ -699,7 +699,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .closed-scroll { max-height: 300px; overflow-y: auto; scrollbar-gutter: stable; }
   .closed-table table { width: 100%; min-width: 860px; table-layout: fixed; border-collapse: collapse; }
   .closed-head-wrap, .closed-scroll { min-width: 860px; }
-  .closed-head th { border-bottom: none; }
+  .closed-head th { border-bottom: none; background: #f7f8fa; }
   @media (max-width: 1080px) { .closed-scroll { max-height: 260px; } }
 
   .anchor-panel { background: #f0f6ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 10px 12px; margin: 8px 0; }
@@ -778,9 +778,10 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .node-table th, .node-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); font-size: 12px; vertical-align: top; }
   .node-table th { color: var(--muted); font-weight: 500; white-space: nowrap; }
   .node-table .muted { font-size: 11px; margin-top: 2px; }
-  .branch-table { width: 100%; border-collapse: collapse; margin: 6px 0 12px; }
+  .branch-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 6px 0 12px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card); }
   .branch-table th, .branch-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 12px; line-height: 1.6; }
-  .branch-table th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+  .branch-table th { color: var(--muted); font-weight: 600; white-space: nowrap; background: #f7f8fa; }
+  .branch-table tbody tr:last-child td { border-bottom: none; }
   .branch-table th:first-child, .branch-table td:first-child { white-space: nowrap; }
   .branch-priority { white-space: nowrap; }
   .story-sub-detail { margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 6px; }
