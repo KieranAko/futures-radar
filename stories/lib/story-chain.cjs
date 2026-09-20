@@ -521,7 +521,18 @@ function registerChainV3(def, { supersede = false, root = null } = {}) {
     return { ok: false, phase: 'duplicate_id', errors: [`chainId ${def.chainId} 已存在`] };
   }
 
-  const existing = ledger.chains.find((c) => c.sourceId === def.sourceId && isActive(c.status));
+  const existing = ledger.chains.find((c) => {
+    if (!isActive(c.status)) return false;
+    if (c.sourceId === def.sourceId) return true;
+    // 兼容旧链：旧链台账无 sourceId，按首节点指标/概念反推
+    if (!c.sourceId) {
+      const oc = loadChain(c.chainId, root);
+      const first = oc && Array.isArray(oc.nodes) ? oc.nodes[0] : null;
+      const oldSource = first && (first.indicatorId || first.concept);
+      return oldSource === def.sourceId;
+    }
+    return false;
+  });
   if (existing) {
     if (!supersede) {
       return { ok: false, phase: 'source_occupied', errors: [`源 ${def.sourceId} 已有活跃链 ${existing.chainId}；用 --supersede 换代`] };

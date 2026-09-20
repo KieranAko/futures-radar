@@ -139,7 +139,7 @@ function computeLayers(nodes, edges) {
 }
 
 function nodeSvg(n, x, y, sourceId, markerId) {
-  const w = 148, h = 54;
+  const w = 196, h = 66;
   const isSource = n.id === sourceId;
   const isTerminal = !!n.terminal;
   const status = n.status || 'pending';
@@ -155,19 +155,19 @@ function nodeSvg(n, x, y, sourceId, markerId) {
   const dir = n.expectation === 1 ? '↑' : n.expectation === -1 ? '↓' : '';
   const statusShort = status === 'confirmed' ? '✔' : status === 'broken' ? '✘' : '·';
   return `<g class="sg-node" data-id="${escapeHtml(n.id)}" transform="translate(${x},${y})" style="cursor:pointer">
-    <rect width="${w}" height="${h}" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="${isTerminal ? 2 : 1.5}"></rect>
-    <text x="10" y="21" font-size="12" font-weight="700" fill="${text}">${escapeHtml(short(label, 10))}</text>
-    <text x="10" y="36" font-size="9" fill="${text}" opacity="0.75">${escapeHtml(short(sub, 20))}</text>
-    <text x="${w - 10}" y="21" font-size="11" fill="${text}" text-anchor="end">${dir}${statusShort}</text>
-    ${isTerminal ? `<text x="10" y="49" font-size="9" fill="${text}" opacity="0.9">${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}</text>` : ''}
+    <rect width="${w}" height="${h}" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="${isTerminal ? 2.5 : 1.5}"></rect>
+    <text x="12" y="25" font-size="13" font-weight="700" fill="${text}">${escapeHtml(short(label, 12))}</text>
+    <text x="12" y="43" font-size="10" fill="${text}" opacity="0.78">${escapeHtml(short(sub, 24))}</text>
+    <text x="${w - 12}" y="25" font-size="12" fill="${text}" text-anchor="end">${dir}${statusShort}</text>
+    ${isTerminal ? `<text x="12" y="58" font-size="10" fill="${text}" opacity="0.95">${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}</text>` : ''}
   </g>`;
 }
 
 function edgeSvg(e, fromPos, toPos, markerId) {
-  const x1 = fromPos.x + 148, y1 = fromPos.y + 27;
-  const x2 = toPos.x, y2 = toPos.y + 27;
-  const dx = Math.max(36, (x2 - x1) * 0.45);
-  return `<path class="sg-edge" data-from="${escapeHtml(e.from)}" data-to="${escapeHtml(e.to)}" d="M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#${markerId})"></path>`;
+  const x1 = fromPos.x + 196, y1 = fromPos.y + 33;
+  const x2 = toPos.x, y2 = toPos.y + 33;
+  const dx = Math.max(42, (x2 - x1) * 0.45);
+  return `<path class="sg-edge" data-from="${escapeHtml(e.from)}" data-to="${escapeHtml(e.to)}" d="M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#${markerId})"></path>`;
 }
 
 function storyGraphHtml(c) {
@@ -175,11 +175,11 @@ function storyGraphHtml(c) {
   const edges = c.edges || [];
   const sourceId = nodes[0] && nodes[0].id;
   const { layers } = computeLayers(nodes, edges);
-  const nodeW = 148, nodeH = 54, gapX = 138, gapY = 16;
+  const nodeW = 196, nodeH = 66, gapX = 164, gapY = 20;
   const maxLayer = Math.max(...[...layers.keys()].map(Number));
   const maxCount = Math.max(...[...layers.values()].map((a) => a.length));
-  const svgW = Math.max(320, (maxLayer + 1) * (nodeW + gapX) + 12);
-  const svgH = Math.max(90, maxCount * (nodeH + gapY) + 12);
+  const svgW = Math.max(420, (maxLayer + 1) * (nodeW + gapX) + 16);
+  const svgH = Math.max(110, maxCount * (nodeH + gapY) + 16);
   const pos = new Map();
   for (const [d, ids] of layers) {
     ids.forEach((id, i) => {
@@ -273,17 +273,12 @@ function graphScript() {
     }
     function showNodeDetail(n) {
       var rows = [];
-      rows.push('<div class="sg-detail-head"><b>' + short(n.label, 24) + '</b><button class="sg-detail-close" aria-label="关闭">×</button></div>');
-      rows.push('<div class="sg-detail-row"><span>节点</span><b>' + short(n.id, 20) + '</b></div>');
-      rows.push('<div class="sg-detail-row"><span>指标</span><b>' + short(n.indicatorId, 30) + '</b></div>');
+      rows.push('<div class="sg-detail-head"><b>' + short(n.label, 20) + '</b><button class="sg-detail-close" aria-label="关闭">×</button></div>');
       rows.push('<div class="sg-detail-row"><span>状态</span><b>' + short(n.status, 10) + (n.terminal ? ' · ' + (n.priority === 'primary' ? '主支' : '次支') : '') + '</b></div>');
       rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : '—') + '</b></div>');
-      if (n.lastValue != null) {
-        rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + n.lastValue + (n.unit ? ' ' + n.unit : '') + '（' + short(n.lastValueAt, 10) + '）</b></div>');
-        rows.push('<div class="sg-detail-row"><span>前值 → 当前</span><b>' + (n.prevValue != null ? n.prevValue : '—') + ' → ' + n.lastValue + '</b></div>');
-      }
-      if (n.windowStartDate) rows.push('<div class="sg-detail-row"><span>观察窗口</span><b>' + n.windowStartDate + ' → ' + (n.windowDeadlineDate || '—') + '</b></div>');
-      if (n.brokenReason) rows.push('<div class="sg-detail-row"><span>断裂原因</span><b>' + short(n.brokenReason, 30) + '</b></div>');
+      if (n.lastValue != null) rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + n.lastValue + (n.unit ? ' ' + n.unit : '') + '（' + short(n.lastValueAt, 10) + '）</b></div>');
+      if (n.brokenReason) rows.push('<div class="sg-detail-row"><span>断裂原因</span><b>' + short(n.brokenReason, 24) + '</b></div>');
+      rows.push('<div class="sg-detail-note">完整字段见下方「节点明细」</div>');
       detail.innerHTML = '<div class="sg-detail-card">' + rows.join('') + '</div>';
     }
     function showEdgeDetail(e, from, to) {
