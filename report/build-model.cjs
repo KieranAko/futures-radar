@@ -208,6 +208,7 @@ for (const opp of reportFacts.opportunities) {
   reportModel.opportunities.push({
     symbol: opp.symbol,
     name: opp.name,
+    storyChainId: opp.storyChainId || null, // V2 前向盖章：故事席位血缘
     rank: opp.rank,
     sector: opp.sector || null,
     contract: opp.contract || null,

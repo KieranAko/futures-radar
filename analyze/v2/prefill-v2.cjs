@@ -1,17 +1,17 @@
-// experiment-line/analyze-v2/prefill-v2.cjs — O4：确定性预填
+// analyze/v2/prefill-v2.cjs — O4：确定性预填
 //
 // 预填：Q2 全部 / Q6 全部可计算项。
 // Q4/Q5 不再确定性预填（历史 MA20 模板会导致远端机械定价），
 // 改由 LLM 基于 Q1–Q3 逻辑与 packet.near_term 近端结构生成。
 //
-// 用法: node experiment-line/analyze-v2/prefill-v2.cjs --runId <runId>
+// 用法: node analyze/v2/prefill-v2.cjs --runId <runId>
 'use strict';
 
 const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const EL = path.join(ROOT, 'experiment-line');
+const EL = path.join(ROOT, 'research', 'archive-experiment-line', 'experiment-line'); // V2：归档保留，仅供历史工具兼容
 const { runDir } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
 
 function readJson(file) {

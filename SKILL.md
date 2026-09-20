@@ -1,7 +1,7 @@
 ---
 name: futures-radar
 description: 期货短期机会分析 + 离线模型回测——每日扫描~60个国内期货主力合约，波动率排名→Top 3深挖→4章短报告；research/backtest/ 支持 deterministic 与 LLM replay 回测
-version: 1.0.0
+version: 2.0.0
 ---
 
 # futures-radar
@@ -16,9 +16,10 @@ version: 1.0.0
 - **离线回测**：`research/backtest/`（deterministic 批量回测；`runMiniPipeline` 可选 LLM replay，见 `research/backtest/README.md`）
 - **数据文件库**：`data/` + `data-store/`（每日行情/ledger/合约bars/宏观快照/板块序列，维护命令见 `data/README.md`）
 - **交易策略板块**：Strategy-LLM 先按 `strategies/strategy-reasoning-prompt.cjs` 生成推理输入，产出 `strategy-reasoning.json`（理论软参照、策略表达置信度、入场/止损/目标/仓位意图）；再 `node strategies/build-strategy-plan.cjs --runId <runId>` 生成 `strategy-plan.json`；报告渲染自动附「五、交易策略板块（执行参考）」章节（缺失时跳过，四章不变）。策略为方向增强/执行参考：不构成投资建议、无收益承诺、不使用新增持仓数据（见 `strategies/README.md`）
-- **看板为主**：`output/dashboard.html` 是日常阅读主界面（市场环境/今日速览/机会分析/信号池/历史报告）；完整报告 `runs/<runId>/report.md/html` 为档案与审计，次要阅读。生产顺序固定为：assemble-v2 → strategy-reasoning → build-strategy-plan → render（保证看板生成时策略与信号池数据齐全）
-- **信号池（Signal Pool）**：`build-strategy-plan.cjs` 自动执行信号池更新（`strategies/lib/signal-pool.cjs`）——executable 策略诞生信号（入池）、同向后续 plan 追加策略版本（追踪）、反向翻转/Q5 证伪/机会衰竭/窗口到期四种原因出池；信号池台账存 `data/signal-pool/`（`ledger.json` + `signals/<signalId>.json`），报告 4.3 展示「池内信号全量明细 + 最近出池 5 个明细 + 历史统计 + 版本链」。旧证伪反馈（`strategy-feedback.json`）仍生成但仅作兼容，不再渲染。信号池看板：`render-markdown.cjs` 生成 `output/dashboard.html`（三 Tab：机会分析看板 / 信号池看板 / 历史报告索引），每期覆盖；同时生成 `runs/<runId>/report.html`（report.md 的浏览器可读 HTML 版，历史缺失可用 `node report/backfill-report-html.cjs` 回填）
+- **看板为主**：`output/dashboard.html` 是日常阅读主界面（四 Tab：故事池置首 / 机会分析 / 信号池 / 历史报告；故事池以主题为卡片标题、卡片可折叠，逐节点展示前值/当前值/环比+单位+日期、观察窗口起止、确认日期、取数路径、可信度、事件与 linkedSignalId）；完整报告 `runs/<runId>/report.md/html` 为档案与审计，次要阅读。生产顺序固定为：assemble-v2 → strategy-reasoning → build-strategy-plan → render（保证看板生成时策略/信号池/故事池数据齐全）；反哺机制未定，link-signal-pool 暂不启用
+- **信号池（Signal Pool）**：`build-strategy-plan.cjs` 自动执行信号池更新（`strategies/lib/signal-pool.cjs`）——executable 策略诞生信号（入池）、同向后续 plan 追加策略版本（追踪）、反向翻转/Q5 证伪/机会衰竭/窗口到期四种原因出池；信号池台账存 `data/signal-pool/`（`ledger.json` + `signals/<signalId>.json`），报告 4.3 展示「池内信号全量明细 + 最近出池 5 个明细 + 历史统计 + 版本链」。旧证伪反馈（`strategy-feedback.json`）仍生成但仅作兼容，不再渲染。信号池看板：`render-markdown.cjs` 生成 `output/dashboard.html`（四 Tab：机会分析 / 信号池 / 故事池 / 历史报告索引），每期覆盖；同时生成 `runs/<runId>/report.html`（report.md 的浏览器可读 HTML 版，历史缺失可用 `node report/backfill-report-html.cjs` 回填）
 - **信号池追踪席位**：每期初筛写完 `filtered.json` 后，运行 `node strategies/signal-pool/apply-tracking-seats.cjs --runId <runId>`，把池内品种强制加入 KEEP（`tracking=true`），与 TOP3 同规格完整再分析
+- **故事传导链池（Story Chain Pool，V2）**：LLM 构造传导链（1 主题 + ≥3 节点 + 顺序边 + 1 板块 + 1 代表品种 + 1 方向 + 证明点 2≤p<节点数；链首必须是宏观/事件源；板块成员<3 禁板块指标；连续 2 数据日同向才确认/反向才断）。节点两态：T0 引用 `config/story-chain-indicators.json` 目录，或 T2 带 `concept + dataPlan`（baseline/unit/maxFreshDays）走 WebSearch 检索（T1 采集器暂缺，一律降级 T2）。**取数路径 ≠ 数据可信度**：可信度 high/medium/low/unknown 由脚本按来源层级×新鲜度×独立源推导，只标注不改变证明/证伪判决。状态机：resolving（证明点冻结）→pending→proven→completed|falsified|expired|void；同板块仅 1 条活跃链（`supersede` 换代）。台账存 `data/story-pool/`。CLI：`prompt --runId <id>`（状态唤醒提示词，读 `strategies/story-chain-blueprint.md`）、`register --file ... --batch`、`resolve --chainId <id> --brief/--file/--void`、`observe --runId <id>` / `--date <YYYY-MM-DD>`、`list`、`view`。**数据唯一事实源=文件库**：节点指标只从 `data/daily` + `data/macro-history`（`npm run macro:history` 构建/刷新）计算，不读 output/runs。**生产桥（单向顺序）**：filter-llm 后运行 `node strategies/story-pool/apply-story-seats.cjs --runId <id>` 把 proven 链代表品种注入 KEEP（tracking=true/storyChainId）；storyChainId 随 filtered → analysis → report-model → strategy-plan → signal 逐层前向盖章（血缘只读可查）。`link-signal-pool.cjs` 代码保留但暂不启用（信号验证反哺故事链机制未定）。示例：`research/experiments/macro-flow-v1/example-chain.json`
 - **信号质量回测**：固定 RB0/M0/SC0、2 年历史（500 交易日）+ 每 5 交易日 LLM 锚点，确定性规则延续生成信号，T+1 收盘确认/T+2 开盘执行/止损/目标/时间退出验证。v1/v2 基线（`runner.cjs` → `signal-quality-baseline.md/json`、`signal-quality-baseline-2y.md/json`）冻结保留；v3（`runner-v3.cjs` → `signal-quality-baseline-v3.md/json`）不做参数选优，改为证伪 LLM 定性判断（regime/edge/triggerType/qualityFlags/thesis），并与纯量化 MA20 对照臂比较；v4（`runner-v4.cjs` → `signal-quality-baseline-v4.md/json`）为最近 10 锚点×3 品种试点：宏观/板块/事件日历上下文 + 完整六问 FinCoT → 报告式操作策略 → 严格执行；v5（`runner-v5.cjs` → `signal-quality-baseline-v5.md/json`）为 20 锚点×3 品种高效版：紧凑 bundle + 变化检测按需重跑 FinCoT + C 臂强制消费 FinCoT；v6（`runner-v6.cjs` → `signal-quality-baseline-v6.md/json`）为五道安全闸初版；v6.1（`runner-v6-1.cjs` → `signal-quality-baseline-v6-1.md/json`）为硬约束修正版；v7（`runner-v7.cjs` → `signal-quality-baseline-v7.md/json`）以 FinCoT 论文（arXiv:2506.16123）为推理根基：5 个领域蓝图 + thinking/output/selfCheck + 安全执行，10 锚点试点；v7 适配器（`adapters/strategy-plan-adapter.cjs`）把 FinCoT 分析包装成生产 run 形状，原样调用 `strategy-matcher` 产出 30 份 `strategy-plan.json`；v8 执行引擎（`runner-v8.cjs`）只读 strategy-plan 字段执行；v8.1 增加定价层（`pricing-layer-v8.cjs`：F1 触发价 2×ATR 带、F2 q4 类型一致、F3 range/transition 禁 breakout、F5 breakout 必须有结构目标、F4 目标距离审计）+ `runner-v8-1.cjs` 只执行定价层放行计划——FinCoT 只做分析，策略库适配策略，执行层按策略执行
 
 ## 触发条件
@@ -102,12 +103,13 @@ node pipeline/run.cjs --runId 20260730-1637-auto --from scan
 - 应用 `filter/rules.json` 规则
 - 被剔除品种标记原因，**LLM 后续不得复活**
 
-### 阶段3b: Filter-LLM (manual)
-LLM 读 `filter/blueprint.md` → 从 filtered-hard.json 中降权/保留/标记观望 → 产出 `filtered.json`（≤3 个新鲜 KEEP）
-- **绝对禁止复活**已被 3a 剔除的品种
-- **可操作性优先（v0.1.6）**：`directionBias=neutral` 的品种直接降级，不得挤占方向明确、驱动可验证的品种；Top3 先按可操作性筛选，再按 score 排序
-- 无明确驱动 → 降为"观望/不做"
-- 写完 `filtered.json` 后运行 `node strategies/signal-pool/apply-tracking-seats.cjs --runId <runId>` 注入信号池追踪席位（池内品种强制 KEEP，`tracking=true`，KEEP 总数允许 >3）
+### 阶段3b: 故事链构造与席位生成（V2，替代 filter-llm）
+**filter-llm 已退役；故事池 proven 链是 KEEP 名单的唯一来源。**
+1. `node strategies/story-chain-cli.cjs prompt --runId <runId>` 生成状态唤醒提示词；
+2. LLM 按 `strategies/story-chain-blueprint.md` 为各板块构造传导链（一板块一链，最多板块数条），写 `story-chains.json` 后 `register --file ... --batch` 入池；
+3. `node strategies/story-chain-cli.cjs observe --runId <runId>` 逐日打卡推进链状态；
+4. `node strategies/story-pool/build-filtered-from-story-pool.cjs --runId <runId>` **重写** `filtered.json`：proven 故事席位（tracking=true/storyChainId）+ 有故事血缘的信号池追踪席位（孤儿/legacy 信号不入深挖）；无 proven 链且无追踪信号 → 空仓合法。
+旧 `filter/blueprint.md` 与 quantitative-filter 归档保留，不再执行。
 
 ### 阶段4: Analyze (manual)
 LLM 读 `analyze/blueprint.md` → 冻结 evidence packets → 板块驱动 LLM → FinCoT 结构化结果 → 6 问框架 → 产出 `analysis.json` + `sector-driver.json`

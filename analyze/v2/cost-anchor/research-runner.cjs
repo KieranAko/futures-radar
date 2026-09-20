@@ -1,4 +1,4 @@
-// experiment-line/cost-anchor/research-runner.cjs — 只为 miss/stale 的 TOP3 品种生成检索任务
+// analyze/v2/cost-anchor/research-runner.cjs — 只为 miss/stale 的 TOP3 品种生成检索任务
 // 检索模板来自 data/cost-anchor/query-templates.json（方法学指标名，不泛搜"成本"）。
 'use strict';
 

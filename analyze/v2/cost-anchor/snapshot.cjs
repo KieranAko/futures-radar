@@ -1,4 +1,4 @@
-// experiment-line/cost-anchor/snapshot.cjs — run 级快照投影 CLI
+// analyze/v2/cost-anchor/snapshot.cjs — run 级快照投影 CLI
 'use strict';
 
 const { projectSnapshot } = require('./library.cjs');

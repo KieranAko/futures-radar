@@ -1,4 +1,4 @@
-// experiment-line/cost-anchor/validate.cjs — 确定性门禁（theory-base/05 §五）
+// analyze/v2/cost-anchor/validate.cjs — 确定性门禁（theory-base/05 §五）
 //
 // 两类错误：
 //   - 合法性错误（无来源/无日期/未来数据）→ fail-closed，拒绝入主档；

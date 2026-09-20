@@ -1065,6 +1065,7 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   const plan = {
     symbol: rm.symbol,
     name: rm.name,
+    storyChainId: rm.storyChainId || null, // V2 前向盖章：故事席位血缘
     contract: ctx.contract || null,
     rank,
     sector: rm.sector,

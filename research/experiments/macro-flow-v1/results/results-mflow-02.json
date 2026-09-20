@@ -1,0 +1,362 @@
+{
+  "schema": "futures-radar-experiment-result/1",
+  "id": "MFLOW-02",
+  "generatedAt": "2026-09-18T07:31:36.012Z",
+  "runCommand": "node research/experiments/macro-flow-v1/run-v2.cjs",
+  "elapsedMs": 1456,
+  "settings": {
+    "rawSignal": "MFLOW-01 同口径（未改）",
+    "primary": {
+      "M": 3,
+      "N": 5
+    },
+    "sensitivity": [
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        7
+      ]
+    ],
+    "costPct": 0.07,
+    "maxHoldBars": 20,
+    "validationStart": "2020-01-01",
+    "bootstrap": {
+      "B": 10000,
+      "seed": 20260918
+    }
+  },
+  "decision": "screen_pending",
+  "primary": {
+    "M": 3,
+    "N": 5,
+    "full": {
+      "n": 958,
+      "meanNetPct": -0.1155,
+      "medianNetPct": -0.2385,
+      "ci": {
+        "lo": -0.350386012526096,
+        "hi": 0.1249894572025052,
+        "level": 0.95,
+        "B": 10000,
+        "seed": 20260918,
+        "method": "bootstrap-percentile"
+      },
+      "winRate": 0.4509,
+      "sigmaPct": 3.7254,
+      "sumNetPct": -110.6807
+    },
+    "design": {
+      "n": 635,
+      "meanNetPct": -0.101,
+      "medianNetPct": -0.3425,
+      "ci": {
+        "lo": -0.39503149606299215,
+        "hi": 0.19799496062992145,
+        "level": 0.95,
+        "B": 10000,
+        "seed": 20260918,
+        "method": "bootstrap-percentile"
+      },
+      "winRate": 0.4378,
+      "sigmaPct": 3.8234,
+      "sumNetPct": -64.1044
+    },
+    "validation": {
+      "n": 323,
+      "meanNetPct": -0.1442,
+      "medianNetPct": -0.07,
+      "ci": {
+        "lo": -0.5439374613003093,
+        "hi": 0.23986873065015482,
+        "level": 0.95,
+        "B": 10000,
+        "seed": 20260918,
+        "method": "bootstrap-percentile"
+      },
+      "winRate": 0.4768,
+      "sigmaPct": 3.5247,
+      "sumNetPct": -46.5763
+    }
+  },
+  "sensitivity": [
+    {
+      "M": 2,
+      "N": 3,
+      "full": {
+        "n": 1341,
+        "meanNetPct": -0.1003,
+        "medianNetPct": -0.3173,
+        "ci": {
+          "lo": -0.2697125279642058,
+          "hi": 0.07234526472781493,
+          "level": 0.95,
+          "B": 10000,
+          "seed": 20260918,
+          "method": "bootstrap-percentile"
+        },
+        "winRate": 0.4437,
+        "sigmaPct": 3.1647,
+        "sumNetPct": -134.4604
+      },
+      "validation": {
+        "n": 440,
+        "meanNetPct": -0.1737,
+        "medianNetPct": -0.3858,
+        "ci": {
+          "lo": -0.46176454545454554,
+          "hi": 0.11132659090909094,
+          "level": 0.95,
+          "B": 10000,
+          "seed": 20260918,
+          "method": "bootstrap-percentile"
+        },
+        "winRate": 0.4227,
+        "sigmaPct": 3.1333,
+        "sumNetPct": -76.4266
+      },
+      "design": {
+        "n": 901,
+        "meanNetPct": -0.0644,
+        "medianNetPct": -0.2544,
+        "ci": {
+          "lo": -0.26751376248612657,
+          "hi": 0.14663729189789132,
+          "level": 0.95,
+          "B": 10000,
+          "seed": 20260918,
+          "method": "bootstrap-percentile"
+        },
+        "winRate": 0.4539,
+        "sigmaPct": 3.1793,
+        "sumNetPct": -58.0338
+      }
+    },
+    {
+      "M": 3,
+      "N": 5,
+      "full": {
+        "n": 958,
+        "meanNetPct": -0.1155,
+        "medianNetPct": -0.2385,
+        "ci": {
+          "lo": -0.350386012526096,
+          "hi": 0.1249894572025052,
+          "level": 0.95,
+          "B": 10000,
+          "seed": 20260918,
+          "method": "bootstrap-percentile"
+        },
+        "winRate": 0.4509,
+        "sigmaPct": 3.7254,
+        "sumNetPct": -110.6807
+      },
+      "validation": {
+        "n": 323,
+        "meanNetPct": -0.1442,
+        "medianNetPct": -0.07,
+        "ci": {
+          "lo": -0.5439374613003093,
+          "hi": 0.23986873065015482,
+          "level": 0.95,
+          "B": 10000,
+          "seed": 20260918,
+          "method": "bootstrap-percentile"
+        },
+        "winRate": 0.4768,
+        "sigmaPct": 3.5247,
+        "sumNetPct": -46.5763
+      },
+      "design": {
+        "n": 635,
+        "meanNetPct": -0.101,
+        "medianNetPct": -0.3425,
+        "ci": {
+          "lo": -0.39503149606299215,
+          "hi": 0.19799496062992145,
+          "level": 0.95,
+          "B": 10000,
+          "seed": 20260918,
+          "method": "bootstrap-percentile"
+        },
+        "winRate": 0.4378,
+        "sigmaPct": 3.8234,
+        "sumNetPct": -64.1044
+      }
+    },
+    {
+      "M": 4,
+      "N": 5,
+      "full": {
+        "n": 668,
+        "meanNetPct": -0.2264,
+        "medianNetPct": -0.356,
+        "ci": {
+          "lo": -0.4583702095808379,
+          "hi": 0.009940718562874255,
+          "level": 0.95,
+          "B": 10000,
+          "seed": 20260918,
+          "method": "bootstrap-percentile"
+        },
+        "winRate": 0.4356,
+        "sigmaPct": 3.1241,
+        "sumNetPct": -151.2316
+      },
+      "validation": {
+        "n": 225,
+        "meanNetPct": -0.441,
+        "medianNetPct": -0.4776,
+        "ci": {
+          "lo": -0.851729333333334,
+          "hi": -0.03379333333333337,
+          "level": 0.95,
+          "B": 10000,
+          "seed": 20260918,
+          "method": "bootstrap-percentile"
+        },
+        "winRate": 0.3956,
+        "sigmaPct": 3.1486,
+        "sumNetPct": -99.2247
+      },
+      "design": {
+        "n": 443,
+        "meanNetPct": -0.1174,
+        "medianNetPct": -0.232,
+        "ci": {
+          "lo": -0.4054968397291197,
+          "hi": 0.1722988713318285,
+          "level": 0.95,
+          "B": 10000,
+          "seed": 20260918,
+          "method": "bootstrap-percentile"
+        },
+        "winRate": 0.456,
+        "sigmaPct": 3.1059,
+        "sumNetPct": -52.0069
+      }
+    },
+    {
+      "M": 4,
+      "N": 7,
+      "full": {
+        "n": 678,
+        "meanNetPct": -0.0403,
+        "medianNetPct": -0.1622,
+        "ci": {
+          "lo": -0.3582203539823008,
+          "hi": 0.27255486725663713,
+          "level": 0.95,
+          "B": 10000,
+          "seed": 20260918,
+          "method": "bootstrap-percentile"
+        },
+        "winRate": 0.4631,
+        "sigmaPct": 4.1544,
+        "sumNetPct": -27.3115
+      },
+      "validation": {
+        "n": 230,
+        "meanNetPct": -0.0706,
+        "medianNetPct": -0.1657,
+        "ci": {
+          "lo": -0.6526952173913044,
+          "hi": 0.494843043478261,
+          "level": 0.95,
+          "B": 10000,
+          "seed": 20260918,
+          "method": "bootstrap-percentile"
+        },
+        "winRate": 0.4696,
+        "sigmaPct": 4.3952,
+        "sumNetPct": -16.2491
+      },
+      "design": {
+        "n": 448,
+        "meanNetPct": -0.0247,
+        "medianNetPct": -0.1421,
+        "ci": {
+          "lo": -0.3674468749999998,
+          "hi": 0.32642031250000014,
+          "level": 0.95,
+          "B": 10000,
+          "seed": 20260918,
+          "method": "bootstrap-percentile"
+        },
+        "winRate": 0.4598,
+        "sigmaPct": 4.025,
+        "sumNetPct": -11.0624
+      }
+    }
+  ],
+  "entryAttempts": 960,
+  "skipped": {
+    "no_rep": 0,
+    "no_next_bar": 0,
+    "gap_too_wide": 2,
+    "bad_price": 0
+  },
+  "holdDistribution": {
+    "1": 58,
+    "2": 95,
+    "3": 179,
+    "4": 158,
+    "5": 142,
+    "6": 87,
+    "7": 66,
+    "8": 37,
+    "9": 35,
+    "10": 30,
+    "11": 19,
+    "12": 16,
+    "13": 7,
+    "14": 11,
+    "15": 5,
+    "16": 4,
+    "17": 3,
+    "18": 3,
+    "19": 1,
+    "20": 2
+  },
+  "byExitReason": {
+    "flow_off": {
+      "n": 913,
+      "meanNetPct": 0.0233,
+      "meanHeldBars": 5.14,
+      "winRate": 0.4677
+    },
+    "flow_reverse": {
+      "n": 43,
+      "meanNetPct": -2.8296,
+      "meanHeldBars": 5.77,
+      "winRate": 0.093
+    },
+    "max_hold": {
+      "n": 1,
+      "meanNetPct": 2.9781,
+      "meanHeldBars": 20,
+      "winRate": 1
+    },
+    "forced_end": {
+      "n": 1,
+      "meanNetPct": -13.2584,
+      "meanHeldBars": 6,
+      "winRate": 0
+    }
+  },
+  "dataRange": {
+    "first": "2005-01-04",
+    "last": "2026-09-17",
+    "tradingDates": 5308
+  }
+}

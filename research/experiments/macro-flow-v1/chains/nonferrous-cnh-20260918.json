@@ -1,0 +1,21 @@
+{
+  "schema": "futures-radar-story-chain/2",
+  "chainId": "CH-NONFER-20260918-01",
+  "createdAt": "2026-09-18",
+  "theme": "人民币升值→进口成本下移→有色承压",
+  "sector": "nonferrous",
+  "direction": -1,
+  "representative": "CU0",
+  "entryProofIndex": 2,
+  "theoryRef": "config/macro-transmission.json USDCNH→有色金属进口成本",
+  "nodes": [
+    { "id": "n1", "indicatorId": "macro.USDCNH.change5d", "expectation": -1, "label": "人民币 5日升值（USDCNH 下行）" },
+    { "id": "n2", "indicatorId": "sector.nonferrous.index.ret5d", "expectation": -1, "label": "有色金属板块转弱" },
+    { "id": "n3", "indicatorId": "symbol.CU0.price.ret5d", "expectation": -1, "label": "沪铜价格转弱" }
+  ],
+  "edges": [
+    { "id": "e1", "from": "n1", "to": "n2", "latencyDays": 5, "logic": "人民币升值→进口成本下移→有色板块承压" },
+    { "id": "e2", "from": "n2", "to": "n3", "latencyDays": 5, "logic": "板块转弱→代表品种沪铜下行" }
+  ],
+  "maxLifespanTradingDays": 20
+}

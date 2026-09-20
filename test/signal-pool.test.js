@@ -532,3 +532,20 @@ describe('signal-pool 出池质量分类（方向 × 执行）', () => {
     }
   });
 });
+
+describe('signal-pool V2 前向盖章（故事席位血缘）', () => {
+  it('plan.storyChainId 前向盖章到信号与版本', () => {
+    const root = tmpRoot();
+    try {
+      const plan = makePlan('run-story-1', 'RB0', { storyChainId: 'CH-BLACK-20260918-01' });
+      const raw = makeRaw('RB0', ['2026-08-24', '2026-08-25', '2026-08-26'], [98, 99, 100], [100, 101, 102], [97, 98, 99], [100, 100, 100]);
+      const { view } = updateSignalPool({ runId: 'run-story-1', raw, rootOverride: root, plan });
+      const sig = loadSignal(view.pool[0].signalId, root);
+      assert.equal(sig.storyChainId, 'CH-BLACK-20260918-01');
+      assert.equal(sig.versions[0].storyChainId, 'CH-BLACK-20260918-01');
+      assert.equal(view.pool[0].storyChainId, 'CH-BLACK-20260918-01');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+});

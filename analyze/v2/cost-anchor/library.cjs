@@ -1,4 +1,4 @@
-// experiment-line/cost-anchor/library.cjs — 文件库读写与 run 快照投影
+// analyze/v2/cost-anchor/library.cjs — 文件库读写与 run 快照投影
 // 规则：run 快照只从 data-store 主档投影，主档是唯一事实源。
 'use strict';
 

@@ -1,4 +1,4 @@
-// experiment-line/cost-anchor/policy.cjs — 成本锚新鲜度与置信度策略（theory-base/05）
+// analyze/v2/cost-anchor/policy.cjs — 成本锚新鲜度与置信度策略（theory-base/05）
 'use strict';
 
 const fs = require('node:fs');

@@ -352,6 +352,7 @@ function main() {
     opportunities.push({
       symbol,
       name: candidateEntry.name,
+      storyChainId: keepCandidate.storyChainId || null, // V2 前向盖章：故事席位血缘
       rank: candidateEntry.rank || candidates.candidates.indexOf(candidateEntry) + 1,
       sector: candidateEntry.sector,
       contract: (mainSeries[symbol] && mainSeries[symbol].contract) || null,

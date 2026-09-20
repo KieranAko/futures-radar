@@ -1,0 +1,60 @@
+{
+  "schema": "futures-radar-experiment-preregistration/1",
+  "id": "MFLOW-03",
+  "name": "故事先验层（宏观传导代理）x 流状态机 — 两层才是矛",
+  "createdAt": "2026-09-18",
+  "status": "registered",
+  "motivation": "MFLOW-02 判决 screen_pending：3/5 流状态机消除了抖仓（flow_off 退出均值 ≈0），但独立信号预测信息量≈0，CI 含 0。按 V2 理念，量化层是持仓过滤器，故事层才是选靶；本实验给流状态机加确定性故事先验：只有『宏观故事方向』与『流状态方向』同向的板块才允许入场。",
+  "theoryRef": "V2 理念：宏观故事选靶（政策→板块→资金流），资金流确认执行；故事与流两层叠加才是矛",
+  "proposition": {
+    "H0": "在 2020-01-01 以后的判决集上，故事先验（代表品种宏观传导规则，锚点 5 日变化方向全部一致）与 3/5 流状态同向时才入场，其余口径与 MFLOW-02 相同，单笔净收益 mean ≤ 0",
+    "H1": "同上口径单笔净收益 mean > 0"
+  },
+  "storyProxy": {
+    "source": "config/macro-transmission.json 前缀→锚点路由（冻结版）",
+    "anchorSeries": {
+      "DXY": "strategies/signal-backtest/recordings/v4/macro-history.json（1985+，冻结）",
+      "USDCNH": "同上（2014+，冻结）",
+      "US10Y": "同上（1990+，冻结）",
+      "DR007": "同上（2015+，冻结）",
+      "SC0": "data/daily/SC0.json close（2018+）"
+    },
+    "anchorChange": "锚点 5 日历日前最近可得值 → 信号日前最近可得值之差（PIT）",
+    "directionMap": {
+      "DXY": "Δ<0 → bullish(+1)，Δ>0 → bearish(-1)",
+      "US10Y": "Δ<0 → bullish(+1)，Δ>0 → bearish(-1)",
+      "USDCNH": "Δ>0 → bullish(+1)（进口成本抬升），Δ<0 → bearish(-1)",
+      "DR007": "Δ<0 → bullish(+1)（流动性宽松），Δ>0 → bearish(-1)",
+      "SC0": "Δ>0 → bullish(+1)（能源成本支撑），Δ<0 → bearish(-1)"
+    },
+    "storyDir": "代表品种前缀命中的全部锚点方向一致时取该方向；任一锚缺失/方向为 0/互相矛盾 → 0（无故事，不交易）",
+    "selfReference": "代表品种为 SC0 时，SC0 锚不参与（自身价格不能作为自身故事锚）"
+  },
+  "flowState": "MFLOW-02 同口径：最近 5 日 rawSig 同向 ≥3 天（3/5 状态机），原始指标不变",
+  "execution": {
+    "entry": "流状态 ON 且 storyDir == 状态方向时，T+1 开盘进该板块代表品种（近 60 日均量最大，PIT）",
+    "holdAndExit": "与 MFLOW-02 相同：状态 OFF/反向才退出；故事中途变化不触发退出（本次只改入场门，单变量归因）",
+    "maxHoldingBars": 20,
+    "cost": "往返 0.07%",
+    "positionSize": "每个信号 1 个名义单位"
+  },
+  "sampleSplit": {
+    "validation": "entryDate >= 2020-01-01（判决集）",
+    "designReference": "entryDate < 2020-01-01（只报告）"
+  },
+  "secondaryAnalysis": {
+    "name": "故事门对 MFLOW-02 全样本交易的事后分层",
+    "method": "对 trades-mflow-02.json 每笔交易按其 signalDate 的 storyDir 分层：aligned（storyDir==dir）/ no_story / opposed；只报告均值与 CI，不改变主判决",
+    "purpose": "回答故事层是否具有判别力（aligned 是否显著好于 blocked）"
+  },
+  "decisionRules": {
+    "promote": "判决集 gated 交易 meanNetPct > 0 且 95% CI 下界 > 0",
+    "screen_pending": "判决集 gated 交易 95% CI 含 0",
+    "discard": "判决集 gated 交易 meanNetPct < 0 且 95% CI 上界 < 0"
+  },
+  "outOfScope": [
+    "不用 LLM 生成故事（本实验为确定性代理，验证结构是否成立）",
+    "故事变化不触发退出（留待 MFLOW-04）",
+    "不调锚点方向映射、不改 M/N、不做组合"
+  ]
+}

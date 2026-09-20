@@ -59,20 +59,62 @@ function makeSignalPoolView() {
   };
 }
 
-describe('dashboard-html 三 Tab 看板', () => {
-  it('包含三个 tab 与历史索引链接', () => {
+function makeStoryView() {
+  return {
+    activeCount: 1,
+    active: [{
+      chainId: 'CH-BLACK-20260917-01', theme: '流动性收紧→黑色资金流出→螺纹转弱', sector: 'black', direction: -1, representative: 'RB0',
+      status: 'proven', createdAt: '2026-09-17', entryProofIndex: 2,
+      confirmedNodes: 2, totalNodes: 3, unresolvedNodes: 0, activeNode: 'n3',
+      linkedSignalId: 'SIG-RB0-20260918-01',
+      nodes: [
+        { id: 'n1', indicatorId: 'macro.DR007.change5d', expectation: 1, label: '流动性收紧', status: 'confirmed', credibility: 'high', resolution: { path: 'T0' }, unit: 'bp', lastValue: 2.84, lastValueAt: '2026-09-18', prevValue: 1.5, prevValueAt: '2026-09-17' },
+        { id: 'n2', indicatorId: 'sector.black.oi.flow5d', expectation: -1, label: '黑色资金流出', status: 'confirmed', credibility: 'medium', resolution: { path: 'T0' }, unit: '%', lastValue: -1.69, lastValueAt: '2026-09-18', prevValue: -0.8, prevValueAt: '2026-09-17' },
+        { id: 'n3', indicatorId: 'symbol.RB0.price.ret5d', expectation: -1, label: '螺纹转弱', status: 'pending', credibility: null, resolution: { path: 'T0' }, unit: '%', lastValue: -0.76, lastValueAt: '2026-09-18', prevValue: 0.1, prevValueAt: '2026-09-17' }
+      ],
+      events: [{ date: '2026-09-17', type: 'proven', detail: '达到证明点 p=2' }]
+    }],
+    recentClosed: [],
+    stats: {
+      totalChains: 1, resolvingChains: 0, provenChains: 1, completedChains: 0, falsifiedChains: 0,
+      expiredChains: 0, supersededChains: 0, voidChains: 0, nodeHitRate: 1,
+      confirmedCredibility: { high: 1, medium: 1, low: 0, unknown: 0 },
+      nodeHitRateByPath: { T0: { evaluated: 2, confirmed: 2 }, T2: { evaluated: 0, confirmed: 0 } }
+    }
+  };
+}
+
+describe('dashboard-html 四 Tab 看板', () => {
+  it('包含四个 tab、故事池渲染与历史索引链接', () => {
     const html = renderDashboardHtml({
       runId: 'r1',
       reportModel: makeReportModel(),
       signalPoolView: makeSignalPoolView(),
+      storyView: makeStoryView(),
       history: [{ runId: 'r1', date: '2026-09-15', oppSymbols: 'PP0 聚丙烯', href: 'runs/r1/report.html' }]
     });
     assert.ok(html.includes('📈 机会分析'));
     assert.ok(html.includes('📊 信号池'));
+    assert.ok(html.includes('🔗 故事池'));
     assert.ok(html.includes('🗂 历史报告'));
     assert.ok(html.includes('id="tab-opportunities"'));
     assert.ok(html.includes('id="tab-pool"'));
+    assert.ok(html.includes('id="tab-stories"'));
     assert.ok(html.includes('id="tab-history"'));
+    // 故事池是分析前端：第一位 tab 且默认激活
+    assert.ok(html.indexOf('data-tab="stories"') < html.indexOf('data-tab="opportunities"'));
+    assert.ok(html.includes('<section id="tab-stories" class="tab-panel active">'));
+    assert.ok(html.includes('CH-BLACK-20260917-01'));
+    assert.ok(html.includes('流动性收紧→黑色资金流出→螺纹转弱'));
+    assert.ok(html.includes('story-theme'));
+    assert.ok(html.includes('<details class="story-card">'));
+    assert.ok(html.includes('node-confirmed'));
+    assert.ok(html.includes('前值'));
+    assert.ok(html.includes('环比'));
+    assert.ok(html.includes('+1.34'));
+    assert.ok(html.includes('cred-high'));
+    assert.ok(html.includes('SIG-RB0-20260918-01'));
+    assert.ok(html.includes('节点命中率（按取数路径）'));
     assert.ok(html.includes('href="runs/r1/report.html"'));
     assert.ok(!html.includes('<script src'));
     assert.ok(!html.includes('https://'));
@@ -191,7 +233,7 @@ describe('dashboard-html 三 Tab 看板', () => {
     const html = renderDashboardHtml({ runId: 'r1', reportModel, signalPoolView: makeSignalPoolView(), history: [{ runId: 'r1', date: '2026-09-16', oppSymbols: 'PP0', href: 'runs/r1/report.html' }], strategyPlan: { meta: { runId: 'r1' }, plans: [] }, costAnchorAvailable: true });
     assert.ok(html.includes('market-strip'));
     assert.ok(html.includes('action-strip'));
-    assert.ok(html.includes('本期筛选'));
+    assert.ok(!html.includes('本期筛选'));
     assert.ok(html.includes('id="history-search"'));
     assert.ok(html.includes('数据徽章'.length ? '策略' : ''));
     assert.ok(html.includes('成本锚 ✓'));

@@ -364,6 +364,7 @@ function signalCard(sig, { closed = false, bars = null } = {}) {
     rows.push(fieldRow('入池', `${sig.createdDate} <span class="muted">${escapeHtml(sig.createdRunId)}</span>`));
     rows.push(fieldRow('最近更新', `${sig.lastSeenDate} <span class="muted">${escapeHtml(sig.lastSeenRunId)}</span>`));
   }
+  if (sig.storyChainId) rows.push(fieldRow('故事来源', `<span class="muted">${escapeHtml(sig.storyChainId)}</span>`));
   const cur = sig.currentVersion || {};
   const curExpr = cur.state
     ? `${escapeHtml(eventLabel(cur.state, 'execution'))}${cur.entryTrigger ? ` — ${escapeHtml(cur.entryTrigger)}` : ''}`

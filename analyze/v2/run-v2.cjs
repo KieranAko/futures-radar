@@ -1,12 +1,11 @@
-// experiment-line/analyze-v2/run-v2.cjs — candidate v2 编排器 + KPI 记录
+// analyze/v2/run-v2.cjs — 生产 Analyze v2 编排器 + KPI 记录
 //
-// 执行图（O6 并行化由工具阶段表达；LLM 逻辑调用=2）：
-//   packet-freeze-v2 ∥ prefill-v2（可并行，数据同源）
-//   → prompt-builder-v2
-//   → [LLM 单轮批量：outputs-v2.json]（由操作者按 prompts-v2.md 执行）
-//   → assemble-v2（组装 + 六问等价性 + grounding 校验）
+// 执行图（LLM 逻辑调用=2，工具步骤=4）：
+//   packet-freeze-v2 → prefill-v2 → prompt-builder-v2
+//   → [LLM 单轮批量：<runDir>/analyze/outputs-v2.json]（操作者按 prompts-v2.md 执行）
+//   → assemble-v2 --as-production（组装生产六问 + grounding/等价性校验）
 //
-// 用法: node experiment-line/analyze-v2/run-v2.cjs --runId <runId>
+// 用法: node analyze/v2/run-v2.cjs --runId <runId>
 'use strict';
 
 const fs = require('node:fs');
@@ -14,7 +13,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const EL = path.resolve(__dirname, '..');
+const { runDir } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -25,8 +24,9 @@ function writeJson(file, obj) {
   fs.writeFileSync(file, JSON.stringify(obj, null, 2) + '\n', 'utf8');
 }
 
-function runTool(script, runId) {
-  const res = spawnSync('node', [path.join(EL, 'analyze-v2', script), '--runId', runId], {
+function runTool(script, runId, extraArgs = []) {
+  const scriptPath = path.join(ROOT, 'analyze', 'v2', script);
+  const res = spawnSync('node', [scriptPath, '--runId', runId, ...extraArgs], {
     cwd: ROOT,
     encoding: 'utf8',
     timeout: 300000,
@@ -40,21 +40,23 @@ function main() {
   const runId = i >= 0 ? args[i + 1] : null;
   if (!runId) throw new Error('--runId required');
   const t0 = Date.now();
+  const runPath = runDir(runId);
+  const analyzeDir = path.join(runPath, 'analyze');
 
   runTool('packet-freeze-v2.cjs', runId);
   runTool('prefill-v2.cjs', runId);
   runTool('prompt-builder-v2.cjs', runId);
 
-  const outFile = path.join(EL, 'runs', runId, 'analyze', 'outputs-v2.json');
+  const outFile = path.join(analyzeDir, 'outputs-v2.json');
   if (!fs.existsSync(outFile)) {
-    console.log('LLM 执行步骤：按 analyze/prompts-v2.md 完成单轮批量推理，写 analyze/outputs-v2.json，然后重跑本命令。');
+    console.log(`LLM 执行步骤：按 ${path.join(analyzeDir, 'prompts-v2.md')} 完成单轮批量推理，写 ${outFile}，然后重跑本命令。`);
     return { pendingLlmStep: true };
   }
-  runTool('assemble-v2.cjs', runId);
+  runTool('assemble-v2.cjs', runId, ['--as-production']);
 
   const outputs = readJson(outFile);
-  const prompts = fs.readFileSync(path.join(EL, 'runs', runId, 'analyze', 'prompts-v2.md'), 'utf8');
-  const equivalence = readJson(path.join(EL, 'runs', runId, 'analyze', 'equivalence-v2.json'));
+  const prompts = fs.readFileSync(path.join(analyzeDir, 'prompts-v2.md'), 'utf8');
+  const equivalence = readJson(path.join(analyzeDir, 'equivalence-v2.json'));
   const elapsedMs = Date.now() - t0;
 
   const kpi = {
@@ -71,15 +73,15 @@ function main() {
       estimatedTokens: Math.round(prompts.length / 3 + JSON.stringify(outputs).length / 3),
       sixQuestionsComplete: Object.values(equivalence.sixQuestions).every(Boolean),
       grounding: equivalence.grounding,
-      mechanismRefCoverage: `${equivalence.mechanismRefCoverage}/3`,
-      note: '生产基线 7-9 次 LLM 调用；token 对比需影子期同输入实测，此处仅记录绝对量',
+      mechanismRefCoverage: equivalence.mechanismRefCoverage != null ? `${equivalence.mechanismRefCoverage}/3` : 'n/a',
+      note: '生产 Analyze v2；LLM 逻辑调用目标 ≤3，机制候选来自归档实验线 registry（V2 待迁至 research/mechanisms/registry）。',
     },
     comparison: {
       productionBaseline: { llmCalls: '7-9（板块 N 次 + FinCoT×3 + 六问×3）', serial: true },
       v2: { llmCalls: outputs.logicalLlmCalls, serial: false, singlePass: true },
     },
   };
-  const kpiFile = path.join(EL, 'results', `analyze-v2-kpi-${runId}.json`);
+  const kpiFile = path.join(analyzeDir, 'analyze-v2-kpi.json');
   writeJson(kpiFile, kpi);
   console.log(JSON.stringify(kpi.kpi, null, 2));
   console.log(`kpi: ${kpiFile}`);

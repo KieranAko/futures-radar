@@ -160,6 +160,13 @@
           "type": "string",
           "minLength": 2
         },
+        "storyChainId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "故事传导链 ID（V2 前向盖章；非故事席位为 null）"
+        },
         "name": {
           "type": "string",
           "minLength": 1

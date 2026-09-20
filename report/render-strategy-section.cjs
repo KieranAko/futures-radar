@@ -461,13 +461,13 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
   lines.push('> 由报告结论确定性生成，不改变方向与置信度。');
   const regimeLines = [...new Set((plan.plans || []).map((p) => `${p.riskAssessment?.regimeGrade || 'normal'}（${p.riskAssessment?.regimeDirection || 'stable'}）`))];
   if (regimeLines.length > 0) lines.push(`> 波动率 regime：${regimeLines.join('；')}——medium 计划按 regimePlan 降级为 1 手或观察。`);
-  // 族级证据状态（实验线 promote 的负面结论，不改变方向/置信度，只提示证据充分程度）
+  // 族级证据状态（V2：证据账本收敛到 strategies/family-evidence.json，不改变方向/置信度，只提示证据充分程度）
   if (familyEvidence && familyEvidence.families) {
     const closed = Object.entries(familyEvidence.families)
       .filter(([, f]) => ['g1', 'instance_gate_failed', 'not_evaluable_or_falsified', 'not_evaluable'].includes(f.level))
       .map(([name]) => name);
     if (closed.length) {
-      lines.push(`> 族级证据状态（实验线 ${familyEvidence.updatedAt || ''}）：${closed.join('、')} 族当前证据不足以支持完整策略；本板块仍为执行参考，可信度评级见 experiment-line/results/trust/。`);
+      lines.push(`> 族级证据状态（${familyEvidence.updatedAt || ''}）：${closed.join('、')} 族当前证据不足以支持完整策略；本板块仍为执行参考。`);
     }
   }
   lines.push('');

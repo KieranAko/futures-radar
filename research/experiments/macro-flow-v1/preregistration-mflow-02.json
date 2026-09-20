@@ -1,0 +1,52 @@
+{
+  "schema": "futures-radar-experiment-preregistration/1",
+  "id": "MFLOW-02",
+  "name": "流状态机（3/5 多数确认）— 资金流不是事件，是状态",
+  "createdAt": "2026-09-18",
+  "status": "registered",
+  "motivation": "MFLOW-01 判决 discard：单日双确认信号滞后且抖仓（平均持仓 2.47 日），但 21 个持续 10 日的样本平均 +3.37%、胜率 81%。本实验只改一个变量：把单日信号改为 3/5 多数流状态；原始指标口径不变。",
+  "theoryRef": "V2 逻辑矛：流是持续状态，单日归零/反向均可能为扰动；追踪式确认 = 最近 5 日中多数时间同向即流成立",
+  "proposition": {
+    "H0": "在 2020-01-01 以后的判决集上，3/5 流状态机（状态 ON 后 T+1 开盘进板块代表品种、状态 OFF 后 T+1 开盘退出、20 交易日上限、往返成本 0.07%）的单笔净收益 mean ≤ 0",
+    "H1": "同上口径单笔净收益 mean > 0"
+  },
+  "rawSignal": {
+    "ref": "MFLOW-01 同口径：板块指数等权链式；px5=板块指数 5 日收益；oiFlowDir=OI 5 日端点差>0 时取 sign(px5)；rs5=px5-market5；rawSig=oiFlowDir 与 sign(rs5) 同向时取该方向，否则 0",
+    "unchangedByDesign": true
+  },
+  "flowState": {
+    "window": "最近 5 个交易日（N=5）",
+    "threshold": "同向 rawSig 出现 ≥3 天（M=3）",
+    "state": "+1 / -1 / 0（OFF）；+1 与 -1 不可能同时 ≥3",
+    "sensitivityReportOnly": [[2, 3], [3, 5], [4, 5], [4, 7]]
+  },
+  "execution": {
+    "representative": "信号日有 bar 的板块成员中，近 60 个交易日平均 volume 最大者（PIT）",
+    "entry": "流状态 ON 且无持仓时，于该品种下一交易 bar open 进入；间隔 >7 自然日或无后续 bar 则跳过",
+    "hold": "状态 ON 期间持仓不动——单日 rawSig 归零或反向一律视为扰动",
+    "exit": "状态 OFF 或反向状态出现后，于该品种下一交易 bar open 退出；退出当日不反向重入",
+    "maxHoldingBars": 20,
+    "cost": "往返 0.07%",
+    "positionSize": "每个信号 1 个名义单位（不测组合）"
+  },
+  "sampleSplit": {
+    "designReference": "entryDate < 2020-01-01（只报告，不进判决）",
+    "validation": "entryDate >= 2020-01-01（判决集）",
+    "reason": "MFLOW-02 规则受 MFLOW-01 全样本观察启发，时间切分控制复用样本风险"
+  },
+  "metrics": {
+    "primary": "判决集代表品种单笔净收益 netPct = dir × (exit/entry − 1) × 100 − 0.07",
+    "ci": "bootstrap percentile 95%，B=10000，seed=20260918",
+    "sensitivity": "M/N ∈ {(2,3),(3,5),(4,5),(4,7)} 只报告判决集/全样本均值与 CI，不改变判决"
+  },
+  "decisionRules": {
+    "promote": "判决集 meanNetPct > 0 且 95% CI 下界 > 0",
+    "screen_pending": "判决集 95% CI 含 0",
+    "discard": "判决集 meanNetPct < 0 且 95% CI 上界 < 0"
+  },
+  "outOfScope": [
+    "不改原始指标口径（方向化累计流留待 MFLOW-03）",
+    "不调 M/N（3/5 为唯一判决参数）",
+    "不接 LLM 故事层、不做组合/杠杆"
+  ]
+}

@@ -3,8 +3,8 @@
 //
 // Responsibility: Template-driven markdown generation from report-model.json
 // - 主报告：结论速览 + 机会分析 + 交易策略（决策优先，只放结论与关键价位）
-// - 附录：市场与筛选明细 / 机会证据链 / 证伪反馈明细 / 方法与数据说明（全量证据，全展开）
-// - Format tables (Top 10/filter decisions/price ranges)
+// - 附录：市场明细（宏观/板块） / 机会证据链 / 证伪反馈明细 / 方法与数据说明（全量证据，全展开）
+// - Format tables (price ranges)
 // - Generate data quality warnings by rules (degraded/correctionCount/divergencePct)
 // - Display judgment change annotations (assessmentChanged)
 // - Use "—" for missing values
@@ -18,6 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const { runtimeRoot } = require('../lib/workspace.cjs');
 const { renderFreshnessCard } = require('./freshness.cjs');
+const storyChain = require('../strategies/lib/story-chain.cjs');
 
 // ── CLI ──────────────────────────────────────────────────────
 const args = process.argv.slice(2);
@@ -269,7 +270,7 @@ const freshnessLine = model.freshness && model.freshness.latestBarDate
   : '数据时效见第四章附录';
 const header = [
   `# 期货投机机会雷达 — ${reportDate}\n`,
-  `> 运行 ID: ${model.meta.runId} | 品种 ${model.meta.totalSymbols} | 候选 ${model.meta.top10Count} | 深挖 ${model.meta.keepCount} | ${freshnessLine}\n`
+  `> 运行 ID: ${model.meta.runId} | 品种 ${model.meta.totalSymbols} | 深挖 ${model.meta.keepCount} | ${freshnessLine}\n`
 ];
 
 // ── 结论速览 ─────────────────────────────────────────────────
@@ -317,6 +318,26 @@ console.log('[4/6] Rendering 机会分析 + 附录 B...');
 const mainCh = [];
 mainCh.push('## 二、机会分析\n');
 
+// 空仓日：机会分析展示故事池观察清单（为什么没有深挖），而不是空白
+if (model.opportunities.length === 0) {
+  let storyView = { active: [] };
+  try { storyView = storyChain.buildView(); } catch { /* 故事池不可用时空仓说明即可 */ }
+  mainCh.push('> 本期无 proven 故事席位，未执行深挖（空仓合法）。\n');
+  const chains = Array.isArray(storyView.active) ? storyView.active : [];
+  if (chains.length > 0) {
+    mainCh.push('**故事池观察清单**\n');
+    mainCh.push('| 主题 | 板块 | 方向 | 代表品种 | 状态 | 节点进度 | 当前观察节点 |');
+    mainCh.push('|------|------|------|---------|------|---------|-------------|');
+    for (const c of chains) {
+      const dir = c.direction === -1 ? '空' : '多';
+      mainCh.push(`| ${c.theme || '（未命名主题）'} | ${c.sector || '—'} | ${dir} | ${c.representative || '—'} | ${c.status || '—'} | ${c.confirmedNodes}/${c.totalNodes} | ${c.activeNode || '—'} |`);
+    }
+    mainCh.push('');
+  } else {
+    mainCh.push('故事池为空：没有可监测的传导故事。\n');
+  }
+}
+
 const appendixB = [];
 appendixB.push('### 5.2 机会证据链\n');
 appendixB.push('> 每品种完整六问与模型明细；宏观/板块仅作背景。\n');
@@ -349,7 +370,7 @@ for (const opp of model.opportunities) {
   }
 
   if (thesis.assessmentChanged) {
-    mainCh.push(`> ⚠️ **判断变化**：筛选阶段「${directionLabel(opp.screening.initialDirection)}/${confidenceLabel(opp.screening.initialConfidence)}置信」，深挖后「${directionLabel(thesis.finalDirection)}/${confidenceLabel(thesis.finalConfidence)}置信」\n`);
+    mainCh.push(`> ⚠️ **判断变化**：席位阶段「${directionLabel(opp.screening.initialDirection)}/${confidenceLabel(opp.screening.initialConfidence)}置信」，深挖后「${directionLabel(thesis.finalDirection)}/${confidenceLabel(thesis.finalConfidence)}置信」\n`);
   }
 
   const rationale = thesis.confidenceRationale;
@@ -486,11 +507,11 @@ for (const opp of model.opportunities) {
   appendixB.push('---\n');
 }
 
-// ── 附录 A：市场与筛选明细 ──────────────────────────────────
+// ── 附录 A：市场明细（宏观/板块背景）────────────────────────
 console.log('[5/6] Rendering 第四章附录...');
 
 const appendixA = [];
-appendixA.push('### 5.1 市场与筛选明细\n');
+appendixA.push('### 5.1 市场明细\n');
 
 appendixA.push('#### 宏观锚点\n');
 if (macro && macro.available) {
@@ -534,25 +555,6 @@ if (model.sector && model.sector.sectors && Object.keys(model.sector.sectors).le
 } else {
   appendixA.push('| — | — | — | — | — | — | — | 板块快照不可用 |\n');
 }
-
-appendixA.push('#### Top 10 异动排名\n');
-appendixA.push('| # | 品种 | 代码 | 收盘 | 得分 | ATR% | Vol%ile | Vol× | 5dΔ | 方向 | 趋势(vs20/60) |');
-appendixA.push('|---|------|------|------|------|------|---------|------|-----|------|---------------|');
-for (const item of model.screening.top10) {
-  appendixA.push(`| ${item.rank} | ${item.name} | ${item.symbol} | ${fmt(item.trend.close, 0)} | ${fmt(item.score, 1)} | ${fmtPct(item.indicators.atrPct)} | ${fmtPct(item.indicators.volPercentile, 0)} | ${fmt(item.indicators.volMultiplier, 2)}× | ${fmtPct(item.indicators.change5d)} | ${directionSymbol(item.trend.direction)} | ${fmtPct(item.trend.vsMA20)}/${fmtPct(item.trend.vsMA60)} |`);
-}
-
-appendixA.push('\n#### 过滤决策\n');
-appendixA.push('| 品种 | 决定 | 初判理由 | 待验证 |');
-appendixA.push('|------|------|---------|--------|');
-for (const dec of model.screening.decisions) {
-  const badge = dec.decision === 'KEEP' ? '✅ KEEP' : dec.decision === 'DOWNGRADE' ? '❌ DROP' : dec.decision;
-  const reason = dec.reason
-    || (dec.decision === 'KEEP' ? `${directionLabel(dec.initialDirection)} | ${confidenceLabel(dec.initialConfidence)}置信` : dec.note || '—');
-  const gap = dec.informationGap || '—';
-  appendixA.push(`| ${dec.symbol} ${dec.name} | ${badge} | ${reason} | ${gap} |`);
-}
-appendixA.push('\n> 未入选品种及其理由见上表「❌ DROP」列，不再单列章节。\n');
 
 // ── 4.4 方法与数据说明 ──────────────────────────────────────
 const freshnessCard = model.freshness ? renderFreshnessCard(model.freshness) : [];
@@ -608,7 +610,7 @@ appendixD.push(`*数据来源：akshare (行情) | 预测区间：五模型参�
 // ── 四、附录（整合单章，集中所有细节与口径）──────────────────
 const appendixChapter = [
   '## 五、附录\n',
-  '> 筛选明细、完整六问与指标口径集中在本章；主报告只保留结论与关键价位。\n',
+  '> 市场明细、完整六问与指标口径集中在本章；主报告只保留结论与关键价位。\n',
   '',
   ...appendixA,
   ...appendixB,
@@ -631,7 +633,7 @@ const report = sections.join('\n');
 const outputPath = path.join(RUN_DIR, 'report.md');
 fs.writeFileSync(outputPath, report, 'utf8');
 
-// 浏览器可读的 report.html + 三 Tab 看板（机会分析/信号池/历史报告索引）；实验线 mirror 回放不生成
+// 浏览器可读的 report.html + 四 Tab 看板（机会分析/信号池/故事池/历史报告索引）；实验线 mirror 回放不生成
 if (!process.env.FUTURES_RUNTIME_ROOT) {
   try {
     const { main: renderReportHtml } = require('./render-report-html.cjs');

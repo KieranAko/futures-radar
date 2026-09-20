@@ -1,17 +1,17 @@
-// experiment-line/analyze-v2/prompt-builder-v2.cjs — O1/O2/O3/O5：单轮合并 prompt 构建
+// analyze/v2/prompt-builder-v2.cjs — O1/O2/O3/O5：单轮合并 prompt 构建
 //
 // 输出两块 prompt（2 次逻辑 LLM 调用，目标 ≤3）：
 //   P1 板块批量：全部相关板块一次判定（O2）
 //   P2 品种批量：三品种一次输出六问 + mechanismRef + selfCheck（O1/O3/O5）
 //
-// 用法: node experiment-line/analyze-v2/prompt-builder-v2.cjs --runId <runId>
+// 用法: node analyze/v2/prompt-builder-v2.cjs --runId <runId>
 'use strict';
 
 const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const EL = path.join(ROOT, 'experiment-line');
+const EL = path.join(ROOT, 'research', 'archive-experiment-line', 'experiment-line'); // V2：归档保留，仅供历史工具兼容
 const { runDir } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
 
 function readJson(file) {

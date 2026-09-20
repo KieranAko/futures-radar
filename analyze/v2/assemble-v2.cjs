@@ -1,10 +1,10 @@
-// experiment-line/analyze-v2/assemble-v2.cjs — O1：把单轮合并输出组装为生产兼容结构
+// analyze/v2/assemble-v2.cjs — O1：把单轮合并输出组装为生产兼容结构
 //
 // 输入: outputs-v2.json（LLM 单轮输出）+ prefill-v2.json + packets-v2.json
 // 输出: analyze/analysis-v2.json（六问，生产结构）+ analyze/reasoning-results-v2.json + analyze/sector-driver-v2.json
 //        + analyze/equivalence-v2.json（六问等价性 + selfCheck 机器校验）
 //
-// 用法: node experiment-line/analyze-v2/assemble-v2.cjs --runId <runId>
+// 用法: node analyze/v2/assemble-v2.cjs --runId <runId>
 'use strict';
 
 const crypto = require('node:crypto');
@@ -12,7 +12,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const EL = path.join(ROOT, 'experiment-line');
+const EL = path.join(ROOT, 'research', 'archive-experiment-line', 'experiment-line'); // V2：归档保留，仅供历史工具兼容
 const { runDir } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
 const { validateQ4Semantics } = require(path.join(ROOT, 'strategies', 'lib', 'semantic-fact-validate.cjs'));
 
@@ -224,6 +224,7 @@ function main() {
     const analysesEntry = {
       symbol: o.symbol,
       name: p.name,
+      storyChainId: p.story_chain_id || null, // V2 前向盖章：故事席位血缘
       reasoningRef: { artifactId: 'reasoning-results-v2-json', packetHash: sha256(JSON.stringify(p)), arm: 'fincot' },
       direction,
       confidence: direction === 'neutral' ? 'low' : o.confidence,
@@ -285,7 +286,7 @@ function main() {
     analyses,
   };
   const reasoning = {
-    meta: { mode: 'daily', signalDate, generatedAt: new Date().toISOString(), promptVersion: 'v2-single-pass-fincot', model: { provider: 'experiment-line-analyze-v2', modelId: 'single-pass', temperature: 0, maxTokens: 2048 } },
+    meta: { mode: 'daily', signalDate, generatedAt: new Date().toISOString(), promptVersion: 'v2-single-pass-fincot', model: { provider: 'analyze-v2', modelId: 'single-pass', temperature: 0, maxTokens: 2048 } },
     results: reasoningResults,
   };
 

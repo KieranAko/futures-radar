@@ -1,15 +1,15 @@
-// experiment-line/analyze-v2/consistency.cjs — 历史 run 批量回放一致率预检
+// analyze/v2/consistency.cjs — 历史 run 批量回放一致率预检（V2：读取归档实验线产物）
 //
 // 对比：生产 analysis.json（原版） vs analyze-v2 单轮合并输出（analysis-v2.json）
 // 口径：方向（bullish/bearish/neutral）+ 置信度（high/medium/low）
-// 用法: node experiment-line/analyze-v2/consistency.cjs --runs 20260827-1910-auto,20260827-2159-auto
+// 用法: node analyze/v2/consistency.cjs --runs 20260827-1910-auto,20260827-2159-auto
 'use strict';
 
 const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const EL = path.join(ROOT, 'experiment-line');
+const EL = path.join(ROOT, 'research', 'archive-experiment-line', 'experiment-line'); // V2：归档实验线
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));

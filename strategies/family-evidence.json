@@ -1,7 +1,7 @@
 {
-  "schema": "futures-radar-experiment-line-family-evidence/1",
+  "schema": "futures-radar-family-evidence/1",
   "updatedAt": "2026-08-29",
-  "source": "experiment-line/evidence-ledger.md + falsification 27/17/18/19 reports + G1 results",
+  "source": "strategies/family-evidence.json（V2 起为族级证据单一来源；历史溯源见 research/archive-experiment-line/experiment-line/evidence-ledger.md + falsification 27/17/18/19 reports + G1 results）",
   "families": {
     "carry": {
       "level": "g1",

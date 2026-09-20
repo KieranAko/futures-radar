@@ -1,0 +1,21 @@
+{
+  "schema": "futures-radar-story-chain/2",
+  "chainId": "CH-ENERGY-20260918-01",
+  "createdAt": "2026-09-18",
+  "theme": "原油成本坍塌→能化资金流出→燃料油下行",
+  "sector": "energy_chemical",
+  "direction": -1,
+  "representative": "FU0",
+  "entryProofIndex": 2,
+  "theoryRef": "config/macro-transmission.json SC0→能化成本锚",
+  "nodes": [
+    { "id": "n1", "indicatorId": "macro.SC0.change5d", "expectation": -1, "label": "原油 5日大跌（成本坍塌）" },
+    { "id": "n2", "indicatorId": "sector.energy_chemical.oi.flow5d", "expectation": -1, "label": "能化板块资金流出" },
+    { "id": "n3", "indicatorId": "symbol.FU0.price.ret5d", "expectation": -1, "label": "燃料油价格转弱" }
+  ],
+  "edges": [
+    { "id": "e1", "from": "n1", "to": "n2", "latencyDays": 5, "logic": "原油成本坍塌→能化板块持仓资金流出" },
+    { "id": "e2", "from": "n2", "to": "n3", "latencyDays": 5, "logic": "板块资金流出→代表品种燃料油下行" }
+  ],
+  "maxLifespanTradingDays": 20
+}

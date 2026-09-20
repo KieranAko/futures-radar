@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const EL = path.join(ROOT, 'experiment-line', 'cost-anchor');
+const EL = path.join(ROOT, 'analyze', 'v2', 'cost-anchor');
 
 const { loadPolicy, freshness, deriveConfidence, capProvidedConfidence, countIndependentSources } = require(path.join(EL, 'policy.cjs'));
 const { validateRecord, validateResearchBatch } = require(path.join(EL, 'validate.cjs'));

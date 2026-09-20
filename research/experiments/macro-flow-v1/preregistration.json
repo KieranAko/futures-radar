@@ -1,0 +1,52 @@
+{
+  "schema": "futures-radar-experiment-preregistration/1",
+  "id": "MFLOW-01",
+  "name": "板块资金流双确认信号（OI 流 + 相对强度）历史验证",
+  "createdAt": "2026-09-18",
+  "status": "registered",
+  "theoryRef": "V2 宏观故事理念：宏观故事选靶，资金流确认瞄准；价格可骗、量可对倒，增仓是资金流最难伪造的脚印",
+  "proposition": {
+    "H0": "板块 5 日增仓方向（OI 流）与板块 5 日相对强度同向确认后，T+1 开盘进入板块代表品种、信号反转或第 11 个交易日开盘退出，扣除 0.07% 往返成本后，单笔净收益 mean ≤ 0",
+    "H1": "同上口径单笔净收益 mean > 0"
+  },
+  "universe": {
+    "source": "data/daily/<SYMBOL>.json（59 个 active 品种，PIT 文件库）",
+    "sectors": ["black", "nonferrous", "energy_chemical", "agriculture"],
+    "sectorEligibility": "板块内 active 成员 ≥3；信号日与 5 日前各有 ≥3 个成员拥有有效 close 与 OI",
+    "excludedSectors": "precious/new_materials（成员<3）、shipping（成员=1）、financial（无日线文件库数据）"
+  },
+  "signal": {
+    "sectorIndex": "与 collector/sector-aggregator.cjs 同口径：成员等权日收益链式累乘，基点 1000",
+    "px5": "板块指数 5 日收益率（%）",
+    "oiSum": "板块成员 OI 之和（仅取信号日与 5 日前均有有效 OI>0 的成员）",
+    "oiFlowDir": "oiSum(今日) > oiSum(5日前) 时 = sign(px5)，否则 = 0",
+    "market5": "所有合格板块 px5 的等权平均（当日至少 2 个板块有 px5）",
+    "rs5": "px5 - market5",
+    "signalDir": "oiFlowDir != 0 且 oiFlowDir == sign(rs5) 时 = oiFlowDir，否则 = 0"
+  },
+  "execution": {
+    "representative": "信号日有 bar 的板块成员中，近 60 个交易日平均 volume 最大者（PIT，只用 ≤ 信号日数据）",
+    "entry": "信号日之后该品种第一个交易 bar 的 open；若间隔 >7 个自然日或没有后续 bar 则跳过（记 skipped）",
+    "exit": "收盘确认 signalDir != 持仓方向（任一指标破坏同向即退出），于品种下一个交易 bar open 退出",
+    "maxHoldingBars": "以代表品种自身交易日计数，持仓满 10 个 bar 后第 11 个 bar open 退出",
+    "reentryRule": "同一板块同向信号持仓期间不叠加；退出当日不立即反向重入",
+    "cost": "往返 0.07%（lib/costs.cjs 口径）",
+    "positionSize": "每个信号 1 个名义单位，不做波动率目标（本试验只测信号质量，不测组合）"
+  },
+  "metrics": {
+    "primary": "代表品种单笔净收益 netPct = dir × (exitPrice/entryPrice − 1) × 100 − 0.07",
+    "secondary": "同期间板块指数方向化收益 sectorRetPct（信号质量 vs 品种实现的分解）",
+    "ci": "bootstrap percentile 95%，B=10000，seed=20260918"
+  },
+  "decisionRules": {
+    "promote": "meanNetPct > 0 且 95% CI 下界 > 0",
+    "screen_pending": "95% CI 含 0（或 n < 100 且 CI 上界 > 0）",
+    "discard": "meanNetPct < 0 且 95% CI 上界 < 0"
+  },
+  "outOfScope": [
+    "不优化参数（任何阈值变体只作报告，不进入判决）",
+    "不构造板块组合/波动率目标/保证金模拟",
+    "不用 LLM 生成故事——本试验只验证矛尖（资金流确认）本身是否有 edge",
+    "不用 precious/new_materials/shipping 判定，只附观察"
+  ]
+}

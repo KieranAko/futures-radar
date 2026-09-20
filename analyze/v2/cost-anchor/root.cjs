@@ -1,4 +1,4 @@
-// cost-anchor 模块根路径解析：兼容 experiment-line/cost-anchor 与 analyze/v2/cost-anchor 两个位置
+// cost-anchor 模块根路径解析：V2：实验线已归档；本模块唯一活跃位置为 analyze/v2/cost-anchor
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');

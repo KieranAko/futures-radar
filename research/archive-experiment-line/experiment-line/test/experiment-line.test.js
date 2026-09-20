@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, '..');
-const EL = path.join(ROOT, 'experiment-line');
+const ROOT = path.resolve(__dirname, '..', '..', '..', '..');
+const EL = path.join(ROOT, 'research', 'archive-experiment-line', 'experiment-line');
 const { normalize, compareArtifact, firstDiff, cmdReplay } = require(path.join(EL, 'mirror.cjs'));
 const g1 = require(path.join(EL, 'g1.cjs'));
 

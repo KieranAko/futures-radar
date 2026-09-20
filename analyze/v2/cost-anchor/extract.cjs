@@ -1,4 +1,4 @@
-// experiment-line/cost-anchor/extract.cjs — 把检索结果规范化为主档记录
+// analyze/v2/cost-anchor/extract.cjs — 把检索结果规范化为主档记录
 // 输入来自研究执行（人工/代理）的 cost-anchor-research-results.json；
 // 本模块只做字段规范化，不做真伪判断（validate.cjs 负责门禁）。
 'use strict';

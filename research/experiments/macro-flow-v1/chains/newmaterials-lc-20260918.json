@@ -1,0 +1,19 @@
+{
+  "schema": "futures-radar-story-chain/2",
+  "chainId": "CH-NEWMAT-20260918-01",
+  "createdAt": "2026-09-18",
+  "theme": "新材料板块共振下行→碳酸锂趋势延续",
+  "sector": "new_materials",
+  "direction": -1,
+  "representative": "LC0",
+  "entryProofIndex": 1,
+  "theoryRef": "板块资金流转：板块方向已确认即为足够证明（2 节点链，p=1）",
+  "nodes": [
+    { "id": "n1", "indicatorId": "sector.new_materials.index.ret5d", "expectation": -1, "label": "新材料板块 5日下行" },
+    { "id": "n2", "indicatorId": "symbol.LC0.price.ret5d", "expectation": -1, "label": "碳酸锂趋势延续" }
+  ],
+  "edges": [
+    { "id": "e1", "from": "n1", "to": "n2", "latencyDays": 5, "logic": "板块共振下行→代表品种碳酸锂趋势延续" }
+  ],
+  "maxLifespanTradingDays": 20
+}

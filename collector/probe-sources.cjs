@@ -85,8 +85,23 @@ function probeAkshare() {
     result.status = 'available';
     result.details = `akshare ${result.akshare.version}, ${result.probeCheck.symbolCount} contracts via futures_display_main_sina()`;
   } else {
-    result.status = 'probe_failed';
-    result.details = 'akshare import OK but futures_display_main_sina() probe failed';
+    // 主列表接口瞬时失败时，回退用白名单品种日线接口验证 akshare 真实可用性（采集层依赖日线）
+    const fallback = probeCmd('python', [
+      '-c',
+      'import akshare as ak; df = ak.futures_zh_daily_sina(symbol="RB0"); print(f"OK:{len(df)}")'
+    ], null, 30000);
+    result.probeCheck.fallback = {
+      ok: fallback.ok && fallback.stdout.includes('OK:'),
+      symbolCount: fallback.ok ? parseInt((fallback.stdout.match(/OK:(\d+)/) || [])[1]) || 0 : 0,
+      stderr: fallback.stderr.slice(0, 400)
+    };
+    if (result.probeCheck.fallback.ok && result.probeCheck.fallback.symbolCount > 0) {
+      result.status = 'available';
+      result.details = `akshare ${result.akshare.version}; 日线接口可用（futures_display_main_sina 主列表瞬时失败，采集层不受影响）`;
+    } else {
+      result.status = 'probe_failed';
+      result.details = 'akshare import OK but futures_display_main_sina() and futures_zh_daily_sina(RB0) both failed';
+    }
   }
 
   return result;

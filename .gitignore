@@ -62,3 +62,10 @@ Thumbs.db
 /experiment-line/shadow/
 /experiment-line/promotions/
 /experiment-line/data/
+
+# ── 归档实验线运行产物（可重建）──
+/research/archive-experiment-line/experiment-line/data/
+/research/archive-experiment-line/experiment-line/registry/
+/research/archive-experiment-line/experiment-line/results/
+/research/archive-experiment-line/experiment-line/runs/
+/research/archive-experiment-line/experiment-line/shadow/

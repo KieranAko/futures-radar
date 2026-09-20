@@ -177,6 +177,7 @@ function versionFromPlan(signal, n, plan, p, prevVersion) {
     versionId: `${signal.signalId}:V${n}`,
     runId: plan.meta.runId,
     signalDate: plan.meta.signalDate,
+    storyChainId: p.storyChainId || signal.storyChainId || null, // V2 前向盖章：版本级血缘
     state: curState,
     executionStatus: curExec,
     stateReasons: planReasonsOf(p),
@@ -229,6 +230,7 @@ function createSignal(plan, p, root = null) {
     signalId,
     symbol: p.symbol,
     name: p.name || p.symbol,
+    storyChainId: p.storyChainId || null, // V2 前向盖章：故事席位血缘
     contract: p.contract || null,
     direction: directionOfPlan(p),
     thesis: (p.reportBaseline && p.reportBaseline.driver) || '',
@@ -690,6 +692,7 @@ function summarizeSignal(signal) {
     signalId: signal.signalId,
     symbol: signal.symbol,
     name: signal.name,
+    storyChainId: signal.storyChainId || null,
     contract: signal.contract,
     direction: signal.direction,
     thesis: signal.thesis,
@@ -704,6 +707,7 @@ function summarizeSignal(signal) {
       versionId: cur.versionId,
       runId: cur.runId,
       signalDate: cur.signalDate,
+      storyChainId: cur.storyChainId || signal.storyChainId || null,
       state: versionStateOf(cur),
       executionStatus: cur.executionStatus,
       direction: cur.direction,

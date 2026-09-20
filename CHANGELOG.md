@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.0.0（2026-09-18）— V2 迭代基线
+
+**架构收敛：实验线整体归档，生产线 + 研究层 + 理论库。**
+
+- **实验线退役归档**：`experiment-line/` 整体移入 `research/archive-experiment-line/experiment-line/`。退役理由：信号池追踪已在生产线上完成策略级前向验证闭环；候选预生产测试与 promote 机制自 V1 后未再使用。历史产物（镜像回放 14/14、carry 族 G1 关闭、analyze candidate v2 promote 记录）保留可追溯
+- **生产引用修正**：`analyze/v2/packet-freeze-v2.cjs` 机制目录改读归档实验线 registry（活跃机制目录迁至 `research/mechanisms/registry` 后需更新）；`analyze/v2/run-v2.cjs` 重写为生产 Analyze v2 编排器（写 run 目录 KPI）；成本锚测试改用生产路径 `analyze/v2/cost-anchor`
+- **族级证据单一来源**：`strategies/family-evidence.json` 成为族级证据单一来源；策略板块渲染不再引用实验线路径
+- **故事传导链构造器（V2 核心，落地第一版）**：`strategies/lib/story-chain.cjs`（链契约校验 + 故事池 + 证明/证伪状态机）+ `strategies/lib/story-indicators.cjs`（指标目录计算器，历史/运行双模式，**只读文件库**）+ `strategies/story-chain-cli.cjs`（register/observe/resolve/prompt/list/view）+ `strategies/story-chain-blueprint.md` + `strategies/lib/story-chain-prompt.cjs`（状态唤醒提示词）。链最小契约 = 1 主题 + ≥2 节点 + ≥1 顺序边 + 1 板块 + 1 代表品种 + 1 方向 + 自声明证明点；同板块仅 1 条活跃链（supersede 换代）
+- **宏观历史入库**：`collector/macro-history-builder.cjs` 把冻结宏观历史 + `data/macro/*.json` 生产快照合并为 `data/macro-history/<ANCHOR>.json`（DXY/USDCNH/US10Y/DR007），`story-indicators` 全部指标改为从文件库计算，不再读 output/runs；change5d 与生产 macro-probe 同口径
+- **找数据策略 v2**：T0 文件库稳定源（`config/story-chain-indicators.json`）优先；目录外节点带 `concept + dataPlan` 走 T2 WebSearch（brief→results→validate→入库）；resolving 状态冻结证明点，解析失败 void 作废。**取数路径与数据可信度正交**：可信度 high/medium/low/unknown 按来源层级 S/A/B/C × 新鲜度 × 独立源推导，只标注不改变判决；台账统计路径命中率与可信度分布
+- **筛选删除**：报告/看板不再渲染 Top10 异动、过滤决策与「本期筛选」块；附录 5.1 改为「市场明细」（仅宏观/板块背景）。`report/render-markdown.cjs`、`render-dashboard-html.cjs` 同步
+- **filter-llm 正式退役**：`strategies/story-pool/build-filtered-from-story-pool.cjs` 重写 filtered.json——proven 故事链席位 + 信号池追踪席位为 KEEP 唯一来源，无席位时空仓合法；旧 filter/blueprint.md 归档
+- **生产桥（proven → 信号池，单向顺序）**：`strategies/story-pool/apply-story-seats.cjs`（filter-llm 后把 proven 链代表品种注入 KEEP，tracking=true/storyChainId）；storyChainId 前向盖章链：filtered → packets-v2 → analysis → report-facts → report-model → strategy-plan（schema 可选字段）→ signal（信号与版本级）。`link-signal-pool.cjs` 代码保留但暂不启用（信号验证反哺故事链机制未定）
+- **前向盖章测试**：新增 signal-pool 盖章测试 1 条 + story-lineage 集成测试 2 条（临时 runtime 跑 build-facts/build-model 验证 filtered→report 传播 + schema 可选字段）
+- **看板故事池 Tab**：`report/render-story-pool-html.cjs` + dashboard 首位 Tab（🔗 故事池，分析前端）：活跃链卡片支持折叠、主题标题、逐节点「前值→当前值→环比+单位+日期/观察窗口起止/确认日期/状态/取数路径/可信度/事件」、席位血缘行、最近出池、按路径节点命中率与可信度分布统计
+- **测试归档**：`test/experiment-line.test.js` 随实验线归档（不再参与 `npm test`）；新增 story-chain 19 条、生产桥 4 条、宏观历史合并 2 条、前向盖章 3 条；全量测试 **805/805（159 套件）**
+- **版本对齐**：VERSION.md / package.json / SKILL.md / README / pipeline banner 统一为 **2.0.0**
+
 ## 1.0.0（2026-08-29）— V1 正式版本
 
 两条线完整保留：**生产线**（每日期货雷达：采集→扫描→过滤→FinCoT 分析→概率锥→报告→策略板块）与**实验线**（生产线的完整映射/测试版本）。

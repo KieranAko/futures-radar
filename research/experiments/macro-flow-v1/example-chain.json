@@ -1,0 +1,48 @@
+{
+  "schema": "futures-radar-story-chain/2",
+  "chainId": "CH-BLACK-20260918-03",
+  "createdAt": "2026-09-18",
+  "sector": "black",
+  "direction": -1,
+  "representative": "RB0",
+  "entryProofIndex": 2,
+  "theoryRef": "02-term-structure.md 流动性传导；config/macro-transmission.json DR007→黑色",
+  "nodes": [
+    {
+      "id": "n1",
+      "indicatorId": "macro.DR007.change5d",
+      "expectation": 1,
+      "label": "国内流动性收紧（DR007 5日上行）"
+    },
+    {
+      "id": "n2",
+      "indicatorId": "sector.black.oi.flow5d",
+      "expectation": -1,
+      "label": "黑色板块资金流出（OI 5日下行）"
+    },
+    {
+      "id": "n3",
+      "indicatorId": "symbol.RB0.price.ret5d",
+      "expectation": -1,
+      "label": "螺纹钢价格趋势转弱"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "from": "n1",
+      "to": "n2",
+      "latencyDays": 5,
+      "logic": "流动性收紧→黑色系需求敏感品种资金流出"
+    },
+    {
+      "id": "e2",
+      "from": "n2",
+      "to": "n3",
+      "latencyDays": 5,
+      "logic": "板块资金流出→代表品种螺纹钢趋势转弱"
+    }
+  ],
+  "maxLifespanTradingDays": 20,
+  "theme": "流动性收紧→黑色资金流出→螺纹转弱"
+}

@@ -1,11 +1,12 @@
-// report/render-dashboard-html.cjs — 三 Tab 看板（自包含单文件 HTML）
+// report/render-dashboard-html.cjs — 四 Tab 看板（自包含单文件 HTML）
 //
 // 用法:
 //   node report/render-dashboard-html.cjs --runId <runId>
 //
 // Tab1 机会分析看板：主从布局（左侧品种导航 + 右侧图形化机会面板）。
 // Tab2 信号池看板：双栏布局（左侧卡片流 + 右侧历史统计/口径说明）。
-// Tab3 历史报告索引：数据表 + 底部分页（每页 10 份），点击打开 report.html。
+// Tab3 故事池看板：传导链卡片（节点进度/可信度/事件/回链信号）+ 统计。
+// Tab4 历史报告索引：数据表 + 底部分页（每页 10 份），点击打开 report.html。
 //
 // 纪律：确定性、不联网、不调用 LLM、无外部 CSS/JS 依赖；所有字段转义。
 
@@ -24,6 +25,8 @@ const {
   statsTable,
   escapeHtml
 } = require('./render-signal-pool-html.cjs');
+const { storyPoolHtml } = require('./render-story-pool-html.cjs');
+const storyChain = require('../strategies/lib/story-chain.cjs');
 const { planStateOf, eventLabel } = require('../strategies/lib/strategy-state.cjs');
 
 function readJSON(p, fallback = null) {
@@ -309,7 +312,7 @@ function oppNavItem(opp, raw, mainSeries, active) {
   return `<button class="opp-nav-item ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}"><span class="nav-dot ${escapeHtml(dir)}"></span><span class="nav-text"><span class="nav-main"><b>${escapeHtml(opp.name || opp.symbol)}</b><span class="nav-badge ${escapeHtml(dir)}">${directionLabel(dir)}</span></span><span class="nav-sub">${conf}置信 · ${close}${chgHtml}</span></span></button>`;
 }
 
-function oppPane(opp, raw, mainSeries, signalDate, active, plan) {
+function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}) {
   const t = opp.thesis || {};
   const driver = t.driver || {};
   const odds = t.odds || {};
@@ -339,11 +342,13 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan) {
   if (odds.bias || odds.reasoning) detail.push(`<h4>Q3 赔率</h4><p>${escapeHtml(odds.bias || '')} · ${escapeHtml(odds.reasoning || '')}</p>`);
   if (cr.uncertainties && cr.uncertainties.length) detail.push(`<h4>不确定项</h4><ul>${cr.uncertainties.map((u) => `<li>${escapeHtml(u)}</li>`).join('')}</ul>`);
 
+  const story = opp.storyChainId ? (storyMap[opp.storyChainId] || null) : null;
   return `<article class="opp-pane ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}">
     <div class="instr-head">
       <div class="instr-title">
         <div class="instr-name">${escapeHtml(opp.name || opp.symbol)} <span class="muted">（${escapeHtml(opp.contract || opp.symbol)}）</span></div>
         <div class="instr-sub">${directionLabel(dir)} · ${confidenceLabel(t.finalConfidence)}置信 · 收盘 ${close}</div>
+        ${story ? `<div class="story-origin">🔗 故事：${escapeHtml(story.theme || story.chainId)} <span class="muted">（${escapeHtml(story.chainId)} · ${story.confirmedNodes}/${story.totalNodes} 节点）</span></div>` : ''}
       </div>
       <div class="instr-badges">${confidenceMeter(t.finalConfidence)}${regimePill(opp.marketFacts && opp.marketFacts.volatilityRegime)}</div>
     </div>
@@ -363,9 +368,9 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan) {
   </article>`;
 }
 
-function oppLayout(opps, raw, mainSeries, signalDate, planMap) {
+function oppLayout(opps, raw, mainSeries, signalDate, planMap, storyMap = {}) {
   const nav = opps.map((o, i) => oppNavItem(o, raw, mainSeries, i === 0)).join('\n');
-  const panes = opps.map((o, i) => oppPane(o, raw, mainSeries, signalDate, i === 0, planMap ? planMap[o.symbol] : null)).join('\n');
+  const panes = opps.map((o, i) => oppPane(o, raw, mainSeries, signalDate, i === 0, planMap ? planMap[o.symbol] : null, storyMap)).join('\n');
   return `<div class="opp-layout"><nav class="opp-nav">${nav}</nav><div class="opp-content">${panes}</div></div>`;
 }
 
@@ -470,22 +475,25 @@ function dataBadges(strategyPlan, signalPoolView, costAnchorAvailable) {
   return badges.map((b) => `<span class="data-badge">${escapeHtml(b)}</span>`).join('');
 }
 
-function screeningBlock(reportModel) {
-  const scr = reportModel && reportModel.screening;
-  const top10 = scr && Array.isArray(scr.top10) ? scr.top10 : [];
-  const decisions = scr && Array.isArray(scr.decisions) ? scr.decisions : [];
-  const dirLabel = (d) => d === 'up' ? '↑' : d === 'down' ? '↓' : '→';
-  const topRows = top10.map((t) => `<tr><td>${t.rank}</td><td>${escapeHtml(t.symbol)} ${escapeHtml(t.name)}</td><td>${fmt(t.score, 2)}</td><td>${t.indicators && t.indicators.change5d != null ? `${t.indicators.change5d >= 0 ? '+' : ''}${fmt(t.indicators.change5d)}%` : '—'}</td><td>${dirLabel(t.trend && t.trend.direction)}</td></tr>`).join('');
-  const decRows = decisions.slice(0, 8).map((d) => `<tr><td>${escapeHtml(d.symbol)} ${escapeHtml(d.name)}</td><td>${d.decision === 'KEEP' ? '✅ KEEP' : '❌ DROP'}</td><td>${escapeHtml(d.initialDirection || '—')}</td><td>${escapeHtml(d.reason || '—')}</td></tr>`).join('');
-  return `<details class="screening"><summary>本期筛选（Top${top10.length} 异动 + 过滤决策）</summary><div class="screening-body">
-    <div class="screening-grid">
-      <div><h4>Top ${top10.length} 异动</h4><table class="mini"><tr><th>#</th><th>品种</th><th>score</th><th>5日</th><th>方向</th></tr>${topRows}</table></div>
-      <div><h4>过滤决策</h4><table class="mini"><tr><th>品种</th><th>决定</th><th>方向</th><th>理由</th></tr>${decRows}</table></div>
-    </div>
-  </div></details>`;
+function storyWatchHtml(storyView) {
+  const chains = storyView && Array.isArray(storyView.active) ? storyView.active : [];
+  if (chains.length === 0) return '<div class="empty-panel"><h3>空仓观察</h3><p class="muted">故事池为空：没有可监测的传导故事，本期不深挖、不下注。</p></div>';
+  const rows = chains.map((c) => {
+    const activeNode = c.activeNode || '—';
+    return `<div class="watch-row">
+      <div class="watch-main"><b>${escapeHtml(c.theme || '（未命名主题）')}</b>
+        <span class="muted">${escapeHtml(c.chainId)} · ${escapeHtml(c.sector)} · ${escapeHtml(c.representative)} · ${c.direction === -1 ? '🔻 空' : '🔺 多'}</span>
+      </div>
+      <div class="watch-meta"><span class="story-status st-run">${escapeHtml(c.status)}</span>
+        <span>${c.confirmedNodes}/${c.totalNodes} 节点 · 观察节点 ${escapeHtml(activeNode)}</span>
+        ${c.seats && c.seats.length ? `<span class="story-seats">席位：${c.seats.map((s) => `${escapeHtml(s.runId)}→${escapeHtml(s.symbol)}`).join('、')}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="watch-list"><h3>故事池观察清单（无 proven 席位，本期不深挖）</h3>${rows}</div>`;
 }
 
-function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, mainSeries, signalDate, strategyPlan, costAnchorAvailable = false }) {
+function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = null, history, raw, mainSeries, signalDate, strategyPlan, costAnchorAvailable = false }) {
   const opps = reportModel && Array.isArray(reportModel.opportunities) ? reportModel.opportunities : [];
   const pool = signalPoolView && Array.isArray(signalPoolView.pool) ? signalPoolView.pool : [];
   const recentClosed = signalPoolView && Array.isArray(signalPoolView.recentClosed) ? signalPoolView.recentClosed : [];
@@ -493,7 +501,11 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   const details = signalPoolView && signalPoolView.details ? signalPoolView.details : {};
 
   const planMap = new Map((strategyPlan && Array.isArray(strategyPlan.plans) ? strategyPlan.plans : []).map((p) => [p.symbol, p]));
-  const oppHtml = opps.length ? oppLayout(opps, raw, mainSeries, signalDate, Object.fromEntries(planMap)) : '<p class="muted">本期无机会分析。</p>';
+  const storyMap = {};
+  for (const c of [...((storyView && storyView.active) || []), ...((storyView && storyView.recentClosed) || [])]) {
+    if (c && c.chainId) storyMap[c.chainId] = c;
+  }
+  const oppHtml = opps.length ? oppLayout(opps, raw, mainSeries, signalDate, Object.fromEntries(planMap), storyMap) : storyWatchHtml(storyView);
   const poolCards = pool.map((s) => {
     const d = details[s.signalId] || {};
     return signalCard({ ...s, versions: d.versions || [] }, { bars: seriesBars(mainSeries, raw, s.symbol, s.contract) });
@@ -508,6 +520,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
 
   const histRows = historyTable(history);
   const pagination = paginationControl(history.length, 10);
+  const storyHtml = storyPoolHtml(storyView || { stats: {}, active: [], recentClosed: [] });
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -578,7 +591,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .card[open] > summary::before { transform: rotate(90deg); }
   .card-body { padding: 4px 16px 16px; border-top: 1px solid var(--border); }
 
-  /* Tab1 机会分析：主从布局 */
+  /* 机会分析：主从布局 */
   .opp-layout { display: flex; gap: 16px; align-items: flex-start; }
   .opp-nav { width: 250px; flex: 0 0 250px; display: flex; flex-direction: column; gap: 6px; position: sticky; top: 70px; }
   .opp-nav-item { display: flex; align-items: flex-start; gap: 10px; text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
@@ -601,6 +614,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .instr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
   .instr-name { font-size: 17px; font-weight: 700; }
   .instr-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .story-origin { font-size: 12px; margin-top: 4px; }
   .instr-badges { display: inline-flex; align-items: center; gap: 10px; }
   .confidence { display: inline-flex; gap: 3px; }
   .confidence .cm { width: 16px; height: 7px; border-radius: 3px; background: #e5e7eb; }
@@ -669,7 +683,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   .down { color: var(--down); font-weight: 600; }
   .muted { color: var(--muted); font-size: 12px; }
 
-  /* Tab2 信号池：双栏布局 */
+  /* 信号池：双栏布局 */
   .pool-layout { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
   .pool-main { min-width: 0; }
   .pool-side { position: sticky; top: 70px; display: flex; flex-direction: column; gap: 12px; }
@@ -717,7 +731,65 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   table.stats tr.sub td { color: var(--muted); font-size: 12px; line-height: 1.7; }
   table.stats tr.sub + tr th, table.stats tr.sub + tr td { padding-top: 6px; }
 
-  /* Tab3 历史报告 */
+  /* 故事池 */
+  .story-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0; margin-bottom: 12px; overflow: hidden; }
+  .story-card > summary { list-style: none; cursor: pointer; padding: 12px 16px; display: block; }
+  .story-card > summary::-webkit-details-marker { display: none; }
+  .story-card > summary::before { content: '▸'; color: var(--muted); margin-right: 8px; font-size: 12px; display: inline-block; vertical-align: middle; }
+  .story-card[open] > summary::before { content: '▾'; }
+  .story-summary { display: block; }
+  .story-theme { font-size: 15px; font-weight: 700; display: inline; vertical-align: middle; }
+  .story-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; margin-top: 6px; }
+  .story-body { border-top: 1px solid var(--border); padding: 12px 16px; }
+  .story-status { font-size: 12px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  .story-status.st-ok { background: #ecfdf5; color: #047857; }
+  .story-status.st-bad { background: #fef2f2; color: #b91c1c; }
+  .story-status.st-watch { background: #fffbeb; color: #b45309; }
+  .story-status.st-run { background: #eef4ff; color: #2563eb; }
+  .story-dir { font-weight: 700; }
+  .story-chain-id { color: var(--muted); font-size: 11px; }
+  .story-sector, .story-rep, .story-proof { color: var(--muted); }
+  .story-seats { color: var(--accent); }
+  .story-link { color: var(--accent); }
+  .story-progress { height: 6px; background: #f0f1f3; border-radius: 4px; margin: 10px 0; overflow: hidden; }
+  .story-progress-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+  .story-nodes { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+  .story-node { display: flex; flex-direction: column; gap: 4px; font-size: 13px; padding: 8px 10px; border-radius: 6px; background: #fafbfc; }
+  .node-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .node-line.node-values, .node-line.node-meta-line { padding-left: 24px; }
+  .story-node .node-state { width: 16px; text-align: center; }
+  .story-node.node-confirmed { background: #f0fdf4; }
+  .story-node.node-confirmed .node-state { color: #047857; }
+  .story-node.node-broken { background: #fef2f2; }
+  .story-node.node-broken .node-state { color: #b91c1c; }
+  .story-node .node-label { font-weight: 600; }
+  .story-node .node-status { font-size: 12px; color: var(--muted); }
+  .story-node .node-dir { font-size: 12px; color: var(--muted); }
+  .story-node .node-value { font-size: 12px; color: #374151; background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px; }
+  .story-node .mom-up { color: var(--up); }
+  .story-node .mom-down { color: var(--down); }
+  .story-node .node-window { font-size: 12px; color: var(--muted); }
+  .story-node .node-confirm-at { font-size: 12px; color: #047857; }
+  .story-node .node-meta { color: var(--muted); font-size: 11px; }
+  .story-node .node-path { font-size: 11px; color: #2563eb; background: #eef4ff; border-radius: 4px; padding: 1px 5px; }
+  .story-node .node-broken-reason { color: #b91c1c; font-size: 12px; }
+  .cred { font-size: 11px; border-radius: 4px; padding: 1px 5px; }
+  .cred-high { background: #ecfdf5; color: #047857; }
+  .cred-medium { background: #fffbeb; color: #b45309; }
+  .cred-low { background: #fef3c7; color: #92400e; }
+  .cred-unknown { background: #f3f4f6; color: #6b7280; }
+  .story-events { margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .story-event { padding: 2px 0; }
+  .story-event .event-date { color: var(--text); }
+  td.closed-theme { max-width: 260px; }
+
+  .empty-panel, .watch-list { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .watch-row { border-bottom: 1px solid var(--border); padding: 8px 0; }
+  .watch-row:last-child { border-bottom: none; }
+  .watch-main { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; }
+  .watch-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* 历史报告索引 */
   .history-toolbar { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 10px; font-size: 12px; color: var(--muted); }
   .table-wrap { overflow-x: auto; }
   table.index { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
@@ -748,7 +820,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   <div class="header-inner">
     <div class="brand">Futures Radar 看板</div>
     <nav class="tabs">
-      <button class="tab active" data-tab="opportunities">📈 机会分析</button>
+      <button class="tab active" data-tab="stories">🔗 故事池</button>
+      <button class="tab" data-tab="opportunities">📈 机会分析</button>
       <button class="tab" data-tab="pool">📊 信号池</button>
       <button class="tab" data-tab="history">🗂 历史报告</button>
     </nav>
@@ -756,7 +829,11 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
   </div>
 </header>
 <main>
-  <section id="tab-opportunities" class="tab-panel active">
+  <section id="tab-stories" class="tab-panel active">
+    ${storyHtml}
+  </section>
+
+  <section id="tab-opportunities" class="tab-panel">
     <div class="market-strip"><div class="market-row"><span class="market-label">宏观</span>${macroStrip(reportModel)}</div><div class="market-row"><span class="market-label">板块</span>${sectorBadges(reportModel)}</div><div class="market-row market-fresh">${freshnessLine(reportModel)}</div></div>
     <div class="action-strip">${actionStrip(strategyPlan, signalPoolView)}</div>
     <div class="summary-bar">
@@ -766,7 +843,6 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw,
       ${statCard('⚠️', '信号池内', pool.length, 'gray')}
     </div>
     ${oppHtml}
-    ${screeningBlock(reportModel)}
   </section>
 
   <section id="tab-pool" class="tab-panel">
@@ -895,11 +971,12 @@ function main() {
   const costAnchorAvailable = fs.existsSync(path.join(dir, 'cost-anchor.json'));
   const signalDate = (raw && raw.meta && raw.meta.cacheInfo && raw.meta.cacheInfo.latestBarDate) || latestDateFromSeries(mainSeries) || null;
   const history = historyIndex(runId, path.join(runtimeRoot, 'runs'));
-  const html = renderDashboardHtml({ runId, reportModel, signalPoolView, history, raw, mainSeries, signalDate, strategyPlan, costAnchorAvailable });
+  const storyView = storyChain.buildView();
+  const html = renderDashboardHtml({ runId, reportModel, signalPoolView, storyView, history, raw, mainSeries, signalDate, strategyPlan, costAnchorAvailable });
   const outPath = path.join(runtimeRoot, 'dashboard.html');
   fs.writeFileSync(outPath, html, 'utf8');
   console.log(`dashboard.html: ${outPath}`);
-  console.log(`  opportunities=${reportModel && reportModel.opportunities ? reportModel.opportunities.length : 0}, pool=${signalPoolView && signalPoolView.pool ? signalPoolView.pool.length : 0}, history=${history.length}`);
+  console.log(`  opportunities=${reportModel && reportModel.opportunities ? reportModel.opportunities.length : 0}, pool=${signalPoolView && signalPoolView.pool ? signalPoolView.pool.length : 0}, stories=${storyView.activeCount}, history=${history.length}`);
 }
 
 module.exports = { renderDashboardHtml, historyIndex, main };

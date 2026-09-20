@@ -1,4 +1,4 @@
-// experiment-line/cost-anchor/run.cjs — 每期 TOP3 成本锚入口（cache-first）
+// analyze/v2/cost-anchor/run.cjs — 每期 TOP3 成本锚入口（cache-first）
 //
 // 用法:
 //   node analyze/v2/cost-anchor/run.cjs --runId <runId>

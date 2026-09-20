@@ -1,19 +1,20 @@
-// experiment-line/analyze-v2/packet-freeze-v2.cjs — O4/O5 前置：确定性冻结 packet（无网络）
+// analyze/v2/packet-freeze-v2.cjs — O4/O5 前置：确定性冻结 packet（无网络）
 //
 // 与生产 freeze-packets 的差异（优化，不是照搬）：
 //   - 期限结构来自 GA-8 本地基差库（不再逐品种网络拉取）
 //   - 宏观/板块直接引用已冻结快照
-//   - 注入机制候选（O3：来自实验线 registry，按 family 预筛）
+//   - 注入机制候选（O3：来自机制 registry，按 family 预筛）
 //   - 增量上下文：把"昨日结论卡"（上一生产 run 的同品种 analysis）作为 cached 字段
 //
-// 用法: node experiment-line/analyze-v2/packet-freeze-v2.cjs --runId <runId>
+// 用法: node analyze/v2/packet-freeze-v2.cjs --runId <runId>
 'use strict';
 
 const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
-const EL = path.join(ROOT, 'experiment-line');
+// V2：实验线已归档；机制目录从归档读取，活跃机制目录迁至 research/mechanisms/registry 后需更新此路径
+const EL = path.join(ROOT, 'research', 'archive-experiment-line', 'experiment-line');
 const { runDir } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
 const basisLib = require(path.join(ROOT, 'strategies', 'research', 'v2', 'falsification', 'harness-lib', 'basis.cjs'));
 const { computeNearTermStructure } = require(path.join(ROOT, 'strategies', 'lib', 'near-term-structure.cjs'));
@@ -248,6 +249,7 @@ function main() {
   for (const c of keep) {
     const packet = buildPacket(raw, c.symbol, signalDate, macroSnapshot, sectorSnapshot, registry, prevAnalysis, costAnchorMap[c.symbol]);
     packet.spot_basis = spotBasisMap[c.symbol] || null;
+    packet.story_chain_id = c.storyChainId || null; // V2 前向盖章：故事席位血缘
     packets[c.symbol] = packet;
   }
   const out = {

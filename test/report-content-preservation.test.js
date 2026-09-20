@@ -21,24 +21,28 @@ describe('report content preservation（信息完整优先）', () => {
 
   const report = fs.readFileSync(reportPath, 'utf8');
   const model = JSON.parse(fs.readFileSync(path.join(runDir, 'report-model.json'), 'utf8'));
-  const strategyPlan = JSON.parse(fs.readFileSync(path.join(runDir, 'strategy-plan.json'), 'utf8'));
+  const strategyPlanPath = path.join(runDir, 'strategy-plan.json');
+  const strategyPlan = fs.existsSync(strategyPlanPath) ? JSON.parse(fs.readFileSync(strategyPlanPath, 'utf8')) : { plans: [] };
+  const isEmptyRun = !Array.isArray(model.opportunities) || model.opportunities.length === 0;
 
   it('主报告三章 + 单章附录存在，且删除独立今日不做什么章节', () => {
-    for (const heading of ['## 一、结论速览', '## 二、机会分析', '## 三、交易策略', '## 五、附录', '## 四、信号池追踪', '### 5.1 市场与筛选明细', '### 5.2 机会证据链', '### 5.3 方法与数据说明']) {
+    const base = ['## 一、结论速览', '## 二、机会分析', '## 五、附录', '### 5.1 市场明细', '### 5.2 机会证据链', '### 5.3 方法与数据说明'];
+    if (!isEmptyRun) base.push('## 三、交易策略', '## 四、信号池追踪');
+    for (const heading of base) {
       assert.ok(report.includes(heading), `missing ${heading}`);
     }
     assert.ok(!report.includes('## 阅读导航'));
     assert.ok(!report.includes('## 四、今日不做什么'));
     assert.ok(!report.includes('## 一、市场环境'));
     assert.ok(!report.includes('## 二、候选筛选'));
-    assert.ok(report.includes('未入选品种及其理由见上表'));
+    assert.ok(!report.includes('过滤决策'));
+    assert.ok(!report.includes('Top 10 异动排名'));
   });
 
-  it('过滤决策完整保留（KEEP+DROP 及理由）', () => {
-    for (const dec of model.screening.decisions) {
-      assert.ok(report.includes(`${dec.symbol} ${dec.name}`), `missing decision row ${dec.symbol}`);
-      if (dec.decision !== 'KEEP') assert.ok(report.includes(dec.reason), `missing drop reason ${dec.symbol}`);
-    }
+  it('V2 报告不再渲染过滤决策与 Top10 筛选', () => {
+    assert.ok(!report.includes('过滤决策'));
+    assert.ok(!report.includes('Top 10 异动排名'));
+    assert.ok(!report.includes('本期筛选'));
   });
 
   it('TOP3 六问完整保留（不截断）', () => {
@@ -55,6 +59,7 @@ describe('report content preservation（信息完整优先）', () => {
   });
 
   it('机会分析主章含驱动主线（事件逻辑前置，不只在附录）', () => {
+    if (isEmptyRun) return;
     const mainEnd = report.indexOf('## 三、交易策略');
     assert.ok(mainEnd > 0, 'missing 交易策略 chapter');
     assert.ok(report.indexOf('**驱动主线**') >= 0, 'missing 驱动主线 block');
@@ -70,6 +75,7 @@ describe('report content preservation（信息完整优先）', () => {
   });
 
   it('执行口径使用「执行偏离」而非「跳空」描述追价距离', () => {
+    if (isEmptyRun) return;
     assert.ok(report.includes('执行偏离 >'), 'missing 执行偏离 threshold text');
     assert.ok(!/执行口径.*跳空 >/.test(report), '执行口径仍使用跳空描述');
   });
