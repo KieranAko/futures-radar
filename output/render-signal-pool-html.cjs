@@ -301,10 +301,7 @@ function lifecycleChart(sig, versions, bars) {
     parts.push(`<line x1="${cx.toFixed(1)}" y1="${yHigh.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${yLow.toFixed(1)}" stroke="${color}" stroke-width="1"/>`);
     const bodyTop = Math.min(yOpen, yClose);
     const bodyH = Math.max(1, Math.abs(yClose - yOpen));
-    const chg = i > 0 ? b.close - win[i - 1].close : null;
-    const chgPct = i > 0 && win[i - 1].close ? ((b.close / win[i - 1].close) - 1) * 100 : null;
-    const tip = `${escapeHtml(b.date)}&#10;开 ${fmt(b.open)} 高 ${fmt(b.high)} 低 ${fmt(b.low)} 收 ${fmt(b.close)}${chg != null ? `&#10;涨跌 ${chg >= 0 ? '+' : ''}${fmt(chg)}（${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(1)}%）` : ''}`;
-    parts.push(`<rect x="${(cx - bodyW / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bodyW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}"><title>${tip}</title></rect>`);
+    parts.push(`<rect x="${(cx - bodyW / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bodyW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}"/>`);
   }
   const dirBadge = sig.direction === 'bearish' ? '空' : sig.direction === 'bullish' ? '多' : '';
   if (dirBadge) {
@@ -461,6 +458,7 @@ function lifecycleChart(sig, versions, bars) {
   const lastColor = lastUp ? '#b91c1c' : '#047857';
   parts.push(`<circle cx="${x(n - 1).toFixed(1)}" cy="${y(lastBar.close).toFixed(1)}" r="3.2" fill="${lastColor}" stroke="#ffffff" stroke-width="1.4"/>`);
   parts.push(`<text x="${(W - padR - 8).toFixed(1)}" y="${(padT + 4).toFixed(1)}" font-size="11" font-weight="700" fill="${lastColor}" text-anchor="end" style="${textStyle}">最新收盘 ${fmt(lastBar.close)} · ${escapeHtml(lastBar.date.slice(5))}</text>`);
+  parts.push(`<line class="chart-crosshair" x1="${x(n - 1).toFixed(1)}" y1="${padT}" x2="${x(n - 1).toFixed(1)}" y2="${(H - padB).toFixed(1)}" stroke="#1f2328" stroke-width="1" stroke-dasharray="3 3" opacity="0.7"/>`);
 
   parts.push('</svg>');
 
@@ -475,8 +473,14 @@ function lifecycleChart(sig, versions, bars) {
   if (triggerLevel != null && stopPrice != null && Math.abs(triggerLevel - stopPrice) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(217,119,6,.2);outline:1px solid rgba(217,119,6,.55);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">计划区间</b></span>`);
   if (t1Level != null && t2Level != null && Math.abs(t1Level - t2Level) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(37,99,235,.2);outline:1px solid rgba(37,99,235,.55);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">目标区间</b></span>`);
   const legendHtml = `<div class="chart-legend" style="display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:12px;color:#6b7280;">${[...levelLegend, ...zoneLegend].join('')}</div>`;
+  const lastPrev = win.length > 1 ? win[win.length - 2].close : null;
+  const lastChg = lastPrev != null ? lastBar.close - lastPrev : null;
+  const lastChgPct = lastPrev != null && Number(lastPrev) !== 0 ? (lastBar.close / lastPrev - 1) * 100 : null;
+  const lastInfoColor = lastChg == null || lastChg >= 0 ? '#b91c1c' : '#047857';
+  const lastInfoHtml = `<b style="color:${lastInfoColor}">${escapeHtml(lastBar.date)}</b> · 开 ${fmt(lastBar.open)} · 高 ${fmt(lastBar.high)} · 低 ${fmt(lastBar.low)} · 收 <b style="color:${lastInfoColor}">${fmt(lastBar.close)}</b>${lastChg != null ? ` · 涨跌 <b style="color:${lastInfoColor}">${lastChg >= 0 ? '+' : ''}${fmt(lastChg)}（${lastChgPct >= 0 ? '+' : ''}${lastChgPct.toFixed(1)}%）</b>` : ''}`;
+  const barsAttr = JSON.stringify(win.map((b) => ({ d: b.date, o: b.open, h: b.high, l: b.low, c: b.close }))).replace(/'/g, '&#39;');
 
-  return `<div class="lifecycle">${parts.join('')}${legendHtml}<div class="chart-hover-tip"></div></div>`;
+  return `<div class="lifecycle" data-bars='${barsAttr}' data-pad='${padL},${padR},${padT},${padB}'><div class="chart-day-info">${lastInfoHtml}</div>${parts.join('')}${legendHtml}<div class="chart-hover-tip"></div></div>`;
 }
 
 function signalCard(sig, { closed = false, bars = null } = {}) {

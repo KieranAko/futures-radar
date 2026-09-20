@@ -524,8 +524,61 @@ function storyWatchHtml(storyView) {
 function signalChartHoverScript() {
   return `<script>
 (function () {
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function nf(v) { return v == null || isNaN(Number(v)) ? '—' : Number(v).toFixed(1); }
   document.querySelectorAll('.lifecycle').forEach(function (lc) {
     var tip = lc.querySelector('.chart-hover-tip');
+    var svg = lc.querySelector('svg.lifecycle-chart');
+    var cross = lc.querySelector('.chart-crosshair');
+    var info = lc.querySelector('.chart-day-info');
+    var bars = [];
+    try { bars = JSON.parse(lc.getAttribute('data-bars') || '[]'); } catch (e) { bars = []; }
+    var pads = (lc.getAttribute('data-pad') || '46,64,20,26').split(',').map(Number);
+    var padL = pads[0] || 46, padR = pads[1] || 64, padT = pads[2] || 20, padB = pads[3] || 26;
+    function dayHtml(i) {
+      var b = bars[i];
+      if (!b) return '';
+      var prev = i > 0 ? bars[i - 1].c : null;
+      var chg = prev != null ? b.c - prev : null;
+      var chgPct = prev != null && Number(prev) !== 0 ? (b.c / prev - 1) * 100 : null;
+      var color = chg == null || chg >= 0 ? '#b91c1c' : '#047857';
+      return '<b style="color:' + color + '">' + esc(b.d) + '</b> · 开 ' + nf(b.o) + ' · 高 ' + nf(b.h) + ' · 低 ' + nf(b.l) + ' · 收 <b style="color:' + color + '">' + nf(b.c) + '</b>'
+        + (chg != null ? ' · 涨跌 <b style="color:' + color + '">' + (chg >= 0 ? '+' : '') + nf(chg) + '（' + (chgPct >= 0 ? '+' : '') + chgPct.toFixed(1) + '%）</b>' : '');
+    }
+    function nearestIndex(ev) {
+      if (!svg || !bars.length) return -1;
+      var rect = svg.getBoundingClientRect();
+      var vb = svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal : { width: 960, height: 360 };
+      var W = vb.width || 960;
+      var n = bars.length;
+      var step = (W - padL - padR) / n;
+      var vx = (ev.clientX - rect.left) / rect.width * W;
+      var i = Math.round((vx - padL - step / 2) / step);
+      return Math.max(0, Math.min(n - 1, i));
+    }
+    function showDay(ev) {
+      var i = nearestIndex(ev);
+      if (i < 0 || !cross || !info) return;
+      var rect = svg.getBoundingClientRect();
+      var vb = svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal : { width: 960, height: 360 };
+      var W = vb.width || 960, H = vb.height || 360;
+      var n = bars.length;
+      var step = (W - padL - padR) / n;
+      var cx = padL + i * step + step / 2;
+      cross.setAttribute('x1', cx.toFixed(1));
+      cross.setAttribute('x2', cx.toFixed(1));
+      cross.setAttribute('y1', padT);
+      cross.setAttribute('y2', (H - padB).toFixed(1));
+      cross.style.display = 'block';
+      info.innerHTML = dayHtml(i);
+    }
+    if (svg && cross && info && bars.length) {
+      svg.addEventListener('mousemove', showDay);
+      svg.addEventListener('mouseleave', function () {
+        if (cross) cross.style.display = 'none';
+        if (info && bars.length) info.innerHTML = dayHtml(bars.length - 1);
+      });
+    }
     if (!tip) return;
     function moveTip(ev) {
       var r = lc.getBoundingClientRect();
@@ -884,6 +937,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .sig-chart-head { font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 4px; }
   .sig-chart-block .lifecycle svg { width: 100%; height: auto; max-height: none; }
   .lifecycle { position: relative; }
+  .chart-day-info { font-size: 12px; color: var(--muted); padding: 2px 0 4px; min-height: 22px; font-variant-numeric: tabular-nums; }
+  .chart-day-info b { font-weight: 700; }
+  .chart-crosshair { display: none; pointer-events: none; }
   .chart-hover-tip { display: none; position: absolute; z-index: 6; background: #1f2328; color: #ffffff; font-size: 12px; line-height: 1.5; padding: 4px 10px; border-radius: 6px; pointer-events: none; white-space: nowrap; box-shadow: 0 6px 18px rgba(15,23,42,.25); transform: translateY(-100%); }
   .zp-zone { cursor: pointer; }
   .zp-zone.hover { filter: brightness(1.18); }
