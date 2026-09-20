@@ -781,6 +781,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .branch-table { width: 100%; border-collapse: collapse; margin: 6px 0 12px; }
   .branch-table th, .branch-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 12px; line-height: 1.6; }
   .branch-table th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+  .branch-table th:first-child, .branch-table td:first-child { white-space: nowrap; }
+  .branch-priority { white-space: nowrap; }
   .story-sub-detail { margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 6px; }
   .story-sub-detail summary { cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 600; }
   .branch-table-wide { min-width: 960px; }
