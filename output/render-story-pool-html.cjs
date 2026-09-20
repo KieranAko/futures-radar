@@ -68,7 +68,7 @@ function fmtSigned(v) {
   return (n > 0 ? '+' : '') + fmtVal(n);
 }
 
-function dagNodeCard(n) {
+function dagNodeCard(n, isSource = false) {
   const cur = n.lastValue ?? n.observedValue;
   const dir = n.expectation === 1 ? '↑' : n.expectation === -1 ? '↓' : '—';
   return `<div class="dg-node ${nodeClass(n)}${n.terminal ? ' terminal' : ''}" data-node-id="${escapeHtml(n.id)}">
@@ -87,7 +87,7 @@ function dagPanelHtml(c) {
   for (let d = 0; d <= maxLayer; d++) columns.push(layers.get(d) || []);
   const columnsHtml = columns.map((ids) => `<div class="dg-layer">${ids.map((id) => {
     const n = nodes.find((x) => x.id === id);
-    return n ? dagNodeCard(n) : '';
+    return n ? dagNodeCard(n, n.id === nodes[0].id) : '';
   }).join('')}</div>`).join('');
   const graphNodes = nodes.map((n) => ({
     id: n.id, label: n.label || n.id, status: n.status, terminal: !!n.terminal,
