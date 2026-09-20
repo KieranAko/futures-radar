@@ -63,7 +63,7 @@ function makeStoryView() {
   return {
     activeCount: 1,
     active: [{
-      chainId: 'CH-BLACK-20260917-01', theme: '流动性收紧→黑色资金流出→螺纹转弱', sector: 'black', direction: -1, representative: 'RB0',
+      chainId: 'CH-BLACK-20260917-01', theme: '黑色流动性退潮', themeDetail: 'DR007 抬头收紧流动性，黑色资金持续流出，螺纹钢等待需求证伪', sector: 'black', direction: -1, representative: 'RB0',
       status: 'proven', createdAt: '2026-09-17', entryProofIndex: 2,
       confirmedNodes: 2, totalNodes: 3, unresolvedNodes: 0, activeNode: 'n3',
       linkedSignalId: 'SIG-RB0-20260918-01',
@@ -105,7 +105,9 @@ describe('dashboard-html 四 Tab 看板', () => {
     assert.ok(html.indexOf('data-tab="stories"') < html.indexOf('data-tab="opportunities"'));
     assert.ok(html.includes('<section id="tab-stories" class="tab-panel active">'));
     assert.ok(html.includes('CH-BLACK-20260917-01'));
-    assert.ok(html.includes('流动性收紧→黑色资金流出→螺纹转弱'));
+    assert.ok(html.includes('黑色流动性退潮'));
+    assert.ok(html.includes('DR007 抬头收紧流动性，黑色资金持续流出，螺纹钢等待需求证伪'));
+    assert.ok(html.includes('story-subtitle'));
     assert.ok(html.includes('story-theme'));
     assert.ok(html.includes('<details class="story-card">'));
     assert.ok(html.includes('node-confirmed'));

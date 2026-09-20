@@ -119,8 +119,17 @@ function validateChainDefinition(def, { catalog = null, symbols = null } = {}) {
   }
   if (!/^CH-[A-Z0-9-]+$/.test(def.chainId || '')) errors.push('chainId 非法（期望 CH-板块-日期-序号）');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(def.createdAt || '')) errors.push('createdAt 必须为 YYYY-MM-DD');
-  if (def.schema === CHAIN_SCHEMA && (!def.theme || String(def.theme).trim().length < 4)) {
-    errors.push('theme 缺失或过短（v2 链必须有主题：一句话说清这条故事在讲什么）');
+  if (def.schema === CHAIN_SCHEMA) {
+    const theme = String(def.theme || '').trim();
+    const themeDetail = String(def.themeDetail || '').trim();
+    if (theme.length < 4 || theme.length > 14) {
+      errors.push('theme 必须为 4–14 字主标题（短短语，不是完整句子）');
+    }
+    if (theme.includes('→')) errors.push('theme 不得使用箭头拼接，请用短语主标题');
+    if (themeDetail.length < 10 || themeDetail.length > 60) {
+      errors.push('themeDetail 必须为 10–60 字叙事副标题（驱动+传导+品种+阶段）');
+    }
+    if (themeDetail.includes('→')) errors.push('themeDetail 不得使用箭头拼接，请用叙事句式');
   }
   const sectors = (cat && Array.isArray(cat.sectors)) ? cat.sectors : [];
   if (!sectors.includes(def.sector)) errors.push(`sector 必须在指标目录板块集合内: ${sectors.join(',')}`);
@@ -708,7 +717,7 @@ function buildView({ root = null } = {}) {
   const seatsByChain = loadSeatRecords(root);
   const active = chains.filter((c) => isActive(c.status))
     .map((c) => ({
-      chainId: c.chainId, theme: c.theme || '（legacy 链，无主题）', sector: c.sector, direction: c.direction, representative: c.representative,
+      chainId: c.chainId, theme: c.theme || '（legacy 链，无主题）', themeDetail: c.themeDetail || null, sector: c.sector, direction: c.direction, representative: c.representative,
       status: c.status, createdAt: c.createdAt,
       confirmedNodes: c.nodes.filter((n) => n.status === 'confirmed').length,
       totalNodes: c.nodes.length, entryProofIndex: c.entryProofIndex,
@@ -734,7 +743,7 @@ function buildView({ root = null } = {}) {
 
   const closed = chains.filter((c) => isTerminal(c.status))
     .map((c) => ({
-      chainId: c.chainId, theme: c.theme || '（legacy 链，无主题）', sector: c.sector, status: c.status, closeReason: c.closeReason,
+      chainId: c.chainId, theme: c.theme || '（legacy 链，无主题）', themeDetail: c.themeDetail || null, sector: c.sector, status: c.status, closeReason: c.closeReason,
       createdAt: c.createdAt, closedAt: c.closedAt,
       confirmedNodes: c.nodes.filter((n) => n.status === 'confirmed').length,
       totalNodes: c.nodes.length, proven: c.provenAt !== null,

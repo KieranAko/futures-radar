@@ -750,6 +750,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .story-theme { font-size: 15px; font-weight: 700; display: inline; vertical-align: middle; }
   .story-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; margin-top: 6px; }
   .story-body { border-top: 1px solid var(--border); padding: 12px 16px; }
+  .story-subtitle { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
   .story-status { font-size: 12px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
   .story-status.st-ok { background: #ecfdf5; color: #047857; }
   .story-status.st-bad { background: #fef2f2; color: #b91c1c; }

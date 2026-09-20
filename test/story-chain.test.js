@@ -195,7 +195,7 @@ describe('story-chain 提示词构建器（状态唤醒 + 硬契约）', () => {
     });
     assert.match(p, /\| DR007 \| 1\.40 \| 2\.80 \| fresh \|/);
     assert.match(p, /macro\.DR007\.change5d/);
-    assert.match(p, /节点 ≥2/);
+    assert.match(p, /节点 ≥3/);
     assert.match(p, /entryProofIndex/);
     assert.match(p, /story-chains\.json/);
   });
@@ -207,7 +207,8 @@ describe('story-chain v2：T2 找数据策略与可信度', () => {
       schema: 'futures-radar-story-chain/2',
       chainId: 'CH-ENERGY-20260902-01',
       createdAt: '2026-09-02',
-      theme: '流动性宽松→能化成本与需求改善',
+      theme: '能化成本改善',
+      themeDetail: '流动性宽松改善能化成本与需求，PTA 等待需求兑现',
       sector: 'energy_chemical',
       direction: 1,
       representative: 'TA0',
@@ -241,10 +242,17 @@ describe('story-chain v2：T2 找数据策略与可信度', () => {
     assert.equal(occupied.phase, 'sector_occupied'); // resolving 也占板块
   });
 
-  it('v2 链必须有主题（一句话故事主线）', () => {
+  it('v2 链必须有主标题与副标题，且不得用箭头拼接', () => {
     const noTheme = v2Def();
     delete noTheme.theme;
     assert.match(sc.validateChainDefinition(noTheme).errors.join('|'), /theme/);
+    const noDetail = v2Def();
+    delete noDetail.themeDetail;
+    assert.match(sc.validateChainDefinition(noDetail).errors.join('|'), /themeDetail/);
+    const arrowTheme = v2Def({ theme: '流动性宽松→能化改善' });
+    assert.match(sc.validateChainDefinition(arrowTheme).errors.join('|'), /theme 不得使用箭头/);
+    const arrowDetail = v2Def({ themeDetail: '流动性宽松→能化改善→PTA 转强' });
+    assert.match(sc.validateChainDefinition(arrowDetail).errors.join('|'), /themeDetail 不得使用箭头/);
   });
 
   it('T2 节点缺 baseline/unit 或只有 T1 路径被拒收', () => {

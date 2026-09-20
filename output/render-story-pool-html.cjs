@@ -122,6 +122,7 @@ function chainCard(c) {
     </span>
   </summary>
   <div class="story-body">
+    ${c.themeDetail ? `<div class="story-subtitle">${escapeHtml(c.themeDetail)}</div>` : ''}
     <div class="story-progress"><div class="story-progress-fill" style="width:${total ? Math.round(confirmed / total * 100) : 0}%"></div></div>
     <div class="story-nodes">${(c.nodes || []).map(nodeRow).join('')}</div>
     <div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div>
@@ -132,7 +133,7 @@ function chainCard(c) {
 function closedTable(closed) {
   if (!closed || closed.length === 0) return '<p class="muted">暂无已出池故事。</p>';
   const rows = closed.map((c) => `<tr>
-    <td class="closed-theme">${escapeHtml(c.theme || '（未命名主题）')}<div class="muted">${escapeHtml(c.chainId)}</div></td>
+    <td class="closed-theme">${escapeHtml(c.theme || '（未命名主题）')}${c.themeDetail ? `<div class="muted">${escapeHtml(c.themeDetail)}</div>` : ''}<div class="muted">${escapeHtml(c.chainId)}</div></td>
     <td>${escapeHtml(c.sector)}</td><td>${storyStatusBadge(c.status)}</td>
     <td>${c.proven ? '✅' : '—'}</td><td>${c.confirmedNodes}/${c.totalNodes}</td>
     <td>${escapeHtml(c.closeReason || '—')}</td><td>${escapeHtml(c.createdAt)} → ${escapeHtml(c.closedAt || '—')}</td>
