@@ -908,6 +908,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .node-chip.node-confirmed { background: #f0fdf4; }
   .node-chip.node-broken { background: #fef2f2; }
   .branch-path-foot { font-size: 12px; line-height: 1.6; margin-top: 4px; }
+  .branch-meta-line { padding: 2px 0; font-size: 12px; }
   .dg-canvas { position: relative; margin: 8px 0 4px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: #fbfcfd; overflow: visible; }
   .dg-edges { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
   .dg-layers { position: relative; z-index: 1; display: flex; gap: 32px; align-items: flex-start; }

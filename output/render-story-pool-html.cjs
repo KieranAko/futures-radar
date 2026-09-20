@@ -72,7 +72,7 @@ function dagNodeCard(n, isSource = false) {
   const cur = n.lastValue ?? n.observedValue;
   const dir = n.expectation === 1 ? '↑' : n.expectation === -1 ? '↓' : '—';
   return `<div class="dg-node ${nodeClass(n)}${n.terminal ? ' terminal' : ''}" data-node-id="${escapeHtml(n.id)}">
-    <div class="dg-node-head"><span class="node-state">${n.status === 'confirmed' ? '✔' : n.status === 'broken' ? '✘' : '·'}</span><b>${escapeHtml(n.label || n.id)}</b><span class="dg-node-dir">${dir}</span></div>
+    <div class="dg-node-head"><b>${escapeHtml(n.label || n.id)}</b><span class="dg-node-dir">${dir}</span></div>
     <div class="dg-node-val">${fmtVal(cur)} ${escapeHtml(n.unit || '')}</div>
     <div class="dg-node-foot">${n.terminal ? `${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}` : NODE_STATUS_LABEL[n.status] || escapeHtml(n.status)}</div>
   </div>`;
@@ -126,7 +126,7 @@ function chainPanelHtml(c) {
     </div>
     ${c.themeDetail ? `<div class="story-subtitle">${escapeHtml(c.themeDetail)}</div>` : ''}
     ${dagPanelHtml(c)}
-    <div class="story-branch-meta">${branches.map((b) => `<span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span> ${escapeHtml(b.symbol)} <span class="${b.direction === -1 ? 'down' : b.direction === 1 ? 'up' : ''}">${b.direction === -1 ? '空' : b.direction === 1 ? '多' : '—'}</span>${b.impactRationale ? ` <span class="muted">${escapeHtml(b.impactRationale)}</span>` : ''}`).join(' · ')}</div>
+    <div class="story-branch-meta">${branches.map((b) => `<div class="branch-meta-line"><span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span> ${escapeHtml(b.symbol)} <span class="${b.direction === -1 ? 'down' : b.direction === 1 ? 'up' : ''}">${b.direction === -1 ? '空' : b.direction === 1 ? '多' : '—'}</span>${b.impactRationale ? ` <span class="muted">${escapeHtml(b.impactRationale)}</span>` : ''}</div>`).join('')}</div>
   </div>`;
 }
 
@@ -727,9 +727,11 @@ function dagScript() {
     rows.push('<div class="sg-detail-head"><b>' + n.label + '</b><button class="sg-detail-close">×</button></div>');
     rows.push('<div class="sg-detail-row"><span>状态</span><b>' + n.status + (n.terminal ? ' · ' + (n.priority === 'primary' ? '主支' : '次支') : '') + '</b></div>');
     rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : '—') + '</b></div>');
-    if (n.lastValue != null) {
-      rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + Number(n.lastValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + n.lastValueAt + '）</b></div>');
-      if (n.prevValue != null) rows.push('<div class="sg-detail-row"><span>前值 → 当前</span><b>' + Number(n.prevValue).toFixed(2) + '（' + (n.prevValueAt || '—') + '） → ' + Number(n.lastValue).toFixed(2) + '（' + n.lastValueAt + '）</b></div>');
+    if (n.prevValue != null) rows.push('<div class="sg-detail-row"><span>前值</span><b>' + Number(n.prevValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + (n.prevValueAt || '—') + '）</b></div>');
+    if (n.lastValue != null) rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + Number(n.lastValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + n.lastValueAt + '）</b></div>');
+    if (n.prevValue != null && n.lastValue != null) {
+      var mom = Number(n.lastValue) - Number(n.prevValue);
+      rows.push('<div class="sg-detail-row"><span>环比</span><b class="' + (mom > 0 ? 'up' : mom < 0 ? 'down' : '') + '">' + (mom > 0 ? '+' : '') + mom.toFixed(2) + '</b></div>');
     }
     if (n.windowStartDate) rows.push('<div class="sg-detail-row"><span>观察窗口</span><b>' + n.windowStartDate + ' → ' + (n.windowDeadlineDate || '—') + '</b></div>');
     if (n.brokenReason) rows.push('<div class="sg-detail-row"><span>断裂原因</span><b>' + n.brokenReason + '</b></div>');
