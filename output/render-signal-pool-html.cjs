@@ -201,8 +201,8 @@ function lifecycleChart(sig, versions, bars) {
   const fullBars = Array.isArray(bars) ? bars : [];
   const createdIdx = fullBars.findIndex((b) => b.date === sig.createdDate);
   const startIdx = createdIdx === -1
-    ? Math.max(0, fullBars.length - 40)
-    : Math.max(0, createdIdx - 30);
+    ? Math.max(0, fullBars.length - 60)
+    : Math.max(0, createdIdx - 60);
   const win = fullBars.slice(startIdx);
   if (win.length < 2) return '';
 
@@ -228,7 +228,7 @@ function lifecycleChart(sig, versions, bars) {
   const advLevel = startClose != null && sig.priceTracking.maxAdversePts != null ? startClose + Number(sig.priceTracking.maxAdversePts) * dirSign : null;
 
   const W = 960;
-  const H = 400;
+  const H = 360;
   const padL = 46;
   const padR = 64;
   const padT = 20;
@@ -441,7 +441,13 @@ function lifecycleChart(sig, versions, bars) {
     parts.push(`<text x="${x(idx).toFixed(1)}" y="${(H - 8).toFixed(1)}" font-size="10" fill="#6b7280" text-anchor="${anchor}" style="${textStyle}">${escapeHtml(win[idx].date.slice(5))}</text>`);
   };
   xDate(0, 'start');
-  if (n > 4) xDate(Math.floor((n - 1) / 2), 'middle');
+  if (n > 6) {
+    xDate(Math.floor((n - 1) * 0.25), 'middle');
+    xDate(Math.floor((n - 1) * 0.5), 'middle');
+    xDate(Math.floor((n - 1) * 0.75), 'middle');
+  } else if (n > 4) {
+    xDate(Math.floor((n - 1) / 2), 'middle');
+  }
   xDate(n - 1, 'end');
 
   parts.push('</svg>');
