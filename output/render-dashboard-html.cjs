@@ -257,7 +257,9 @@ function renderPriceChart(fullBars, { signalDate = null, window = 60 } = {}) {
   const barsAttr = JSON.stringify(bars.map((b) => ({ d: b.date, o: b.open, h: b.high, l: b.low, c: b.close }))).replace(/'/g, '&#39;');
   const ma20Attr = JSON.stringify(ma20);
   const ma60Attr = JSON.stringify(ma60);
-  return `<div class="price-chart-wrap" data-bars='${barsAttr}' data-ma20='${ma20Attr}' data-ma60='${ma60Attr}' data-pad='${padX},${padX},${padY},${padY}'><div class="chart-day-info">${infoHtml}</div>${parts.join('')}</div>`;
+  const chg5Attr = JSON.stringify(chg5);
+  const prevBeforeFirst = fullBars.length > window ? fullBars[fullBars.length - window - 1].close : null;
+  return `<div class="price-chart-wrap" data-bars='${barsAttr}' data-prev='${prevBeforeFirst != null ? prevBeforeFirst : ''}' data-chg5='${chg5Attr}' data-ma20='${ma20Attr}' data-ma60='${ma60Attr}' data-pad='${padX},${padX},${padY},${padY}'><div class="chart-day-info">${infoHtml}</div>${parts.join('')}</div>`;
 }
 
 function rangeBar(period, p68, p95, close) {
@@ -558,16 +560,19 @@ function signalChartHoverScript() {
     var closes = bars.map(function (b) { return b.c; });
     var ma20 = smaArr(closes, 20);
     var ma60 = smaArr(closes, 60);
+    var chg5 = closes.map(function (c, i) { return i >= 5 && closes[i - 5] ? (c / closes[i - 5] - 1) * 100 : null; });
+    var prevBefore = null;
     try {
+      if (lc.hasAttribute('data-prev') && lc.getAttribute('data-prev') !== '') prevBefore = Number(lc.getAttribute('data-prev'));
+      if (lc.hasAttribute('data-chg5')) chg5 = JSON.parse(lc.getAttribute('data-chg5') || '[]');
       if (lc.hasAttribute('data-ma20')) ma20 = JSON.parse(lc.getAttribute('data-ma20') || '[]');
       if (lc.hasAttribute('data-ma60')) ma60 = JSON.parse(lc.getAttribute('data-ma60') || '[]');
     } catch (e) {}
-    var chg5 = closes.map(function (c, i) { return i >= 5 && closes[i - 5] ? (c / closes[i - 5] - 1) * 100 : null; });
     var isLifecycle = lc.classList.contains('lifecycle');
     function dayHtml(i) {
       var b = bars[i];
       if (!b) return '';
-      var prev = i > 0 ? bars[i - 1].c : null;
+      var prev = i > 0 ? bars[i - 1].c : prevBefore;
       var chg = prev != null ? b.c - prev : null;
       var chgPct = prev != null && Number(prev) !== 0 ? (b.c / prev - 1) * 100 : null;
       var color = chg == null || chg >= 0 ? '#b91c1c' : '#047857';

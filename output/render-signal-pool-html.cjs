@@ -234,8 +234,10 @@ function lifecycleChart(sig, versions, bars) {
   const bodyW = Math.max(2, Math.min(8, step * 0.55));
   const x = (i) => padL + i * step + step / 2;
 
-  const closes = win.map((b) => b.close);
-  const chg5 = closes.map((c, i) => (i >= 5 && closes[i - 5] ? ((c / closes[i - 5]) - 1) * 100 : null));
+  const fullCloses = fullBars.map((b) => b.close);
+  const fullChg5 = fullCloses.map((c, i) => (i >= 5 && fullCloses[i - 5] ? ((c / fullCloses[i - 5]) - 1) * 100 : null));
+  const chg5 = fullChg5.slice(startIdx);
+  const prevBeforeFirst = startIdx > 0 ? fullBars[startIdx - 1].close : null;
   let min = Infinity;
   let max = -Infinity;
   for (const b of win) {
@@ -487,7 +489,7 @@ function lifecycleChart(sig, versions, bars) {
   const lastInfoHtml = `<span><b style="color:#1f2328;font-weight:700">${escapeHtml(lastBar.date)}</b></span>${cell('开盘', fmt(lastBar.open))}${cell('最高', fmt(lastBar.high))}${cell('最低', fmt(lastBar.low))}${cell('收盘', `<b style="color:${lastInfoColor}">${fmt(lastBar.close)}</b>`)}${chgSpan}${chg5Span}`;
   const barsAttr = JSON.stringify(win.map((b) => ({ d: b.date, o: b.open, h: b.high, l: b.low, c: b.close }))).replace(/'/g, '&#39;');
 
-  return `<div class="lifecycle" data-bars='${barsAttr}' data-pad='${padL},${padR},${padT},${padB}'><div class="chart-day-info">${lastInfoHtml}</div>${parts.join('')}${legendHtml}<div class="chart-hover-tip"></div></div>`;
+  return `<div class="lifecycle" data-bars='${barsAttr}' data-prev='${prevBeforeFirst != null ? prevBeforeFirst : ''}' data-chg5='${JSON.stringify(chg5)}' data-pad='${padL},${padR},${padT},${padB}'><div class="chart-day-info">${lastInfoHtml}</div>${parts.join('')}${legendHtml}<div class="chart-hover-tip"></div></div>`;
 }
 
 function signalCard(sig, { closed = false, bars = null } = {}) {
