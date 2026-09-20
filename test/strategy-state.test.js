@@ -17,7 +17,7 @@ const {
   executionResultOfCodes,
   directionResultLabel,
   executionResultLabel
-} = require('../strategies/lib/strategy-state.cjs');
+} = require('../shared/strategy-state.cjs');
 
 describe('strategy-state 统一状态词汇', () => {
   it('plan 初始动作：新 state 优先，旧 executionStatus 兼容映射', () => {

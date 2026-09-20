@@ -8,9 +8,9 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { recordExecutablePlans, verifyPlans, buildHistoricalPlan } = require('../strategies/lib/feedback.cjs');
+const { recordExecutablePlans, verifyPlans, buildHistoricalPlan } = require('../analysis/strategy/feedback.cjs');
 
-const FIXTURE = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'reasoning', 'test', 'fixtures', 'sa2701-history.json'), 'utf8'));
+const FIXTURE = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'legacy', 'reasoning', 'reasoning', 'test', 'fixtures', 'sa2701-history.json'), 'utf8'));
 const BARS = FIXTURE.bars;
 const SIGNAL_DATE = BARS[58].date; // 预留 6 根未来 bar 用于验证
 

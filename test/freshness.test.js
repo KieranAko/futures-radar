@@ -1,7 +1,7 @@
-// test/freshness.test.js — 数据时效说明卡（report/freshness.cjs）单元测试
+// test/freshness.test.js — 数据时效说明卡（analysis/assembly/freshness.cjs）单元测试
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import fres from '../report/freshness.cjs';
+import fres from '../analysis/assembly/freshness.cjs';
 const { buildFreshness, renderFreshnessCard } = fres;
 
 function makeRaw(overrides = {}) {

@@ -8,7 +8,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { calculateER } from '../research/experiments/lib/opportunity-features.js';
-import { calculateER20 } from '../lib/features.js';
+import { calculateER20 } from '../shared/features.js';
 
 describe('Opportunity Features - ER20', () => {
   it('should match production calculateER20 on normal prices', () => {

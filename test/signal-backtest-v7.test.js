@@ -7,9 +7,9 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { buildPlans } = require('../strategies/signal-backtest/build-plans-v7.cjs');
+const { buildPlans } = require('../legacy/strategies/signal-backtest/build-plans-v7.cjs');
 
-const ROOT = path.resolve(__dirname, '..', 'strategies', 'signal-backtest');
+const ROOT = path.resolve(__dirname, '..', 'legacy', 'strategies', 'signal-backtest');
 const V7 = path.join(ROOT, 'recordings', 'v7');
 const OUTPUT = path.join(ROOT, 'output');
 const SYMBOLS = ['RB0', 'M0', 'SC0'];
@@ -61,7 +61,7 @@ describe('V7 T2 deterministic template plans', () => {
 describe('V7 baseline artifacts', () => {
   it('produces blueprint-grounded C-arm comparison with gate cost and FinCoT stats', () => {
     const p = path.join(OUTPUT, 'signal-quality-baseline-v7.json');
-    assert.ok(fs.existsSync(p), 'run `node strategies/signal-backtest/runner-v7.cjs` first');
+    assert.ok(fs.existsSync(p), 'run `node legacy/strategies/signal-backtest/runner-v7.cjs` first');
     const j = JSON.parse(fs.readFileSync(p, 'utf8'));
     assert.equal(j.schema, 'futures-radar-signal-backtest/7');
     assert.equal(j.meta.anchorsPerSymbol, 10);

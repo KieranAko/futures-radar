@@ -1,7 +1,7 @@
 // test/cfmmc-verify.test.js — CFMMC 交叉验证层单元测试（纯逻辑，无网络）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import cv from '../collector/cfmmc-verify.cjs';
+import cv from '../collection/cfmmc-verify.cjs';
 const { verifyBarAgainstCfmmc, applyVerificationResults, varietyPrefix } = cv;
 
 function makeBar(overrides = {}) {

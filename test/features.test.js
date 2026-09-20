@@ -5,7 +5,7 @@ import {
   calculateER20,
   calculateATR5Percentile,
   calculateVEC
-} from '../lib/features.js';
+} from '../shared/features.js';
 
 describe('HV20 Percentile', () => {
   it('should calculate 90 rolling windows from 110 prices', () => {

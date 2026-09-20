@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { scan } from './lib/train-scan.js';
+import { scan } from '../lib/train-scan.js';
 
 const require = createRequire(import.meta.url);
 const { loadCache } = require('../../backtest/cache-slicer.cjs');

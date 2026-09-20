@@ -7,9 +7,9 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { executePlan } = require('../strategies/signal-backtest/runner-v8.cjs');
+const { executePlan } = require('../legacy/strategies/signal-backtest/runner-v8.cjs');
 
-const ROOT = path.resolve(__dirname, '..', 'strategies', 'signal-backtest');
+const ROOT = path.resolve(__dirname, '..', 'legacy', 'strategies', 'signal-backtest');
 const PLAN_DIR = path.join(ROOT, 'recordings', 'v7', 'strategy-plans');
 const OUTPUT = path.join(ROOT, 'output');
 

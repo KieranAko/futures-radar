@@ -30,7 +30,7 @@ describe('filter triage（三问分诊）', () => {
   }
 
   it('合法初筛输出通过四条硬约束', () => {
-    const { validate } = require('../filter/filter-validate.cjs');
+    const { validate } = require('../legacy/filter/filter/filter-validate.cjs');
     makeRun('ok-run', {
       meta: { runId: 'ok-run' },
       candidates: [
@@ -48,7 +48,7 @@ describe('filter triage（三问分诊）', () => {
   });
 
   it('墓碑复活 / KEEP超3 / 缺reason或gap / 赔率字段 → 失败', () => {
-    const { validate } = require('../filter/filter-validate.cjs');
+    const { validate } = require('../legacy/filter/filter/filter-validate.cjs');
     makeRun('bad-tomb', {
       meta: { runId: 'bad-tomb' },
       candidates: [{ symbol: 'T0', directionHint: 'bearish', decision: 'KEEP', confidence: 'low', reason: 'x', informationGap: 'y' }],

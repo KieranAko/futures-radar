@@ -9,12 +9,12 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const matcher = require('../strategies/lib/strategy-matcher.cjs');
-const render = require('../report/render-strategy-section.cjs');
+const matcher = require('../analysis/strategy/strategy-matcher.cjs');
+const render = require('../output/render-strategy-section.cjs');
 const { renderStrategySection, renderFeedbackAppendix, composeReportWithStrategy } = render;
 
 const skillRoot = path.resolve(import.meta.dirname, '..');
-const library = JSON.parse(fs.readFileSync(path.join(skillRoot, 'strategies', 'strategy-library.json'), 'utf8'));
+const library = JSON.parse(fs.readFileSync(path.join(skillRoot, 'analysis', 'strategy', 'strategy-library.json'), 'utf8'));
 const { plan } = matcher.buildStrategyPlan({ runId: '20260827-1910-auto' });
 const section = renderStrategySection(plan, library);
 

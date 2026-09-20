@@ -14,7 +14,7 @@ const ROOT = path.resolve(__dirname, '..');
 const EL = __dirname;
 const familyEvidence = require(path.join(EL, 'evidence', 'family-evidence.json'));
 const candidate = require(path.join(EL, 'candidates', 'report-trust-model.json'));
-const { inferFamily, familyScore: familyScoreBase, trustRating: trustRatingBase } = require(path.join(ROOT, 'strategies', 'lib', 'family-infer.cjs'));
+const { inferFamily, familyScore: familyScoreBase, trustRating: trustRatingBase } = require(path.join(ROOT, 'analysis', 'strategy', 'family-infer.cjs'));
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));

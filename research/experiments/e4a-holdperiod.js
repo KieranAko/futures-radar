@@ -10,7 +10,7 @@ import {
   applyBlockSigns,
   calculateStudentizedT,
   calculateAdjustedPValue
-} from '../../lib/statistics.js';
+} from '../../shared/statistics.js';
 
 /**
  * Run E4a hold period experiment

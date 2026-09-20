@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import ic from '../collector/incremental-cache.cjs';
+import ic from '../collection/incremental-cache.cjs';
 const { findLatestCacheRaw, isCacheStale, planIncremental, cloneContractsForReuse, validateCachedSeries, planSnapshotFirst, probeLatestSinaBarDates } = ic;
 
 // 隔离 data-store，避免测试读到本地已 seed 的真实文件库

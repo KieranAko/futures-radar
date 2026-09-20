@@ -13,9 +13,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { loadHoldoutManifest, assertDevelopmentBoundary, buildReplayRaw } from './lib/historical-holdout.js';
-import { runDirectionMatrixDate, evaluateDirectionMatrix } from './lib/direction-matrix-runner.js';
-import { scanDateRows, applyKnobs, aggregate, FROZEN } from './lib/opportunity-knob-scan.js';
+import { loadHoldoutManifest, assertDevelopmentBoundary, buildReplayRaw } from '../lib/historical-holdout.js';
+import { runDirectionMatrixDate, evaluateDirectionMatrix } from '../lib/direction-matrix-runner.js';
+import { scanDateRows, applyKnobs, aggregate, FROZEN } from '../lib/opportunity-knob-scan.js';
 
 const require = createRequire(import.meta.url);
 const { loadCache } = require('../../backtest/cache-slicer.cjs');

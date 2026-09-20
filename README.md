@@ -37,19 +37,19 @@ V1 的「波动率 Top10 → 软过滤 Top3」筛选已退役。V2 的逻辑矛�
 ## 故事链构造器（核心设施）
 
 - `config/story-chain-indicators.json`：T0 指标目录（宏观/板块/品种）
-- `strategies/lib/story-chain.cjs`：契约校验、故事池、证明/证伪状态机、席位血缘
-- `strategies/lib/story-indicators.cjs`：文件库指标计算（前值/当前值/环比 + asOf）
-- `strategies/story-chain-cli.cjs`：`prompt / register / resolve / observe / list / view`
-- `strategies/story-pool/build-filtered-from-story-pool.cjs`：**替代 filter-llm**，活跃故事链 + 有血缘追踪信号生成 KEEP 席位
-- `strategies/story-pool/apply-story-seats.cjs`：proven 链席位注入（兼容旧流程）
-- `strategies/lib/story-chain-prompt.cjs` + `strategies/story-chain-blueprint.md`：状态唤醒提示词与 LLM 操作手册
+- `stories/lib/story-chain.cjs`：契约校验、故事池、证明/证伪状态机、席位血缘
+- `stories/lib/story-indicators.cjs`：文件库指标计算（前值/当前值/环比 + asOf）
+- `stories/cli/story-chain-cli.cjs`：`prompt / register / resolve / observe / list / view`
+- `stories/seats/build-filtered-from-story-pool.cjs`：**替代 filter-llm**，活跃故事链 + 有血缘追踪信号生成 KEEP 席位
+- `stories/seats/apply-story-seats.cjs`：proven 链席位注入（兼容旧流程）
+- `stories/lib/story-chain-prompt.cjs` + `stories/blueprint.md`：状态唤醒提示词与 LLM 操作手册
 
 T2 检索源节点：`resolve --brief` 生成检索任务 → LLM/agent 检索 → `resolve --file` 校验入库；检索失败 `--void` 作废。**取数路径（T0/T1/T2）只是获取优先级，数据可信度（high/medium/low/unknown）独立标注，不改变证明/证伪判决。**
 
 ## 数据文件库（唯一事实源）
 
 - 所有指标从 `data/daily` + `data/macro-history` 计算；
-- `collector/macro-history-builder.cjs`（`npm run macro:history`）合并冻结宏观历史与生产快照为 `data/macro-history/<ANCHOR>.json`；
+- `collection/macro-history-builder.cjs`（`npm run macro:history`）合并冻结宏观历史与生产快照为 `data/macro-history/<ANCHOR>.json`；
 - 维护命令：`npm run store:init|seed|verify|stats|export|compact`（见 `data/README.md`）。
 
 ## 看板（四 Tab）
@@ -69,33 +69,29 @@ T2 检索源节点：`resolve --brief` 生成检索任务 → LLM/agent 检索 �
 # 1. 前置
 npm run probe && npm run macro:history
 
-# 2. 数据采集（自动阶段，停在故事链环节）
-node pipeline/run.cjs --runId <id> --from collect
+# 2. 数据采集 → 文件库 → 故事链提示词（自动，停在故事链登记 LLM 环节）
+node pipeline/run.cjs --runId <id> --from data-collection
 
 # 3. 故事链构造（LLM 环节）
-node strategies/story-chain-cli.cjs prompt --runId <id>
-# LLM 按 blueprint 输出 story-chains.json → 注册
-node strategies/story-chain-cli.cjs register --file <json> --batch
+node stories/cli/story-chain-cli.cjs prompt --runId <id>
+# LLM 按 stories/blueprint.md 输出 story-chains.json → 注册
+node stories/cli/story-chain-cli.cjs register --file <json> --batch
 
-# 4. 哨兵打卡 + 席位生成（替代 filter-llm）
-node strategies/story-chain-cli.cjs observe --runId <id>
-node strategies/story-pool/build-filtered-from-story-pool.cjs --runId <id>
+# 4. 哨兵打卡 + 席位生成（替代 filter-llm；candidates.json 由故事席位创建/修补）
+node pipeline/run.cjs --runId <id> --from story-observe
 
-# 5. 深挖（LLM 环节，analyze v2）
-node analyze/v2/packet-freeze-v2.cjs --runId <id>
-node analyze/v2/prefill-v2.cjs --runId <id>
-node analyze/v2/prompt-builder-v2.cjs --runId <id>
-# LLM 写 outputs-v2.json 后：
-node analyze/v2/assemble-v2.cjs --runId <id> --as-production
+# 5. 深挖（LLM 环节，analysis v2）
+node pipeline/run.cjs --runId <id> --from opportunity-analysis
+# LLM 写 output/runs/<id>/analyze/outputs-v2.json 后：
+node pipeline/run.cjs --runId <id> --from analysis-assemble
 
-# 6. 概率/报告
-node pipeline/run.cjs --runId <id> --from analyze
+# 6. 概率/事实/模型/策略提示词（停在策略 LLM）
+node pipeline/run.cjs --runId <id> --from strategy-reasoning-prompt
+# LLM 写 output/runs/<id>/strategy-reasoning.json 后：
+node pipeline/run.cjs --runId <id> --from strategy-plan
 
-# 7. 策略与信号
-node strategies/strategy-reasoning-prompt.cjs --runId <id>
-# LLM 写 strategy-reasoning.json 后：
-node strategies/build-strategy-plan.cjs --runId <id>
-node report/render-markdown.cjs --runId <id>
+# 7. 结果输出（报告 + report.html + 四 Tab 看板）
+node pipeline/run.cjs --runId <id> --from render-markdown
 ```
 
 ## 研究层

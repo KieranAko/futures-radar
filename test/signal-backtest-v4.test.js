@@ -7,10 +7,10 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { pilotAnchors, seriesAsOf, V4, CONTEXT_DIR } = require('../strategies/signal-backtest/context-assembler.cjs');
-const { isBannedCombo } = require('../strategies/signal-backtest/runner.cjs');
+const { pilotAnchors, seriesAsOf, V4, CONTEXT_DIR } = require('../legacy/strategies/signal-backtest/context-assembler.cjs');
+const { isBannedCombo } = require('../legacy/strategies/signal-backtest/runner.cjs');
 
-const ROOT = path.resolve(__dirname, '..', 'strategies', 'signal-backtest');
+const ROOT = path.resolve(__dirname, '..', 'legacy', 'strategies', 'signal-backtest');
 const OUTPUT = path.join(ROOT, 'output');
 const SYMBOLS = ['RB0', 'M0', 'SC0'];
 const DATES = ['2026-06-11', '2026-06-18', '2026-06-26', '2026-07-03', '2026-07-10', '2026-07-17', '2026-07-24', '2026-07-31', '2026-08-07', '2026-08-14'];
@@ -44,7 +44,7 @@ describe('v4 context packets（asOf 截断与无泄漏）', () => {
   });
 
   it('frozen sector-history covers every sector member used by the assembler', () => {
-    const cfg = JSON.parse(fs.readFileSync(path.resolve(ROOT, '..', '..', 'config', 'symbols.json'), 'utf8'));
+    const cfg = JSON.parse(fs.readFileSync(path.resolve(ROOT, '..', '..', '..', 'config', 'symbols.json'), 'utf8'));
     const sh = JSON.parse(fs.readFileSync(path.join(V4, 'sector-history.json'), 'utf8'));
     for (const sym of SYMBOLS) {
       const target = Object.values(cfg.symbols).find(v => v.symbol === sym);
@@ -100,7 +100,7 @@ describe('v4 arm recordings（A/B/C + FinCoT）', () => {
 describe('v4 baseline artifacts', () => {
   it('produces three-arm comparison with populated C context cross-tabs', () => {
     const p = path.join(OUTPUT, 'signal-quality-baseline-v4.json');
-    assert.ok(fs.existsSync(p), 'run `node strategies/signal-backtest/runner-v4.cjs` first');
+    assert.ok(fs.existsSync(p), 'run `node legacy/strategies/signal-backtest/runner-v4.cjs` first');
     const j = JSON.parse(fs.readFileSync(p, 'utf8'));
     assert.equal(j.schema, 'futures-radar-signal-backtest/4');
     for (const arm of ['A', 'B', 'C']) {

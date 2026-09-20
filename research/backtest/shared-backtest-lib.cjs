@@ -280,7 +280,7 @@ function simulateExit(symbol, raw, entryIdx, holdDays) {
  */
 function calculateCosts(entryPrice, exitPrice) {
   // 单一真相源：lib/costs.cjs（reasoning 也直接引用同一实现）
-  const { calculateCosts: sharedCosts } = require('../../lib/costs.cjs');
+  const { calculateCosts: sharedCosts } = require('../../shared/costs.cjs');
   return sharedCosts(entryPrice, exitPrice);
 }
 

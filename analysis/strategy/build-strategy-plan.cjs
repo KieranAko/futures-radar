@@ -1,0 +1,113 @@
+#!/usr/bin/env node
+// analysis/strategy/build-strategy-plan.cjs — t8 CLI：生成 strategy-plan.json
+//
+// 用法:
+//   node analysis/strategy/build-strategy-plan.cjs --runId 20260827-1910-auto [--equity 100000]
+//
+// 输出:
+//   output/runs/<runId>/strategy-plan.json（按 t7 契约 + analysis/strategy/strategy-plan.schema.json 校验）
+//
+// 确定性：同 runId 同 artifacts 两次运行输出逐字节一致（meta.generatedAt 由输入派生）。
+// FORBIDDEN: 不联网、不调用 LLM、不新增数据源。
+
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const { skillRoot, runDir } = require('../../shared/workspace.cjs');
+const { buildStrategyPlan, validatePlan, loadStrategyRuntime } = require('./strategy-matcher.cjs');
+const { validateStrategyReasoning } = require('./strategy-reasoning-validate.cjs');
+const { validatePricing } = require('./pricing-validate.cjs');
+const { validateSemanticFacts } = require('./semantic-fact-validate.cjs');
+const { recordPlans, verifyIncremental } = require('./feedback.cjs');
+
+const args = process.argv.slice(2);
+function flagVal(flag) {
+  const i = args.indexOf(flag);
+  return i === -1 ? null : args[i + 1];
+}
+
+const runId = flagVal('--runId');
+if (!runId) {
+  console.error('FATAL: --runId required');
+  process.exit(1);
+}
+
+// 运行时参数：默认权益与波动率目标来自 config/strategy-runtime.json；CLI --equity 可覆盖权益。
+const runtime = loadStrategyRuntime();
+const equityCny = flagVal('--equity') ? Number(flagVal('--equity')) : runtime.equityCny;
+const volTargetPerPosition = runtime.volTargetPerPosition;
+if (!Number.isFinite(equityCny) || equityCny <= 0) {
+  console.error('FATAL: --equity must be a positive number');
+  process.exit(1);
+}
+if (volTargetPerPosition !== undefined && (volTargetPerPosition < 0.05 || volTargetPerPosition > 0.15)) {
+  console.error('FATAL: volTargetPerPosition must be in [0.05, 0.15]');
+  process.exit(1);
+}
+
+// Strategy-LLM 输出：理论软参照下的交易表达决策。
+// 生产新 run 应先生成 strategy-reasoning.json；历史回放/实验线无该文件时回退旧确定性 matcher。
+const reasoningPath = path.join(runDir(runId), 'strategy-reasoning.json');
+const rawPath = path.join(runDir(runId), 'raw.json');
+const raw = fs.existsSync(rawPath) ? JSON.parse(fs.readFileSync(rawPath, 'utf8')) : { contracts: {} };
+let reasoning = null;
+if (fs.existsSync(reasoningPath)) {
+  reasoning = JSON.parse(fs.readFileSync(reasoningPath, 'utf8'));
+  const reportModel = JSON.parse(fs.readFileSync(path.join(runDir(runId), 'report-model.json'), 'utf8'));
+  const rCheck = validateStrategyReasoning(reasoning, reportModel);
+  if (!rCheck.ok) {
+    console.error('strategy-reasoning.json validation FAILED:');
+    for (const e of rCheck.errors) console.error('  - ' + e);
+    process.exit(1);
+  }
+  const probability = JSON.parse(fs.readFileSync(path.join(runDir(runId), 'probability.json'), 'utf8'));
+  const pCheck = validatePricing(reasoning, reportModel, probability);
+  if (!pCheck.ok) {
+    console.error('pricing validation FAILED:');
+    for (const e of pCheck.errors) console.error('  - ' + e);
+    process.exit(1);
+  }
+  const sCheck = validateSemanticFacts(reasoning, reportModel, raw);
+  if (!sCheck.ok) {
+    console.error('semantic-fact validation FAILED:');
+    for (const e of sCheck.errors) console.error('  - ' + e);
+    process.exit(1);
+  }
+  console.log(`strategy-reasoning: loaded (${reasoning.strategies.length} strategies)`);
+} else {
+  console.warn('strategy-reasoning.json not found — using legacy deterministic matcher (回放/兼容模式)');
+}
+
+const { plan, schema } = buildStrategyPlan({ runId, equityCny, reasoning, volTargetPerPosition });
+
+// 自检：按 t7 schema 机械校验（t8 acceptance：schema 完整、字段可校验）
+const check = validatePlan(plan, schema);
+if (!check.ok) {
+  console.error('strategy-plan.json schema validation FAILED:');
+  for (const e of check.errors) console.error('  - ' + e);
+  process.exit(1);
+}
+
+const outPath = path.join(runDir(runId), 'strategy-plan.json');
+fs.writeFileSync(outPath, JSON.stringify(plan, null, 2) + '\n', 'utf8');
+
+// 证伪反馈闭环（兼容保留）：冻结本期全部策略（executable/watch/skip）；只对非终态往期记录做增量验证
+const recorded = recordPlans(plan);
+const feedback = verifyIncremental(runId, raw);
+feedback.meta.recordedThisRun = recorded;
+fs.writeFileSync(path.join(runDir(runId), 'strategy-feedback.json'), JSON.stringify(feedback, null, 2) + '\n', 'utf8');
+
+// 信号池更新：入池 / 追踪（版本追加+验证+价格追踪）/ 出池判定；写 signal-pool.json 供报告渲染
+const { updateSignalPool } = require('../../signals/lib/signal-pool.cjs');
+const signalPoolResult = updateSignalPool({ runId, raw });
+fs.writeFileSync(path.join(runDir(runId), 'signal-pool.json'), JSON.stringify(signalPoolResult.view, null, 2) + '\n', 'utf8');
+
+const lines = plan.plans.map(p =>
+  `  ${p.rank}. ${p.symbol} ${p.name} | 报告${p.reportBaseline.direction}/${p.reportBaseline.confidence} 策略${p.strategyConfidence} | ${p.matchedStrategies[0].strategyId} | ${p.playbook.playbookId}(${p.playbook.gateStatus}) | ${p.state || p.executionStatus} ${p.position.lots}手`
+);
+console.log(`Output: ${outPath}`);
+console.log(`Plans: ${plan.plans.length} | concentrationDecisions: ${plan.concentrationDecisions.length} | inputsSha: ${plan.meta.inputsSha.slice(0, 12)}…`);
+console.log(`Feedback: recorded ${recorded} plan(s) for falsification; incremental verified ${feedback.meta.incrementalAttempted} pending record(s)`);
+console.log(`SignalPool: created ${signalPoolResult.meta.createdThisRun} signal(s), versions +${signalPoolResult.meta.versionsAddedThisRun}, pool ${signalPoolResult.meta.poolCount}, closed ${signalPoolResult.meta.closedTotal}`);
+console.log(lines.join('\n'));

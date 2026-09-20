@@ -14,7 +14,7 @@ describe('data-store 文件库', () => {
   before(() => {
     tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'futures-radar-store-'));
     process.env.FUTURES_DATA_ROOT = tmp;
-    dataStore = require('../data-store/index.cjs');
+    dataStore = require('../storage/index.cjs');
     dataStore.init();
   });
 

@@ -15,13 +15,13 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { replayReasoning } = require('../llm-replay.cjs');
 const { buildLlmScorecard } = require('../llm-scorecard.cjs');
-const { runtimeRoot } = require('../../../lib/workspace.cjs');
+const { runtimeRoot } = require('../../../shared/workspace.cjs');
 
 const RUNS_ROOT = path.join(runtimeRoot, 'runs');
 const SCRATCH_DIR = path.join(__dirname, '..', 'runs', 'bt-smoke-20260824');
 
 const reasoningLib = (name) =>
-  pathToFileURL(path.join(__dirname, '..', '..', '..', 'reasoning', 'lib', name)).href;
+  pathToFileURL(path.join(__dirname, '..', '..', '..', 'legacy', 'reasoning', 'reasoning', 'lib', name)).href;
 
 async function loadEsm(name) {
   return import(reasoningLib(name));

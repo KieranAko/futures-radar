@@ -1,7 +1,7 @@
 // test/akshare-macro-backup.test.js — P2 sina_fx 备用通道单元测试（无网络，mock）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import macro from '../collector/akshare-macro.cjs';
+import macro from '../collection/akshare-macro.cjs';
 const { fetchSeriesWithBackup, fetchSinaFxSnapshot } = macro;
 
 test('fetchSeriesWithBackup: 主通道成功 → 不触发备用', async () => {

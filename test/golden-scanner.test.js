@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_ROOT = path.resolve(__dirname, '..');
-const RAW_FIXTURE = path.join(SKILL_ROOT, 'reasoning', 'test', 'fixtures', 'raw-rb0-20260805.json');
+const RAW_FIXTURE = path.join(SKILL_ROOT, 'legacy', 'reasoning', 'reasoning', 'test', 'fixtures', 'raw-rb0-20260805.json');
 const GOLDEN = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'fixtures', 'golden', 'scanner-rb0.json'), 'utf8')
 );
@@ -32,7 +32,7 @@ describe('golden scanner baseline (RB0 fixture)', () => {
   it('scanner output matches frozen golden artifact', () => {
     const res = spawnSync(
       process.execPath,
-      [path.join(SKILL_ROOT, 'scanner', 'index.cjs'), '--runId', 'golden', '--runDir', runDir],
+      [path.join(SKILL_ROOT, 'legacy', 'scanner', 'scanner', 'index.cjs'), '--runId', 'golden', '--runDir', runDir],
       { encoding: 'utf8', timeout: 30000 }
     );
 

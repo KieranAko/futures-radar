@@ -6,8 +6,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = require('./root.cjs');
-const dataStore = require(path.join(ROOT, 'data-store', 'index.cjs'));
-const { runDir } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
+const dataStore = require(path.join(ROOT, 'storage', 'index.cjs'));
+const { runDir } = require(path.join(ROOT, 'shared', 'workspace.cjs'));
 
 const SNAPSHOT_SCHEMA = 'futures-radar-cost-anchor-snapshot/1';
 

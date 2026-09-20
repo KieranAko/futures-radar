@@ -261,7 +261,7 @@ function cmdInit() {
 }
 
 function cmdReplay(prodRunId) {
-  const { runDir } = require(path.join(SKILL_ROOT, 'lib', 'workspace.cjs'));
+  const { runDir } = require(path.join(SKILL_ROOT, 'shared', 'workspace.cjs'));
   const prodDir = runDir(prodRunId);
   if (!fs.existsSync(prodDir)) throw new Error(`production run not found: ${prodDir}`);
   const blueprint = fs.existsSync(BLUEPRINT_FILE) ? readJson(BLUEPRINT_FILE) : null;

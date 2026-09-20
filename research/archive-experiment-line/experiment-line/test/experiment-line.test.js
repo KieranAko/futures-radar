@@ -186,7 +186,7 @@ describe('experiment-line v6 (full mirror of production)', () => {
   });
 
   it('assemble-v2 --as-production maps v2 sector output to production sector-driver contract', () => {
-    const asm = require(path.join(ROOT, 'analyze', 'v2', 'assemble-v2.cjs'));
+    const asm = require(path.join(ROOT, 'analysis', 'v2', 'assemble-v2.cjs'));
     const sectors = asm.buildProductionSectorSectors({
       signalDate: '2026-08-28',
       v2Sectors: {
@@ -224,7 +224,7 @@ describe('experiment-line v6 (full mirror of production)', () => {
   });
 
   it('packet-freeze-v2 picks the latest prior production run for prevAnalysisCache', () => {
-    const { latestPriorProductionRun } = require(path.join(ROOT, 'analyze', 'v2', 'packet-freeze-v2.cjs'));
+    const { latestPriorProductionRun } = require(path.join(ROOT, 'analysis', 'v2', 'packet-freeze-v2.cjs'));
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-prevrun-'));
     try {
       const touch = (name) => {
@@ -245,7 +245,7 @@ describe('experiment-line v6 (full mirror of production)', () => {
   });
 
   it('packet-freeze-v2 derives signalDate from KEEP bars, not the runId date', () => {
-    const { deriveSignalDate } = require(path.join(ROOT, 'analyze', 'v2', 'packet-freeze-v2.cjs'));
+    const { deriveSignalDate } = require(path.join(ROOT, 'analysis', 'v2', 'packet-freeze-v2.cjs'));
     const raw = {
       contracts: {
         SA0: { ohlcv: { dates: ['2026-08-28', '2026-08-31'] } },

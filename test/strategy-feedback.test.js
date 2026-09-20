@@ -6,7 +6,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { recordExecutablePlans, verifyPlans, verifyIncremental } = require('../strategies/lib/feedback.cjs');
+const { recordExecutablePlans, verifyPlans, verifyIncremental } = require('../analysis/strategy/feedback.cjs');
 
 function makePlan(runId, symbol, overrides = {}) {
   return {

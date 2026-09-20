@@ -15,7 +15,7 @@ import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { runtimeRoot } = require('../../../lib/workspace.cjs');
+const { runtimeRoot } = require('../../../shared/workspace.cjs');
 
 // 默认 manifest 跟随统一运行产物目录（runtimeRoot/forward/manifest.json），
 // runtimeRoot 由 lib/workspace.cjs 解析：默认 <skill>/output，可 FUTURES_RUNTIME_ROOT 覆盖。

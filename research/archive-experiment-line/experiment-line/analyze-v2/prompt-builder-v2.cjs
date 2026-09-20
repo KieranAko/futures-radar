@@ -12,7 +12,7 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const EL = path.join(ROOT, 'experiment-line');
-const { runDir } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
+const { runDir } = require(path.join(ROOT, 'shared', 'workspace.cjs'));
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));

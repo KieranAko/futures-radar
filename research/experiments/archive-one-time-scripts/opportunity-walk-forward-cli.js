@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { buildTrainRows, applyKnobs, aggregate, KNOB_GRID, FROZEN } from './lib/opportunity-knob-scan.js';
+import { buildTrainRows, applyKnobs, aggregate, KNOB_GRID, FROZEN } from '../lib/opportunity-knob-scan.js';
 
 const require = createRequire(import.meta.url);
 const { loadCache } = require('../../backtest/cache-slicer.cjs');

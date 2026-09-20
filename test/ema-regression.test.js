@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateEMA20Slope } from '../lib/features.js';
+import { calculateEMA20Slope } from '../shared/features.js';
 
 describe('EMA20 5-point regression', () => {
   it('should calculate slope in %/day units', () => {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { renderDashboardHtml } = require('../report/render-dashboard-html.cjs');
+const { renderDashboardHtml } = require('../output/render-dashboard-html.cjs');
 
 function makeReportModel() {
   return {

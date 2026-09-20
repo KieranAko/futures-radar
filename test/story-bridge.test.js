@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const seats = require(path.join(ROOT, 'strategies', 'story-pool', 'apply-story-seats.cjs'));
-const link = require(path.join(ROOT, 'strategies', 'story-pool', 'link-signal-pool.cjs'));
+const seats = require(path.join(ROOT, 'stories', 'seats', 'apply-story-seats.cjs'));
+const link = require(path.join(ROOT, 'stories', 'seats', 'link-signal-pool.cjs'));
 
 function provenChain(overrides = {}) {
   return {
@@ -89,7 +89,7 @@ describe('story-pool ↔ production/signal-pool 桥', () => {
 });
 
 describe('build-filtered-from-story-pool（filter-llm 退役替代品）', () => {
-  const builder = require(path.join(ROOT, 'strategies', 'story-pool', 'build-filtered-from-story-pool.cjs'));
+  const builder = require(path.join(ROOT, 'stories', 'seats', 'build-filtered-from-story-pool.cjs'));
   it('所有活跃故事链（含 pending）+ 信号池追踪席位生成 KEEP；无来源时为空仓', () => {
     const proven = [
       { chainId: 'CH-NEWMAT-20260918-01', theme: '新材料板块共振下行', sector: 'new_materials', representative: 'LC0', direction: -1, status: 'pending', provenAt: null, entryProofIndex: 2 },

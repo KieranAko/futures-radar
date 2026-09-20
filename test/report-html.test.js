@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { mdToHtml, renderReportHtml, escapeHtml } = require('../report/render-report-html.cjs');
+const { mdToHtml, renderReportHtml, escapeHtml } = require('../output/render-report-html.cjs');
 
 describe('report-html：md→HTML 轻量转换器', () => {
   it('标题/表格/列表/引用/分隔线/段落', () => {

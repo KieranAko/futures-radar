@@ -189,7 +189,7 @@ function main() {
   writeJson(path.join(outDir, `${runId}.json`), out);
 
   // 前向账本（strategies/forward-ledger.json）：报告环节 stable 输入，随每次验证滚动
-  const ledgerFile = path.join(ROOT, 'strategies', 'forward-ledger.json');
+  const ledgerFile = path.join(ROOT, 'analysis', 'strategy', 'forward-ledger.json');
   const ledger = fs.existsSync(ledgerFile) ? readJson(ledgerFile) : { schema: 'futures-radar-forward-ledger/1', runs: {} };
   ledger.updatedAt = new Date().toISOString();
   ledger.runs[runId] = {

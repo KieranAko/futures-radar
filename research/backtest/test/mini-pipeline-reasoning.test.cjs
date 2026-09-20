@@ -12,7 +12,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const { runMiniPipeline } = require('../mini-pipeline.cjs');
-const { runtimeRoot } = require('../../../lib/workspace.cjs');
+const { runtimeRoot } = require('../../../shared/workspace.cjs');
 
 const BACKTEST_DIR = path.join(__dirname, '..');
 const AS_OF_DATE = '2026-07-01';

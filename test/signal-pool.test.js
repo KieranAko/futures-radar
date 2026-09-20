@@ -14,7 +14,7 @@ const {
   transitionLabel,
   q5Triggered,
   computeVerdict
-} = require('../strategies/lib/signal-pool.cjs');
+} = require('../signals/lib/signal-pool.cjs');
 
 function makePlan(runId, symbol, overrides = {}) {
   return {

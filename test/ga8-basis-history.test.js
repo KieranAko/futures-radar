@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const FALS = path.join(ROOT, 'strategies', 'research', 'v2', 'falsification');
+const FALS = path.join(ROOT, 'legacy', 'strategies', 'research', 'v2', 'falsification');
 const COLLECTOR = path.join(FALS, 'ga8-basis-history-collector.py');
 const STORE = path.join(FALS, 'data', 'basis-history');
 

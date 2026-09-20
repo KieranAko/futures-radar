@@ -7,10 +7,10 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { makeSignal, verifySignal, loadBars, isBannedCombo, BANNED_COMBOS } = require('../strategies/signal-backtest/runner.cjs');
-const store = require('../data-store/index.cjs');
+const { makeSignal, verifySignal, loadBars, isBannedCombo, BANNED_COMBOS } = require('../legacy/strategies/signal-backtest/runner.cjs');
+const store = require('../storage/index.cjs');
 
-const ROOT = path.resolve(__dirname, '..', 'strategies', 'signal-backtest');
+const ROOT = path.resolve(__dirname, '..', 'legacy', 'strategies', 'signal-backtest');
 const RECORDINGS = path.join(ROOT, 'recordings', '2y');
 const RECORDINGS_1Y = path.join(ROOT, 'recordings', '1y');
 const OUTPUT = path.join(ROOT, 'output');
@@ -194,7 +194,7 @@ describe('signal-backtest verifier (feedback semantics)', () => {
 describe('signal-quality v2 baseline artifacts', () => {
   it('produces a JSON baseline consistent with its markdown export', () => {
     const p = path.join(OUTPUT, 'signal-quality-baseline-2y.json');
-    assert.ok(fs.existsSync(p), 'run `node strategies/signal-backtest/runner.cjs` first');
+    assert.ok(fs.existsSync(p), 'run `node legacy/strategies/signal-backtest/runner.cjs` first');
     const j = JSON.parse(fs.readFileSync(p, 'utf8'));
     assert.equal(j.schema, 'futures-radar-signal-backtest/2');
     assert.deepEqual(j.meta.universe, SYMBOLS);

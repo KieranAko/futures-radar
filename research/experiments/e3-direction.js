@@ -11,7 +11,7 @@ import {
   calculateStudentizedT,
   calculateMaxT,
   calculateAdjustedPValue
-} from '../../lib/statistics.js';
+} from '../../shared/statistics.js';
 
 /**
  * Run E3 direction policy experiment

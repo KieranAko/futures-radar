@@ -13,7 +13,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const dataStore = require('../../data-store/index.cjs');
+const dataStore = require('../../storage/index.cjs');
 
 const CACHE_PATH = path.join(__dirname, 'data', 'historical-cache.json');
 

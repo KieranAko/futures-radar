@@ -13,8 +13,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const { ParallelCollector } = require('../../collector/parallel-collector.cjs');
-const dataStore = require('../../data-store/index.cjs');
+const { ParallelCollector } = require('../../collection/parallel-collector.cjs');
+const dataStore = require('../../storage/index.cjs');
 
 // ── Paths ────────────────────────────────────────────────────
 const SKILL_ROOT = path.join(__dirname, '../..');

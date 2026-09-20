@@ -78,5 +78,5 @@ if (tryLink()) {
   });
   console.log('✓ 已复制：' + linkPath);
 }
-console.log('安装完成。前置检查：node collector/probe-sources.cjs');
+console.log('安装完成。前置检查：node collection/probe-sources.cjs');
 console.log('（在 ' + REPO_ROOT + ' 或安装目录均可运行，脚本自动定位 skillRoot）');

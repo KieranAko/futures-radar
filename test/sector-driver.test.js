@@ -7,10 +7,10 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { buildSectorSnapshot } = require('../collector/sector-aggregator.cjs');
-const lib = require('../analyze/sector-driver-lib.cjs');
+const { buildSectorSnapshot } = require('../collection/sector-aggregator.cjs');
+const lib = require('../analysis/sector-driver-lib.cjs');
 
-const RAW_FIXTURE = path.resolve(__dirname, '..', 'reasoning', 'test', 'fixtures', 'raw-rb0-20260805.json');
+const RAW_FIXTURE = path.resolve(__dirname, '..', 'legacy', 'reasoning', 'reasoning', 'test', 'fixtures', 'raw-rb0-20260805.json');
 const SYMBOLS = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'config', 'symbols.json'), 'utf8'));
 
 function makeBundle() {

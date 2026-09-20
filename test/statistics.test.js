@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { generateBlockSignFlip, calculateStudentizedT } from '../lib/statistics.js';
+import { generateBlockSignFlip, calculateStudentizedT } from '../shared/statistics.js';
 
 describe('Block Sign-Flip', () => {
   it('should generate 64 patterns for 6 blocks', () => {

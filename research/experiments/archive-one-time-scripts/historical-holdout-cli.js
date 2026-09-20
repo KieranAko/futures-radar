@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { evaluateDirectionMatrix } from './lib/direction-matrix-runner.js';
-import { loadHoldoutManifest, runHistoricalHoldout } from './lib/historical-holdout.js';
+import { evaluateDirectionMatrix } from '../lib/direction-matrix-runner.js';
+import { loadHoldoutManifest, runHistoricalHoldout } from '../lib/historical-holdout.js';
 
 const require = createRequire(import.meta.url);
 const { loadCache } = require('../../backtest/cache-slicer.cjs');

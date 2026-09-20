@@ -21,7 +21,7 @@ const cp = require('child_process');
 const { generateSamplePoints } = require('./time-sampler.cjs');
 const { sliceAllSymbols, loadCache } = require('./cache-slicer.cjs');
 const { runMiniPipeline } = require('./mini-pipeline.cjs');
-const dataStore = require('../../data-store/index.cjs');
+const dataStore = require('../../storage/index.cjs');
 
 // ── Paths ────────────────────────────────────────────────────
 const BACKTEST_DIR = __dirname;

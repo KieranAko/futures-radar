@@ -7,10 +7,10 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { makeSignalV3 } = require('../strategies/signal-backtest/runner-v3.cjs');
-const { isBannedCombo } = require('../strategies/signal-backtest/runner.cjs');
+const { makeSignalV3 } = require('../legacy/strategies/signal-backtest/runner-v3.cjs');
+const { isBannedCombo } = require('../legacy/strategies/signal-backtest/runner.cjs');
 
-const ROOT = path.resolve(__dirname, '..', 'strategies', 'signal-backtest');
+const ROOT = path.resolve(__dirname, '..', 'legacy', 'strategies', 'signal-backtest');
 const RECORDINGS = path.join(ROOT, 'recordings', 'v3');
 const OUTPUT = path.join(ROOT, 'output');
 const SYMBOLS = ['RB0', 'M0', 'SC0'];
@@ -108,7 +108,7 @@ describe('signal-backtest v3 plan semantics', () => {
 describe('signal-quality v3 baseline artifacts', () => {
   it('produces qualitative cross-tabs and a quant-only control arm', () => {
     const p = path.join(OUTPUT, 'signal-quality-baseline-v3.json');
-    assert.ok(fs.existsSync(p), 'run `node strategies/signal-backtest/runner-v3.cjs` first');
+    assert.ok(fs.existsSync(p), 'run `node legacy/strategies/signal-backtest/runner-v3.cjs` first');
     const j = JSON.parse(fs.readFileSync(p, 'utf8'));
     assert.equal(j.schema, 'futures-radar-signal-backtest/3');
     assert.deepEqual(j.meta.universe, SYMBOLS);

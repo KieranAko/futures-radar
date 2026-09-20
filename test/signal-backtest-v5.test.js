@@ -7,11 +7,11 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { buildBundle, seriesAsOf, V5 } = require('../strategies/signal-backtest/context-bundle-builder.cjs');
-const { diffRows } = require('../strategies/signal-backtest/context-diff.cjs');
-const { isBannedCombo } = require('../strategies/signal-backtest/runner.cjs');
+const { buildBundle, seriesAsOf, V5 } = require('../legacy/strategies/signal-backtest/context-bundle-builder.cjs');
+const { diffRows } = require('../legacy/strategies/signal-backtest/context-diff.cjs');
+const { isBannedCombo } = require('../legacy/strategies/signal-backtest/runner.cjs');
 
-const ROOT = path.resolve(__dirname, '..', 'strategies', 'signal-backtest');
+const ROOT = path.resolve(__dirname, '..', 'legacy', 'strategies', 'signal-backtest');
 const OUTPUT = path.join(ROOT, 'output');
 const SYMBOLS = ['RB0', 'M0', 'SC0'];
 
@@ -120,7 +120,7 @@ describe('v5 A/B/C arms and FinCoT recordings', () => {
 describe('v5 baseline artifacts', () => {
   it('produces three-arm comparison with FinCoT reuse cross-tab', () => {
     const p = path.join(OUTPUT, 'signal-quality-baseline-v5.json');
-    assert.ok(fs.existsSync(p), 'run `node strategies/signal-backtest/runner-v5.cjs` first');
+    assert.ok(fs.existsSync(p), 'run `node legacy/strategies/signal-backtest/runner-v5.cjs` first');
     const j = JSON.parse(fs.readFileSync(p, 'utf8'));
     assert.equal(j.schema, 'futures-radar-signal-backtest/5');
     assert.equal(j.meta.anchorsPerSymbol, 20);

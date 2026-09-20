@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const EL = path.join(ROOT, 'analyze', 'v2', 'cost-anchor');
+const EL = path.join(ROOT, 'analysis', 'v2', 'cost-anchor');
 
 const { loadPolicy, freshness, deriveConfidence, capProvidedConfidence, countIndependentSources } = require(path.join(EL, 'policy.cjs'));
 const { validateRecord, validateResearchBatch } = require(path.join(EL, 'validate.cjs'));
@@ -154,7 +154,7 @@ describe('cost-anchor 模块（theory-base/05 实现）', () => {
   });
 
   it('方向置信度护栏：legacy 放行、枚举/ref/unknown 约束 fail-closed', () => {
-    const asm = require(path.join(ROOT, 'analyze', 'v2', 'assemble-v2.cjs'));
+    const asm = require(path.join(ROOT, 'analysis', 'v2', 'assemble-v2.cjs'));
     const packet = { price_data: { change5dPct: 0.66, volMultiplier: 1.1 }, volume_oi: { oiChange5dPct: 8.72 }, sector_context: { advanceRatio1d: 95.5 }, cost_anchor: { routes: [{ route: 'x', valueLow: 1, valueHigh: 2 }], problems: [] } };
     const valid = {
       symbol: 'SA0', direction: 'long', confidence: 'medium',
@@ -182,7 +182,7 @@ describe('cost-anchor 模块（theory-base/05 实现）', () => {
   });
 
   it('FinCoT costAnchorRef 必须 grounding 到 packet.cost_anchor 证据', () => {
-    const asm = require(path.join(ROOT, 'analyze', 'v2', 'assemble-v2.cjs'));
+    const asm = require(path.join(ROOT, 'analysis', 'v2', 'assemble-v2.cjs'));
     const packet = {
       cost_anchor: {
         recordId: 'SA0:r:1',

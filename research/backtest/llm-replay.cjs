@@ -18,7 +18,7 @@ let reasoningRunnerPromise = null;
 function loadReasoningRunner() {
   if (!reasoningRunnerPromise) {
     reasoningRunnerPromise = import(
-      pathToFileURL(path.join(__dirname, '..', '..', 'reasoning', 'lib', 'reasoning-runner.js')).href
+      pathToFileURL(path.join(__dirname, '..', '..', 'legacy', 'reasoning', 'reasoning', 'lib', 'reasoning-runner.js')).href
     );
   }
   return reasoningRunnerPromise;
@@ -28,7 +28,7 @@ let packetBundlePromise = null;
 function loadPacketBundle() {
   if (!packetBundlePromise) {
     packetBundlePromise = import(
-      pathToFileURL(path.join(__dirname, '..', '..', 'reasoning', 'lib', 'packet-bundle.js')).href
+      pathToFileURL(path.join(__dirname, '..', '..', 'legacy', 'reasoning', 'reasoning', 'lib', 'packet-bundle.js')).href
     );
   }
   return packetBundlePromise;

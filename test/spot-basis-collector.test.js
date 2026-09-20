@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { parseMysteelPrice } = require('../collector/spot-basis-collector.cjs');
+const { parseMysteelPrice } = require('../collection/spot-basis-collector.cjs');
 
 describe('spot-basis collector', () => {
   it('从 Mysteel HTML 解析重质纯碱折盘面价 983', () => {

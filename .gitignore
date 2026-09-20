@@ -69,3 +69,7 @@ Thumbs.db
 /research/archive-experiment-line/experiment-line/results/
 /research/archive-experiment-line/experiment-line/runs/
 /research/archive-experiment-line/experiment-line/shadow/
+
+# ── GA-8 basis-history 可重建产物（由 ga8-basis-history-collector.py 生成）──
+/legacy/strategies/research/v2/falsification/data/basis-history/*.jsonl
+/legacy/strategies/research/v2/falsification/data/basis-history/fetches/

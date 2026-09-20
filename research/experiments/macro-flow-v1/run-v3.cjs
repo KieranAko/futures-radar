@@ -55,7 +55,7 @@ function loadAnchor(anchor) {
     const pairs = o.dates.map((dt, i) => [dt, o.close[i]]).filter(([, v]) => Number.isFinite(v));
     return seriesMap(pairs);
   }
-  const macro = readJson(path.join(ROOT, 'strategies', 'signal-backtest', 'recordings', 'v4', 'macro-history.json'));
+  const macro = readJson(path.join(ROOT, 'legacy', 'strategies', 'signal-backtest', 'recordings', 'v4', 'macro-history.json'));
   const ind = macro.indicators[anchor];
   if (!ind || !ind.ok || !Array.isArray(ind.series)) return null;
   return seriesMap(ind.series.filter(([, v]) => Number.isFinite(v)));

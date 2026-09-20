@@ -1,7 +1,7 @@
 // test/close-snapshot.test.js — 收盘快照快速通道单元测试（无网络，夹具驱动）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import snap from '../collector/close-snapshot.cjs';
+import snap from '../collection/close-snapshot.cjs';
 const { parseSnapshotLine, mergeSnapshotBars, todayStr, SNAPSHOT_SOURCE } = snap;
 
 // 2026-08-27 实测 RB2701 收盘快照行（与 CFMMC 官方日线逐字段一致）

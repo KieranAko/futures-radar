@@ -1,7 +1,7 @@
 // test/backoff.test.js — P2 统一退避工具单元测试
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import bk from '../collector/backoff.cjs';
+import bk from '../collection/backoff.cjs';
 const { retryWithBackoff, SourceCooldown } = bk;
 
 test('retryWithBackoff: 失败后重试至成功', async () => {

@@ -10,7 +10,7 @@ import {
   calculateStudentizedT,
   calculateMaxT,
   calculateAdjustedPValue
-} from '../../lib/statistics.js';
+} from '../../shared/statistics.js';
 
 /**
  * Run E1 scanner experiment

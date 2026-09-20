@@ -14,7 +14,7 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const EL = path.join(ROOT, 'experiment-line');
-const { runDir } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
+const { runDir } = require(path.join(ROOT, 'shared', 'workspace.cjs'));
 const basisLib = require(path.join(ROOT, 'strategies', 'research', 'v2', 'falsification', 'harness-lib', 'basis.cjs'));
 
 function readJson(file) {

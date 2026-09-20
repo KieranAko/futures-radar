@@ -6,7 +6,7 @@ const path = require('node:path');
 function findRoot(start) {
   let dir = start;
   for (;;) {
-    if (fs.existsSync(path.join(dir, 'lib', 'workspace.cjs'))) return dir;
+    if (fs.existsSync(path.join(dir, 'shared', 'workspace.cjs'))) return dir;
     const parent = path.dirname(dir);
     if (parent === dir) throw new Error('cost-anchor: cannot find skill root');
     dir = parent;

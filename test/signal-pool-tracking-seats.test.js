@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { applyTrackingSeats } = require('../strategies/signal-pool/apply-tracking-seats.cjs');
+const { applyTrackingSeats } = require('../signals/seats/apply-tracking-seats.cjs');
 
 function poolSignal(symbol, overrides = {}) {
   return {

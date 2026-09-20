@@ -75,7 +75,7 @@ function cmdRecord(type, from, to, note = '') {
     if (!fs.statSync(fromPath).isDirectory()) throw new Error('analyze-v2 promote requires a directory');
     fs.rmSync(toPath, { recursive: true, force: true });
     fs.cpSync(fromPath, toPath, { recursive: true });
-    const blueprint = path.join(ROOT, 'analyze', 'blueprint.md');
+    const blueprint = path.join(ROOT, 'analysis', 'blueprint.md');
     const legacy = path.join(ROOT, 'analyze', 'blueprint-legacy.md');
     const hadBlueprint = fs.existsSync(blueprint);
     if (hadBlueprint && !fs.existsSync(legacy)) fs.copyFileSync(blueprint, legacy);

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { validateSemanticFacts, validateQ4Semantics, positionOf, firstActionWord } = require('../strategies/lib/semantic-fact-validate.cjs');
+const { validateSemanticFacts, validateQ4Semantics, positionOf, firstActionWord } = require('../analysis/strategy/semantic-fact-validate.cjs');
 
 function rawFor(bars) {
   return {

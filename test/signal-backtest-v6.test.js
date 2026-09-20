@@ -7,15 +7,15 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { isBannedCombo } = require('../strategies/signal-backtest/runner.cjs');
+const { isBannedCombo } = require('../legacy/strategies/signal-backtest/runner.cjs');
 
-const ROOT = path.resolve(__dirname, '..', 'strategies', 'signal-backtest');
+const ROOT = path.resolve(__dirname, '..', 'legacy', 'strategies', 'signal-backtest');
 const OUTPUT = path.join(ROOT, 'output');
 
 describe('v6 safe engine baseline', () => {
   it('produces three-arm comparison with v5 old-engine reference and gate reasons', () => {
     const p = path.join(OUTPUT, 'signal-quality-baseline-v6.json');
-    assert.ok(fs.existsSync(p), 'run `node strategies/signal-backtest/runner-v6.cjs` first');
+    assert.ok(fs.existsSync(p), 'run `node legacy/strategies/signal-backtest/runner-v6.cjs` first');
     const j = JSON.parse(fs.readFileSync(p, 'utf8'));
     assert.equal(j.schema, 'futures-radar-signal-backtest/6');
     assert.equal(j.meta.engine, 'v6-safe');

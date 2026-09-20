@@ -141,7 +141,7 @@ async function runMiniPipeline(asOfDate, windowData, {
 
   // 3. Stage 2: Scan
   console.log('\n[Stage 2: Scan]');
-  await execStage('scanner/index.cjs', ['--runId', runId, '--runDir', runDir]);
+  await execStage('legacy/scanner/scanner/index.cjs', ['--runId', runId, '--runDir', runDir]);
 
   const candidatesPath = path.join(runDir, 'candidates.json');
   if (!fs.existsSync(candidatesPath)) {
@@ -149,16 +149,16 @@ async function runMiniPipeline(asOfDate, windowData, {
   }
 
   // 4. Stage 3a: Hard Filter (if exists)
-  const hardFilterScript = path.join(SKILL_ROOT, 'filter', 'hard-filter.cjs');
+  const hardFilterScript = path.join(SKILL_ROOT, 'legacy', 'filter', 'filter', 'hard-filter.cjs');
   if (fs.existsSync(hardFilterScript)) {
     console.log('\n[Stage 3a: Hard Filter]');
-    await execStage('filter/hard-filter.cjs', ['--runId', runId, '--runDir', runDir]);
+    await execStage('legacy/filter/filter/hard-filter.cjs', ['--runId', runId, '--runDir', runDir]);
   }
 
   // 5. Stage 3b: LLM Filter
   console.log('\n[Stage 3b: LLM Filter]');
   console.log('⚠️  LLM filter requires manual execution');
-  console.log(`   Please run: cd ${SKILL_ROOT} && node filter/filter-llm.cjs --runId ${runId} --runDir ${runDir}`);
+  console.log(`   Please run: cd ${SKILL_ROOT} && node legacy/filter/filter/filter-llm.cjs (archived) --runId ${runId} --runDir ${runDir}`);
   console.log('   Then press Enter to continue...');
 
   // 等待filtered.json出现

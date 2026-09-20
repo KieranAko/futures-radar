@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const sc = require(path.join(ROOT, 'strategies', 'lib', 'story-chain.cjs'));
+const sc = require(path.join(ROOT, 'stories', 'lib', 'story-chain.cjs'));
 
 function tmpRoot() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'story-chain-'));
@@ -173,7 +173,7 @@ describe('story-chain 传导链构造器核心', () => {
 });
 
 describe('story-chain 提示词构建器（状态唤醒 + 硬契约）', () => {
-  const pb = require(path.join(ROOT, 'strategies', 'lib', 'story-chain-prompt.cjs'));
+  const pb = require(path.join(ROOT, 'stories', 'lib', 'story-chain-prompt.cjs'));
   it('提示词唤醒宏观传导知识状态，且不指定理论流派', () => {
     const p = pb.buildStoryChainPrompt({
       signalDate: '2026-09-18', runId: 'x', macroIndicators: {}, sectors: {}, activeChains: [], catalog: { indicators: {} },

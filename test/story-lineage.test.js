@@ -80,11 +80,11 @@ describe('story-lineage V2 前向盖章（filtered → report → analysis）', 
       });
 
       const env = { FUTURES_RUNTIME_ROOT: runtime };
-      runCli('report/build-facts.cjs', ['--runId', 'r1'], env);
+      runCli('analysis/assembly/build-facts.cjs', ['--runId', 'r1'], env);
       const facts = JSON.parse(fs.readFileSync(path.join(runDir, 'report-facts.json'), 'utf8'));
       assert.equal(facts.opportunities[0].storyChainId, CHAIN_ID);
 
-      runCli('report/build-model.cjs', ['--runId', 'r1'], env);
+      runCli('analysis/assembly/build-model.cjs', ['--runId', 'r1'], env);
       const model = JSON.parse(fs.readFileSync(path.join(runDir, 'report-model.json'), 'utf8'));
       assert.equal(model.opportunities[0].storyChainId, CHAIN_ID);
     } finally {
@@ -93,7 +93,7 @@ describe('story-lineage V2 前向盖章（filtered → report → analysis）', 
   });
 
   it('strategy-plan schema 允许可选 storyChainId 前向盖章', () => {
-    const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'report', 'strategy-plan.schema.json'), 'utf8'));
+    const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'analysis', 'strategy', 'strategy-plan.schema.json'), 'utf8'));
     assert.deepEqual(schema.definitions.plan.properties.storyChainId.type, ['string', 'null']);
   });
 });

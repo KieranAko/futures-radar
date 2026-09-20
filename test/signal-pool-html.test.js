@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { renderSignalPoolHtml, escapeHtml } = require('../report/render-signal-pool-html.cjs');
+const { renderSignalPoolHtml, escapeHtml } = require('../output/render-signal-pool-html.cjs');
 
 function makeView() {
   const signal = {

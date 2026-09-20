@@ -1,386 +1,163 @@
 // pipeline/contracts.cjs — futures-radar v2.0.0
-// Single source of truth for artifact and stage declarations.
-// Shared by pipeline/run.cjs (orchestrator).
+// Six-module pipeline contract (V2). Single source of truth for artifacts,
+// phases, and stages. pipeline/run.cjs consumes this file only.
 //
-// Pipeline: source-probe → collect → macro → scan → filter-hard → filter-llm → analyze → probability → report
-// auto stages: source-probe, collect, macro, scan, filter-hard, probability
-// manual (LLM) stages: filter-llm, analyze, report
+// 六大模块（按用户架构编号）：
+//   1 stories   故事链
+//   2 analysis  机会分析（含交易策略子模块）
+//   3 signals   信号池
+//   4 collection 数据采集（公用）
+//   5 storage   文件库（公用）
+//   6 output    结果输出（公用）
+//
+// 执行顺序（数据流）：4 数据采集 → 5 文件库 → 1 故事链 → 2 机会分析 → 3 信号池 → 6 结果输出
+
+'use strict';
 
 const artifacts = [
+  // ── Phase 4: 数据采集 ──
+  { id: 'source-probe', path: '{runDir}/source-probe.json', stage: 'source-probe', phase: 'data-collection', required: true, producedBy: 'collection/probe-sources.cjs' },
+  { id: 'raw-json', path: '{runDir}/raw.json', stage: 'collect', phase: 'data-collection', required: true, producedBy: 'collection/akshare-futures.cjs' },
+  { id: 'raw-snapshot', path: '{runDir}/raw-snapshot.md', stage: 'collect', phase: 'data-collection', required: true, producedBy: 'collection/akshare-futures.cjs' },
+  { id: 'provenance-json', path: '{runDir}/provenance.json', stage: 'collect', phase: 'data-collection', required: true, producedBy: 'collection/akshare-futures.cjs' },
+  { id: 'sector-snapshot-json', path: '{runDir}/sector-snapshot.json', stage: 'sector', phase: 'data-collection', required: false, producedBy: 'collection/sector-aggregator.cjs' },
+  { id: 'macro-snapshot-json', path: '{runDir}/macro-snapshot.json', stage: 'macro', phase: 'data-collection', required: false, producedBy: 'collection/macro-probe.cjs' },
+
+  // ── Phase 5: 文件库 ──
+  { id: 'macro-history-index', path: '{skillRoot}/data/macro-history/_index.json', stage: 'macro-history-build', phase: 'file-library', required: false, producedBy: 'storage/macro-history-builder.cjs' },
+  { id: 'macro-file-library-json', path: '{skillRoot}/data/macro/{runId}.json', stage: 'collect', phase: 'data-collection', required: false, producedBy: 'collection/macro-probe.cjs (mirror to data/macro)' },
+  { id: 'sector-file-library-json', path: '{skillRoot}/data/sector/snapshots/{runId}.json', stage: 'sector', phase: 'data-collection', required: false, producedBy: 'collection/sector-aggregator.cjs (mirror to data/sector/snapshots)' },
+
+  // ── Phase 1: 故事链 ──
+  { id: 'story-prompt-md', path: '{runDir}/story-chain-prompt.md', stage: 'story-prompt', phase: 'story-chain', required: false, producedBy: 'stories/cli/story-chain-cli.cjs prompt' },
+  { id: 'story-pool-ledger', path: '{skillRoot}/data/story-pool/ledger.json', stage: 'story-register', phase: 'story-chain', required: false, producedBy: 'stories/cli/story-chain-cli.cjs register' },
+  { id: 'story-pool-view', path: '{skillRoot}/data/story-pool/view.json', stage: 'story-observe', phase: 'story-chain', required: false, producedBy: 'stories/cli/story-chain-cli.cjs observe' },
+  { id: 'filtered-json', path: '{runDir}/filtered.json', stage: 'story-filtered', phase: 'story-chain', required: true, producedBy: 'stories/seats/build-filtered-from-story-pool.cjs' },
+  { id: 'candidates-json', path: '{runDir}/candidates.json', stage: 'story-filtered', phase: 'story-chain', required: true, producedBy: 'stories/seats/build-filtered-from-story-pool.cjs (creates/patches story seats)' },
+
+  // ── Phase 2: 机会分析（含交易策略子模块）──
+  { id: 'packets-v2-json', path: '{runDir}/analyze/packets-v2.json', stage: 'analysis-freeze', phase: 'opportunity-analysis', required: true, producedBy: 'analysis/v2/packet-freeze-v2.cjs' },
+  { id: 'prefill-v2-json', path: '{runDir}/analyze/prefill-v2.json', stage: 'analysis-prefill', phase: 'opportunity-analysis', required: true, producedBy: 'analysis/v2/prefill-v2.cjs' },
+  { id: 'prompts-v2-md', path: '{runDir}/analyze/prompts-v2.md', stage: 'analysis-prompt', phase: 'opportunity-analysis', required: true, producedBy: 'analysis/v2/prompt-builder-v2.cjs' },
+  { id: 'outputs-v2-json', path: '{runDir}/analyze/outputs-v2.json', stage: 'analysis-llm', phase: 'opportunity-analysis', required: true, producedBy: 'manual (LLM follows prompts-v2.md)' },
+  { id: 'analysis-json', path: '{runDir}/analysis.json', stage: 'analysis-assemble', phase: 'opportunity-analysis', required: true, producedBy: 'analysis/v2/assemble-v2.cjs --as-production' },
+  { id: 'reasoning-results-json', path: '{runDir}/reasoning-results.json', stage: 'analysis-assemble', phase: 'opportunity-analysis', required: true, producedBy: 'analysis/v2/assemble-v2.cjs --as-production' },
+  { id: 'probability-json', path: '{runDir}/probability.json', stage: 'probability', phase: 'opportunity-analysis', required: true, producedBy: 'analysis/probability/stage-4-5.cjs' },
+  { id: 'report-facts-json', path: '{runDir}/report-facts.json', stage: 'report-facts', phase: 'opportunity-analysis', required: true, producedBy: 'analysis/assembly/build-facts.cjs' },
+  { id: 'report-model-json', path: '{runDir}/report-model.json', stage: 'report-model', phase: 'opportunity-analysis', required: true, producedBy: 'analysis/assembly/build-model.cjs' },
+  { id: 'strategy-reasoning-prompt-md', path: '{runDir}/strategies/prompts/strategy-reasoning.md', stage: 'strategy-reasoning-prompt', phase: 'opportunity-analysis', required: false, producedBy: 'analysis/strategy/strategy-reasoning-prompt.cjs' },
+  { id: 'strategy-reasoning-json', path: '{runDir}/strategy-reasoning.json', stage: 'strategy-reasoning-llm', phase: 'opportunity-analysis', required: false, producedBy: 'manual (LLM follows strategy-reasoning.md)' },
+
+  // ── Phase 3: 信号池 ──
+  { id: 'strategy-plan-json', path: '{runDir}/strategy-plan.json', stage: 'strategy-plan', phase: 'signal-pool', required: false, producedBy: 'analysis/strategy/build-strategy-plan.cjs' },
+  { id: 'signal-pool-json', path: '{runDir}/signal-pool.json', stage: 'strategy-plan', phase: 'signal-pool', required: false, producedBy: 'analysis/strategy/build-strategy-plan.cjs (updates signals/lib/signal-pool.cjs)' },
+  { id: 'signal-pool-ledger', path: '{skillRoot}/data/signal-pool/ledger.json', stage: 'strategy-plan', phase: 'signal-pool', required: false, producedBy: 'signals/lib/signal-pool.cjs (ledger)' },
+  { id: 'strategy-feedback-json', path: '{runDir}/strategy-feedback.json', stage: 'strategy-plan', phase: 'signal-pool', required: false, producedBy: 'analysis/strategy/build-strategy-plan.cjs' },
+
+  // ── Phase 6: 结果输出 ──
+  { id: 'report', path: '{runDir}/report.md', stage: 'render-markdown', phase: 'result-output', required: true, producedBy: 'output/render-markdown.cjs' },
+  { id: 'report-html', path: '{runDir}/report.html', stage: 'render-markdown', phase: 'result-output', required: false, producedBy: 'output/render-markdown.cjs → render-report-html.cjs' },
+  { id: 'dashboard-html', path: '{runtimeRoot}/dashboard.html', stage: 'render-markdown', phase: 'result-output', required: false, producedBy: 'output/render-markdown.cjs → render-dashboard-html.cjs' },
+  { id: 'current', path: '{runtimeRoot}/current.md', stage: 'publish-current', phase: 'result-output', required: false, producedBy: 'manual (LLM updates current.md)' }
+];
+
+const phases = [
   {
-    id: 'source-probe',
-    path: '{runDir}/source-probe.json',
-    stage: 'source-probe',
-    required: true,
-    producedBy: 'collector/probe-sources.cjs',
-    consumedBy: ['consistency']
+    id: 'data-collection',
+    seq: 4,
+    runOrder: 1,
+    module: 'collection',
+    name: '数据采集（公用）',
+    description: '探测数据源、采集期货行情、构建板块与宏观快照；宏观/板块失败 warn，其余 hard_fail。',
+    stages: [
+      { id: 'source-probe', name: '数据源探测', auto: true, script: 'collection/probe-sources.cjs', args: (runId) => ['--runId', runId, '--reuse-if-fresh'], inputs: [], outputs: ['source-probe'], failurePolicy: 'hard_fail', note: '窗口内复用探针，避免背靠背 456。' },
+      { id: 'collect', name: '采集 (akshare 期货行情)', auto: true, script: 'collection/akshare-futures.cjs', args: (runId) => ['--runId', runId], inputs: ['source-probe'], outputs: ['raw-json', 'raw-snapshot', 'provenance-json'], failurePolicy: 'hard_fail', note: '并行采集 + 增量缓存 + snapshot-first + CFMMC 验证；同时镜像文件库。' },
+      { id: 'sector', name: '板块聚合指标', auto: true, script: 'collection/sector-aggregator.cjs', args: (runId) => ['--runId', runId], inputs: ['raw-json'], outputs: ['sector-snapshot-json'], failurePolicy: 'warn', note: '由 raw.json 确定性构建板块指数/广度/领涨领跌；不使用持仓数据。' },
+      { id: 'macro', name: '宏观锚点采集', auto: true, script: 'collection/macro-probe.cjs', args: (runId) => ['--runId', runId], inputs: ['raw-json'], outputs: ['macro-snapshot-json'], failurePolicy: 'warn', note: '5 个冻结宏观锚点（DXY/USDCNH/US10Y/DR007/SC0）；失败不阻断管道。' }
+    ]
   },
   {
-    id: 'raw-json',
-    path: '{runDir}/raw.json',
-    stage: 'collect',
-    required: true,
-    producedBy: 'collector/akshare-futures.cjs',
-    consumedBy: ['scan', 'macro', 'report']
+    id: 'file-library',
+    seq: 5,
+    runOrder: 2,
+    module: 'storage',
+    name: '文件库（公用）',
+    description: '校验文件库并重建宏观历史序列；数据唯一事实源=data/。',
+    stages: [
+      { id: 'storage-verify', name: '文件库校验', auto: true, script: 'storage/index.cjs', args: () => ['--verify'], inputs: [], outputs: [], failurePolicy: 'warn', note: '轻量文件库完整性校验（不修复、不联网）。' },
+      { id: 'macro-history-build', name: '宏观历史序列重建', auto: true, script: 'storage/macro-history-builder.cjs', args: () => ['--build'], inputs: [], outputs: ['macro-history-index'], failurePolicy: 'warn', note: '从冻结 v4 宏观历史 + data/macro/<RUN_ID>.json 重建 data/macro-history/*。' }
+    ]
   },
   {
-    id: 'raw-snapshot',
-    path: '{runDir}/raw-snapshot.md',
-    stage: 'collect',
-    required: true,
-    producedBy: 'collector/akshare-futures.cjs',
-    consumedBy: ['report']
+    id: 'story-chain',
+    seq: 1,
+    runOrder: 3,
+    module: 'stories',
+    name: '故事链',
+    description: '构造传导链 → 状态唤醒提示词 → 逐日观察推进状态 → 由故事池重写 filtered.json（filter-llm 已退役）。',
+    stages: [
+      { id: 'story-prompt', name: '故事链状态唤醒提示词', auto: true, script: 'stories/cli/story-chain-cli.cjs', args: (runId) => ['prompt', '--runId', runId], inputs: [], outputs: ['story-prompt-md'], failurePolicy: 'hard_fail', note: '读文件库（data/macro/<runId>.json + data/sector/snapshots/<runId>.json，缺失时提示词降级）生成状态唤醒提示词。' },
+      { id: 'story-register', name: '故事链登记 (LLM)', auto: false, script: null, args: null, inputs: ['story-prompt-md'], outputs: ['story-pool-ledger'], failurePolicy: 'hard_fail', note: 'LLM 按 stories/blueprint.md 构造传导链，运行 stories/cli/story-chain-cli.cjs register --file <json> --batch 入池。' },
+      { id: 'story-observe', name: '故事链逐日观察', auto: true, script: 'stories/cli/story-chain-cli.cjs', args: (runId) => ['observe', '--runId', runId], inputs: ['story-pool-ledger', 'macro-file-library-json', 'sector-file-library-json'], outputs: ['story-pool-view'], failurePolicy: 'hard_fail', note: '按文件库 signalDate 推进链状态；连续 2 数据日同向确认/反向断链。' },
+      { id: 'story-filtered', name: '故事池重写 filtered.json', auto: true, script: 'stories/seats/build-filtered-from-story-pool.cjs', args: (runId) => ['--runId', runId], inputs: ['raw-json'], outputs: ['filtered-json', 'candidates-json'], failurePolicy: 'hard_fail', note: 'KEEP 唯一来源 = 活跃故事链代表品种 + 有 storyChainId 的信号池追踪席位；无链无信号则空仓合法。同步创建/修补 candidates.json。' }
+    ]
   },
   {
-    id: 'provenance-json',
-    path: '{runDir}/provenance.json',
-    stage: 'collect',
-    required: true,
-    producedBy: 'collector/akshare-futures.cjs',
-    consumedBy: ['consistency']
+    id: 'opportunity-analysis',
+    seq: 2,
+    runOrder: 4,
+    module: 'analysis',
+    name: '机会分析（含交易策略子模块）',
+    description: '冻结 packet → prefill → prompt → LLM 单轮批量推理 → assemble 生产六问 → 概率锥 → 事实/模型组装 → 交易策略推理输入。',
+    stages: [
+      { id: 'analysis-freeze', name: '冻结证据 packet v2', auto: true, script: 'analysis/v2/packet-freeze-v2.cjs', args: (runId) => ['--runId', runId], inputs: ['raw-json', 'filtered-json', 'macro-snapshot-json', 'sector-snapshot-json'], outputs: ['packets-v2-json'], failurePolicy: 'hard_fail', note: 'O4/O5 前置：期限结构来自 GA-8 本地基差库，宏观/板块引用冻结快照。' },
+      { id: 'analysis-prefill', name: '六问确定性预填 v2', auto: true, script: 'analysis/v2/prefill-v2.cjs', args: (runId) => ['--runId', runId], inputs: ['packets-v2-json'], outputs: ['prefill-v2-json'], failurePolicy: 'hard_fail', note: 'Q2/Q6 确定性预填；Q1/Q4/Q5 标记 pending 交给 LLM。' },
+      { id: 'analysis-prompt', name: '单轮批量提示词 v2', auto: true, script: 'analysis/v2/prompt-builder-v2.cjs', args: (runId) => ['--runId', runId], inputs: ['prefill-v2-json'], outputs: ['prompts-v2-md'], failurePolicy: 'hard_fail', note: '为所有故事席位一次性生成单轮批量推理提示词（目标 ≤3 次 LLM 调用）。' },
+      { id: 'analysis-llm', name: '机会深挖 LLM 推理', auto: false, script: null, args: null, inputs: ['prompts-v2-md'], outputs: ['outputs-v2-json'], failurePolicy: 'hard_fail', note: 'LLM 按 prompts-v2.md 完成单轮批量推理，写 analyze/outputs-v2.json。' },
+      { id: 'analysis-assemble', name: '组装生产六问', auto: true, script: 'analysis/v2/assemble-v2.cjs', args: (runId) => ['--runId', runId, '--as-production'], inputs: ['outputs-v2-json', 'prefill-v2-json', 'packets-v2-json'], outputs: ['analysis-json', 'reasoning-results-json'], failurePolicy: 'hard_fail', note: 'Q4 语义事实校验 + 置信度护栏；promote 生产 analysis.json / reasoning-results.json。' },
+      { id: 'probability', name: 'HV 概率锥估算', auto: true, script: 'analysis/probability/stage-4-5.cjs', args: (runId) => ['--runId', runId], inputs: ['analysis-json', 'filtered-json', 'candidates-json', 'raw-json'], outputs: ['probability-json'], failurePolicy: 'hard_fail', note: 'HV 概率锥 + ATR 对比；干净序列口径。' },
+      { id: 'report-facts', name: '报告事实组装', auto: true, script: 'analysis/assembly/build-facts.cjs', args: (runId) => ['--runId', runId], inputs: ['candidates-json', 'filtered-json', 'probability-json', 'raw-json'], outputs: ['report-facts-json'], failurePolicy: 'hard_fail', note: '符号 join + 宏观透传 + 数据时效推导。' },
+      { id: 'report-model', name: '分析集成', auto: true, script: 'analysis/assembly/build-model.cjs', args: (runId) => ['--runId', runId], inputs: ['report-facts-json', 'analysis-json'], outputs: ['report-model-json'], failurePolicy: 'hard_fail', note: 'Q1-Q6 原文提取 + 方向/置信度 canonical 校验。' },
+      { id: 'strategy-reasoning-prompt', name: '交易策略推理输入', auto: true, script: 'analysis/strategy/strategy-reasoning-prompt.cjs', args: (runId) => ['--runId', runId], inputs: ['report-model-json', 'analysis-json', 'probability-json', 'raw-json'], outputs: ['strategy-reasoning-prompt-md'], failurePolicy: 'hard_fail', note: '冻结报告上下文与理论参照，供 Strategy-LLM 做交易表达决策。' },
+      { id: 'strategy-reasoning-llm', name: '交易策略 LLM 推理', auto: false, script: null, args: null, inputs: ['strategy-reasoning-prompt-md'], outputs: ['strategy-reasoning-json'], failurePolicy: 'hard_fail', note: 'LLM 按 strategy-reasoning.md 写 strategy-reasoning.json（无理论合适时 theoryFit=none）。' }
+    ]
   },
   {
-    id: 'macro-snapshot-json',
-    path: '{runDir}/macro-snapshot.json',
-    stage: 'macro',
-    required: false,
-    producedBy: 'collector/macro-probe.cjs',
-    consumedBy: ['report-5a'],
-    note: 'Phase 3 阶段一：5 个冻结宏观锚点快照（DXY/USDCNH/US10Y/DR007/SC0）。单指标失败标 missing；整阶段失败不阻断管道（failurePolicy=warn）。旧 run 缺失时报告显示宏观数据不可用'
+    id: 'signal-pool',
+    seq: 3,
+    runOrder: 5,
+    module: 'signals',
+    name: '信号池',
+    description: '交易策略计划生成后自动更新信号池：入池/版本追加/出池判定；信号台账供报告与故事链血缘追踪。',
+    stages: [
+      { id: 'strategy-plan', name: '生成交易策略计划并更新信号池', auto: true, script: 'analysis/strategy/build-strategy-plan.cjs', args: (runId) => ['--runId', runId], inputs: ['report-model-json', 'probability-json', 'raw-json', 'strategy-reasoning-json'], outputs: ['strategy-plan-json', 'strategy-feedback-json', 'signal-pool-json', 'signal-pool-ledger'], failurePolicy: 'hard_fail', note: 'executable 策略诞生信号（入池）、同向后续 plan 追加版本、反向/Q5 证伪/机会衰竭/窗口到期出池。' }
+    ]
   },
   {
-    id: 'sector-snapshot-json',
-    path: '{runDir}/sector-snapshot.json',
-    stage: 'sector',
-    required: false,
-    producedBy: 'collector/sector-aggregator.cjs',
-    consumedBy: ['analyze', 'report-5a'],
-    note: 'v0.1.5：由 raw.json 确定性构建的板块指数/广度/领涨领跌快照（不使用持仓数据）。失败不阻断管道；analyze 可回退现场重算。'
-  },
-  {
-    id: 'candidates-json',
-    path: '{runDir}/candidates.json',
-    stage: 'scan',
-    required: true,
-    producedBy: 'scanner/index.cjs',
-    consumedBy: ['filter-hard', 'filter-llm', 'report']
-  },
-  {
-    id: 'filtered-hard-json',
-    path: '{runDir}/filtered-hard.json',
-    stage: 'filter-hard',
-    required: true,
-    producedBy: 'filter/hard-filter.cjs',
-    consumedBy: ['filter-llm'],
-    note: 'Hard-filtered candidates — LLM must NOT resurrect items filtered out here'
-  },
-  {
-    id: 'filtered-json',
-    path: '{runDir}/filtered.json',
-    stage: 'filter-llm',
-    required: true,
-    producedBy: 'manual (LLM follows filter/blueprint.md)',
-    consumedBy: ['analyze', 'report'],
-    note: '≤3 candidates after soft filter. LLM cannot resurrect items removed by filter-hard.'
-  },
-  {
-    id: 'evidence-packets-json',
-    path: '{runDir}/evidence-packets.json',
-    stage: 'analyze',
-    required: true,
-    producedBy: 'manual Analyze evidence freeze',
-    consumedBy: ['analyze']
-  },
-  {
-    id: 'main-series-json',
-    path: '{runDir}/analyze/main-series.json',
-    stage: 'analyze',
-    required: false,
-    producedBy: 'analyze/freeze-packets.mjs',
-    consumedBy: ['probability'],
-    note: 'P0: 当日主导合约自身 OHLCV 序列（HV/ATR/现价干净口径）；旧 run 缺失时 probability 回退 raw.json'
-  },
-  {
-    id: 'reasoning-results-json',
-    path: '{runDir}/reasoning-results.json',
-    stage: 'analyze',
-    required: true,
-    producedBy: 'manual Analyze via reasoning runner',
-    consumedBy: ['analyze', 'report-5b']
-  },
-  {
-    id: 'analysis-json',
-    path: '{runDir}/analysis.json',
-    stage: 'analyze',
-    required: true,
-    producedBy: 'manual (LLM follows analyze/blueprint.md)',
-    consumedBy: ['probability', 'report-5b']
-  },
-  {
-    id: 'probability-json',
-    path: '{runDir}/probability.json',
-    stage: 'probability',
-    required: true,
-    producedBy: 'probability/stage-4-5.cjs',
-    consumedBy: ['report-5a'],
-    note: 'HV probability cones + ATR comparison for KEEP candidates'
-  },
-  {
-    id: 'report-facts-json',
-    path: '{runDir}/report-facts.json',
-    stage: 'report-5a',
-    required: true,
-    producedBy: 'report/build-facts.cjs',
-    consumedBy: ['report-5b'],
-    note: 'Stage 5A: Deterministic facts assembly from 3 JSON artifacts (candidates, filtered, probability)'
-  },
-  {
-    id: 'report-model-json',
-    path: '{runDir}/report-model.json',
-    stage: 'report-5b',
-    required: true,
-    producedBy: 'report/build-model.cjs',
-    consumedBy: ['report-5c'],
-    note: 'Stage 5B: Analysis integration with thesis layer'
-  },
-  {
-    id: 'report',
-    path: '{runDir}/report.md',
-    stage: 'report-5c',
-    required: true,
-    producedBy: 'report/render-markdown.cjs',
-    consumedBy: ['consistency', 'current'],
-    note: 'Stage 5C: Markdown rendering from report-model.json'
-  },
-  {
-    id: 'current',
-    path: '{runtimeRoot}/current.md',
-    stage: 'publish-current',
-    required: false,
-    producedBy: 'manual (LLM updates after report)',
-    consumedBy: []
+    id: 'result-output',
+    seq: 6,
+    runOrder: 6,
+    module: 'output',
+    name: '结果输出（公用）',
+    description: '渲染 report.md / report.html / 四 Tab 看板；可选 LLM 发布 current.md。',
+    stages: [
+      { id: 'render-markdown', name: '渲染报告与看板', auto: true, script: 'output/render-markdown.cjs', args: (runId) => ['--runId', runId], inputs: ['report-model-json', 'signal-pool-json', 'strategy-plan-json'], outputs: ['report', 'report-html', 'dashboard-html'], failurePolicy: 'hard_fail', note: '报告四章 + 交易策略板块 + 信号池明细；同时生成 report.html 与 output/dashboard.html。' },
+      { id: 'publish-current', name: '发布 current.md (LLM)', auto: false, script: null, args: null, inputs: ['report'], outputs: ['current'], failurePolicy: 'warn', note: 'LLM 用本期 runId、报告摘要与关键候选更新 current.md。' }
+    ]
   }
 ];
 
-// Pipeline stages in topological order.
-// auto=true: deterministic script; auto=false: LLM/manual work.
-const stages = [
-  // ── Stage 0: Source Probe ──
-  {
-    id: 'source-probe',
-    label: '数据源探测',
-    auto: true,
-    dependsOn: [],
-    inputs: [],
-    outputs: ['source-probe'],
-    validators: [],
-    failurePolicy: 'hard_fail',
-    rebuildCommand: 'node collector/probe-sources.cjs --runId {runId}',
-    script: 'collector/probe-sources.cjs',
-    args: (runId) => ['--runId', runId, '--reuse-if-fresh'] // P2：窗口内复用探针，避免背靠背 456
-  },
+const stages = phases
+  .slice()
+  .sort((a, b) => a.runOrder - b.runOrder)
+  .flatMap((p) => p.stages.map((s) => ({ ...s, phase: p.id, phaseName: p.name, phaseSeq: p.seq })));
 
-  // ── Stage 1: Collect ──
-  {
-    id: 'collect',
-    label: '采集 (akshare 期货行情)',
-    auto: true,
-    dependsOn: ['source-probe'],
-    inputs: ['source-probe'],
-    outputs: ['raw-json', 'raw-snapshot', 'provenance-json'],
-    validators: [],
-    failurePolicy: 'hard_fail',
-    rebuildCommand: 'node collector/akshare-futures.cjs --runId {runId}',
-    script: 'collector/akshare-futures.cjs',
-    args: (runId) => ['--runId', runId],
-    note: 'Implemented: parallel collect + incremental cache + snapshot-first + CFMMC verification. Also mirrors bars into data-store.'
-  },
+function findArtifact(id) {
+  return artifacts.find((a) => a.id === id);
+}
 
-  // ── Stage 1.4: Sector (v0.1.5) ──
-  {
-    id: 'sector',
-    label: '板块聚合指标',
-    auto: true,
-    dependsOn: ['collect'],
-    inputs: ['raw-json'],
-    outputs: ['sector-snapshot-json'],
-    validators: [],
-    failurePolicy: 'warn',
-    rebuildCommand: 'node collector/sector-aggregator.cjs --runId {runId}',
-    script: 'collector/sector-aggregator.cjs',
-    args: (runId) => ['--runId', runId],
-    note: '由 raw.json 确定性构建板块指数/广度/领涨领跌；不使用持仓数据；失败不阻断管道。'
-  },
+function findStage(id) {
+  return stages.find((s) => s.id === id);
+}
 
-  // ── Stage 1.5: Macro (Phase 3 阶段一) ──
-  {
-    id: 'macro',
-    label: '宏观锚点采集 (Phase 3 阶段一)',
-    auto: true,
-    dependsOn: ['collect'],
-    inputs: ['raw-json'],
-    outputs: ['macro-snapshot-json'],
-    validators: [],
-    failurePolicy: 'warn',
-    rebuildCommand: 'node collector/macro-probe.cjs --runId {runId}',
-    script: 'collector/macro-probe.cjs',
-    args: (runId) => ['--runId', runId],
-    note: '5 个冻结宏观锚点（DXY/USDCNH/US10Y/DR007/SC0）快照写入 macro-snapshot.json。单指标失败标 missing；整阶段失败不阻断期货雷达。报告阶段不联网。'
-  },
-
-  // ── Stage 2: Scan ──
-  {
-    id: 'scan',
-    label: '波动率扫描与排名',
-    auto: true,
-    dependsOn: ['collect'],
-    inputs: ['raw-json'],
-    outputs: ['candidates-json'],
-    validators: [],
-    failurePolicy: 'hard_fail',
-    rebuildCommand: 'node scanner/index.cjs --runId {runId}',
-    script: 'scanner/index.cjs',
-    args: (runId) => ['--runId', runId],
-    note: 'Implemented: ATR/HV percentile weighted ranking, Top 10 output.'
-  },
-
-  // ── Stage 3a: Filter-Hard ──
-  {
-    id: 'filter-hard',
-    label: '确定性硬过滤',
-    auto: true,
-    dependsOn: ['scan'],
-    inputs: ['candidates-json'],
-    outputs: ['filtered-hard-json'],
-    validators: [],
-    failurePolicy: 'hard_fail',
-    rebuildCommand: 'node filter/hard-filter.cjs --runId {runId}',
-    script: 'filter/hard-filter.cjs',
-    args: (runId) => ['--runId', runId],
-    note: 'Phase 5 implementation (auto/deterministic stage, not LLM). Applies filter/rules.json.'
-  },
-
-  // ── Stage 3a2: Filter-Context（三问分诊上下文冻结）──
-  {
-    id: 'filter-context',
-    label: '初筛上下文冻结',
-    auto: true,
-    dependsOn: ['filter-hard'],
-    inputs: ['filtered-hard-json', 'candidates-json', 'raw-json', 'macro-snapshot-json', 'sector-snapshot-json'],
-    outputs: [],
-    validators: [],
-    failurePolicy: 'hard_fail',
-    rebuildCommand: 'node filter/filter-context.cjs --runId {runId}',
-    script: 'filter/filter-context.cjs',
-    args: (runId) => ['--runId', runId],
-    note: '为 filter-llm 冻结行情/量仓/OI变化/板块/宏观/成本锚上下文；不联网、不调用 LLM。'
-  },
-
-  // ── Stage 3b: Filter-LLM (Manual) ──
-  {
-    id: 'filter-llm',
-    label: '初筛 (LLM)',
-    auto: false,
-    dependsOn: ['filter-context'],
-    inputs: ['filtered-hard-json', 'candidates-json'],
-    outputs: ['filtered-json'],
-    validators: [],
-    failurePolicy: 'hard_fail',
-    manualInstruction: 'LLM: read filter/blueprint.md. Triage each passed candidate by three questions (行情/可验证线索/是否值得深挖). ≤3 KEEP, long/short both allowed. Do NOT output odds or direction conclusions. Do NOT resurrect hard-filtered items. Run filter/filter-validate.cjs before finalizing.',
-    note: 'LLM: read filter/blueprint.md. 三问分诊：有没有行情、有没有可验证线索、值不值得深挖。≤3 KEEP，多空均可。禁止赔率/方向结论，禁止复活硬过滤品种。'
-  },
-
-  // ── Stage 4: Analyze (Manual) ──
-  {
-    id: 'analyze',
-    label: '6问深度分析 (LLM)',
-    auto: false,
-    dependsOn: ['filter-llm'],
-    inputs: ['filtered-json', 'raw-json'],
-    outputs: ['evidence-packets-json', 'reasoning-results-json', 'analysis-json'],
-    validators: [],
-    failurePolicy: 'hard_fail',
-    manualInstruction: 'LLM: read analyze/blueprint.md. Freeze evidence packets → complete sector-driver LLM (板块级归因，不混用个股Q1) → assemble-sector-driver → run FinCoT via reasoning runner → parser+grounding → then write 6-question framework referencing evidence_ids/opposing_ids/invalidate_if. Use WebSearch for industry news/policy events. Do NOT fabricate drivers. Output: evidence-packets.json, sector-driver.json, reasoning-results.json, analysis.json.',
-    note: 'LLM: read analyze/blueprint.md. Freeze packets → sector-driver → FinCoT → 6Q framework. No driver fabrication, no sector/individual evidence mixing.'
-  },
-
-  // ── Stage 4.5: Probability (Auto) ──
-  {
-    id: 'probability',
-    label: 'HV 概率锥估算',
-    auto: true,
-    dependsOn: ['analyze'],
-    inputs: ['filtered-json', 'candidates-json', 'raw-json'],
-    outputs: ['probability-json'],
-    validators: [],
-    failurePolicy: 'hard_fail',
-    rebuildCommand: 'node probability/stage-4-5.cjs --runId {runId}',
-    script: 'probability/stage-4-5.cjs',
-    args: (runId) => ['--runId', runId],
-    note: 'Auto stage: Calculate HV-based probability cones and ATR comparison for KEEP candidates'
-  },
-
-  // ── Stage 5A: Report Facts Assembly (Auto) ──
-  {
-    id: 'report-5a',
-    label: '报告事实组装 (确定性)',
-    auto: true,
-    dependsOn: ['probability'],
-    inputs: ['candidates-json', 'filtered-json', 'probability-json', 'macro-snapshot-json', 'raw-json'],
-    outputs: ['report-facts-json'],
-    validators: [],
-    failurePolicy: 'hard_fail',
-    rebuildCommand: 'node report/build-facts.cjs --runId {runId}',
-    script: 'report/build-facts.cjs',
-    args: (runId) => ['--runId', runId],
-    note: 'Phase 8-A: Deterministic facts assembly from 3 JSON artifacts + macro-snapshot 透传 + raw.json 时效推导（v0.1.2 freshness card）. Symbol join + provenance tracking + data quality aggregation.'
-  },
-
-  // ── Stage 5B: Analysis Integration (Auto) ──
-  {
-    id: 'report-5b',
-    label: '分析集成 (确定性)',
-    auto: true,
-    dependsOn: ['report-5a'],
-    inputs: ['report-facts-json', 'analysis-json'],
-    outputs: ['report-model-json'],
-    validators: [],
-    failurePolicy: 'hard_fail',
-    rebuildCommand: 'node report/build-model.cjs --runId {runId}',
-    script: 'report/build-model.cjs',
-    args: (runId) => ['--runId', runId],
-    note: 'Phase 8-A: Deterministic analysis integration. Extract Q1-Q6 raw strings from analysis.json, preserve actual field names, mark assessmentChanged.'
-  },
-
-  // ── Stage 5C: Markdown Renderer (Auto) ──
-  {
-    id: 'report-5c',
-    label: 'Markdown 渲染 (确定性)',
-    auto: true,
-    dependsOn: ['report-5b'],
-    inputs: ['report-model-json'],
-    outputs: ['report'],
-    validators: [],
-    failurePolicy: 'hard_fail',
-    rebuildCommand: 'node report/render-markdown.cjs --runId {runId}',
-    script: 'report/render-markdown.cjs',
-    args: (runId) => ['--runId', runId],
-    note: 'Phase 8-A: Template-driven markdown generation. 4 chapters + appendix. Data quality warnings by rules. Structure completeness over line count.'
-  },
-
-  // ── Publish ──
-  {
-    id: 'publish-current',
-    label: '发布 current.md (LLM)',
-    auto: false,
-    dependsOn: ['report-5c'],
-    inputs: ['report'],
-    outputs: ['current'],
-    validators: [],
-    failurePolicy: 'warn',
-    manualInstruction: 'LLM: update current.md with runId, report summary, and key candidates from report.md.',
-    note: 'LLM: update current.md with runId, report summary, and key candidates.'
-  }
-];
-
-module.exports = { artifacts, stages };
+module.exports = { artifacts, phases, stages, findArtifact, findStage };

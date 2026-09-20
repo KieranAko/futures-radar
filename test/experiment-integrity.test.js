@@ -11,7 +11,7 @@ const ROOT = path.resolve(__dirname, '..');
 
 describe('V9 experiment integrity reclassification', () => {
   it('library strategies carry evidence tiers and adapter fidelity blocking flags', () => {
-    const j = require(path.join(ROOT, 'strategies', 'strategy-library-v2.json'));
+    const j = require(path.join(ROOT, 'analysis', 'strategy', 'strategy-library-v2.json'));
     const count = {};
     for (const s of j.strategies) {
       count[s.evidenceTier] = (count[s.evidenceTier] || 0) + 1;
@@ -34,14 +34,14 @@ describe('V9 experiment integrity reclassification', () => {
   });
 
   it('V9 theory-source probes are voided and cannot drive V10', () => {
-    const p = path.join(ROOT, 'strategies', 'research', 'v2', 'falsification', '22-v9-theory-source-probes.json');
+    const p = path.join(ROOT, 'legacy', 'strategies', 'research', 'v2', 'falsification', '22-v9-theory-source-probes.json');
     const j = JSON.parse(fs.readFileSync(p, 'utf8'));
     assert.equal(j.voided, true);
     assert.match(j.voidedReason, /未与 strategy-library-v2/);
   });
 
   it('fidelity and pre-registration protocol documents exist', () => {
-    assert.ok(fs.existsSync(path.join(ROOT, 'strategies', 'research', 'v2', 'falsification', '23-fidelity-review.md')));
-    assert.ok(fs.existsSync(path.join(ROOT, 'strategies', 'research', 'v2', 'falsification', '24-preregistration-protocol.md')));
+    assert.ok(fs.existsSync(path.join(ROOT, 'legacy', 'strategies', 'research', 'v2', 'falsification', '23-fidelity-review.md')));
+    assert.ok(fs.existsSync(path.join(ROOT, 'legacy', 'strategies', 'research', 'v2', 'falsification', '24-preregistration-protocol.md')));
   });
 });

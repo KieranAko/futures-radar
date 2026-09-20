@@ -12,7 +12,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const EL = __dirname;
-const { inferFamily } = require(path.join(EL, '..', 'strategies', 'lib', 'family-infer.cjs'));
+const { inferFamily } = require(path.join(EL, '..', 'analysis', 'strategy', 'family-infer.cjs'));
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));

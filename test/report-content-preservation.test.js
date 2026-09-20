@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const { runtimeRoot } = require(path.join(ROOT, 'lib', 'workspace.cjs'));
+const { runtimeRoot } = require(path.join(ROOT, 'shared', 'workspace.cjs'));
 
 describe('report content preservation（信息完整优先）', () => {
   const runsRoot = path.join(runtimeRoot, 'runs');

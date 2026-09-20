@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const MECH = path.join(ROOT, 'strategies', 'research', 'v2', 'falsification', 'mechanism');
-const { stableHash } = require(path.join(ROOT, 'strategies', 'research', 'v2', 'falsification', 'harness-lib', 'util.cjs'));
+const MECH = path.join(ROOT, 'legacy', 'strategies', 'research', 'v2', 'falsification', 'mechanism');
+const { stableHash } = require(path.join(ROOT, 'legacy', 'strategies', 'research', 'v2', 'falsification', 'harness-lib', 'util.cjs'));
 
 const ids = ['H-MECH-01', 'H-MECH-02', 'H-MECH-03'];
 
@@ -75,7 +75,7 @@ describe('mechanism hypothesis generation (round 1)', () => {
   });
 
   it('library experimentIntegrity records the round without touching core manifest', () => {
-    const lib = require(path.join(ROOT, 'strategies', 'strategy-library-v2.json'));
+    const lib = require(path.join(ROOT, 'analysis', 'strategy', 'strategy-library-v2.json'));
     const mp = lib.experimentIntegrity.mechanismProbes;
     assert.equal(mp.round, 1);
     assert.equal(mp.hypotheses.length, 3);

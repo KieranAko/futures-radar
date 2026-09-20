@@ -10,7 +10,7 @@ import {
   calculateStudentizedT,
   calculateMaxAbsT,
   calculateAdjustedPValue
-} from '../../lib/statistics.js';
+} from '../../shared/statistics.js';
 
 /**
  * Run E2 eligibility ablation experiment

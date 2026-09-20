@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { computeNearTermStructure } = require('../strategies/lib/near-term-structure.cjs');
+const { computeNearTermStructure } = require('../analysis/strategy/near-term-structure.cjs');
 
 function bar(date, high, low, close) {
   return { date, open: close, high, low, close };

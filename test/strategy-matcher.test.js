@@ -10,7 +10,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const matcher = require('../strategies/lib/strategy-matcher.cjs');
+const matcher = require('../analysis/strategy/strategy-matcher.cjs');
 const {
   buildStrategyPlan,
   validateLibrary,
@@ -24,8 +24,8 @@ const {
   loadStrategyRuntime
 } = matcher;
 const skillRoot = path.resolve(import.meta.dirname, '..');
-const libraryPath = path.join(skillRoot, 'strategies', 'strategy-library.json');
-const schemaPath = path.join(skillRoot, 'report', 'strategy-plan.schema.json');
+const libraryPath = path.join(skillRoot, 'analysis', 'strategy', 'strategy-library.json');
+const schemaPath = path.join(skillRoot, 'analysis', 'strategy', 'strategy-plan.schema.json');
 const RUN_ID = '20260827-1910-auto';
 
 const library = JSON.parse(fs.readFileSync(libraryPath, 'utf8'));
@@ -412,7 +412,7 @@ describe('strategy-matcher: 涨跌停幅度配置落地（Q6 数据精度）', (
 
 describe('strategy-matcher: 无网络/LLM 依赖（静态检查）', () => {
   it('源码不含网络与随机调用', () => {
-    const src = fs.readFileSync(path.join(skillRoot, 'strategies', 'lib', 'strategy-matcher.cjs'), 'utf8');
+    const src = fs.readFileSync(path.join(skillRoot, 'analysis', 'strategy', 'strategy-matcher.cjs'), 'utf8');
     const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, ''); // 去注释后检查
     assert.ok(!/https?:\/\//.test(code));
     assert.ok(!/Math\.random/.test(code));

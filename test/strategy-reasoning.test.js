@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { validateStrategyReasoning } = require('../strategies/strategy-reasoning-validate.cjs');
+const { validateStrategyReasoning } = require('../analysis/strategy/strategy-reasoning-validate.cjs');
 
 const reportModel = {
   opportunities: [

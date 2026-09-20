@@ -1,0 +1,96 @@
+{
+  "schema": "futures-radar-story-chain-indicators/2",
+  "description": "传导链节点指标目录：T0=文件库稳定源（确定性计算机已实现）；T1=已有采集器可扩展（需先实现计算机）；T2=WebSearch 检索源（须走 resolve 流程与可信度标注）。取数路径≠可信度：可信度按来源层级/新鲜度/交叉佐证独立推导。",
+  "sectors": [
+    "black",
+    "nonferrous",
+    "precious",
+    "energy_chemical",
+    "agriculture",
+    "new_materials",
+    "shipping"
+  ],
+  "indicators": {
+    "macro.DXY.change5d": {
+      "scope": "macro",
+      "name": "美元指数 5 日变化",
+      "unit": "points",
+      "source": "macro-snapshot.json DXY.change5d（run 模式）；legacy/strategies/signal-backtest/recordings/v4/macro-history.json（历史模式，5 日历日差）",
+      "path": "T0"
+    },
+    "macro.USDCNH.change5d": {
+      "scope": "macro",
+      "name": "离岸人民币 5 日变化",
+      "unit": "points",
+      "source": "macro-snapshot.json USDCNH.change5d；同上历史模式",
+      "path": "T0"
+    },
+    "macro.US10Y.change5d": {
+      "scope": "macro",
+      "name": "美债 10Y 收益率 5 日变化",
+      "unit": "bp",
+      "source": "macro-snapshot.json US10Y.change5d；同上历史模式",
+      "path": "T0"
+    },
+    "macro.DR007.change5d": {
+      "scope": "macro",
+      "name": "DR007 5 日变化",
+      "unit": "bp",
+      "source": "macro-snapshot.json DR007.change5d；同上历史模式",
+      "path": "T0"
+    },
+    "macro.SC0.change5d": {
+      "scope": "macro",
+      "name": "SC0 原油 5 交易日涨跌",
+      "unit": "%",
+      "source": "macro-snapshot.json SC0.change5d（run 模式）；data/daily/SC0.json close 5 交易日（历史模式）",
+      "path": "T0"
+    },
+    "sector.{sector}.index.ret5d": {
+      "scope": "sector",
+      "parameter": "sector",
+      "name": "板块指数 5 交易日收益",
+      "unit": "%",
+      "source": "sector-snapshot.json ret5d（run 模式）；data/daily 等权日收益链式重算（历史模式，与 sector-aggregator 同口径）",
+      "path": "T0"
+    },
+    "sector.{sector}.oi.flow5d": {
+      "scope": "sector",
+      "parameter": "sector",
+      "name": "板块持仓量 5 交易日变化率",
+      "unit": "%",
+      "source": "raw.json 成员 OI 求和（run 模式）；data/daily 成员 OI 求和（历史模式）",
+      "speed": {
+        "enabled": true,
+        "window": 60,
+        "threshold": 2.0,
+        "note": "历史模式可用：当前值对自身近 60 日序列的 z-score 超 ±2 时发出流速异常告警（不判死链）"
+      },
+      "path": "T0"
+    },
+    "sector.{sector}.rs5d": {
+      "scope": "sector",
+      "parameter": "sector",
+      "name": "板块相对强度（板块 5 日收益 − 全市场板块均值）",
+      "unit": "%",
+      "source": "sector-snapshot ret5d 减板块均值（run 模式）；历史模式同口径重算",
+      "path": "T0"
+    },
+    "symbol.{symbol}.price.ret5d": {
+      "scope": "symbol",
+      "parameter": "symbol",
+      "name": "品种 5 交易日涨跌",
+      "unit": "%",
+      "source": "raw.json / data/daily close",
+      "path": "T0"
+    },
+    "symbol.{symbol}.price.vs_ma20": {
+      "scope": "symbol",
+      "parameter": "symbol",
+      "name": "品种收盘相对 MA20 位置",
+      "unit": "sign(+1 上方 / -1 下方)",
+      "source": "raw.json / data/daily close 与 20 日均线",
+      "path": "T0"
+    }
+  }
+}

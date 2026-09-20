@@ -7,11 +7,11 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const { validatePlan } = require('../strategies/lib/strategy-matcher.cjs');
+const { validatePlan } = require('../analysis/strategy/strategy-matcher.cjs');
 
-const ROOT = path.resolve(__dirname, '..', 'strategies', 'signal-backtest');
+const ROOT = path.resolve(__dirname, '..', 'legacy', 'strategies', 'signal-backtest');
 const DIR = path.join(ROOT, 'recordings', 'v7', 'strategy-plans');
-const SCHEMA = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'report', 'strategy-plan.schema.json'), 'utf8'));
+const SCHEMA = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'analysis', 'strategy', 'strategy-plan.schema.json'), 'utf8'));
 
 describe('V7 production strategy-plan adapter', () => {
   it('produces 30 strategy plans that pass the production plan schema', () => {

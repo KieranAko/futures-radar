@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import pr from '../collector/probe-reuse.cjs';
+import pr from '../collection/probe-reuse.cjs';
 const { readFreshProbeIfValid } = pr;
 
 function makeProbe(checkedAt, verdict = 'ok') {

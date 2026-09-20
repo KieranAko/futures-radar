@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const { mergeSeries } = require(path.join(ROOT, 'collector', 'macro-history-builder.cjs'));
+const { mergeSeries } = require(path.join(ROOT, 'storage', 'macro-history-builder.cjs'));
 
 describe('macro-history-builder 文件库宏观历史合并', () => {
   it('同日快照按 fetchedAt 最新覆盖，最终按日期升序', () => {
