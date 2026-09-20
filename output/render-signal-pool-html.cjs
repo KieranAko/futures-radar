@@ -281,7 +281,7 @@ function lifecycleChart(sig, versions, bars) {
     }
     return out;
   };
-  // 背景区间块：失效区 / 实际波动区间 / 计划区间（触发↔止损）/ 目标区间（目标1↔目标2）
+  // 背景区间块：失效区 / 计划区间（触发↔止损）/ 目标区间（目标1↔目标2）
   if (stopPrice != null) {
     if (sig.direction === 'bullish') parts.push(zone(stopPrice, min + (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c'));
     else parts.push(zone(stopPrice, max - (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c'));
