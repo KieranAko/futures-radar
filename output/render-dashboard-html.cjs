@@ -24,8 +24,7 @@ const {
   statsTable,
   escapeHtml,
   signalPoolPanelsHtml,
-  signalClosedTableHtml,
-  signalPoolScript
+  signalClosedPanelsHtml
 } = require('./render-signal-pool-html.cjs');
 const { storyPoolHtml } = require('./render-story-pool-html.cjs');
 const storyChain = require('../stories/lib/story-chain.cjs');
@@ -588,7 +587,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   const oppHtml = opps.length ? oppLayout(opps, raw, mainSeries, signalDate, Object.fromEntries(planMap), storyMap) : storyWatchHtml(storyView);
   const barsOf = (s) => seriesBars(mainSeries, raw, s.symbol, s.contract);
   const poolPanels = signalPoolPanelsHtml(signalPoolView || {}, { storyThemes: storyThemeMap, barsOf });
-  const sigClosedTable = signalClosedTableHtml(signalPoolView || {}, { storyThemes: storyThemeMap, barsOf });
+  const sigClosedPanels = signalClosedPanelsHtml(signalPoolView || {}, { storyThemes: storyThemeMap, barsOf });
 
   const histRows = historyTable(history);
   const pagination = paginationControl(history.length, 10);
@@ -815,11 +814,15 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .tl-item.tl-bad .tl-dot { background: #b91c1c; box-shadow: 0 0 0 2px rgba(185,28,28,.2); }
   .tl-item.tl-pending .tl-dot { background: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,.18); }
   .tl-item.tl-skip .tl-dot { background: #cbd5e1; box-shadow: 0 0 0 2px rgba(203,213,225,.5); }
-  .tl-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
+  .tl-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
   .tl-item.tl-ok .tl-card { border-left: 3px solid #047857; }
   .tl-item.tl-bad .tl-card { border-left: 3px solid #b91c1c; }
   .tl-item.tl-skip .tl-card { background: #fbfcfd; }
   .tl-item.current .tl-card { border-color: #2563eb; background: #eef4ff; box-shadow: 0 0 0 2px rgba(37,99,235,.12); }
+  .tl-details > summary { list-style: none; cursor: pointer; padding: 9px 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tl-details > summary::-webkit-details-marker { display: none; }
+  .tl-chevron { color: var(--muted); font-size: 11px; transition: transform .15s ease; }
+  .tl-details[open] > summary .tl-chevron { transform: rotate(90deg); }
   .tl-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .tl-date { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
   .tl-state { font-size: 12px; font-weight: 600; color: #374151; }
@@ -827,7 +830,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .tl-dir.up { background: #fdeaea; color: var(--up); }
   .tl-dir.down { background: #e7f6ec; color: var(--down); }
   .tl-current-tag { background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
-  .tl-body { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .tl-body { padding: 8px 14px 10px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 4px; }
   .tl-row { display: flex; gap: 10px; font-size: 13px; line-height: 1.7; }
   .tl-label { flex: 0 0 52px; color: var(--muted); font-size: 12px; padding-top: 1px; }
   .tl-text { flex: 1; min-width: 0; word-break: break-word; }
@@ -837,13 +840,11 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .ver-chip.vc-ok { background: #ecfdf5; color: #047857; }
   .ver-chip.vc-bad { background: #fef2f2; color: #b91c1c; }
   .ver-chip.vc-skip { background: #f1f3f5; color: #6b7280; }
+  .sig-chart-block { margin: 10px 0 2px; }
+  .sig-chart-head { font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 4px; }
+  .sig-chart-block .lifecycle svg { max-height: 220px; }
+  .sig-chart-missing { border: 1px dashed var(--border); border-radius: 8px; padding: 12px; text-align: center; }
   .signal-obs { margin-top: 8px; font-size: 12px; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 6px; }
-  details.sig-extra { margin-top: 8px; border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; background: #fbfcfd; }
-  details.sig-extra summary { cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 600; }
-  .sig-extra-body { padding: 6px 0 2px; }
-  .sig-closed-table table { min-width: 780px; }
-  .sig-closed-row td.closed-theme { max-width: 240px; }
-  .sig-closed-row .muted { margin-left: 4px; }
   @media (max-width: 1080px) { .pool-layout { grid-template-columns: 1fr; } .pool-side { position: static; } }
 
   /* 故事池：最近出池 20 条——表头固定在滚动区外，滚动区初始约可见 5 行 */
@@ -1147,12 +1148,11 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
         <h2>池内信号（全量追踪）</h2>
         ${poolPanels}
         <h2>最近出池信号（最新 5 个）</h2>
-        ${sigClosedTable}
-        ${signalPoolScript()}
+        ${sigClosedPanels}
       </div>
       <aside class="pool-side">
         <div class="side-card"><h3>历史统计</h3>${statsTable(stats)}</div>
-        <div class="side-card"><h3>口径说明</h3><ul class="side-notes"><li>每个信号 = 一个面板：版本按时间轴纵向排布，一眼看到每期出了什么策略，无需展开</li><li>时间线圆点：绿=盈利终态 · 红=亏损终态 · 灰=未执行/跳过 · 蓝框=当前版本</li><li>入池：armed（生效观察）策略诞生信号；每期追加版本</li><li>出池：方向层 + 执行层两层归因，出池方式只做附注</li></ul></div>
+        <div class="side-card"><h3>口径说明</h3><ul class="side-notes"><li>池内与出池信号统一为同一种信号面板：版本时间线 + 价格轨迹图</li><li>时间线头部常显（版本/日期/状态/方向），点击展开完整策略文本；当前版本默认展开</li><li>时间线圆点：绿=盈利终态 · 红=亏损终态 · 灰=未执行/跳过 · 蓝框=当前版本</li><li>出池：方向层 + 执行层两层归因，出池方式只做附注</li></ul></div>
       </aside>
     </div>
   </section>

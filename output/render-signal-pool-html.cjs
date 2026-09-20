@@ -200,8 +200,10 @@ function lifecycleChart(sig, versions, bars) {
   const a = sig.anchor;
   if (!a) return '';
   const fullBars = Array.isArray(bars) ? bars : [];
-  let startIdx = fullBars.findIndex((b) => b.date === sig.createdDate);
-  if (startIdx === -1) startIdx = Math.max(0, fullBars.length - 40);
+  const createdIdx = fullBars.findIndex((b) => b.date === sig.createdDate);
+  const startIdx = createdIdx === -1
+    ? Math.max(0, fullBars.length - 40)
+    : Math.max(0, createdIdx - 30);
   const win = fullBars.slice(startIdx);
   if (win.length < 2) return '';
 
@@ -738,14 +740,17 @@ function signalTimelineItem(sig, v, isCurrent) {
   return `<div class="tl-item ${d.statusClass}${isCurrent ? ' current' : ''}">
     <span class="tl-dot"></span>
     <div class="tl-card">
-      <div class="tl-head">
-        <span class="ver-chip ${chipCls}">${escapeHtml(d.id)}</span>
-        <span class="tl-date">${escapeHtml(d.signalDate || '—')}</span>
-        <span class="tl-state">${escapeHtml(d.stateLabel)}</span>
-        <span class="tl-dir ${dirClass(sig.direction)}">${escapeHtml(dirText(sig.direction))}</span>
-        ${isCurrent ? '<span class="tl-current-tag">当前版本</span>' : ''}
-      </div>
-      <div class="tl-body">${rows.join('')}</div>
+      <details class="tl-details"${isCurrent ? ' open' : ''}>
+        <summary class="tl-head">
+          <span class="tl-chevron">▸</span>
+          <span class="ver-chip ${chipCls}">${escapeHtml(d.id)}</span>
+          <span class="tl-date">${escapeHtml(d.signalDate || '—')}</span>
+          <span class="tl-state">${escapeHtml(d.stateLabel)}</span>
+          <span class="tl-dir ${dirClass(sig.direction)}">${escapeHtml(dirText(sig.direction))}</span>
+          ${isCurrent ? '<span class="tl-current-tag">当前版本</span>' : ''}
+        </summary>
+        <div class="tl-body">${rows.join('')}</div>
+      </details>
     </div>
   </div>`;
 }
@@ -835,6 +840,7 @@ function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyThe
   }
   const timeline = signalTimelineHtml(sig, versions, { closed: isClosed });
   const chart = lifecycleChart(sig, versions, bars);
+  const chartHtml = chart || '<div class="sig-chart-missing muted">暂无价格序列，无法绘制价格轨迹。</div>';
   return `<div class="story-panel signal-panel ${isClosed ? 'is-closed' : ''}">
     <div class="story-panel-head">
       <span class="story-theme">${escapeHtml(sig.name || sig.symbol || '—')} <span class="muted">${escapeHtml(sig.symbol || '')}</span></span>
@@ -847,8 +853,8 @@ function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyThe
     ${priceLine}
     ${timeline}
     ${signalAnchorGrid(sig, { closed: isClosed })}
+    <div class="sig-chart-block"><div class="sig-chart-head">📈 价格轨迹</div>${chartHtml}</div>
     ${!isClosed ? signalObservationLine(sig) : ''}
-    ${chart ? `<details class="sig-extra"><summary>📈 价格轨迹</summary><div class="sig-extra-body">${chart}</div></details>` : ''}
   </div>`;
 }
 
@@ -864,53 +870,17 @@ function signalPoolPanelsHtml(view, opts = {}) {
   })).join('\n');
 }
 
-function signalClosedTableHtml(view, opts = {}) {
+function signalClosedPanelsHtml(view, opts = {}) {
   const closed = view && Array.isArray(view.recentClosed) ? view.recentClosed : [];
   const details = view && view.details ? view.details : {};
   const storyThemes = opts.storyThemes || {};
   const barsOf = typeof opts.barsOf === 'function' ? opts.barsOf : () => null;
   if (closed.length === 0) return '<p class="muted">暂无出池信号。</p>';
-  const rows = closed.map((s) => {
-    const d = details[s.signalId] || {};
-    const detailId = `sig-closed-detail-${s.signalId}`;
-    const dirAttribution = s.directionResult ? directionResultLabel(s.directionResult, s.directionEvidence) : (s.closeClass ? closeClassLabel(s.closeClass) : '—');
-    const execAttribution = s.executionResult ? executionResultLabel(s.executionResult, s.executionEvent) : '—';
-    const panel = signalPanelHtml(s, d, {
-      closed: true,
-      storyTheme: storyThemes[s.storyChainId] || null,
-      bars: barsOf(s)
-    });
-    return `<tr class="closed-row sig-closed-row status-${escapeHtml(s.poolStatus || 'closed')}" data-detail-id="${escapeHtml(detailId)}" title="点击展开/折叠">
-      <td><span class="row-chevron">▸</span><b>${escapeHtml(s.name || s.symbol || '—')}</b> <span class="muted">${escapeHtml(s.symbol || '')}</span></td>
-      <td class="${dirClass(s.direction)}">${escapeHtml(dirText(s.direction))}</td>
-      <td>${escapeHtml(s.createdDate || '—')}</td>
-      <td>${escapeHtml(s.closedAt ? String(s.closedAt).slice(0, 10) : '—')}</td>
-      <td>${escapeHtml(dirAttribution)}</td>
-      <td>${escapeHtml(execAttribution)}</td>
-      <td class="num">${s.versionCount != null ? s.versionCount : (d.versions ? d.versions.length : 0)}</td>
-    </tr>
-    <tr class="closed-detail-row sig-closed-detail-row" id="${escapeHtml(detailId)}" style="display:none"><td colspan="7">${panel}</td></tr>`;
-  }).join('');
-  return `<div class="closed-table sig-closed-table">
-    <div class="closed-head-wrap"><table class="stats closed-head"><tr><th>品种</th><th>方向</th><th>入池</th><th>出池</th><th>方向层</th><th>执行层</th><th>版本</th></tr></table></div>
-    <div class="closed-scroll"><table class="stats closed-body">${rows}</table></div>
-  </div>`;
-}
-
-function signalPoolScript() {
-  return `<script>
-(function () {
-  document.querySelectorAll('.sig-closed-row').forEach(function (row) {
-    row.addEventListener('click', function () {
-      var d = document.getElementById(row.getAttribute('data-detail-id'));
-      if (!d) return;
-      var open = d.style.display !== 'none';
-      if (open) { d.style.display = 'none'; d.classList.remove('open'); row.classList.remove('open'); }
-      else { d.style.display = 'table-row'; d.classList.add('open'); row.classList.add('open'); }
-    });
-  });
-})();
-</script>`;
+  return closed.map((s) => signalPanelHtml(s, details[s.signalId] || {}, {
+    closed: true,
+    storyTheme: storyThemes[s.storyChainId] || null,
+    bars: barsOf(s)
+  })).join('\n');
 }
 
 function main() {
@@ -930,8 +900,7 @@ module.exports = {
   fieldRow,
   signalPanelHtml,
   signalPoolPanelsHtml,
-  signalClosedTableHtml,
-  signalPoolScript,
+  signalClosedPanelsHtml,
   signalAnchorGrid,
   main
 };

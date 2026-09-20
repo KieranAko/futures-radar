@@ -49,13 +49,28 @@ function makeSignalPoolView() {
     regime: { grade: 'elevated', direction: 'rising' },
     verification: { status: 'verified', terminal: true, lastResult: { status: 'verified', exitType: 'time_exit', directionCorrect: true } }
   };
+  const closed = {
+    ...sig,
+    signalId: 'SIG-PP0-CLOSED-01',
+    poolStatus: 'closed',
+    closedAt: '2026-09-16',
+    closeReason: 'faded',
+    closeClass: 'direction_hit_noexec',
+    directionResult: 'hit',
+    directionEvidence: 'close_favorable',
+    executionResult: 'noexec',
+    executionEvent: 'gap_skipped'
+  };
   return {
     schema: 'futures-radar-signal-pool-view/1',
     meta: { runId: 'r1' },
     pool: [sig],
-    recentClosed: [],
-    historyStats: { totalClosed: 0, byCloseReason: {}, byVerdict: {} },
-    details: { 'SIG-PP0-20260910-01': { ...sig, versions: [version] } }
+    recentClosed: [closed],
+    historyStats: { totalClosed: 1, byCloseReason: {}, byVerdict: {} },
+    details: {
+      'SIG-PP0-20260910-01': { ...sig, versions: [version] },
+      'SIG-PP0-CLOSED-01': { ...closed, versions: [version] }
+    }
   };
 }
 
@@ -152,16 +167,18 @@ describe('dashboard-html 四 Tab 看板', () => {
     assert.ok(html.includes('涨跌停幅度 4%'));
   });
 
-  it('信号池 tab 采用故事池式面板与版本时间线', () => {
+  it('信号池 tab 采用统一信号面板：折叠版本时间线 + 价格轨迹图', () => {
     const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [] });
     assert.ok(html.includes('池内信号（全量追踪）'));
     assert.ok(html.includes('class="story-panel signal-panel'));
     assert.ok(html.includes('class="sig-timeline"'));
     assert.ok(html.includes('tl-item tl-bad current'));
+    assert.ok(html.includes('class="tl-details" open'));
     assert.ok(html.includes('tl-row'));
     assert.ok(html.includes('回踩 8798–8845'));
     assert.ok(html.includes('tl-current-tag'));
-    assert.ok(html.includes('sig-closed-table'));
+    assert.ok(html.includes('sig-chart-block'));
+    assert.ok(html.includes('signal-panel is-closed'));
   });
 
   it('机会卡片含价格趋势图/区间条/多空面板/chips', () => {
