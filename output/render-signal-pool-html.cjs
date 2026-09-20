@@ -851,10 +851,10 @@ function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyThe
     </div>
     ${sig.thesis ? `<div class="story-subtitle">${escapeHtml(typeof sig.thesis === 'string' ? sig.thesis : (sig.thesis.summary || ''))}</div>` : ''}
     ${priceLine}
-    ${timeline}
-    ${signalAnchorGrid(sig, { closed: isClosed })}
     <div class="sig-chart-block"><div class="sig-chart-head">📈 价格轨迹</div>${chartHtml}</div>
     ${!isClosed ? signalObservationLine(sig) : ''}
+    ${signalAnchorGrid(sig, { closed: isClosed })}
+    ${timeline}
   </div>`;
 }
 
