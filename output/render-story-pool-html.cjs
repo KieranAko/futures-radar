@@ -99,15 +99,121 @@ function nodeRow(n) {
   </div>`;
 }
 
-function chainCard(c) {
-  const confirmed = (c.nodes || []).filter((n) => n.status === 'confirmed').length;
-  const total = c.nodes ? c.nodes.length : 0;
-  const dir = c.direction === -1 ? '🔻 空' : c.direction === 1 ? '🔺 多' : '—';
-  const unresolved = c.unresolvedNodes ? ` · 🔍 未解析 ${c.unresolvedNodes}` : '';
+function short(s, n) {
+  const t = String(s ?? '');
+  return t.length > n ? t.slice(0, n - 1) + '…' : t;
+}
+
+function jsonAttr(obj) {
+  return JSON.stringify(obj).replace(/'/g, '&#39;');
+}
+
+function computeLayers(nodes, edges) {
+  const ids = nodes.map((n) => n.id);
+  const indeg = new Map(ids.map((id) => [id, 0]));
+  const adj = new Map(ids.map((id) => [id, []]));
+  for (const e of edges || []) {
+    if (!e || !e.from || !e.to) continue;
+    indeg.set(e.to, (indeg.get(e.to) || 0) + 1);
+    adj.get(e.from).push(e.to);
+  }
+  const depth = new Map();
+  const queue = ids.filter((id) => indeg.get(id) === 0);
+  queue.forEach((id) => depth.set(id, 0));
+  while (queue.length) {
+    const id = queue.shift();
+    for (const to of adj.get(id) || []) {
+      indeg.set(to, indeg.get(to) - 1);
+      depth.set(to, Math.max(depth.get(to) || 0, (depth.get(id) || 0) + 1));
+      if (indeg.get(to) === 0) queue.push(to);
+    }
+  }
+  if (depth.size !== ids.length) ids.forEach((id, i) => depth.set(id, depth.has(id) ? depth.get(id) : i));
+  const layers = new Map();
+  for (const id of ids) {
+    const d = depth.get(id);
+    if (!layers.has(d)) layers.set(d, []);
+    layers.get(d).push(id);
+  }
+  return { depth, layers };
+}
+
+function nodeSvg(n, x, y, sourceId, markerId) {
+  const w = 148, h = 54;
+  const isSource = n.id === sourceId;
+  const isTerminal = !!n.terminal;
+  const status = n.status || 'pending';
+  let fill, stroke, text;
+  if (status === 'broken') { fill = '#fef2f2'; stroke = '#b91c1c'; text = '#7f1d1d'; }
+  else if (status === 'confirmed') { fill = '#ecfdf5'; stroke = '#047857'; text = '#065f46'; }
+  else if (isTerminal && n.priority === 'primary') { fill = '#eef2ff'; stroke = '#6366f1'; text = '#3730a3'; }
+  else if (isTerminal && n.priority === 'secondary') { fill = '#f3f4f6'; stroke = '#9ca3af'; text = '#374151'; }
+  else if (isSource) { fill = '#1f2937'; stroke = '#1f2937'; text = '#ffffff'; }
+  else { fill = '#f8fafc'; stroke = '#cbd5e1'; text = '#334155'; }
+  const label = n.label || n.id;
+  const sub = n.indicatorId || n.concept || '';
+  const dir = n.expectation === 1 ? '↑' : n.expectation === -1 ? '↓' : '';
+  const statusShort = status === 'confirmed' ? '✔' : status === 'broken' ? '✘' : '·';
+  return `<g class="sg-node" data-id="${escapeHtml(n.id)}" transform="translate(${x},${y})" style="cursor:pointer">
+    <rect width="${w}" height="${h}" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="${isTerminal ? 2 : 1.5}"></rect>
+    <text x="10" y="21" font-size="12" font-weight="700" fill="${text}">${escapeHtml(short(label, 10))}</text>
+    <text x="10" y="36" font-size="9" fill="${text}" opacity="0.75">${escapeHtml(short(sub, 20))}</text>
+    <text x="${w - 10}" y="21" font-size="11" fill="${text}" text-anchor="end">${dir}${statusShort}</text>
+    ${isTerminal ? `<text x="10" y="49" font-size="9" fill="${text}" opacity="0.9">${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}</text>` : ''}
+  </g>`;
+}
+
+function edgeSvg(e, fromPos, toPos, markerId) {
+  const x1 = fromPos.x + 148, y1 = fromPos.y + 27;
+  const x2 = toPos.x, y2 = toPos.y + 27;
+  const dx = Math.max(36, (x2 - x1) * 0.45);
+  return `<path class="sg-edge" data-from="${escapeHtml(e.from)}" data-to="${escapeHtml(e.to)}" d="M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#${markerId})"></path>`;
+}
+
+function storyGraphHtml(c) {
+  const nodes = c.nodes || [];
+  const edges = c.edges || [];
+  const sourceId = nodes[0] && nodes[0].id;
+  const { layers } = computeLayers(nodes, edges);
+  const nodeW = 148, nodeH = 54, gapX = 138, gapY = 16;
+  const maxLayer = Math.max(...[...layers.keys()].map(Number));
+  const maxCount = Math.max(...[...layers.values()].map((a) => a.length));
+  const svgW = Math.max(320, (maxLayer + 1) * (nodeW + gapX) + 12);
+  const svgH = Math.max(90, maxCount * (nodeH + gapY) + 12);
+  const pos = new Map();
+  for (const [d, ids] of layers) {
+    ids.forEach((id, i) => {
+      pos.set(id, { x: 10 + Number(d) * (nodeW + gapX), y: 10 + i * (nodeH + gapY) });
+    });
+  }
+  const markerId = `sg-arrow-${String(c.chainId).replace(/[^A-Za-z0-9_-]/g, '')}`;
+  const svgNodes = nodes.map((n) => nodeSvg(n, pos.get(n.id).x, pos.get(n.id).y, sourceId, markerId));
+  const svgEdges = edges.map((e) => edgeSvg(e, pos.get(e.from), pos.get(e.to), markerId));
+  const graphNodes = nodes.map((n) => ({
+    id: n.id, label: n.label || n.id, indicatorId: n.indicatorId || n.concept || '',
+    status: n.status, terminal: !!n.terminal, priority: n.priority || null, proofIndex: n.proofIndex ?? null,
+    expectation: n.expectation, credibility: n.credibility, unit: n.unit || '',
+    lastValue: n.lastValue ?? null, lastValueAt: n.lastValueAt || null,
+    prevValue: n.prevValue ?? null, prevValueAt: n.prevValueAt || null,
+    observedAt: n.observedAt || null, windowStartDate: n.windowStartDate || null,
+    windowDeadlineDate: n.windowDeadlineDate || null, brokenReason: n.brokenReason || null,
+  }));
+  const graphEdges = edges.map((e) => ({ from: e.from, to: e.to, logic: e.logic || '', latencyDays: e.latencyDays }));
+  return `<div class="story-graph" data-nodes='${jsonAttr(graphNodes)}' data-edges='${jsonAttr(graphEdges)}'>
+    <svg viewBox="0 0 ${svgW} ${svgH}" class="sg-svg">
+      <defs><marker id="${markerId}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"></path></marker></defs>
+      ${svgEdges.join('')}
+      ${svgNodes.join('')}
+    </svg>
+    <div class="sg-detail"></div>
+  </div>`;
+}
+
+function branchSummaryHtml(c) {
   const branches = (c.branches && c.branches.length > 0)
     ? c.branches
     : [{ branchId: null, symbol: c.representative, direction: c.direction, priority: 'primary', status: c.status, proofIndex: c.entryProofIndex, impactRationale: null }];
-  const branchHtml = branches.map((b) => {
+  const rows = branches.map((b) => {
     const bDir = b.direction === -1 ? '🔻 空' : b.direction === 1 ? '🔺 多' : '—';
     return `<div class="story-branch">
       <span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span>
@@ -118,6 +224,109 @@ function chainCard(c) {
       ${b.impactRationale ? `<div class="muted">${escapeHtml(b.impactRationale)}</div>` : ''}
     </div>`;
   }).join('');
+  return `<div class="story-branches">${rows}</div>`;
+}
+
+function graphScript() {
+  return `<script>
+(function () {
+  function short(s, n) { s = String(s == null ? '' : s); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+  function byId(nodes, id) { return nodes.find(function (n) { return n.id === id; }); }
+  function setOf(ids) { var s = {}; ids.forEach(function (id) { s[id] = 1; }); return s; }
+  function ancestors(id, edges) {
+    var out = [id], seen = setOf(out), changed = true;
+    while (changed) {
+      changed = false;
+      edges.forEach(function (e) {
+        if (seen[e.to] && !seen[e.from]) { seen[e.from] = 1; out.push(e.from); changed = true; }
+      });
+    }
+    return out;
+  }
+  function descendants(id, edges) {
+    var out = [id], seen = setOf(out), changed = true;
+    while (changed) {
+      changed = false;
+      edges.forEach(function (e) {
+        if (seen[e.from] && !seen[e.to]) { seen[e.to] = 1; out.push(e.to); changed = true; }
+      });
+    }
+    return out;
+  }
+  document.querySelectorAll('.story-graph').forEach(function (g) {
+    var nodes, edges, detail;
+    try { nodes = JSON.parse(g.getAttribute('data-nodes')); edges = JSON.parse(g.getAttribute('data-edges')); } catch (e) { return; }
+    var nodeEls = g.querySelectorAll('.sg-node');
+    var edgeEls = g.querySelectorAll('.sg-edge');
+    detail = g.querySelector('.sg-detail');
+    function clearDim() {
+      nodeEls.forEach(function (n) { n.classList.remove('sg-dim'); });
+      edgeEls.forEach(function (e) { e.classList.remove('sg-dim'); });
+    }
+    function highlightPath(id) {
+      var pathIds = setOf(ancestors(id, edges).concat(descendants(id, edges)));
+      nodeEls.forEach(function (n) { n.classList.toggle('sg-dim', !pathIds[n.getAttribute('data-id')]); });
+      edgeEls.forEach(function (e) {
+        var on = pathIds[e.getAttribute('data-from')] && pathIds[e.getAttribute('data-to')];
+        e.classList.toggle('sg-dim', !on);
+      });
+    }
+    function showNodeDetail(n) {
+      var rows = [];
+      rows.push('<div class="sg-detail-head"><b>' + short(n.label, 24) + '</b><button class="sg-detail-close" aria-label="关闭">×</button></div>');
+      rows.push('<div class="sg-detail-row"><span>节点</span><b>' + short(n.id, 20) + '</b></div>');
+      rows.push('<div class="sg-detail-row"><span>指标</span><b>' + short(n.indicatorId, 30) + '</b></div>');
+      rows.push('<div class="sg-detail-row"><span>状态</span><b>' + short(n.status, 10) + (n.terminal ? ' · ' + (n.priority === 'primary' ? '主支' : '次支') : '') + '</b></div>');
+      rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : '—') + '</b></div>');
+      if (n.lastValue != null) {
+        rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + n.lastValue + (n.unit ? ' ' + n.unit : '') + '（' + short(n.lastValueAt, 10) + '）</b></div>');
+        rows.push('<div class="sg-detail-row"><span>前值 → 当前</span><b>' + (n.prevValue != null ? n.prevValue : '—') + ' → ' + n.lastValue + '</b></div>');
+      }
+      if (n.windowStartDate) rows.push('<div class="sg-detail-row"><span>观察窗口</span><b>' + n.windowStartDate + ' → ' + (n.windowDeadlineDate || '—') + '</b></div>');
+      if (n.brokenReason) rows.push('<div class="sg-detail-row"><span>断裂原因</span><b>' + short(n.brokenReason, 30) + '</b></div>');
+      detail.innerHTML = '<div class="sg-detail-card">' + rows.join('') + '</div>';
+    }
+    function showEdgeDetail(e, from, to) {
+      detail.innerHTML = '<div class="sg-detail-card">'
+        + '<div class="sg-detail-head"><b>传导边 ' + short(from.label, 10) + ' → ' + short(to.label, 10) + '</b><button class="sg-detail-close" aria-label="关闭">×</button></div>'
+        + '<div class="sg-detail-row"><span>逻辑</span><b>' + short(e.logic, 60) + '</b></div>'
+        + '<div class="sg-detail-row"><span>时间窗</span><b>' + e.latencyDays + ' 个交易日</b></div>'
+        + '</div>';
+    }
+    nodeEls.forEach(function (n) {
+      n.addEventListener('mouseenter', function () { highlightPath(n.getAttribute('data-id')); });
+      n.addEventListener('mouseleave', clearDim);
+      n.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        var node = byId(nodes, n.getAttribute('data-id'));
+        if (node) showNodeDetail(node);
+      });
+    });
+    edgeEls.forEach(function (e) {
+      e.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        var from = byId(nodes, e.getAttribute('data-from'));
+        var to = byId(nodes, e.getAttribute('data-to'));
+        var edge = edges.find(function (x) { return x.from === e.getAttribute('data-from') && x.to === e.getAttribute('data-to'); });
+        if (edge && from && to) showEdgeDetail(edge, from, to);
+      });
+    });
+    g.addEventListener('click', function (ev) {
+      if (ev.target && ev.target.classList && ev.target.classList.contains('sg-detail-close')) { detail.innerHTML = ''; }
+    });
+  });
+})();
+</script>`;
+}
+
+function chainCard(c) {
+  const confirmed = (c.nodes || []).filter((n) => n.status === 'confirmed').length;
+  const total = c.nodes ? c.nodes.length : 0;
+  const dir = c.direction === -1 ? '🔻 空' : c.direction === 1 ? '🔺 多' : '—';
+  const unresolved = c.unresolvedNodes ? ` · 🔍 未解析 ${c.unresolvedNodes}` : '';
+  const branches = (c.branches && c.branches.length > 0)
+    ? c.branches
+    : [{ branchId: null, symbol: c.representative, direction: c.direction, priority: 'primary', status: c.status, proofIndex: c.entryProofIndex, impactRationale: null }];
   const events = (c.events || []).slice(-5).map((e) =>
     `<div class="story-event"><span class="event-date">${escapeHtml(e.date || '')}</span> · <b>${EVENT_LABEL[e.type] || escapeHtml(e.type || '')}</b>${e.nodeId ? ` · 节点 ${escapeHtml(e.nodeId)}` : ''}：${escapeHtml(e.detail || '')}</div>`
   ).join('');
@@ -137,7 +346,8 @@ function chainCard(c) {
   </summary>
   <div class="story-body">
     ${c.themeDetail ? `<div class="story-subtitle">${escapeHtml(c.themeDetail)}</div>` : ''}
-    <div class="story-branches">${branchHtml}</div>
+    ${storyGraphHtml(c)}
+    ${branchSummaryHtml(c)}
     <div class="story-progress"><div class="story-progress-fill" style="width:${total ? Math.round(confirmed / total * 100) : 0}%"></div></div>
     <div class="story-nodes">${(c.nodes || []).map(nodeRow).join('')}</div>
     <div class="story-events">${events || '<span class="muted">暂无事件</span>'}</div>
@@ -202,7 +412,8 @@ function storyPoolHtml(view) {
         <li>proven 链下期进入生产席位，经策略计划进入信号池前向验证（linkedSignalId 回链）</li>
       </ul></div>
     </aside>
-  </div>`;
+  </div>
+  ${graphScript()}`;
 }
 
 module.exports = { storyPoolHtml, escapeHtml };

@@ -1353,7 +1353,11 @@ function buildView({ root = null } = {}) {
           prevValue: n.prevValue, prevValueAt: n.prevValueAt,
           resolution: n.resolution ? { path: n.resolution.path, sourceTier: n.resolution.sourceTier, asOf: n.resolution.asOf } : null,
           terminal: !!n.terminal,
+          priority: n.terminal ? (n.priority || 'secondary') : null,
+          impactRationale: n.terminal ? (n.impactRationale || null) : null,
+          proofIndex: n.terminal ? (n.proofIndex || null) : null,
         })),
+        edges: (c.edges || []).map((e) => ({ from: e.from, to: e.to, logic: e.logic, latencyDays: e.latencyDays })),
         events: c.events.slice(-5),
       };
     })

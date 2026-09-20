@@ -751,6 +751,17 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .story-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; margin-top: 6px; }
   .story-body { border-top: 1px solid var(--border); padding: 12px 16px; }
   .story-subtitle { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+  .story-graph { position: relative; margin: 4px 0 10px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: #fbfcfd; overflow-x: auto; }
+  .sg-svg { display: block; min-width: 320px; }
+  .sg-node { transition: opacity .15s ease; }
+  .sg-edge { transition: opacity .15s ease; cursor: pointer; }
+  .sg-dim { opacity: 0.18; }
+  .sg-detail { position: absolute; top: 10px; right: 10px; max-width: 280px; z-index: 5; }
+  .sg-detail-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(15,23,42,.12); padding: 10px 12px; font-size: 12px; }
+  .sg-detail-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+  .sg-detail-close { border: none; background: transparent; font-size: 16px; line-height: 1; cursor: pointer; color: var(--muted); }
+  .sg-detail-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; color: var(--muted); }
+  .sg-detail-row b { color: var(--text); font-weight: 600; text-align: right; }
   .story-branches { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
   .story-branch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: #fafbfc; }
   .branch-priority { font-size: 11px; padding: 1px 6px; border-radius: 4px; }
