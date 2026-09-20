@@ -53,8 +53,37 @@ function regimePill(regime) {
   return `<span class="pill ${escapeHtml(grade)}">波动 ${escapeHtml(grade)} ${arrow}</span>`;
 }
 
-function statCard(icon, label, value, tone = 'blue') {
-  return `<div class="stat"><span class="stat-icon ${tone}">${icon}</span><div class="stat-meta"><b>${value}</b><span>${label}</span></div></div>`;
+function statCard(icon, label, value, tone = 'blue', delta = null) {
+  const d = delta === null || delta === undefined ? '' : `<em class="stat-delta ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}">${delta > 0 ? '+' : ''}${delta} vs 上期</em>`;
+  return `<div class="stat"><span class="stat-icon ${tone}">${icon}</span><div class="stat-meta"><b>${value}</b><span>${label}${d}</span></div></div>`;
+}
+
+function kpiSnapshotDir() { return path.join(skillRoot, 'data', 'dashboard-kpi'); }
+function kpiSnapshotPath(date) { return path.join(kpiSnapshotDir(), `${date}.json`); }
+function loadKpiSnapshot(date) {
+  if (!date) return null;
+  return readJSON(kpiSnapshotPath(date), null);
+}
+function previousKpiSnapshot(date) {
+  const dir = kpiSnapshotDir();
+  if (!date || !fs.existsSync(dir)) return null;
+  const files = fs.readdirSync(dir).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
+  for (let i = files.length - 1; i >= 0; i--) {
+    const d = files[i].replace(/\.json$/, '');
+    if (d < date) return readJSON(path.join(dir, files[i]), null);
+  }
+  return null;
+}
+function writeKpiSnapshot(date, snapshot) {
+  if (!date) return;
+  fs.mkdirSync(kpiSnapshotDir(), { recursive: true });
+  fs.writeFileSync(kpiSnapshotPath(date), JSON.stringify(snapshot, null, 2) + '\n', 'utf8');
+}
+function deltaOf(cur, prev, key) {
+  const c = cur == null ? 0 : Number(cur) || 0;
+  const p = prev == null ? null : Number(prev);
+  if (p == null || !Number.isFinite(p)) return null;
+  return Math.round((c - p) * 100) / 100;
 }
 
 function sma(values, period) {
@@ -343,7 +372,7 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}) 
   if (cr.uncertainties && cr.uncertainties.length) detail.push(`<h4>不确定项</h4><ul>${cr.uncertainties.map((u) => `<li>${escapeHtml(u)}</li>`).join('')}</ul>`);
 
   const story = opp.storyChainId ? (storyMap[opp.storyChainId] || null) : null;
-  return `<article class="opp-pane ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}">
+  return `<article class="opp-pane ${active ? 'active' : ''} dir-${escapeHtml(dir)}" data-opp="${escapeHtml(opp.symbol)}">
     <div class="instr-head">
       <div class="instr-title">
         <div class="instr-name">${escapeHtml(opp.name || opp.symbol)} <span class="muted">（${escapeHtml(opp.contract || opp.symbol)}）</span></div>
@@ -507,7 +536,7 @@ function signalTableRowsHtml(signals, { closed = false, details = {}, mainSeries
       ? (s.closedAt ? String(s.closedAt).slice(0, 10) : '—')
       : (s.lastSeenDate || '—');
     const ver = s.versionCount != null ? s.versionCount : (sig.versions ? sig.versions.length : 0);
-    const card = signalCard(sig, { closed, bars });
+    const card = signalCard(sig, { closed, bars }).replace('<details class="card', '<details class="card" open');
     rows.push(`<tr class="signal-row${closed ? ' closed' : ''}" data-detail-id="${escapeHtml(detailId)}" title="点击展开/折叠">
       <td><span class="row-chevron">▸</span><b>${escapeHtml(s.signalId)}</b></td>
       <td>${escapeHtml(s.name || s.symbol)} <span class="muted">${escapeHtml(s.symbol)}</span></td>
@@ -544,16 +573,62 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   for (const c of [...((storyView && storyView.active) || []), ...((storyView && storyView.recentClosed) || [])]) {
     if (c && c.chainId) storyMap[c.chainId] = c;
   }
+  const downgradedCount = pool.filter((s) => s.poolStatus === 'downgraded').length;
+  const activeCount = pool.length - downgradedCount;
+  const storyStats = (storyView && storyView.stats) || {};
+  const kpiCurrent = {
+    signalDate: signalDate || null,
+    stories: {
+      totalChains: storyStats.totalChains || 0,
+      resolvingChains: storyStats.resolvingChains || 0,
+      provenChains: storyStats.provenChains || 0,
+      falsifiedChains: storyStats.falsifiedChains || 0,
+      nodeHitRate: storyStats.nodeHitRate != null ? Math.round(storyStats.nodeHitRate * 100) : null,
+    },
+    opportunities: {
+      total: opps.length,
+      bullish: opps.filter((o) => o.thesis && o.thesis.finalDirection === 'bullish').length,
+      bearish: opps.filter((o) => o.thesis && o.thesis.finalDirection === 'bearish').length,
+      signalPoolCount: pool.length,
+    },
+    signals: {
+      pool: pool.length,
+      active: activeCount,
+      downgraded: downgradedCount,
+      totalClosed: stats.totalClosed == null ? 0 : stats.totalClosed,
+    },
+  };
+  const kpiPrev = previousKpiSnapshot(signalDate);
+  const kpiDeltas = {
+    stories: kpiPrev ? {
+      totalChains: deltaOf(kpiCurrent.stories.totalChains, kpiPrev.stories && kpiPrev.stories.totalChains),
+      resolvingChains: deltaOf(kpiCurrent.stories.resolvingChains, kpiPrev.stories && kpiPrev.stories.resolvingChains),
+      provenChains: deltaOf(kpiCurrent.stories.provenChains, kpiPrev.stories && kpiPrev.stories.provenChains),
+      falsifiedChains: deltaOf(kpiCurrent.stories.falsifiedChains, kpiPrev.stories && kpiPrev.stories.falsifiedChains),
+      nodeHitRate: deltaOf(kpiCurrent.stories.nodeHitRate, kpiPrev.stories && kpiPrev.stories.nodeHitRate),
+    } : null,
+    opportunities: kpiPrev ? {
+      total: deltaOf(kpiCurrent.opportunities.total, kpiPrev.opportunities && kpiPrev.opportunities.total),
+      bullish: deltaOf(kpiCurrent.opportunities.bullish, kpiPrev.opportunities && kpiPrev.opportunities.bullish),
+      bearish: deltaOf(kpiCurrent.opportunities.bearish, kpiPrev.opportunities && kpiPrev.opportunities.bearish),
+      signalPoolCount: deltaOf(kpiCurrent.opportunities.signalPoolCount, kpiPrev.opportunities && kpiPrev.opportunities.signalPoolCount),
+    } : null,
+    signals: kpiPrev ? {
+      pool: deltaOf(kpiCurrent.signals.pool, kpiPrev.signals && kpiPrev.signals.pool),
+      active: deltaOf(kpiCurrent.signals.active, kpiPrev.signals && kpiPrev.signals.active),
+      downgraded: deltaOf(kpiCurrent.signals.downgraded, kpiPrev.signals && kpiPrev.signals.downgraded),
+      totalClosed: deltaOf(kpiCurrent.signals.totalClosed, kpiPrev.signals && kpiPrev.signals.totalClosed),
+    } : null,
+  };
+  if (signalDate) writeKpiSnapshot(signalDate, kpiCurrent);
+
   const oppHtml = opps.length ? oppLayout(opps, raw, mainSeries, signalDate, Object.fromEntries(planMap), storyMap) : storyWatchHtml(storyView);
   const poolTable = signalTableHtml(pool, { details, mainSeries, raw });
   const closedTable = signalTableHtml(recentClosed, { closed: true, details, mainSeries, raw });
 
-  const downgradedCount = pool.filter((s) => s.poolStatus === 'downgraded').length;
-  const activeCount = pool.length - downgradedCount;
-
   const histRows = historyTable(history);
   const pagination = paginationControl(history.length, 10);
-  const storyHtml = storyPoolHtml(storyView || { stats: {}, active: [], recentClosed: [] });
+  const storyHtml = storyPoolHtml(storyView || { stats: {}, active: [], recentClosed: [] }, kpiDeltas.stories);
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -613,6 +688,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .stat-icon.gray { background: #f1f3f5; }
   .stat-meta b { display: block; font-size: 19px; line-height: 1.3; font-variant-numeric: tabular-nums; }
   .stat-meta span { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .stat-delta { display: inline-block; margin-left: 6px; font-style: normal; font-size: 11px; color: var(--muted); }
+  .stat-delta.up { color: var(--up); }
+  .stat-delta.down { color: var(--down); }
 
   section h2 { font-size: 15px; margin: 20px 0 10px; padding: 8px 12px; border: 1px solid var(--border); border-left: 3px solid var(--accent); background: var(--card); border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
 
@@ -645,6 +723,9 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .nav-sub { display: block; font-size: 12px; color: var(--muted); line-height: 1.5; }
   .opp-pane { display: none; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
   .opp-pane.active { display: block; }
+  .opp-pane.dir-bullish { border-left: 3px solid var(--up); }
+  .opp-pane.dir-bearish { border-left: 3px solid var(--down); }
+  .opp-pane.dir-neutral { border-left: 3px solid #9ca3af; }
 
   .instr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
   .instr-name { font-size: 17px; font-weight: 700; }
@@ -974,20 +1055,20 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
     <div class="market-strip"><div class="market-row"><span class="market-label">宏观</span>${macroStrip(reportModel)}</div><div class="market-row"><span class="market-label">板块</span>${sectorBadges(reportModel)}</div><div class="market-row market-fresh">${freshnessLine(reportModel)}</div></div>
     <div class="action-strip">${actionStrip(strategyPlan, signalPoolView)}</div>
     <div class="summary-bar">
-      ${statCard('📈', '本期机会', opps.length, 'blue')}
-      ${statCard('↑', '看多', opps.filter((o) => o.thesis && o.thesis.finalDirection === 'bullish').length, 'red')}
-      ${statCard('↓', '看空', opps.filter((o) => o.thesis && o.thesis.finalDirection === 'bearish').length, 'green')}
-      ${statCard('⚠️', '信号池内', pool.length, 'gray')}
+      ${statCard('📈', '本期机会', opps.length, 'blue', kpiDeltas.opportunities ? kpiDeltas.opportunities.total : null)}
+      ${statCard('↑', '看多', opps.filter((o) => o.thesis && o.thesis.finalDirection === 'bullish').length, 'red', kpiDeltas.opportunities ? kpiDeltas.opportunities.bullish : null)}
+      ${statCard('↓', '看空', opps.filter((o) => o.thesis && o.thesis.finalDirection === 'bearish').length, 'green', kpiDeltas.opportunities ? kpiDeltas.opportunities.bearish : null)}
+      ${statCard('⚠️', '信号池内', pool.length, 'gray', kpiDeltas.opportunities ? kpiDeltas.opportunities.signalPoolCount : null)}
     </div>
     ${oppHtml}
   </section>
 
   <section id="tab-pool" class="tab-panel">
     <div class="summary-bar">
-      ${statCard('📊', '池内信号', pool.length, 'blue')}
-      ${statCard('🟢', '追踪中', activeCount, 'green')}
-      ${statCard('🟡', '非生效观察', downgradedCount, 'gray')}
-      ${statCard('📦', '历史已出池', stats.totalClosed == null ? 0 : stats.totalClosed, 'red')}
+      ${statCard('📊', '池内信号', pool.length, 'blue', kpiDeltas.signals ? kpiDeltas.signals.pool : null)}
+      ${statCard('🟢', '追踪中', activeCount, 'green', kpiDeltas.signals ? kpiDeltas.signals.active : null)}
+      ${statCard('🟡', '非生效观察', downgradedCount, 'gray', kpiDeltas.signals ? kpiDeltas.signals.downgraded : null)}
+      ${statCard('📦', '历史已出池', stats.totalClosed == null ? 0 : stats.totalClosed, 'red', kpiDeltas.signals ? kpiDeltas.signals.totalClosed : null)}
     </div>
     <div class="pool-layout">
       <div class="pool-main">

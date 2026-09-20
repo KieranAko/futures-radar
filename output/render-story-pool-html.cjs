@@ -624,17 +624,19 @@ function closedChainModalHtml(c) {
   </div>`;
 }
 
-function storyPoolHtml(view) {
+function storyPoolHtml(view, kpiDeltas = null) {
   const stats = view && view.stats ? view.stats : {};
   const active = view && Array.isArray(view.active) ? view.active : [];
   const closed = view && Array.isArray(view.recentClosed) ? view.recentClosed : [];
+  const d = kpiDeltas || {};
+  const delta = (v) => (v === null || v === undefined) ? '' : `<em class="stat-delta ${v > 0 ? 'up' : v < 0 ? 'down' : ''}">${v > 0 ? '+' : ''}${v} vs 上期</em>`;
   return `
   <div class="summary-bar">
-    <span class="stat"><span class="stat-icon blue">🔗</span><span class="stat-meta"><b>${stats.totalChains || 0}</b><span>故事总数</span></span></span>
-    <span class="stat"><span class="stat-icon blue">🔍</span><span class="stat-meta"><b>${stats.resolvingChains || 0}</b><span>解析中</span></span></span>
-    <span class="stat"><span class="stat-icon green">✅</span><span class="stat-meta"><b>${stats.provenChains || 0}</b><span>曾证明</span></span></span>
-    <span class="stat"><span class="stat-icon red">❌</span><span class="stat-meta"><b>${stats.falsifiedChains || 0}</b><span>证伪</span></span></span>
-    <span class="stat"><span class="stat-icon gray">🎯</span><span class="stat-meta"><b>${stats.nodeHitRate != null ? (stats.nodeHitRate * 100).toFixed(0) + '%' : '—'}</b><span>节点命中率</span></span></span>
+    <span class="stat"><span class="stat-icon blue">🔗</span><span class="stat-meta"><b>${stats.totalChains || 0}</b><span>故事总数${delta(d.totalChains)}</span></span></span>
+    <span class="stat"><span class="stat-icon blue">🔍</span><span class="stat-meta"><b>${stats.resolvingChains || 0}</b><span>解析中${delta(d.resolvingChains)}</span></span></span>
+    <span class="stat"><span class="stat-icon green">✅</span><span class="stat-meta"><b>${stats.provenChains || 0}</b><span>曾证明${delta(d.provenChains)}</span></span></span>
+    <span class="stat"><span class="stat-icon red">❌</span><span class="stat-meta"><b>${stats.falsifiedChains || 0}</b><span>证伪${delta(d.falsifiedChains)}</span></span></span>
+    <span class="stat"><span class="stat-icon gray">🎯</span><span class="stat-meta"><b>${stats.nodeHitRate != null ? (stats.nodeHitRate * 100).toFixed(0) + '%' : '—'}</b><span>节点命中率${delta(d.nodeHitRate)}</span></span></span>
   </div>
   <div class="pool-layout">
     <div class="pool-main">

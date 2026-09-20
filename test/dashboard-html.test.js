@@ -250,7 +250,7 @@ describe('dashboard-html 四 Tab 看板', () => {
     const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [] });
     assert.ok(html.includes('class="opp-layout"'));
     assert.ok(html.includes('class="opp-nav-item active" data-opp="PP0"'));
-    assert.ok(html.includes('class="opp-pane active" data-opp="PP0"'));
+    assert.ok(html.includes('class="opp-pane active dir-bullish" data-opp="PP0"'));
     assert.ok(html.includes('oppNavItems'));
   });
 
