@@ -68,6 +68,39 @@ function fmtSigned(v) {
   return (n > 0 ? '+' : '') + fmtVal(n);
 }
 
+function nodeChipHtml(n) {
+  const cur = n.lastValue ?? n.observedValue;
+  return `<div class="node-chip ${nodeClass(n)}${n.terminal ? ' terminal' : ''}">
+    <div class="node-chip-head"><span class="node-state">${n.status === 'confirmed' ? '✔' : n.status === 'broken' ? '✘' : '·'}</span><b>${escapeHtml(n.label || n.id)}</b><span class="node-dir">${n.expectation === 1 ? '↑' : n.expectation === -1 ? '↓' : '—'}</span></div>
+    <div class="node-chip-val">${fmtVal(cur)} ${escapeHtml(n.unit || '')}${n.terminal ? ` · ${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}` : ''}</div>
+  </div>`;
+}
+
+function chainPanelHtml(c) {
+  const branches = (c.branches && c.branches.length > 0)
+    ? c.branches
+    : [{ branchId: (c.nodes && c.nodes[c.nodes.length - 1] && c.nodes[c.nodes.length - 1].id) || null, symbol: c.representative, direction: c.direction, priority: 'primary', status: c.status, proofIndex: c.entryProofIndex, impactRationale: null }];
+  const branchBlocks = branches.map((b) => {
+    const path = pathToTerminal(c, b.branchId);
+    const chips = path.map((n) => nodeChipHtml(n)).join('<span class="path-arrow">→</span>');
+    return `<div class="branch-path">
+      <div class="branch-path-head"><span class="branch-priority ${b.priority === 'primary' ? 'bp-primary' : 'bp-secondary'}">${b.priority === 'primary' ? '主支' : '次支'}</span><b>${escapeHtml(b.symbol || '—')}</b><span class="${b.direction === -1 ? 'down' : b.direction === 1 ? 'up' : ''}">${b.direction === -1 ? '空' : b.direction === 1 ? '多' : '—'}</span><span>${storyStatusBadge(b.status)}</span></div>
+      <div class="branch-path-row">${chips}</div>
+      <div class="branch-path-foot muted">${b.impactRationale ? escapeHtml(b.impactRationale) : '—'}</div>
+    </div>`;
+  }).join('');
+  return `<div class="story-panel">
+    <div class="story-panel-head">
+      <span class="story-theme">${escapeHtml(c.theme || '（未命名主题）')}</span>
+      ${storyStatusBadge(c.status)}
+      <span class="story-source">源 ${escapeHtml((c.nodes && c.nodes[0] && c.nodes[0].label) || c.sourceId || c.sector || '—')}</span>
+      <span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认</span>
+    </div>
+    ${c.themeDetail ? `<div class="story-subtitle">${escapeHtml(c.themeDetail)}</div>` : ''}
+    <div class="story-branches">${branchBlocks}</div>
+  </div>`;
+}
+
 function nodeTableHtml(nodes) {
   const rows = (nodes || []).map((n) => {
     const cur = n.lastValue ?? n.observedValue;
@@ -565,14 +598,7 @@ function chainCard(c) {
 }
 
 function closedChainCardInline(c) {
-  return `<div class="story-card" style="margin:0;border:none">
-    <div class="story-summary">
-      <span class="story-theme">${escapeHtml(c.theme || '（未命名主题）')}</span>
-      <div class="story-subtitle">${escapeHtml(c.themeDetail || '')}</div>
-      <div class="story-head"><span class="story-chain-id">${escapeHtml(c.chainId)}</span>${storyStatusBadge(c.status)}<span class="story-source">源 ${escapeHtml(c.sourceId || c.sector || '—')}</span><span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认 · ${escapeHtml(c.closeReason || '—')}</span></div>
-    </div>
-    <div class="story-body">${graphLegendHtml()}${storyGraphHtml(c)}</div>
-  </div>`;
+  return chainPanelHtml(c);
 }
 
 function closedTable(closed) {
@@ -580,7 +606,7 @@ function closedTable(closed) {
   const rows = closed.map((c) => {
     const detailId = `closed-detail-${c.chainId}`;
     return `<tr class="closed-row status-${escapeHtml(c.status || 'unknown')}" data-detail-id="${escapeHtml(detailId)}" title="点击展开/折叠">
-    <td class="closed-theme"><span class="row-chevron">▸</span><b>${escapeHtml(c.theme || '（未命名主题）')}</b><div class="muted">${escapeHtml(c.chainId)}</div></td>
+    <td class="closed-theme"><span class="row-chevron">▸</span><b>${escapeHtml(c.theme || '（未命名主题）')}</b></td>
     <td>${escapeHtml(c.sector || '—')}</td><td>${storyStatusBadge(c.status)}</td>
     <td>${c.proven ? '✅' : '—'}</td><td class="num">${c.confirmedNodes}/${c.totalNodes}</td>
     <td>${escapeHtml(c.closeReason || '—')}</td><td>${escapeHtml(c.createdAt)} → ${escapeHtml(c.closedAt || '—')}</td>
@@ -651,7 +677,7 @@ function storyPoolHtml(view, kpiDeltas = null) {
   <div class="pool-layout">
     <div class="pool-main">
       <h2>活跃故事传导总览</h2>
-      ${active.length ? `${graphLegendHtml()}${marketMapHtml(active)}${branchTableHtml(active)}` : '<p class="muted">当前故事池为空——没有清晰传导逻辑的源头不注册。</p>'}
+      ${active.length ? active.map(chainPanelHtml).join('') : '<p class="muted">当前故事池为空——没有清晰传导逻辑的源头不注册。</p>'}
       <h2>最近出池故事（最新 20 条）</h2>
       ${closedTable(closed)}
     </div>
@@ -666,8 +692,7 @@ function storyPoolHtml(view, kpiDeltas = null) {
         <li>active 分支进入生产席位，按品种聚合 storyRefs 后深挖</li>
       </ul></div>
     </aside>
-  </div>
-  ${graphScript()}`;
+  </div>`;
 }
 
 module.exports = { storyPoolHtml, escapeHtml };

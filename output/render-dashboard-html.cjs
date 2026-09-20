@@ -375,7 +375,7 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}) 
       <div class="instr-title">
         <div class="instr-name">${escapeHtml(opp.name || opp.symbol)} <span class="muted">（${escapeHtml(opp.contract || opp.symbol)}）</span></div>
         <div class="instr-sub">${directionLabel(dir)} · ${confidenceLabel(t.finalConfidence)}置信 · 收盘 ${close}</div>
-        ${story ? `<div class="story-origin">🔗 故事：${escapeHtml(story.theme || story.chainId)} <span class="muted">（${escapeHtml(story.chainId)} · ${story.confirmedNodes}/${story.totalNodes} 节点）</span></div>` : ''}
+        ${story ? `<div class="story-origin">🔗 故事：${escapeHtml(story.theme || '')}</div>` : ''}
       </div>
       <div class="instr-badges">${confidenceMeter(t.finalConfidence)}${regimePill(opp.marketFacts && opp.marketFacts.volatilityRegime)}</div>
     </div>
@@ -889,6 +889,26 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   table.stats tr.sub + tr th, table.stats tr.sub + tr td { padding-top: 6px; }
 
   /* 故事池 */
+  .story-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px; }
+  .story-panel-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .story-panel-head .story-theme { margin-right: 2px; }
+  .story-branches { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .branch-path { border-top: 1px solid var(--border); padding-top: 8px; }
+  .branch-path:first-child { border-top: none; padding-top: 0; }
+  .branch-path-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .branch-path-row { display: flex; align-items: stretch; gap: 6px; flex-wrap: wrap; }
+  .path-arrow { align-self: center; color: var(--muted); }
+  .node-chip { border: 1px solid var(--border); border-radius: 8px; background: #fff; padding: 6px 8px; min-width: 130px; max-width: 220px; }
+  .node-chip.terminal { border-width: 2px; }
+  .node-chip.terminal.bp-primary, .node-chip.terminal.primary { border-color: #6366f1; }
+  .node-chip .node-chip-head { display: flex; align-items: center; gap: 6px; }
+  .node-chip .node-chip-head b { font-size: 13px; }
+  .node-chip .node-chip-sub { font-size: 11px; color: var(--muted); margin: 2px 0; }
+  .node-chip .node-chip-val { font-size: 12px; color: #374151; }
+  .node-chip.node-confirmed { background: #f0fdf4; }
+  .node-chip.node-broken { background: #fef2f2; }
+  .branch-path-foot { font-size: 12px; line-height: 1.6; margin-top: 4px; }
+
   .story-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0; margin-bottom: 12px; overflow: hidden; }
   .story-card > summary { list-style: none; cursor: pointer; padding: 12px 16px; display: block; }
   .story-card > summary::-webkit-details-marker { display: none; }
