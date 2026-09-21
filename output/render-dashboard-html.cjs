@@ -1080,7 +1080,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .tl-dir.down { background: #e7f6ec; color: var(--down); }
   .tl-current-tag { background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
   .tl-body { padding: 8px 14px 10px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 4px; }
-  .tl-details > .ticket-view { margin: 8px 14px 12px; }
+  .tl-details > .ticket-view { margin: 8px 14px 12px; background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 10px; }
   .tl-row { display: flex; gap: 10px; font-size: 13px; line-height: 1.7; }
   .tl-label { flex: 0 0 64px; color: var(--muted); font-size: 12px; padding-top: 1px; }
   .tl-text { flex: 1; min-width: 0; word-break: break-word; }
