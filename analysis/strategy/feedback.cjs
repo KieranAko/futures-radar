@@ -469,6 +469,14 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
       ? Math.abs(record.stopPrice - record.triggerLevel) * 0.5
       : null;
   const gapPts = Math.abs(entryPrice - (record.triggerLevel || entryPrice));
+  const stopPrice = record.stopPrice;
+  if (stopPrice != null && ((record.direction === 'bearish' && entryPrice > stopPrice) || (record.direction === 'bullish' && entryPrice < stopPrice))) {
+    return {
+      recordId: record.recordId, status: 'skipped_gap', signalDate: record.signalDate,
+      verifyDate: entryBar.date, triggerDate: t1.date, entryDate: entryBar.date, entryPrice, verificationSeries: series.source,
+      attribution: [{ code: 'gap_skip', detail: `T+2 开盘 ${entryPrice} 越过止损 ${stopPrice}（${record.direction === 'bearish' ? '空头入场不得高于止损' : '多头入场不得低于止损'}），放弃执行` }]
+    };
+  }
   if (gapThreshold && gapPts > gapThreshold) {
     return {
       recordId: record.recordId, status: 'skipped_gap', signalDate: record.signalDate,
@@ -481,7 +489,7 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
   const maxHoldingDays = Number.isFinite(Number(record.maxHoldingDays)) ? Number(record.maxHoldingDays) : 5;
   const timeExitIdx = Math.max(tIdx + 2, tIdx + maxHoldingDays);
   const maxEnd = Math.min(bars.length - 1, timeExitIdx);
-  const stop = record.stopPrice;
+  const stop = stopPrice;
   const sign = record.direction === 'bullish' ? 1 : -1;
   let target1 = null;
   const tText = record.target1Text || '';

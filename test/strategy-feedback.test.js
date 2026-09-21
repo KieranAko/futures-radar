@@ -224,4 +224,50 @@ describe('strategy-feedback 证伪反馈机制', () => {
     ), 'next', new Map());
     assert.equal(hit.status, 'triggered_pending_entry');
   });
+
+  it('入场价越过止损直接放弃：空头不得高于止损，多头不得低于止损', () => {
+    const baseRecord = {
+      recordId: 'stop-cap',
+      symbol: 'RM0',
+      name: 'RM0',
+      contract: null,
+      verificationMode: 'trade',
+      signalDate: '2026-08-26',
+      executionStatus: 'executable',
+      triggerLevel: 100,
+      triggerMode: 'pullback',
+      triggerStyle: 'close',
+      atr5: 10,
+      stopPrice: 105,
+      target1Text: '90',
+      gapThresholdPts: 5,
+      maxHoldingDays: 3
+    };
+    const raw = {
+      contracts: {
+        RM0: {
+          ohlcv: {
+            dates: ['2026-08-26', '2026-08-27', '2026-08-28'],
+            open: [98, 96, 106], high: [101, 99.5, 107], low: [97, 95.5, 104], close: [100, 98, 105.5]
+          }
+        }
+      }
+    };
+    const short = verifyTradeRecord({ ...baseRecord, direction: 'bearish' }, raw, 'next', new Map());
+    assert.equal(short.status, 'skipped_gap');
+    assert.match(short.attribution[0].detail, /越过止损/);
+    const longRaw = {
+      contracts: {
+        RM0: {
+          ohlcv: {
+            dates: ['2026-08-26', '2026-08-27', '2026-08-28'],
+            open: [98, 102, 94], high: [101, 103, 95], low: [97, 100, 92], close: [100, 102, 93]
+          }
+        }
+      }
+    };
+    const long = verifyTradeRecord({ ...baseRecord, direction: 'bullish', triggerLevel: 100 }, longRaw, 'next', new Map());
+    assert.equal(long.status, 'skipped_gap');
+    assert.match(long.attribution[0].detail, /越过止损/);
+  });
 });

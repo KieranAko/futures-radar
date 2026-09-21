@@ -294,12 +294,21 @@ function lifecycleChart(sig, versions, bars) {
     out += '</g>';
     return out;
   };
-  // 背景区间块：失效区 / 计划区间（触发↔止损）/ 目标区间（目标1↔目标2）
+  const gapThreshold = av && av.entry && Number.isFinite(Number(av.entry.gapThresholdPts)) ? Number(av.entry.gapThresholdPts) : null;
+  let entryLo = null;
+  let entryHi = null;
+  if (triggerLevel != null && gapThreshold != null) {
+    entryLo = triggerLevel - gapThreshold;
+    entryHi = triggerLevel + gapThreshold;
+    if (sig.direction === 'bearish' && stopPrice != null) entryHi = Math.min(entryHi, stopPrice);
+    if (sig.direction === 'bullish' && stopPrice != null) entryLo = Math.max(entryLo, stopPrice);
+  }
+  // 背景区间块：失效区 / 入场区间（偏离触发价≤gap，且不越过止损）/ 目标区间（目标1↔目标2）
   if (stopPrice != null) {
     if (sig.direction === 'bullish') parts.push(zone(stopPrice, min + (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c', `失效区：价格跌破止损 ${fmt(stopPrice, 0)} 后逻辑失效`));
     else parts.push(zone(stopPrice, max - (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c', `失效区：价格站上止损 ${fmt(stopPrice, 0)} 后逻辑失效`));
   }
-  if (triggerLevel != null && stopPrice != null && Math.abs(triggerLevel - stopPrice) > zoneGap) parts.push(zone(triggerLevel, stopPrice, 'zp-plan', '计划区间', '#b45309', `计划区间：触发 ${fmt(triggerLevel, 0)} ~ 止损 ${fmt(stopPrice, 0)}`));
+  if (entryLo != null && entryHi != null && Math.abs(entryHi - entryLo) > zoneGap) parts.push(zone(entryLo, entryHi, 'zp-plan', '入场区间', '#b45309', `入场区间：${fmt(entryLo)} ~ ${fmt(entryHi)}（偏离触发价 ≤${fmt(gapThreshold)}）`));
   if (t1Level != null && t2Level != null && Math.abs(t1Level - t2Level) > zoneGap) parts.push(zone(t1Level, t2Level, 'zp-target', '目标区间', '#2563eb', `目标区间：目标1 ${fmt(t1Level, 0)} ~ 目标2 ${fmt(t2Level, 0)}`));
   for (let i = 0; i < n; i++) {
     const b = win[i];
@@ -482,7 +491,7 @@ function lifecycleChart(sig, versions, bars) {
   });
   const zoneLegend = [];
   if (stopPrice != null) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(239,68,68,.18);outline:1px solid rgba(239,68,68,.5);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">失效区</b></span>`);
-  if (triggerLevel != null && stopPrice != null && Math.abs(triggerLevel - stopPrice) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(217,119,6,.2);outline:1px solid rgba(217,119,6,.55);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">计划区间</b></span>`);
+  if (entryLo != null && entryHi != null && Math.abs(entryHi - entryLo) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(217,119,6,.2);outline:1px solid rgba(217,119,6,.55);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">入场区间</b> ${fmt(entryLo)} ~ ${fmt(entryHi)}</span>`);
   if (t1Level != null && t2Level != null && Math.abs(t1Level - t2Level) > zoneGap) zoneLegend.push(`<span style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap;"><i style="width:14px;height:14px;border-radius:3px;background:rgba(37,99,235,.2);outline:1px solid rgba(37,99,235,.55);display:inline-block;vertical-align:middle;"></i><b style="font-weight:600;color:#1f2328;">目标区间</b></span>`);
   const legendHtml = `<div class="chart-legend" style="display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:12px;color:#6b7280;">${[...levelLegend, ...zoneLegend].join('')}</div>`;
   const lastPrev = win.length > 1 ? win[win.length - 2].close : null;
