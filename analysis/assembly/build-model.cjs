@@ -219,6 +219,16 @@ for (const opp of reportFacts.opportunities) {
     referenceInterval: opp.referenceInterval || null,
     ...(opp.spotBasis ? { spotBasis: opp.spotBasis } : {}),
     screening: opp.screening,
+    audit: analysisEntry.auditRef
+      ? {
+          verdict: analysisEntry.auditRef.verdict,
+          chainId: analysisEntry.auditRef.chainId,
+          conflictCount: analysisEntry.auditRef.conflictCount,
+          impact: analysisEntry.auditRef.impact,
+          response: analysisEntry.auditRef.response,
+        }
+      : null,
+    auditImpact: analysisEntry.auditImpact || null,
     thesis
   });
 

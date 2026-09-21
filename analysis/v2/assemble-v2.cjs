@@ -15,6 +15,9 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const EL = path.join(ROOT, 'research', 'archive-experiment-line', 'experiment-line'); // V2：归档保留，仅供历史工具兼容
 const { runDir } = require(path.join(ROOT, 'shared', 'workspace.cjs'));
 const { validateQ4Semantics } = require(path.join(ROOT, 'analysis', 'strategy', 'semantic-fact-validate.cjs'));
+const { loadLedger, loadChain, isActive } = require(path.join(ROOT, 'stories', 'lib', 'story-chain.cjs'));
+const auditLib = require('./audit-lib.cjs');
+const reconLib = require('./reconciliation-lib.cjs');
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -68,6 +71,69 @@ function validateLlmOutputShape(o) {
   if (!String(o.q6_eventRisk || '').trim()) errors.push(`${sym}: q6_eventRisk 缺失`);
   if (!o.mechanismRef || typeof o.mechanismRef.family !== 'string') errors.push(`${sym}: mechanismRef.family 缺失`);
   return { ok: errors.length === 0, errors };
+}
+
+function readOptionalJson(file) {
+  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
+}
+
+/**
+ * 装载审计态：audit-findings.json 可选（向后兼容旧 run）；
+ * 一旦存在 conflict 品种，reconciliation 修订缺一即 fail-closed，不允许机器兜底。
+ */
+function loadAuditState(runPath, outputSymbols) {
+  const auditFile = path.join(runPath, 'analyze', 'audit-findings.json');
+  const auditDoc = readOptionalJson(auditFile);
+  if (!auditDoc) return { mode: 'unavailable', findingsBySymbol: new Map(), reconBySymbol: new Map(), conflictSymbols: [] };
+
+  const activeChainIds = loadLedger().chains
+    .filter((c) => isActive(c.status))
+    .map((c) => c.chainId)
+    .filter(Boolean);
+  const check = auditLib.validateAuditFindings(auditDoc, { symbols: outputSymbols, chainIds: activeChainIds });
+  if (!check.ok) {
+    console.error('FATAL: audit-findings.json 校验失败');
+    for (const e of check.errors) console.error(`  - ${e}`);
+    process.exit(1);
+  }
+  const findingsBySymbol = new Map((auditDoc.findings || []).map((f) => [f.symbol, f]));
+  const conflictSymbols = (auditDoc.findings || [])
+    .filter((f) => f.verdict === 'conflict')
+    .map((f) => f.symbol);
+
+  const reconFile = path.join(runPath, 'analyze', 'outputs-v2-reconciliation.json');
+  const reconDoc = readOptionalJson(reconFile);
+  let reconBySymbol = new Map();
+  if (conflictSymbols.length > 0) {
+    if (!reconDoc) {
+      console.error('FATAL: 存在 conflict 品种但缺少 outputs-v2-reconciliation.json（六问第二遍未完成）');
+      process.exit(1);
+    }
+    const reconCheck = reconLib.validateReconciliation(reconDoc, { symbols: conflictSymbols });
+    if (!reconCheck.ok) {
+      console.error('FATAL: outputs-v2-reconciliation.json 校验失败');
+      for (const e of reconCheck.errors) console.error(`  - ${e}`);
+      process.exit(1);
+    }
+    reconBySymbol = new Map((reconDoc.revisions || []).map((r) => [r.symbol, r]));
+    for (const sym of conflictSymbols) {
+      if (!reconBySymbol.has(sym)) {
+        console.error(`FATAL: conflict 品种 ${sym} 缺少六问第二遍修订`);
+        process.exit(1);
+      }
+    }
+  }
+  return { mode: 'active', findingsBySymbol, reconBySymbol, conflictSymbols };
+}
+
+/**
+ * 把六问第二遍修订增量合并回第一遍输出（只覆盖明确出现的字段）。
+ */
+function applyRevisions(o, rev) {
+  const next = { ...o };
+  if (!rev || !rev.revisions) return next;
+  for (const [k, v] of Object.entries(rev.revisions)) next[k] = v;
+  return next;
 }
 
 /**
@@ -216,6 +282,10 @@ function main() {
   const packets = readJson(path.join(runPath, 'analyze', 'packets-v2.json')).packets;
   const signalDate = packets[Object.keys(packets)[0]].signalDate;
 
+  // 审计态（可选向后兼容）：audit-findings 存在时，conflict 品种必须有六问第二遍修订。
+  const outputSymbols = (outputs.results || []).map((o) => o.symbol);
+  const auditState = loadAuditState(runPath, outputSymbols);
+
   // Q4 语义事实校验：现价在价值区内不得使用“回踩”，空头镜像。
   const q4Sem = validateQ4Semantics(outputs, packets);
   if (!q4Sem.ok) {
@@ -227,7 +297,25 @@ function main() {
   const analyses = [];
   const reasoningResults = [];
   const issues = [];
-  for (const o of outputs.results) {
+  for (const orig of outputs.results) {
+    // 六问两遍：第一遍独立推理（orig）；conflict 品种合并第二遍修订增量（o）。
+    const auditFinding = auditState.findingsBySymbol.get(orig.symbol) || null;
+    const reconRev = auditState.reconBySymbol.get(orig.symbol) || null;
+    if (auditFinding && auditFinding.verdict === 'conflict' && !reconRev) {
+      console.error(`FATAL: ${orig.symbol} 是 conflict 品种但缺少修订（不应到达这里）`);
+      process.exit(1);
+    }
+    const o = applyRevisions(orig, reconRev);
+    const auditRef = auditFinding
+      ? {
+          artifactId: 'audit-findings-json',
+          verdict: auditFinding.verdict,
+          chainId: auditFinding.chainId,
+          conflictCount: (auditFinding.conflicts || []).length,
+          impact: reconRev ? reconRev.auditImpact : null,
+          response: reconRev ? reconRev.auditResponse : null,
+        }
+      : null;
     const p = packets[o.symbol];
     if (!p) {
       issues.push(`${o.symbol}: no packet`);
@@ -257,6 +345,8 @@ function main() {
       name: p.name,
       storyChainId: p.story_chain_id || null, // V2 前向盖章：故事席位血缘
       reasoningRef: { artifactId: 'reasoning-results-v2-json', packetHash: sha256(JSON.stringify(p)), arm: 'fincot' },
+      auditRef,
+      auditImpact: (auditRef && auditRef.impact) || null,
       direction,
       confidence: o.confidence,
       confidenceRationale: confCheck.rationale,
@@ -307,12 +397,14 @@ function main() {
         branch_status: { regime: 'available', macro_fundamental: 'available', position_flow: 'available' },
         mechanismRef: o.mechanismRef,
         cost_anchor_ref: costAnchor.ref,
+        audit_impact: (auditRef && auditRef.impact) || null,
+        audit_verdict: (auditRef && auditRef.verdict) || null,
       },
     });
   }
 
   const analysis = {
-    meta: { runId, analyzedAt: `${signalDate}T00:00:00Z`, candidateCount: analyses.length, mode: 'daily-v2', note: 'analyze candidate v2：单轮合并推理（O1）；Q1/Q2/Q3/Q4/Q5/q6_eventRisk 由 LLM 产出，Q6 数值事实确定性预填并带 provenance（O4）；所有输出不构成投资建议。' },
+    meta: { runId, analyzedAt: `${signalDate}T00:00:00Z`, candidateCount: analyses.length, mode: 'daily-v2', note: 'analyze candidate v2：六问两遍——第一遍独立推理；审计 LLM 只提炼冲突点，conflict 品种经第二遍修订增量合并（auditImpact 留痕）。Q6 数值事实确定性预填并带 provenance（O4）；所有输出不构成投资建议。' },
     analyses,
   };
   const reasoning = {
@@ -358,6 +450,13 @@ function main() {
       q6: analyses.every((a) => a.q6_risks?.margin),
     },
     grounding: issues.length === 0,
+    audit: {
+      mode: auditState.mode,
+      conflictCount: auditState.conflictSymbols ? auditState.conflictSymbols.length : 0,
+      revisedDriver: analyses.filter((a) => a.auditImpact === 'revised_driver').length,
+      revisedDirection: analyses.filter((a) => a.auditImpact === 'revised_direction').length,
+      keptWithReasons: analyses.filter((a) => a.auditImpact === 'kept_with_reasons').length,
+    },
     issues,
     mechanismRefCoverage: reasoningResults.filter((r) => r.result.mechanismRef?.family !== 'none').length,
     costAnchorCoverage: reasoningResults.filter((r) => r.result.cost_anchor_ref?.used).length,
@@ -371,4 +470,13 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { main, validateGrounding, buildProductionSectorSectors, buildCostAnchorRef, validateConfidenceRationale, validateLlmOutputShape };
+module.exports = {
+  main,
+  validateGrounding,
+  buildProductionSectorSectors,
+  buildCostAnchorRef,
+  validateConfidenceRationale,
+  validateLlmOutputShape,
+  loadAuditState,
+  applyRevisions,
+};

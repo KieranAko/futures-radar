@@ -56,6 +56,43 @@ function regimePill(regime) {
   return `<span class="pill ${escapeHtml(grade)}">波动 ${escapeHtml(grade)} ${arrow}</span>`;
 }
 
+const AUDIT_IMPACT_LABEL = {
+  none: '无修订',
+  revised_driver: '修订驱动',
+  revised_direction: '修订方向',
+  kept_with_reasons: '维持原判',
+};
+const SOURCE_CLASS_LABEL = { macro: '宏观源', event: '事件源', flow: '供需源', behavior: '行为源' };
+
+function auditBadge(opp) {
+  const a = opp && opp.audit;
+  if (!a) return '<span class="pill audit-unavailable">链审计 未运行</span>';
+  if (a.verdict === 'aligned') return '<span class="pill audit-aligned">链审计 对齐</span>';
+  return `<span class="pill audit-conflict">链审计 ${escapeHtml(String(a.conflictCount || 0))} 冲突 · ${escapeHtml(AUDIT_IMPACT_LABEL[a.impact] || a.impact || '—')}</span>`;
+}
+
+function nodeProgressShort(n) {
+  if (!n) return '—';
+  if (n.status === 'confirmed') return '已证明';
+  if (n.status === 'broken') return '已证伪';
+  if (n.sameStreak > 0) return `同向 ${n.sameStreak}/3`;
+  if (n.oppStreak > 0) return `反向 ${n.oppStreak}/2`;
+  return '观察中';
+}
+
+function chainEvidenceHtml(story, opp) {
+  if (!story) return '';
+  const source = story.nodes && story.nodes[0];
+  const terminal = story.nodes && story.nodes[story.nodes.length - 1];
+  const rows = [
+    ['链', `${story.chainId} · ${SOURCE_CLASS_LABEL[story.sourceClass] || story.sourceClass || '—'} · ${story.status || '—'}${story.provisional ? ' · provisional' : ''}`],
+    ['源节点', `${(source && source.label) || '—'}：${nodeProgressShort(source)}`],
+    ['终点节点', `${(terminal && terminal.label) || '—'}：${nodeProgressShort(terminal)}（预期 ${terminal && terminal.expectation === 1 ? '↑' : terminal && terminal.expectation === -1 ? '↓' : '—'}）`],
+    ['六问审计', auditBadge(opp)],
+  ];
+  return `<div class="story-evidence"><h4>传导链证据对照</h4><table class="fields">${rows.map(([k, v]) => `<tr><th>${escapeHtml(k)}</th><td>${v}</td></tr>`).join('')}</table><div class="muted">链是证据，不是结论；最终判断由六问综合、信号池验证与人类分析师完成。</div></div>`;
+}
+
 function statCard(icon, label, value, tone = 'blue', delta = null) {
   const d = delta === null || delta === undefined ? '' : `<em class="stat-delta ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}">${delta > 0 ? '+' : ''}${delta}</em>`;
   return `<div class="stat"><span class="stat-icon ${tone}">${icon}</span><div class="stat-meta"><b>${value}</b><span>${label}${d}</span></div></div>`;
@@ -433,7 +470,7 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}, 
         <div class="instr-sub">${directionLabel(dir)} · ${confidenceLabel(t.finalConfidence)}置信 · 收盘 ${close}</div>
         ${story ? `<button type="button" class="story-jump" data-story-jump="${escapeHtml(story.chainId)}">🔗 故事：${escapeHtml(story.theme || '')}</button>` : ''}
       </div>
-      <div class="instr-badges">${confidenceMeter(t.finalConfidence)}${regimePill(opp.marketFacts && opp.marketFacts.volatilityRegime)}</div>
+      <div class="instr-badges">${confidenceMeter(t.finalConfidence)}${regimePill(opp.marketFacts && opp.marketFacts.volatilityRegime)}${auditBadge(opp)}</div>
     </div>
     ${chart}
     ${odds.reasoning ? `<p class="core-logic">${escapeHtml(odds.reasoning)}</p>` : ''}
@@ -444,6 +481,7 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}, 
       <div class="opp-grid-side">${supportPanel || opposePanel ? `<div class="factors">${supportPanel}${opposePanel}</div>` : ''}</div>
     </div>
     ${strategyCard(plan)}
+    ${chainEvidenceHtml(story, opp)}
     ${detail.length ? `<details class="detail"><summary>完整六问详情</summary>${detail.join('')}</details>` : ''}
   </article>`;
 }
@@ -919,6 +957,14 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .pill.normal { background: #e7f6ec; color: #047857; }
   .pill.elevated { background: #fdf3e0; color: #b45309; }
   .pill.extreme { background: #fdeaea; color: #b91c1c; }
+  .pill.audit-aligned { background: #eef7ff; color: #1d4ed8; }
+  .pill.audit-conflict { background: #fff7e6; color: #b45309; }
+  .pill.audit-unavailable { background: #f1f5f9; color: #64748b; }
+  .story-evidence { margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; background: #f8fafc; }
+  .story-evidence h4 { margin: 0 0 6px; font-size: 13px; }
+  .story-evidence .fields { width: 100%; border-collapse: collapse; }
+  .story-evidence .fields th { text-align: left; color: #64748b; font-weight: 600; padding: 3px 6px 3px 0; width: 90px; vertical-align: top; }
+  .story-evidence .fields td { padding: 3px 0; }
 
   .price-chart { width: 100%; height: auto; display: block; background: #fcfcfd; border: 1px solid var(--border); border-radius: 8px; }
   .price-chart-wrap { position: relative; }
@@ -1181,7 +1227,6 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .dg-node { position: relative; border: 1px solid var(--border); border-radius: 8px; background: #fff; padding: 10px 12px; min-height: 72px; cursor: pointer; }
   .dg-node.node-confirmed { border-color: #047857; background: #f0fdf4; }
   .dg-node.node-broken { border-color: #b91c1c; background: #fef2f2; }
-  .dg-node.current { border-color: #2563eb; background: #eef4ff; box-shadow: 0 0 0 2px rgba(37,99,235,.12); }
   .dg-node-head { display: flex; align-items: center; gap: 6px; }
   .dg-node-head b { font-size: 13px; }
   .dg-node-dir { color: var(--muted); }
@@ -1282,6 +1327,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .branch-symbol { font-weight: 600; }
   .branch-dir, .branch-status, .branch-proof { color: var(--muted); font-size: 12px; }
   .story-status { font-size: 12px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  .source-class { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: #f1f5f9; color: #475569; font-weight: 600; }
   .story-status.st-ok { background: #ecfdf5; color: #047857; }
   .story-status.st-bad { background: #fef2f2; color: #b91c1c; }
   .story-status.st-watch { background: #fffbeb; color: #b45309; }

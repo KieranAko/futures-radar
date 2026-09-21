@@ -83,48 +83,59 @@ describe('story-chain 传导链构造器核心', () => {
     assert.equal(ledger.chains.filter((c) => sc.isActive(c.status)).length, 1);
   });
 
-  it('状态机按前缀顺序证明：连续 2 个数据日同向确认，p=2 达标 proven，终节点确认 completed', () => {
+  it('状态机并行证明：所有节点独立计数，连续 3 个数据日同向证明，p=2 达标 proven，全部证明 completed', () => {
     const root = tmpRoot();
     const chain = sc.registerChain(baseDef(), { root }).chainId;
     const c = sc.loadChain(chain, root);
-    const v1 = { 'macro.DR007.change5d': { value: -5, direction: -1, asOf: '2026-09-02' } };
+    const v1 = {
+      'macro.DR007.change5d': { value: -5, direction: -1, asOf: '2026-09-02' },
+      'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-02' },
+    };
     const r1 = sc.applyObservation(c, '2026-09-02', v1, { tradingDates: TRADING });
-    assert.equal(c.status, 'pending'); // 单日同向不确认
+    assert.equal(c.status, 'pending'); // 单日同向不证明
     assert.ok(r1.events.some((e) => e.type === 'observing'));
-    const r2 = sc.applyObservation(c, '2026-09-03', { 'macro.DR007.change5d': { value: -6, direction: -1, asOf: '2026-09-03' } }, { tradingDates: TRADING });
-    assert.equal(r2.chain.nodes[0].status, 'confirmed');
-    assert.equal(r2.chain.status, 'pending'); // p=2：还需 n2 确认才 proven
-    assert.equal(r2.chain.nodes[1].windowStartDate, '2026-09-03');
-    // n2 连续两日确认 → proven
-    sc.applyObservation(c, '2026-09-04', { 'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-04' } }, { tradingDates: TRADING });
-    const rp = sc.applyObservation(c, '2026-09-05', { 'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-05' } }, { tradingDates: TRADING });
+    assert.equal(c.nodes[0].sameStreak, 1);
+    assert.equal(c.nodes[1].sameStreak, 1); // 并行：下游同日计数
+    sc.applyObservation(c, '2026-09-03', {
+      'macro.DR007.change5d': { value: -6, direction: -1, asOf: '2026-09-03' },
+      'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-03' },
+    }, { tradingDates: TRADING });
+    const rp = sc.applyObservation(c, '2026-09-04', {
+      'macro.DR007.change5d': { value: -7, direction: -1, asOf: '2026-09-04' },
+      'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-04' },
+    }, { tradingDates: TRADING });
+    assert.equal(c.nodes[0].status, 'confirmed');
+    assert.equal(c.nodes[1].status, 'confirmed');
     assert.equal(rp.chain.status, 'proven');
-    assert.equal(rp.chain.provenAt, '2026-09-05');
-    // 终节点确认（连续两日）→ completed
+    assert.equal(rp.chain.provenAt, '2026-09-04');
+    // 终节点连续 3 日同向 → completed
+    sc.applyObservation(c, '2026-09-05', { 'symbol.RB0.price.ret5d': { value: 4, direction: 1, asOf: '2026-09-05' } }, { tradingDates: TRADING });
     sc.applyObservation(c, '2026-09-08', { 'symbol.RB0.price.ret5d': { value: 4, direction: 1, asOf: '2026-09-08' } }, { tradingDates: TRADING });
     sc.applyObservation(c, '2026-09-09', { 'symbol.RB0.price.ret5d': { value: 4, direction: 1, asOf: '2026-09-09' } }, { tradingDates: TRADING });
     assert.equal(c.status, 'completed');
     assert.equal(c.closeReason, 'completed');
   });
 
-  it('顺序证伪：下游节点在上游确认前不被评估；任一边反向即 falsified', () => {
+  it('并行证伪：下游节点不等上游，独立反向计数，连续 2 日反向即 falsified', () => {
     const root = tmpRoot();
     const chain = sc.registerChain(baseDef(), { root }).chainId;
     const c = sc.loadChain(chain, root);
-    // 同一天 n2 反向，但 n1 仍未确认：只评估 n1
+    // 同一天 n2 反向：并行模式下 n2 立即反向 1/2，不再被上游门挡住
     const r = sc.applyObservation(c, '2026-09-02', {
       'macro.DR007.change5d': null,
       'sector.black.oi.flow5d': { value: -3, direction: -1 },
     }, { tradingDates: TRADING });
     assert.equal(c.nodes[1].status, 'pending');
-    // n1 反向：单日反向只记扰动，连续 2 日反向才断链
-    const r2 = sc.applyObservation(c, '2026-09-03', { 'macro.DR007.change5d': { value: 5, direction: 1, asOf: '2026-09-03' } }, { tradingDates: TRADING });
-    assert.equal(c.status, 'pending');
-    assert.ok(r2.events.some((e) => e.type === 'observing_opposite'));
-    const r3 = sc.applyObservation(c, '2026-09-04', { 'macro.DR007.change5d': { value: 6, direction: 1, asOf: '2026-09-04' } }, { tradingDates: TRADING });
+    assert.equal(c.nodes[1].oppStreak, 1);
+    // n1/n2 第二天都反向 → 证伪
+    const r2 = sc.applyObservation(c, '2026-09-03', {
+      'macro.DR007.change5d': { value: 5, direction: 1, asOf: '2026-09-03' },
+      'sector.black.oi.flow5d': { value: -3, direction: -1, asOf: '2026-09-03' },
+    }, { tradingDates: TRADING });
     assert.equal(c.status, 'falsified');
-    assert.equal(c.nodes[0].brokenReason, 'opposite_direction');
-    assert.ok(r3.events.some((e) => e.type === 'falsified'));
+    assert.equal(c.nodes[1].brokenReason, 'opposite_direction');
+    assert.equal(c.nodes[0].status, 'pending'); // n1 只反向 1/2，链已因 n2 独立证伪
+    assert.ok(r2.events.some((e) => e.type === 'falsified'));
   });
 
   it('窗口超时证伪：latencyDays 按交易日计数', () => {
@@ -161,10 +172,18 @@ describe('story-chain 传导链构造器核心', () => {
     const root = tmpRoot();
     sc.registerChain(baseDef(), { root });
     const obs = (d, v) => sc.observeAll(d, v, { root, tradingDates: TRADING });
-    obs('2026-09-02', { 'macro.DR007.change5d': { value: -5, direction: -1, asOf: '2026-09-02' } });
-    obs('2026-09-03', { 'macro.DR007.change5d': { value: -6, direction: -1, asOf: '2026-09-03' } });
-    obs('2026-09-04', { 'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-04' } });
-    obs('2026-09-05', { 'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-05' } });
+    obs('2026-09-02', {
+      'macro.DR007.change5d': { value: -5, direction: -1, asOf: '2026-09-02' },
+      'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-02' },
+    });
+    obs('2026-09-03', {
+      'macro.DR007.change5d': { value: -6, direction: -1, asOf: '2026-09-03' },
+      'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-03' },
+    });
+    obs('2026-09-04', {
+      'macro.DR007.change5d': { value: -7, direction: -1, asOf: '2026-09-04' },
+      'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-04' },
+    });
     const view = sc.buildView({ root });
     assert.equal(view.stats.totalChains, 1);
     assert.equal(view.stats.provenChains, 1);
@@ -278,14 +297,15 @@ describe('story-chain v2：T2 找数据策略与可信度', () => {
     const c = sc.loadChain(r.chainId, root);
     assert.equal(c.nodes[1].resolution.path, 'T2');
     assert.equal(c.nodes[1].indicatorId, `T2.${r.chainId}.n2`);
-    // n1 连续两日确认 → proven；n2 T2 事件快照一次即确认，可信度 medium（单独立源 A 且 fresh）
+    // 并行观察：n1 首日 1/3，同时 T2 事件快照一次即证明，可信度 medium（单独立源 A 且 fresh）
     sc.applyObservation(c, '2026-09-03', { 'macro.DR007.change5d': { value: -3, direction: -1, asOf: '2026-09-03' } }, { tradingDates: TRADING });
-    sc.applyObservation(c, '2026-09-04', { 'macro.DR007.change5d': { value: -4, direction: -1, asOf: '2026-09-04' } }, { tradingDates: TRADING });
-    assert.equal(c.status, 'pending'); // p=2：n1 确认后还需 n2
-    sc.applyObservation(c, '2026-09-05', {}, { tradingDates: TRADING });
-    assert.equal(c.status, 'proven');
+    assert.equal(c.status, 'pending'); // p=2：仅 n2 证明还不够
     assert.equal(c.nodes[1].status, 'confirmed');
     assert.equal(c.nodes[1].credibility, 'medium');
+    sc.applyObservation(c, '2026-09-04', { 'macro.DR007.change5d': { value: -4, direction: -1, asOf: '2026-09-04' } }, { tradingDates: TRADING });
+    sc.applyObservation(c, '2026-09-05', { 'macro.DR007.change5d': { value: -5, direction: -1, asOf: '2026-09-05' } }, { tradingDates: TRADING });
+    assert.equal(c.nodes[0].status, 'confirmed');
+    assert.equal(c.status, 'proven');
   });
 
   it('T2 数据过期 → 不产生观测，按超时证伪', () => {
@@ -296,14 +316,11 @@ describe('story-chain v2：T2 找数据策略与可信度', () => {
       results: [{ nodeId: 'n2', value: 900, asOf: '2026-09-01', unit: '元/吨', sourceUrl: 'https://example.com/px', sourceTitle: 'x', sourceTier: 'A' }],
     });
     const c = sc.loadChain(r.chainId, root);
-    sc.applyObservation(c, '2026-09-03', { 'macro.DR007.change5d': { value: -3, direction: -1, asOf: '2026-09-03' } }, { tradingDates: TRADING });
-    sc.applyObservation(c, '2026-09-04', { 'macro.DR007.change5d': { value: -4, direction: -1, asOf: '2026-09-04' } }, { tradingDates: TRADING });
-    // n2 asOf 09-01 早于窗口起点且超 7 天新鲜度 → 无观测；n2 窗口 09-04 起，latency 5，09-12 超时
+    // 所有节点自注册日（09-02）并行开窗；n2 快照过期，窗口 latency 5，09-10 超时证伪
     sc.applyObservation(c, '2026-09-10', {}, { tradingDates: TRADING });
-    assert.equal(c.nodes[1].status, 'pending');
-    sc.applyObservation(c, '2026-09-12', {}, { tradingDates: TRADING });
-    assert.equal(c.status, 'falsified');
+    assert.equal(c.nodes[1].status, 'broken');
     assert.equal(c.nodes[1].brokenReason, 'timeout');
+    assert.equal(c.status, 'falsified');
   });
 
   it('检索失败可作废（void），不再占板块', () => {
@@ -327,9 +344,10 @@ describe('story-chain v2：T2 找数据策略与可信度', () => {
     const c = sc.loadChain(r.chainId, root);
     sc.applyObservation(c, '2026-09-03', { 'macro.DR007.change5d': { value: -3, direction: -1, asOf: '2026-09-03' } }, { tradingDates: TRADING });
     sc.applyObservation(c, '2026-09-04', { 'macro.DR007.change5d': { value: -4, direction: -1, asOf: '2026-09-04' } }, { tradingDates: TRADING });
+    sc.applyObservation(c, '2026-09-05', { 'macro.DR007.change5d': { value: -5, direction: -1, asOf: '2026-09-05' } }, { tradingDates: TRADING });
     sc.saveChain(c, root);
     const view = sc.buildView({ root });
-    assert.equal(view.stats.nodeHitRateByPath.T2.confirmed, 0);
+    assert.equal(view.stats.nodeHitRateByPath.T2.confirmed, 1); // 并行模式下 T2 首日即证明
     assert.ok('confirmedCredibility' in view.stats);
     assert.equal(view.stats.totalChains, 1);
   });
@@ -337,7 +355,7 @@ describe('story-chain v2：T2 找数据策略与可信度', () => {
 
 describe('story-chain /3：DAG 扇出与汇合、terminal 分支', () => {
   function v3Def(overrides = {}) {
-    return {
+    const def = {
       schema: 'futures-radar-story-chain/3',
       chainId: 'CH-SC0-20260918-01',
       createdAt: '2026-09-18',
@@ -361,6 +379,16 @@ describe('story-chain /3：DAG 扇出与汇合、terminal 分支', () => {
       maxLifespanTradingDays: 20,
       ...overrides,
     };
+    def.reasoningCard = {
+      schema: 'futures-radar-story-reasoning-card/1',
+      claim: { source: 'macro.SC0.change5d', direction: -1, path: ['n1', 'n2', 'n3'] },
+      mechanisms: def.edges.map((e) => ({ edgeId: e.id, why: e.logic })),
+      evidenceRefs: { news: [], indicators: def.nodes.map((n) => n.indicatorId).filter(Boolean) },
+      assumptions: ['原油是能化板块定价锚'],
+      uncertainties: ['LPG 分支弹性弱于燃料油'],
+      falsifiers: ['源节点连续两日反向'],
+    };
+    return def;
   }
 
   it('合法 DAG 链通过校验并注册（一源一链）', () => {
@@ -402,17 +430,26 @@ describe('story-chain /3：DAG 扇出与汇合、terminal 分支', () => {
     assert.match(sc.validateChainDefinition(badProof).errors.join('|'), /proofIndex/);
   });
 
-  it('DAG 状态机：源头与干流确认后主支 proven，次支仍 pending', () => {
+  it('DAG 状态机：并行计数连续 3 日同向证明，主支 proven，次支仍 pending', () => {
     const root = tmpRoot();
     sc.registerChain(v3Def(), { root });
     const chain = sc.loadChain('CH-SC0-20260918-01', root);
-    sc.applyObservation(chain, '2026-09-18', { 'macro.SC0.change5d': { value: -10, direction: -1, asOf: '2026-09-18' } }, { tradingDates: TRADING });
-    sc.applyObservation(chain, '2026-09-19', { 'macro.SC0.change5d': { value: -11, direction: -1, asOf: '2026-09-19' } }, { tradingDates: TRADING });
-    sc.applyObservation(chain, '2026-09-22', { 'sector.energy_chemical.oi.flow5d': { value: -2, direction: -1, asOf: '2026-09-22' } }, { tradingDates: TRADING });
-    sc.applyObservation(chain, '2026-09-23', { 'sector.energy_chemical.oi.flow5d': { value: -3, direction: -1, asOf: '2026-09-23' } }, { tradingDates: TRADING });
+    sc.applyObservation(chain, '2026-09-18', {
+      'macro.SC0.change5d': { value: -10, direction: -1, asOf: '2026-09-18' },
+      'sector.energy_chemical.oi.flow5d': { value: -2, direction: -1, asOf: '2026-09-18' },
+    }, { tradingDates: TRADING });
+    sc.applyObservation(chain, '2026-09-19', {
+      'macro.SC0.change5d': { value: -11, direction: -1, asOf: '2026-09-19' },
+      'sector.energy_chemical.oi.flow5d': { value: -3, direction: -1, asOf: '2026-09-19' },
+    }, { tradingDates: TRADING });
+    sc.applyObservation(chain, '2026-09-22', {
+      'macro.SC0.change5d': { value: -12, direction: -1, asOf: '2026-09-22' },
+      'sector.energy_chemical.oi.flow5d': { value: -4, direction: -1, asOf: '2026-09-22' },
+      'sector.energy_chemical.index.ret5d': { value: -2, direction: -1, asOf: '2026-09-22' },
+    }, { tradingDates: TRADING });
     assert.equal(chain.status, 'proven');
-    assert.equal(chain.terminals[0].status, 'proven'); // FU0 主支
-    assert.equal(chain.terminals[1].status, 'pending'); // PG0 次支
+    assert.equal(chain.terminals[0].status, 'proven'); // FU0 主支（n1+n2 已证明）
+    assert.equal(chain.terminals[1].status, 'pending'); // PG0 次支（n5 仅 1/3）
   });
 });
 
@@ -421,10 +458,18 @@ describe('story-chain 席位血缘（前向记录）', () => {
     const root = tmpRoot();
     const r = sc.registerChain(baseDef(), { root });
     const obs = (d, v) => sc.observeAll(d, v, { root, tradingDates: TRADING });
-    obs('2026-09-02', { 'macro.DR007.change5d': { value: -5, direction: -1, asOf: '2026-09-02' } });
-    obs('2026-09-03', { 'macro.DR007.change5d': { value: -6, direction: -1, asOf: '2026-09-03' } });
-    obs('2026-09-04', { 'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-04' } });
-    obs('2026-09-05', { 'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-05' } });
+    obs('2026-09-02', {
+      'macro.DR007.change5d': { value: -5, direction: -1, asOf: '2026-09-02' },
+      'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-02' },
+    });
+    obs('2026-09-03', {
+      'macro.DR007.change5d': { value: -6, direction: -1, asOf: '2026-09-03' },
+      'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-03' },
+    });
+    obs('2026-09-04', {
+      'macro.DR007.change5d': { value: -7, direction: -1, asOf: '2026-09-04' },
+      'sector.black.oi.flow5d': { value: 3, direction: 1, asOf: '2026-09-04' },
+    });
     const ledger = sc.loadLedger(root);
     assert.equal(ledger.chains.find((c) => c.chainId === r.chainId).status, 'proven');
     // 前向席位记录（apply-story-seats 写入 data/story-pool/seats/<runId>.json）
@@ -456,7 +501,7 @@ describe('story-chain 新数据判定与真实前值', () => {
       'macro.DR007.change5d': { value: -5, direction: -1, prevValue: -3, prevAt: '2026-08-29', asOf: '2026-08-31' },
     }, { tradingDates: TRADING });
     assert.equal(c.nodes[0].status, 'pending');
-    // 真实新数据（asOf 推进）只记第 1/2 天观察，连续第二个新数据日才确认
+    // 真实新数据（asOf 推进）只记第 1/3 天观察，连续第三个新数据日才证明
     sc.applyObservation(c, '2026-09-04', {
       'macro.DR007.change5d': { value: -6, direction: -1, prevValue: -5, prevAt: '2026-09-01', asOf: '2026-09-02' },
     }, { tradingDates: TRADING });
@@ -465,8 +510,13 @@ describe('story-chain 新数据判定与真实前值', () => {
     sc.applyObservation(c, '2026-09-05', {
       'macro.DR007.change5d': { value: -7, direction: -1, prevValue: -6, prevAt: '2026-09-02', asOf: '2026-09-05' },
     }, { tradingDates: TRADING });
+    assert.equal(c.nodes[0].status, 'pending');
+    assert.equal(c.nodes[0].sameStreak, 2);
+    sc.applyObservation(c, '2026-09-08', {
+      'macro.DR007.change5d': { value: -8, direction: -1, prevValue: -7, prevAt: '2026-09-05', asOf: '2026-09-08' },
+    }, { tradingDates: TRADING });
     assert.equal(c.nodes[0].status, 'confirmed');
-    assert.equal(c.nodes[0].prevValue, -6);
-    assert.equal(c.nodes[0].prevValueAt, '2026-09-02');
+    assert.equal(c.nodes[0].prevValue, -7);
+    assert.equal(c.nodes[0].prevValueAt, '2026-09-05');
   });
 });

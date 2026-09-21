@@ -303,6 +303,27 @@ describe('dashboard-html 四 Tab 看板', () => {
     const args = { runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [{ runId: 'r1', date: '2026-09-15', oppSymbols: 'PP0', href: 'runs/r1/report.html' }] };
     assert.equal(renderDashboardHtml(args), renderDashboardHtml(args));
   });
+
+  it('机会面板展示链审计徽标与传导链证据对照（链只是证据）', () => {
+    const model = makeReportModel();
+    model.opportunities[0].storyChainId = 'CH-BLACK-20260917-01';
+    model.opportunities[0].audit = { verdict: 'conflict', chainId: 'CH-BLACK-20260917-01', conflictCount: 1, impact: 'revised_driver', response: '已修订' };
+    model.opportunities[0].auditImpact = 'revised_driver';
+    const html = renderDashboardHtml({
+      runId: 'r1', reportModel: model, signalPoolView: makeSignalPoolView(), storyView: makeStoryView(), history: [],
+    });
+    assert.ok(html.includes('链审计 1 冲突 · 修订驱动'));
+    assert.ok(html.includes('传导链证据对照'));
+    assert.ok(html.includes('链是证据，不是结论'));
+    assert.ok(html.includes('源节点'));
+    assert.ok(html.includes('终点节点'));
+  });
+
+  it('无审计数据时显示"链审计 未运行"，不伪造审计结论', () => {
+    const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [] });
+    assert.ok(html.includes('链审计 未运行'));
+    assert.doesNotMatch(html, /链审计 对齐/);
+  });
 });
 
 describe('dashboard-html seriesBars 数据源优先级（图表必须用本期最新序列）', () => {

@@ -3,6 +3,7 @@
 // 用法:
 //   node stories/cli/story-chain-cli.cjs register --file <chain.json> [--supersede]
 //   node stories/cli/story-chain-cli.cjs observe --date <YYYY-MM-DD> | --runId <runId>
+//   node stories/cli/story-chain-cli.cjs audit [--chainId <id>]
 //   node stories/cli/story-chain-cli.cjs list
 //   node stories/cli/story-chain-cli.cjs view
 //
@@ -68,7 +69,7 @@ function main() {
     const ledger = chain.loadLedger();
     console.log('story-pool ledger:');
     for (const row of ledger.chains) {
-      console.log(`  ${row.chainId}  ${row.sector.padEnd(16)} ${row.status.padEnd(10)} ${row.createdAt}${row.closedAt ? ' → ' + row.closedAt + ' (' + row.closeReason + ')' : ''}`);
+      console.log(`  ${row.chainId}  ${String(row.sector || '—').padEnd(16)} ${row.status.padEnd(10)} ${row.createdAt}${row.closedAt ? ' → ' + row.closedAt + ' (' + row.closeReason + ')' : ''}`);
     }
     return;
   }
@@ -115,11 +116,40 @@ function main() {
     return;
   }
 
+  if (cmd === 'provisional') {
+    const chainId = flagVal(args, '--chainId');
+    if (!chainId) { console.error('provisional 需要 --chainId'); process.exitCode = 1; return; }
+    const reason = flagVal(args, '--reason') || null;
+    const out = chain.markChainProvisional(chainId, { reason });
+    if (!out.ok) { console.error(out.errors.join('; ')); process.exitCode = 1; return; }
+    console.log(`chain ${out.chainId} → provisional（${out.detail}）`);
+    return;
+  }
+
+  if (cmd === 'audit') {
+    const chainId = flagVal(args, '--chainId');
+    if (chainId) {
+      const out = chain.auditChainCompliance(chainId);
+      console.log(`${out.chainId} schema=${out.schema} status=${out.status} compliance=${out.ok ? 'PASS' : 'FAIL'}`);
+      for (const e of out.errors) console.log(`  - ${e}`);
+      if (!out.ok) process.exitCode = 1;
+      return;
+    }
+    const out = chain.auditActiveChains();
+    console.log(`active chains compliance: ${out.audits.length} checked, ${out.failures.length} failed`);
+    for (const a of out.audits) {
+      console.log(`  ${a.chainId} status=${a.status} compliance=${a.ok ? 'PASS' : 'FAIL'}${a.legacy ? ' (legacy 不校验)' : ''}`);
+      for (const e of a.errors) console.log(`    - ${e}`);
+    }
+    if (!out.ok) process.exitCode = 1;
+    return;
+  }
+
   usage();
 }
 
 function usage() {
-  console.log('usage: node stories/cli/story-chain-cli.cjs <register|observe|resolve|prompt|list|view> ...');
+  console.log('usage: node stories/cli/story-chain-cli.cjs <register|observe|resolve|provisional|audit|prompt|list|view> ...');
 }
 
 main();

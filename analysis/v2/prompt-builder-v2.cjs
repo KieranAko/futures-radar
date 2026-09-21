@@ -13,6 +13,7 @@ const path = require('node:path');
 const ROOT = path.resolve(__dirname, '..', '..');
 const EL = path.join(ROOT, 'research', 'archive-experiment-line', 'experiment-line'); // V2：归档保留，仅供历史工具兼容
 const { runDir } = require(path.join(ROOT, 'shared', 'workspace.cjs'));
+const news = require(path.join(ROOT, 'stories', 'lib', 'news-snapshot.cjs'));
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -27,6 +28,14 @@ function main() {
   const packets = readJson(path.join(runPath, 'analyze', 'packets-v2.json'));
   const prefill = readJson(path.join(runPath, 'analyze', 'prefill-v2.json')).prefill;
   const sectorSnap = readJson(path.join(runPath, 'sector-snapshot.json'));
+  const newsDoc = news.loadNewsSnapshot(runId);
+  if (newsDoc) {
+    const check = news.validateNewsSnapshot(newsDoc);
+    if (!check.ok) {
+      console.error('WARN: 新闻快照不合法，六问第一遍将不带新闻快照：');
+      console.error(check.errors.join('\n'));
+    }
+  }
 
   const syms = Object.keys(packets.packets || {});
   const sectors = [...new Set(syms.map((s) => packets.packets[s].sector))];
@@ -47,6 +56,18 @@ function main() {
   L.push('{"sectors":{"<name>":{"direction":"up|down|flat","driver":{"primary":"板块级驱动一句话","confidence":"high|medium|low"},"reason":"只解释板块整体","relation_to_individual":"context_only"}}}');
   L.push('```');
   L.push('找不到板块级证据 → driver.primary="unknown"，禁止编造。');
+  L.push('');
+  L.push('## 共同事实底座（新闻/政策快照，只提供事实）');
+  L.push('');
+  if (newsDoc && Array.isArray(newsDoc.items) && newsDoc.items.length > 0) {
+    for (const it of newsDoc.items) {
+      L.push(`- [${it.id}] ${it.date} ${it.type} ${(it.sectors || []).join('/')}：${it.title}。${it.summary}`);
+    }
+  } else {
+    L.push('（本期无新闻快照）');
+  }
+  L.push('');
+  L.push('系统里已登记传导链，但本阶段不展示其内容。请完全基于以上事实与下方市场数据独立完成六问，不要猜测或复述任何链的结论。');
   L.push('');
   L.push('## P2 品种批量（O1/O3/O5，1 次调用，三品种一次输出）');
   L.push('');

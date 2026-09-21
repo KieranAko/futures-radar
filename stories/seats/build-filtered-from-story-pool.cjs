@@ -60,6 +60,7 @@ function trackingSeatEntries(poolSignals) {
 }
 
 function branchRefsOfChain(c) {
+  if (!c || c.provisional === true) return []; // provisional 链仅观察，不产生故事席位
   if (c && Array.isArray(c.terminals) && c.terminals.length > 0) {
     return c.terminals
       .filter((t) => ['resolving', 'pending', 'proven'].includes(t.status))

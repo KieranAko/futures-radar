@@ -17,6 +17,7 @@
 | `contract-bars/<CONTRACT>.json` | 主导合约 bars（按 run 保留） | freeze-packets 后 `ingestContractBars` | probability 回退、回测 |
 | `macro/<RUN_ID>.json` | 宏观快照（与 run 快照同构） | macro-probe 后 `ingestMacro` | report 回退、后续回测 |
 | `macro-history/<ANCHOR>.json` | 宏观锚点历史序列（DXY/USDCNH/US10Y/DR007，合并冻结历史+生产快照） | `collector/macro-history-builder.cjs` | 故事传导链节点指标（story-indicators） |
+| `news/<RUN_ID>.json` + `news/_index.json` | 每期新闻/政策快照（少而精，agent WebSearch 现搜现写） | `stories/cli/news-snapshot-cli.cjs install` | 故事链提示词 / 六问第一遍 / 审计提示词 |
 | `sector/<SECTOR>.json` | 板块指数/广度/领涨领跌序列 | sector-aggregator 后 `ingestSectorSnapshot` | 板块异动报告、LLM sector_movement 证据 |
 | `sector/snapshots/<RUN_ID>.json` | 每 run 冻结的板块快照 | sector-aggregator | analyze/report 回退 |
 | `runs/` | 每次运行的冻结产物 | pipeline | 报告、分析 |

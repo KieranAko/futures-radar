@@ -19,7 +19,7 @@ version: 2.0.0
 - **看板为主**：`output/dashboard.html` 是日常阅读主界面（四 Tab：故事池置首 / 机会分析 / 信号池 / 历史报告；故事池以主题为卡片标题、卡片可折叠，逐节点展示前值/当前值/环比+单位+日期、观察窗口起止、确认日期、取数路径、可信度、事件与 linkedSignalId）；完整报告 `runs/<runId>/report.md/html` 为档案与审计，次要阅读。生产顺序固定为：assemble-v2 → strategy-reasoning → build-strategy-plan → render（保证看板生成时策略/信号池/故事池数据齐全）；反哺机制未定，link-signal-pool 暂不启用
 - **信号池（Signal Pool）**：`build-strategy-plan.cjs` 自动执行信号池更新（`signals/lib/signal-pool.cjs`）——executable 策略诞生信号（入池）、同向后续 plan 追加策略版本（追踪）、反向翻转/Q5 证伪/机会衰竭/窗口到期四种原因出池；信号池台账存 `data/signal-pool/`（`ledger.json` + `signals/<signalId>.json`），报告 4.3 展示「池内信号全量明细 + 最近出池 5 个明细 + 历史统计 + 版本链」。旧证伪反馈（`strategy-feedback.json`）仍生成但仅作兼容，不再渲染。信号池看板：`render-markdown.cjs` 生成 `output/dashboard.html`（四 Tab：机会分析 / 信号池 / 故事池 / 历史报告索引），每期覆盖；同时生成 `runs/<runId>/report.html`（report.md 的浏览器可读 HTML 版，历史缺失可用 `node output/backfill-report-html.cjs` 回填）
 - **信号池追踪席位**：每期初筛写完 `filtered.json` 后，运行 `node signals/seats/apply-tracking-seats.cjs --runId <runId>`，把池内品种强制加入 KEEP（`tracking=true`），与 TOP3 同规格完整再分析
-- **故事传导链池（Story Chain Pool，V2）**：LLM 构造传导链（1 主题 + ≥3 节点 + 顺序边 + 1 板块 + 1 代表品种 + 1 方向 + 证明点 2≤p<节点数；链首必须是宏观/事件源；板块成员<3 禁板块指标；连续 2 数据日同向才确认/反向才断）。节点两态：T0 引用 `config/story-chain-indicators.json` 目录，或 T2 带 `concept + dataPlan`（baseline/unit/maxFreshDays）走 WebSearch 检索（T1 采集器暂缺，一律降级 T2）。**取数路径 ≠ 数据可信度**：可信度 high/medium/low/unknown 由脚本按来源层级×新鲜度×独立源推导，只标注不改变证明/证伪判决。状态机：resolving（证明点冻结）→pending→proven→completed|falsified|expired|void；同板块仅 1 条活跃链（`supersede` 换代）。台账存 `data/story-pool/`。CLI：`prompt --runId <id>`（状态唤醒提示词，读 `stories/blueprint.md`）、`register --file ... --batch`、`resolve --chainId <id> --brief/--file/--void`、`observe --runId <id>` / `--date <YYYY-MM-DD>`、`list`、`view`。**数据唯一事实源=文件库**：节点指标只从 `data/daily` + `data/macro-history`（`npm run macro:history` 构建/刷新）计算，不读 output/runs。**生产桥（单向顺序）**：filter-llm 后运行 `node stories/seats/apply-story-seats.cjs --runId <id>` 把 proven 链代表品种注入 KEEP（tracking=true/storyChainId）；storyChainId 随 filtered → analysis → report-model → strategy-plan → signal 逐层前向盖章（血缘只读可查）。`link-signal-pool.cjs` 代码保留但暂不启用（信号验证反哺故事链机制未定）。示例：`research/experiments/macro-flow-v1/example-chain.json`
+- **故事传导链池（Story Chain Pool，V2.1）**：LLM 构造传导链（1 主题 + ≥3 节点 + DAG 边 + 1 源 + 1 代表品种 + 1 方向 + 证明点 2≤p<节点数；链首为四类合法源之一：`macro.*` 宏观源 / T2 event 事件源 / T2 flow 供需源 / `sector.*.oi.flow5d` 行为-资金流源，源类由引擎按首节点自动判定；板块收益/相对强度与品种价格仍禁止作链首；板块成员<3 禁板块指标；**所有节点从注册日起并行观察、独立计数**：日频连续 3 数据日同向即证明、连续 2 反向即证伪，节点三态=观察中/已证明/已证伪，无"当前节点"概念；每条链必须带 `reasoningCard` 与六问信息量对齐：claim 源/方向/路径、mechanisms 逐边机制、evidenceRefs 新闻与指标引用、assumptions/uncertainties/falsifiers）。可以从市场现象/信号质量假设出发构造（假设目标合法），但必须逐节点核对前提成立性，禁止为了证明目标而放宽节点。节点数据三态：T0 引用 `config/story-chain-indicators.json` 目录；T2 带 `concept + dataPlan`（`concept` 必须中性无方向结论词，只写被测量的量+窗口+基准；显式 `kind=event|flow` + `baseline` + `unit` + 显式 `maxFreshDays` + 中性 `searchHints`；`flow` 还必须显式 `metric` 与 `basis` level|dod|wow|mom|yoy、`minSources` 2..5，resolve 时 observation 的 metric/basis 与 dataPlan 不一致即拒收、至少两个独立域名来源且方向一致，`sourceTier` 缺失即拒收）走 WebSearch 检索；T1 采集器暂缺。检索是中性采集：brief 不把 concept 当检索词，只拼 searchHints+metric+basis，禁止把结论写进检索词；源必须独立于品种方向成立（删掉品种信号后源仍成立才允许作链首）。**取数路径 ≠ 数据可信度**：可信度 high/medium/low/unknown 由脚本按来源层级×新鲜度×独立源推导，只标注不改变证明/证伪判决。指标目录声明 `sourceClass`/`allowAsRoot`（四类链首权限）、`valueScale`（level/rate/sign）与 `changeKind`（absolute/percentage_points/relative/none），节点变化量由引擎按尺度计算，渲染器只渲染、不现场做减法。状态机：resolving（T2 未解析）→pending→proven（已证明上游数≥proofIndex）→completed|falsified|expired|void；`provisional` 链仅观察、不参与证明/席位；同源仅 1 条活跃链（`supersede` 换代）。台账存 `data/story-pool/`。CLI：`prompt --runId <id>`（状态唤醒提示词，读 `stories/blueprint.md`）、`register --file ... --batch`、`resolve --chainId <id> --brief/--file/--void`、`provisional --chainId <id>`、`audit [--chainId <id>]`（存量链×当前契约合规审计）、`observe --runId <id>` / `--date <YYYY-MM-DD>`、`list`、`view`。**数据唯一事实源=文件库**：节点指标只从 `data/daily` + `data/macro-history`（`npm run macro:history` 构建/刷新）计算，不读 output/runs。**生产桥（单向顺序）**：`story-news` 新闻快照 → 故事链构造（结构+推理卡）→ `observe` → `node stories/seats/build-filtered-from-story-pool.cjs --runId <id>` 由故事池重写 KEEP（tracking=true/storyChainId）；storyChainId 随 filtered → analysis → report-model → strategy-plan → signal 逐层前向盖章（血缘只读可查）。六问第一遍独立推理 → 审计 LLM 找冲突 → 六问第二遍修订增量 → assemble 合并并 `auditImpact` 留痕。`apply-story-seats.cjs` 为 legacy 脚本不再使用；`link-signal-pool.cjs` 代码保留但暂不启用（信号验证反哺故事链机制未定）。示例：`research/experiments/macro-flow-v1/example-chain.json`
 - **信号质量回测**：固定 RB0/M0/SC0、2 年历史（500 交易日）+ 每 5 交易日 LLM 锚点，确定性规则延续生成信号，T+1 收盘确认/T+2 开盘执行/止损/目标/时间退出验证。v1/v2 基线（`runner.cjs` → `signal-quality-baseline.md/json`、`signal-quality-baseline-2y.md/json`）冻结保留；v3（`runner-v3.cjs` → `signal-quality-baseline-v3.md/json`）不做参数选优，改为证伪 LLM 定性判断（regime/edge/triggerType/qualityFlags/thesis），并与纯量化 MA20 对照臂比较；v4（`runner-v4.cjs` → `signal-quality-baseline-v4.md/json`）为最近 10 锚点×3 品种试点：宏观/板块/事件日历上下文 + 完整六问 FinCoT → 报告式操作策略 → 严格执行；v5（`runner-v5.cjs` → `signal-quality-baseline-v5.md/json`）为 20 锚点×3 品种高效版：紧凑 bundle + 变化检测按需重跑 FinCoT + C 臂强制消费 FinCoT；v6（`runner-v6.cjs` → `signal-quality-baseline-v6.md/json`）为五道安全闸初版；v6.1（`runner-v6-1.cjs` → `signal-quality-baseline-v6-1.md/json`）为硬约束修正版；v7（`runner-v7.cjs` → `signal-quality-baseline-v7.md/json`）以 FinCoT 论文（arXiv:2506.16123）为推理根基：5 个领域蓝图 + thinking/output/selfCheck + 安全执行，10 锚点试点；v7 适配器（`adapters/strategy-plan-adapter.cjs`）把 FinCoT 分析包装成生产 run 形状，原样调用 `strategy-matcher` 产出 30 份 `strategy-plan.json`；v8 执行引擎（`runner-v8.cjs`）只读 strategy-plan 字段执行；v8.1 增加定价层（`pricing-layer-v8.cjs`：F1 触发价 2×ATR 带、F2 q4 类型一致、F3 range/transition 禁 breakout、F5 breakout 必须有结构目标、F4 目标距离审计）+ `runner-v8-1.cjs` 只执行定价层放行计划——FinCoT 只做分析，策略库适配策略，执行层按策略执行
 
 ## 触发条件
@@ -105,21 +105,24 @@ node pipeline/run.cjs --runId 20260918-1941-auto --from render-markdown
 
 ### Phase 1: 故事链（V2，替代 filter-llm）
 **filter-llm 已退役；故事池 active 链是 KEEP 名单的唯一来源。**
-1. `node stories/cli/story-chain-cli.cjs prompt --runId <runId>` 生成状态唤醒提示词；
-2. LLM 按 `stories/blueprint.md` 为各板块构造传导链（一板块一链，最多板块数条），写 `story-chains.json` 后 `register --file ... --batch` 入池；
-3. `node stories/cli/story-chain-cli.cjs observe --runId <runId>` 逐日打卡推进链状态（连续 2 数据日同向确认/反向断链）；
-4. `node stories/seats/build-filtered-from-story-pool.cjs --runId <runId>` **重写** `filtered.json`：active 故事席位（tracking=true/storyChainId）+ 有故事血缘的信号池追踪席位（孤儿/legacy 信号不入深挖）；无链且无追踪信号 → 空仓合法。candidates.json 缺失时由故事席位创建（不再来自波动率扫描）。
+1. agent 现搜现写新闻快照 `output/runs/<runId>/news-snapshot.json`（少而精：宏观3-5+每板块1-3，总量≤20，多来源优先），`node stories/cli/news-snapshot-cli.cjs install --runId <runId>` 装入 `data/news/`；
+2. `node stories/cli/story-chain-cli.cjs prompt --runId <runId>` 生成状态唤醒提示词（注入新闻快照 + 宏观/板块冻结数据）；
+3. LLM 按 `stories/blueprint.md` 为各板块构造传导链（结构 JSON + reasoningCard 推理卡），写 `story-chains.json` 后 `register --file ... --batch` 入池；
+4. `node stories/cli/story-chain-cli.cjs observe --runId <runId>` 逐日打卡推进链状态（连续 3 数据日同向证明/连续 2 反向证伪）；
+5. `node stories/seats/build-filtered-from-story-pool.cjs --runId <runId>` **重写** `filtered.json`：active 故事席位（tracking=true/storyChainId）+ 有故事血缘的信号池追踪席位（孤儿/legacy 信号不入深挖）；无链且无追踪信号 → 空仓合法。candidates.json 缺失时由故事席位创建（不再来自波动率扫描）。
 旧 `legacy/filter/filter/blueprint.md` 与 quantitative-filter 归档保留，不再执行。
 
-### Phase 2: 机会分析（analysis v2，半自动）
-- 步骤 1-3（自动）：`analysis/v2/packet-freeze-v2.cjs` → `prefill-v2.cjs` → `prompt-builder-v2.cjs`，产出 `analyze/packets-v2.json` / `prefill-v2.json` / `prompts-v2.md`
-- 步骤 4（LLM，单轮批量）：按 `prompts-v2.md` 完成所有故事席位深挖，写 `analyze/outputs-v2.json`
-- 步骤 5（自动）：`analysis/v2/assemble-v2.cjs --as-production` → `analysis.json` + `reasoning-results.json`（Q4 语义事实校验 + 置信度护栏）
-- 步骤 6（自动）：`analysis/probability/stage-4-5.cjs` → `probability.json`（HV 概率锥 + ATR 对比）
-- 步骤 7（自动）：`analysis/assembly/build-facts.cjs` → `report-facts.json`（Symbol join + 宏观透传 + 数据时效）
-- 步骤 8（自动）：`analysis/assembly/build-model.cjs` → `report-model.json`（Q1-Q6 原文提取 + 方向/置信度 canonical 校验）
-- 步骤 9（自动）：`analysis/strategy/strategy-reasoning-prompt.cjs` → `strategies/prompts/strategy-reasoning.md`
-- 步骤 10（LLM）：按 `strategy-reasoning.md` 做交易表达决策，写 `strategy-reasoning.json`
+### Phase 2: 机会分析（analysis v2，六问两遍 + 审计）
+- 步骤 1-3（自动）：`analysis/v2/packet-freeze-v2.cjs` → `prefill-v2.cjs` → `prompt-builder-v2.cjs`（第一遍提示词，注入新闻快照，明确不展示传导链），产出 `analyze/packets-v2.json` / `prefill-v2.json` / `prompts-v2.md`；
+- 步骤 4（LLM 第一遍）：六问独立推理写 `analyze/outputs-v2.json`；
+- 步骤 5-6（审计）：`analysis/v2/audit-prompt-builder.cjs` 生成对质提示词，审计 LLM 写 `analyze/audit-findings.json`（只找冲突、给六问追问、不判输赢）；
+- 步骤 7-8（六问第二遍）：`analysis/v2/reconciliation-prompt-builder.cjs` 生成修订提示词，六问 LLM 对 conflict 品种写 `analyze/outputs-v2-reconciliation.json`（修订增量 + auditImpact）；
+- 步骤 9：`analysis/v2/assemble-v2.cjs --as-production` 合并两遍结果并 auditImpact 留痕；
+- 步骤 10（自动）：`analysis/probability/stage-4-5.cjs` → `probability.json`（HV 概率锥 + ATR 对比）
+- 步骤 11（自动）：`analysis/assembly/build-facts.cjs` → `report-facts.json`（Symbol join + 宏观透传 + 数据时效）
+- 步骤 12（自动）：`analysis/assembly/build-model.cjs` → `report-model.json`（Q1-Q6 原文提取 + 方向/置信度 canonical 校验）
+- 步骤 13（自动）：`analysis/strategy/strategy-reasoning-prompt.cjs` → `strategies/prompts/strategy-reasoning.md`
+- 步骤 14（LLM）：按 `strategy-reasoning.md` 做交易表达决策，写 `strategy-reasoning.json`
 - FinCoT 是 Analyze 增强组件（推理先行，不替代六问；四臂仅回测研究对照，日常只走 fincot 臂）
 
 ### Phase 3: 信号池 (auto)

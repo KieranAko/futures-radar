@@ -10,24 +10,26 @@ function escapeHtml(s) {
 }
 
 const STATUS_LABEL = {
-  resolving: '🔍 解析中',
-  pending: '⏳ 待确认',
+  resolving: '观察中',
+  pending: '观察中',
   proven: '✅ 已证明',
-  completed: '🏁 已走完',
+  completed: '✅ 已证明',
   falsified: '❌ 已证伪',
   expired: '⏰ 已过期',
   superseded: '♻️ 已换代',
   void: '🚫 已作废',
 };
 
-const NODE_STATUS_LABEL = { confirmed: '已确认', broken: '已断裂', pending: '待确认' };
+const NODE_STATUS_LABEL = { confirmed: '已证明', broken: '已证伪', pending: '观察中' };
+
+const SOURCE_CLASS_LABEL = { macro: '宏观源', event: '事件源', flow: '供需源', behavior: '行为源' };
 
 const EVENT_LABEL = {
   registered: '链注册',
-  confirmed: '节点确认',
-  broken: '节点断裂',
+  confirmed: '节点证明',
+  broken: '节点证伪',
   proven: '达到证明点',
-  completed: '传导链走完',
+  completed: '传导链证明并走完',
   falsified: '传导链证伪',
   expired: '链过期',
   superseded: '被换代',
@@ -62,19 +64,40 @@ function nodeClass(n) {
   return 'node-pending';
 }
 
+function nodeProgressLabel(n) {
+  if (!n) return '观察中';
+  if (n.status === 'confirmed') return '已证明';
+  if (n.status === 'broken') return '已证伪';
+  if (n.sameStreak > 0) return `观察中 · 同向 ${n.sameStreak}/3`;
+  if (n.oppStreak > 0) return `观察中 · 反向 ${n.oppStreak}/2`;
+  return '观察中';
+}
+
 function fmtSigned(v) {
   if (v === null || v === undefined || !Number.isFinite(Number(v))) return '—';
   const n = Number(v);
   return (n > 0 ? '+' : '') + fmtVal(n);
 }
 
-function dagNodeCard(n, isSource = false, isCurrent = false) {
+// V2.1：渲染器禁止现场对 prev/current 做减法。变化量由引擎（view）按
+// valueScale/changeKind 计算，这里只渲染 changeValue/changeLabel/changeText。
+function changeTextHtml(n) {
+  if (!n) return '—';
+  if (n.changeText) return escapeHtml(n.changeText);
+  if (Number.isFinite(Number(n.changeValue))) {
+    const v = fmtSigned(n.changeValue);
+    return n.changeLabel ? `${v} ${escapeHtml(n.changeLabel)}` : v;
+  }
+  return '—';
+}
+
+function dagNodeCard(n, isSource = false) {
   const cur = n.lastValue ?? n.observedValue;
   const dir = n.expectation === 1 ? '<span class="up">多</span>' : n.expectation === -1 ? '<span class="down">空</span>' : '—';
-  return `<div class="dg-node ${nodeClass(n)}${n.terminal ? ' terminal' : ''}${isCurrent ? ' current' : ''}" data-node-id="${escapeHtml(n.id)}">
+  return `<div class="dg-node ${nodeClass(n)}${n.terminal ? ' terminal' : ''}" data-node-id="${escapeHtml(n.id)}">
     <div class="dg-node-head"><b>${escapeHtml(n.label || n.id)}</b><span class="dg-node-dir">${dir}</span></div>
     <div class="dg-node-val">${fmtVal(cur)} ${escapeHtml(n.unit || '')}</div>
-    <div class="dg-node-foot">${n.terminal ? `${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'}` : (isCurrent ? '当前节点 · ' : '') + (NODE_STATUS_LABEL[n.status] || escapeHtml(n.status))}</div>
+    <div class="dg-node-foot">${n.terminal ? `${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'} · ` : ''}${nodeProgressLabel(n)}</div>
   </div>`;
 }
 
@@ -87,13 +110,15 @@ function dagPanelHtml(c) {
   for (let d = 0; d <= maxLayer; d++) columns.push(layers.get(d) || []);
   const columnsHtml = columns.map((ids) => `<div class="dg-layer">${ids.map((id) => {
     const n = nodes.find((x) => x.id === id);
-    return n ? dagNodeCard(n, n.id === nodes[0].id, n.id === c.activeNode) : '';
+    return n ? dagNodeCard(n, n.id === nodes[0].id) : '';
   }).join('')}</div>`).join('');
   const graphNodes = nodes.map((n) => ({
     id: n.id, label: n.label || n.id, status: n.status, terminal: !!n.terminal,
     priority: n.priority || null, proofIndex: n.proofIndex ?? null, expectation: n.expectation,
     credibility: n.credibility, unit: n.unit || '', lastValue: n.lastValue ?? null,
     lastValueAt: n.lastValueAt || null, prevValue: n.prevValue ?? null, prevValueAt: n.prevValueAt || null,
+    changeValue: n.changeValue ?? null, changeLabel: n.changeLabel || null, changeText: n.changeText || null,
+    sameStreak: n.sameStreak || 0, oppStreak: n.oppStreak || 0,
     observedAt: n.observedAt || null, windowStartDate: n.windowStartDate || null,
     windowDeadlineDate: n.windowDeadlineDate || null, brokenReason: n.brokenReason || null,
   }));
@@ -121,8 +146,9 @@ function chainPanelHtml(c) {
     <div class="story-panel-head">
       <span class="story-theme">${escapeHtml(c.theme || '（未命名主题）')}</span>
       ${storyStatusBadge(c.status)}
-      <span class="story-source">源 ${escapeHtml((c.nodes && c.nodes[0] && c.nodes[0].label) || c.sourceId || c.sector || '—')}</span>
-      <span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认</span>
+      ${c.provisional ? '<span class="story-status st-watch">provisional · 不参与证明/席位</span>' : ''}
+      <span class="story-source">${c.sourceClass ? `<span class="source-class">${SOURCE_CLASS_LABEL[c.sourceClass] || escapeHtml(c.sourceClass)}</span> ` : ''}源 ${escapeHtml((c.nodes && c.nodes[0] && c.nodes[0].label) || c.sourceId || c.sector || '—')}</span>
+      <span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点已证明</span>
     </div>
     ${c.themeDetail ? `<div class="story-subtitle">${escapeHtml(c.themeDetail)}</div>` : ''}
     ${dagPanelHtml(c)}
@@ -134,19 +160,18 @@ function nodeTableHtml(nodes) {
   const rows = (nodes || []).map((n) => {
     const cur = n.lastValue ?? n.observedValue;
     const prev = n.prevValue;
-    const mom = Number.isFinite(Number(cur)) && Number.isFinite(Number(prev)) ? Number(cur) - Number(prev) : null;
     return `<tr class="story-node ${nodeClass(n)}">
       <td><b>${escapeHtml(n.label || n.id)}</b><div class="muted">${escapeHtml(n.indicatorId || n.concept || '—')}</div></td>
-      <td>${NODE_STATUS_LABEL[n.status] || escapeHtml(n.status)}</td>
+      <td>${nodeProgressLabel(n)}</td>
       <td>${n.expectation === 1 ? '↑' : n.expectation === -1 ? '↓' : '—'}</td>
       <td>${fmtVal(prev)}</td>
       <td><b>${fmtVal(cur)}</b> ${escapeHtml(n.unit || '')}</td>
-      <td class="${mom > 0 ? 'mom-up' : mom < 0 ? 'mom-down' : ''}">${fmtSigned(mom)}</td>
+      <td>${changeTextHtml(n)}</td>
       <td>${credBadge(n.credibility)}</td>
       <td class="muted">${escapeHtml(n.windowStartDate || '—')} → ${escapeHtml(n.windowDeadlineDate || '—')}</td>
     </tr>`;
   }).join('');
-  return `<table class="node-table"><thead><tr><th>节点</th><th>状态</th><th>预期</th><th>前值</th><th>当前</th><th>环比</th><th>可信度</th><th>观察窗口</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return `<table class="node-table"><thead><tr><th>节点</th><th>状态</th><th>预期</th><th>前值</th><th>当前</th><th>变动</th><th>可信度</th><th>观察窗口</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function nodeRow(n) {
@@ -156,18 +181,17 @@ function nodeRow(n) {
   const cur = n.lastValue ?? n.observedValue;
   const prev = n.prevValue;
   const curAt = n.lastValueAt || (n.status === 'confirmed' ? n.observedAt : null);
-  const mom = Number.isFinite(Number(cur)) && Number.isFinite(Number(prev)) ? Number(cur) - Number(prev) : null;
   const tier = n.resolution && n.resolution.sourceTier ? `· 来源${escapeHtml(n.resolution.sourceTier)}级` : '';
   return `<div class="story-node ${nodeClass(n)}">
     <div class="node-line node-title">
       <span class="node-state">${n.status === 'confirmed' ? '✔' : n.status === 'broken' ? '✘' : '·'}</span>
       <span class="node-label">${escapeHtml(label)}</span>
-      <span class="node-status">${NODE_STATUS_LABEL[n.status] || escapeHtml(n.status)}</span>
+      <span class="node-status">${nodeProgressLabel(n)}</span>
       <span class="node-dir">${exp}</span>
       ${credBadge(n.credibility)}
     </div>
     <div class="node-line node-values">
-      <span class="node-value">前值 ${fmtVal(prev)}${prev != null && n.prevValueAt ? `（${escapeHtml(n.prevValueAt)}）` : ''} → 当前 <b>${fmtVal(cur)}</b>${curAt ? `（${escapeHtml(curAt)}）` : ''} · 环比 <b class="${mom > 0 ? 'mom-up' : mom < 0 ? 'mom-down' : ''}">${fmtSigned(mom)}</b> ${escapeHtml(n.unit || '')}</span>
+      <span class="node-value">前值 ${fmtVal(prev)}${prev != null && n.prevValueAt ? `（${escapeHtml(n.prevValueAt)}）` : ''} → 当前 <b>${fmtVal(cur)}</b>${curAt ? `（${escapeHtml(curAt)}）` : ''} · 变动 <b>${changeTextHtml(n)}</b></span>
     </div>
     <div class="node-line node-meta-line">
       <span class="node-meta">${escapeHtml(n.indicatorId || n.concept || '—')}</span>
@@ -275,6 +299,8 @@ function storyGraphHtml(c) {
     expectation: n.expectation, credibility: n.credibility, unit: n.unit || '',
     lastValue: n.lastValue ?? null, lastValueAt: n.lastValueAt || null,
     prevValue: n.prevValue ?? null, prevValueAt: n.prevValueAt || null,
+    changeValue: n.changeValue ?? null, changeLabel: n.changeLabel || null, changeText: n.changeText || null,
+    sameStreak: n.sameStreak || 0, oppStreak: n.oppStreak || 0,
     observedAt: n.observedAt || null, windowStartDate: n.windowStartDate || null,
     windowDeadlineDate: n.windowDeadlineDate || null, brokenReason: n.brokenReason || null,
   }));
@@ -355,8 +381,10 @@ function graphScript() {
       var rows = [];
       rows.push('<div class="sg-detail-head"><b>' + short(n.label, 20) + '</b><button class="sg-detail-close" aria-label="关闭">×</button></div>');
       if (n.theme) rows.push('<div class="sg-detail-row"><span>故事</span><b>' + short(n.theme, 20) + '</b></div>');
-      rows.push('<div class="sg-detail-row"><span>状态</span><b>' + short(n.status, 10) + (n.terminal ? ' · ' + (n.priority === 'primary' ? '主支' : '次支') : '') + '</b></div>');
+      var st = n.status === 'confirmed' ? '已证明' : n.status === 'broken' ? '已证伪' : '观察中';
+      rows.push('<div class="sg-detail-row"><span>状态</span><b>' + st + (n.terminal ? ' · ' + (n.priority === 'primary' ? '主支' : '次支') : '') + '</b></div>');
       rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '<span class="up">多</span>' : n.expectation === -1 ? '<span class="down">空</span>' : '—') + '</b></div>');
+    if (n.sameStreak > 0 || n.oppStreak > 0) rows.push('<div class="sg-detail-row"><span>计数</span><b>' + (n.sameStreak > 0 ? '同向 ' + n.sameStreak + '/3' : '反向 ' + n.oppStreak + '/2') + '</b></div>');
       if (n.lastValue != null && Number.isFinite(Number(n.lastValue))) {
         rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + Number(n.lastValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + short(n.lastValueAt, 10) + '）</b></div>');
         if (n.prevValue != null && Number.isFinite(Number(n.prevValue))) rows.push('<div class="sg-detail-row"><span>前值 → 当前</span><b>' + Number(n.prevValue).toFixed(2) + ' → ' + Number(n.lastValue).toFixed(2) + '</b></div>');
@@ -562,6 +590,8 @@ function marketMapHtml(active) {
         expectation: n.expectation, credibility: n.credibility, unit: n.unit || '',
         lastValue: n.lastValue ?? null, lastValueAt: n.lastValueAt || null,
         prevValue: n.prevValue ?? null, prevValueAt: n.prevValueAt || null,
+        changeValue: n.changeValue ?? null, changeLabel: n.changeLabel || null, changeText: n.changeText || null,
+    sameStreak: n.sameStreak || 0, oppStreak: n.oppStreak || 0,
         observedAt: n.observedAt || null, windowStartDate: n.windowStartDate || null,
         windowDeadlineDate: n.windowDeadlineDate || null, brokenReason: n.brokenReason || null,
       });
@@ -610,9 +640,9 @@ function chainCard(c) {
       <span class="story-chain-id">${escapeHtml(c.chainId)}</span>
       ${storyStatusBadge(c.status)}
       <span class="story-dir">${dir}</span>
-      <span class="story-source">源 ${escapeHtml(c.sourceId || c.sector || '—')}</span>
+      <span class="story-source">${c.sourceClass ? `<span class="source-class">${SOURCE_CLASS_LABEL[c.sourceClass] || escapeHtml(c.sourceClass)}</span> ` : ''}源 ${escapeHtml(c.sourceId || c.sector || '—')}</span>
       ${branches.map((b) => `<span class="story-rep">${escapeHtml(b.symbol || '—')} ${b.direction === -1 ? '空' : b.direction === 1 ? '多' : ''}</span>`).join('')}
-      <span class="story-proof">确认 ${confirmed}/${total} 节点${unresolved}</span>
+      <span class="story-proof">已证明 ${confirmed}/${total} 节点${unresolved}</span>
       ${(c.seats || []).length ? `<span class="story-seats">席位血缘：${c.seats.map((s) => `${escapeHtml(s.runId)} → ${escapeHtml(s.symbol)}`).join('、')}</span>` : ''}
       ${c.linkedSignalId ? `<span class="story-link">→ 信号 ${escapeHtml(c.linkedSignalId)}</span>` : ''}
     </span>
@@ -668,8 +698,8 @@ function activeInlinePanelHtml(c) {
 
 function closedChainModalHtml(c) {
   const nodes = (c.nodes || []).map((n) => `<div class="story-node ${nodeClass(n)}">
-    <div class="node-line node-title"><span class="node-state">${n.status === 'confirmed' ? '✔' : n.status === 'broken' ? '✘' : '·'}</span><span class="node-label">${escapeHtml(n.label || n.id)}</span><span class="node-status">${NODE_STATUS_LABEL[n.status] || escapeHtml(n.status)}</span><span class="node-dir">${n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : ''}</span></div>
-    <div class="node-line node-values"><span class="node-value">前值 ${fmtVal(n.prevValue)}${n.prevValueAt ? `（${escapeHtml(n.prevValueAt)}）` : ''} → 当前 <b>${fmtVal(n.lastValue)}</b>${n.lastValueAt ? `（${escapeHtml(n.lastValueAt)}）` : ''} · 环比 <b>${Number.isFinite(Number(n.lastValue)) && Number.isFinite(Number(n.prevValue)) ? fmtSigned(Number(n.lastValue) - Number(n.prevValue)) : '—'}</b> ${escapeHtml(n.unit || '')}</span></div>
+    <div class="node-line node-title"><span class="node-state">${n.status === 'confirmed' ? '✔' : n.status === 'broken' ? '✘' : '·'}</span><span class="node-label">${escapeHtml(n.label || n.id)}</span><span class="node-status">${nodeProgressLabel(n)}</span><span class="node-dir">${n.expectation === 1 ? '预期 ↑' : n.expectation === -1 ? '预期 ↓' : ''}</span></div>
+    <div class="node-line node-values"><span class="node-value">前值 ${fmtVal(n.prevValue)}${n.prevValueAt ? `（${escapeHtml(n.prevValueAt)}）` : ''} → 当前 <b>${fmtVal(n.lastValue)}</b>${n.lastValueAt ? `（${escapeHtml(n.lastValueAt)}）` : ''} · 变动 <b>${changeTextHtml(n)}</b></span></div>
     <div class="node-line node-meta-line"><span class="node-meta">${escapeHtml(n.indicatorId || n.concept || '—')}</span><span class="node-path">${escapeHtml(n.resolution ? n.resolution.path : 'T0')}</span></div>
   </div>`).join('');
   const events = (c.events || []).slice(-5).map((e) => `<div class="story-event"><span class="event-date">${escapeHtml(e.date || '')}</span> · <b>${EVENT_LABEL[e.type] || escapeHtml(e.type || '')}</b>${e.nodeId ? ` · 节点 ${escapeHtml(e.nodeId)}` : ''}：${escapeHtml(e.detail || '')}</div>`).join('');
@@ -681,7 +711,7 @@ function closedChainModalHtml(c) {
         <div class="story-summary">
           <span class="story-theme">${escapeHtml(c.theme || '（未命名主题）')}</span>
           <div class="story-subtitle">${escapeHtml(c.themeDetail || '')}</div>
-          <div class="story-head"><span class="story-chain-id">${escapeHtml(c.chainId)}</span>${storyStatusBadge(c.status)}<span class="story-source">源 ${escapeHtml(c.sourceId || c.sector || '—')}</span><span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认 · ${escapeHtml(c.closeReason || '—')}</span></div>
+          <div class="story-head"><span class="story-chain-id">${escapeHtml(c.chainId)}</span>${storyStatusBadge(c.status)}<span class="story-source">${c.sourceClass ? `<span class="source-class">${SOURCE_CLASS_LABEL[c.sourceClass] || escapeHtml(c.sourceClass)}</span> ` : ''}源 ${escapeHtml(c.sourceId || c.sector || '—')}</span><span class="story-proof">${c.confirmedNodes}/${c.totalNodes} 节点确认 · ${escapeHtml(c.closeReason || '—')}</span></div>
         </div>
         <div class="story-body">${graphLegendHtml()}${storyGraphHtml(c)}</div>
       </div>
@@ -725,13 +755,17 @@ function dagScript() {
     var d = g.querySelector('.dg-detail');
     var rows = [];
     rows.push('<div class="sg-detail-head"><b>' + n.label + '</b><button class="sg-detail-close">×</button></div>');
-    rows.push('<div class="sg-detail-row"><span>状态</span><b>' + n.status + (n.terminal ? ' · ' + (n.priority === 'primary' ? '主支' : '次支') : '') + '</b></div>');
+    var st = n.status === 'confirmed' ? '已证明' : n.status === 'broken' ? '已证伪' : '观察中';
+    rows.push('<div class="sg-detail-row"><span>状态</span><b>' + st + (n.terminal ? ' · ' + (n.priority === 'primary' ? '主支' : '次支') : '') + '</b></div>');
     rows.push('<div class="sg-detail-row"><span>方向</span><b>' + (n.expectation === 1 ? '<span class="up">多</span>' : n.expectation === -1 ? '<span class="down">空</span>' : '—') + '</b></div>');
+    if (n.sameStreak > 0 || n.oppStreak > 0) rows.push('<div class="sg-detail-row"><span>计数</span><b>' + (n.sameStreak > 0 ? '同向 ' + n.sameStreak + '/3' : '反向 ' + n.oppStreak + '/2') + '</b></div>');
     if (n.prevValue != null) rows.push('<div class="sg-detail-row"><span>前值</span><b>' + Number(n.prevValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + (n.prevValueAt || '—') + '）</b></div>');
     if (n.lastValue != null) rows.push('<div class="sg-detail-row"><span>当前值</span><b>' + Number(n.lastValue).toFixed(2) + (n.unit ? ' ' + n.unit : '') + '（' + n.lastValueAt + '）</b></div>');
     if (n.prevValue != null && n.lastValue != null) {
-      var mom = Number(n.lastValue) - Number(n.prevValue);
-      rows.push('<div class="sg-detail-row"><span>环比</span><b class="' + (mom > 0 ? 'up' : mom < 0 ? 'down' : '') + '">' + (mom > 0 ? '+' : '') + mom.toFixed(2) + '</b></div>');
+      var chg = '—';
+      if (n.changeText) chg = n.changeText;
+      else if (n.changeValue != null && isFinite(Number(n.changeValue))) chg = (Number(n.changeValue) > 0 ? '+' : '') + Number(n.changeValue).toFixed(2) + (n.changeLabel ? ' ' + n.changeLabel : '');
+      rows.push('<div class="sg-detail-row"><span>变动</span><b>' + chg + '</b></div>');
     }
     if (n.windowStartDate) rows.push('<div class="sg-detail-row"><span>观察窗口</span><b>' + n.windowStartDate + ' → ' + (n.windowDeadlineDate || '—') + '</b></div>');
     if (n.brokenReason) rows.push('<div class="sg-detail-row"><span>断裂原因</span><b>' + n.brokenReason + '</b></div>');
