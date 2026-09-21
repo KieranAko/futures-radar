@@ -149,11 +149,13 @@ function latestDateFromSeries(mainSeries) {
 }
 
 function seriesBars(mainSeries, raw, symbol, contract) {
-  const lib = loadContractBarsLibrary(contract);
-  if (lib) return lib;
+  // 优先本 run 冻结的最新序列（main-series → raw），contract-bars 只作为最后回退；
+  // 修复：旧实现优先 contract-bars，导致本期图表停在历史 library 的最后日期。
   const ms = mainSeries && mainSeries[symbol];
   if (ms && Array.isArray(ms.bars) && ms.bars.length >= 2) return ms.bars;
-  return extractBars(raw, symbol);
+  const rawBars = extractBars(raw, symbol);
+  if (rawBars && rawBars.length >= 2) return rawBars;
+  return loadContractBarsLibrary(contract);
 }
 
 function contractMapFromBarsLibrary() {
@@ -1558,6 +1560,6 @@ function main() {
   console.log(`  opportunities=${reportModel && reportModel.opportunities ? reportModel.opportunities.length : 0}, pool=${signalPoolView && signalPoolView.pool ? signalPoolView.pool.length : 0}, stories=${storyView.activeCount}, history=${history.length}`);
 }
 
-module.exports = { renderDashboardHtml, historyIndex, main };
+module.exports = { renderDashboardHtml, historyIndex, seriesBars, main };
 
 if (require.main === module) main();

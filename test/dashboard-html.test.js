@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { renderDashboardHtml } = require('../output/render-dashboard-html.cjs');
+const { renderDashboardHtml, seriesBars } = require('../output/render-dashboard-html.cjs');
 
 function makeReportModel() {
   return {
@@ -302,5 +302,21 @@ describe('dashboard-html 四 Tab 看板', () => {
   it('确定性：同输入两次渲染一致', () => {
     const args = { runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [{ runId: 'r1', date: '2026-09-15', oppSymbols: 'PP0', href: 'runs/r1/report.html' }] };
     assert.equal(renderDashboardHtml(args), renderDashboardHtml(args));
+  });
+});
+
+describe('dashboard-html seriesBars 数据源优先级（图表必须用本期最新序列）', () => {
+  it('优先 main-series，不再被历史 contract-bars library 截断', () => {
+    const mainSeries = {
+      RB0: { contract: 'RB2701', bars: [
+        { date: '2026-09-18', open: 3123, high: 3132, low: 3089, close: 3096 },
+        { date: '2026-09-21', open: 3118, high: 3130, low: 3105, close: 3117 }
+      ] }
+    };
+    const raw = { contracts: { RB0: { ohlcv: {
+      dates: ['2026-09-18', '2026-09-21'], open: [3123, 3118], high: [3132, 3130], low: [3089, 3105], close: [3096, 3117]
+    } } } };
+    const bars = seriesBars(mainSeries, raw, 'RB0', 'RB2701');
+    assert.equal(bars[bars.length - 1].date, '2026-09-21');
   });
 });

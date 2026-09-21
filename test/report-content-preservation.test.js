@@ -80,7 +80,9 @@ describe('report content preservation（信息完整优先）', () => {
 
   it('执行口径使用「执行偏离」而非「跳空」描述追价距离', () => {
     if (isEmptyRun) return;
-    assert.ok(report.includes('执行偏离 >'), 'missing 执行偏离 threshold text');
+    const ticketMode = strategyPlan.meta && strategyPlan.meta.planMode === 'trader-ticket';
+    const thresholdText = ticketMode ? '偏离 >' : '执行偏离 >';
+    assert.ok(report.includes(thresholdText), `missing ${thresholdText} threshold text`);
     assert.ok(!/执行口径.*跳空 >/.test(report), '执行口径仍使用跳空描述');
   });
 
