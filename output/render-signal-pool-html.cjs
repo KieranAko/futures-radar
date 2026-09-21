@@ -49,6 +49,13 @@ function fmt(x, d = 1) {
   return Number(x).toFixed(d);
 }
 
+// 旧计划文案里的 N×ATR5 表达式换算成具体点数，执行场景不用临场心算。
+function concreteAtrText(text, atr5) {
+  const s = String(text == null ? '' : text);
+  if (!Number.isFinite(Number(atr5)) || Number(atr5) <= 0) return s;
+  return s.replace(/(\d+(?:\.\d+)?)\s*×ATR5/g, (_, m) => (Number(m) * Number(atr5)).toFixed(1));
+}
+
 function pctChange(start, latest) {
   if (start == null || latest == null || Number(start) === 0) return null;
   const pct = (Number(latest) - Number(start)) / Number(start) * 100;
@@ -854,7 +861,7 @@ function signalTimelineItem(sig, v, isCurrent) {
   if (d.trigger) {
     rows.push(`<div class="tl-row"><span class="tl-label">触发条件</span><span class="tl-text">${escapeHtml(d.trigger)}</span></div>`);
   }
-  if (d.execution) rows.push(`<div class="tl-row"><span class="tl-label">执行方式</span><span class="tl-text">${escapeHtml(d.execution)}</span></div>`);
+  if (d.execution) rows.push(`<div class="tl-row"><span class="tl-label">执行方式</span><span class="tl-text">${escapeHtml(concreteAtrText(d.execution, v.atr5 != null ? v.atr5 : sig.atr5AtCreation))}</span></div>`);
   if (d.triggerLevel != null || d.stopPrice != null || d.t1) {
     const parts = [];
     if (d.triggerLevel != null) parts.push(`触发 <b>${fmt(d.triggerLevel, 0)}</b>`);

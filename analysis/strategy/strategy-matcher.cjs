@@ -20,7 +20,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { skillRoot, runDir } = require('../../shared/workspace.cjs');
 const { PLAN_STATE_ALIASES, planStateOf } = require('../../shared/strategy-state.cjs');
-const { entryFromElements, parseMaxHoldDays } = require('./ticket-elements.cjs');
+const { entryFromElements, parseMaxHoldDays, firstNumber } = require('./ticket-elements.cjs');
 
 // ── 常量（与 strategy-library.json riskConfig / risk-framework §9 一致） ──
 const LIBRARY_PATH = () => path.join(skillRoot, 'analysis', 'strategy', 'strategy-library.json');
@@ -1044,11 +1044,13 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   const reportConf = rm.thesis.finalConfidence || 'medium';
   const strategyConfidence = reasoningConf || reportConf;
   const atr5ForGap = ctx.rm.priceRanges?.[0]?.atrBand?.atr5 ?? 0;
-  const gapThresholdPts = round2((pb.playbookId === 'PB-07' || pb.playbookId === 'PB-03') ? 0.75 * atr5ForGap : 0.5 * atr5ForGap);
+  const elementsEntry = elements ? entryFromElements(elements) : null;
+  const playbookGap = round2((pb.playbookId === 'PB-07' || pb.playbookId === 'PB-03') ? 0.75 * atr5ForGap : 0.5 * atr5ForGap);
+  const ticketGap = elements ? firstNumber(elements.abandon) : null;
+  const gapThresholdPts = elements && Number.isFinite(ticketGap) ? round2(ticketGap) : playbookGap;
   const triggerStyle = expressionType === 'pullback' ? 'low'
     : expressionType === 'breakout' ? (dir === 'bullish' ? 'high' : 'low')
     : 'close';
-  const elementsEntry = elements ? entryFromElements(elements) : null;
   const entry = {
     trigger: (elementsEntry && elementsEntry.trigger) || (reasoningEntry && reasoningEntry.trigger) || `${dirLabel}：${confirmText}`,
     triggerLevel: elementsEntry && elementsEntry.triggerLevel != null ? elementsEntry.triggerLevel

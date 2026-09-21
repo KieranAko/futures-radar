@@ -65,7 +65,7 @@ function main() {
       activationQuote: '交易单原句',
       confirmation: 'T+1 收盘仍在 3119 下方',
       entry: 'T+2 开盘入场',
-      abandon: '偏离超过 0.5 ATR 放弃',
+      abandon: '偏离 >13.8 放弃（0.5×ATR5）',
       stop: { level: 3132, basis: '收盘站回价值区上沿' },
       targets: { t1: '3065', t2: '3034', basis: '…' },
       maxHold: 'T+4 交易日收盘前未到目标则离场（入场后最多持有 3 个交易日）',
