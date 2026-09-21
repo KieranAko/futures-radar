@@ -97,6 +97,13 @@ function validateElements(elements) {
       if (abandon && firstNumber(abandon) == null) {
         errors.push(`${t.symbol || '?'}: abandon 必须给出具体点数（如 偏离 >X 放弃），不允许只写公式或空泛表述`);
       }
+      if (!t.entryZone || typeof t.entryZone !== 'object'
+        || !Number.isFinite(Number(t.entryZone.lower)) || !Number.isFinite(Number(t.entryZone.upper))) {
+        errors.push(`${t.symbol || '?'}: entryZone 缺失或 lower/upper 不是数字（交易单必须写明入场执行区间）`);
+      } else {
+        requiredString(t.entryZone, 'lowerBasis', errors, `${t.symbol || '?'}: entryZone.lowerBasis`);
+        requiredString(t.entryZone, 'upperBasis', errors, `${t.symbol || '?'}: entryZone.upperBasis`);
+      }
     }
     const maxHoldDays = parseMaxHoldDays(t.maxHold);
     if (!Number.isFinite(maxHoldDays) || maxHoldDays < 1 || maxHoldDays > 10) {
@@ -118,6 +125,10 @@ function validateElements(elements) {
     };
     checkNumberInNote(t.activationLevel, 'activationLevel');
     if (t.stop && typeof t.stop === 'object') checkNumberInNote(t.stop.level, 'stop.level');
+    if (t.entryZone && typeof t.entryZone === 'object') {
+      checkNumberInNote(t.entryZone.lower, 'entryZone.lower');
+      checkNumberInNote(t.entryZone.upper, 'entryZone.upper');
+    }
     const abandonPts = firstNumber(t.abandon);
     if (abandonPts != null) checkNumberInNote(abandonPts, 'abandon 点数');
     if (Number.isFinite(maxHoldDays) && !new RegExp(`T\\+\\s*${maxHoldDays}`).test(note)) {
@@ -145,7 +156,13 @@ function entryFromElements(el) {
     triggerSource: [el.activationSource, el.activationQuote].filter(Boolean).join(' / ') || String(el.activation || '').trim(),
     triggerTiming: String(el.confirmation || '').trim(),
     execution: executionParts.filter(Boolean).join('；'),
-    triggerMode: triggerModeOf(el)
+    triggerMode: triggerModeOf(el),
+    entryZone: el.entryZone && typeof el.entryZone === 'object' ? {
+      lower: Number(el.entryZone.lower),
+      upper: Number(el.entryZone.upper),
+      lowerBasis: String(el.entryZone.lowerBasis || '').trim(),
+      upperBasis: String(el.entryZone.upperBasis || '').trim()
+    } : null
   };
 }
 
@@ -190,15 +207,36 @@ function bindCheck(el, reportOpp) {
       issues.push(`激活价 ${level} 与冻结近端价位都对不上（容差 ${tol.toFixed(1)}），请交易员确认价位或补充来源`);
     }
   }
-  // 组合算术校验：偏离带不得越过止损（只验不修，矛盾就回问交易员）。
+  // 组合算术校验（只验不修）：入场执行区间必须与止损/触发价自洽。
   const stopLevel = el.stop && Number.isFinite(Number(el.stop.level)) ? Number(el.stop.level) : null;
-  const abandonPts = firstNumber(el.abandon);
-  if (stopLevel != null && abandonPts != null && abandonPts > 0) {
-    const r2 = (x) => Math.round(x * 100) / 100;
-    if (el.direction === 'bearish' && level + abandonPts > stopLevel) {
-      issues.push(`空单偏离带上沿 ${r2(level + abandonPts)}（=${r2(level)}+${r2(abandonPts)}）高于止损 ${r2(stopLevel)}，按偏离条款可能以高于止损的价格入场，交易单自相矛盾，请交易员改单`);
-    } else if (el.direction === 'bullish' && level - abandonPts < stopLevel) {
-      issues.push(`多单偏离带下沿 ${r2(level - abandonPts)}（=${r2(level)}−${r2(abandonPts)}）低于止损 ${r2(stopLevel)}，按偏离条款可能以低于止损的价格入场，交易单自相矛盾，请交易员改单`);
+  const r2 = (x) => Math.round(x * 100) / 100;
+  const zone = el.entryZone && typeof el.entryZone === 'object' ? el.entryZone : null;
+  if (zone && stopLevel != null && el.direction !== 'neutral') {
+    const lower = Number(zone.lower);
+    const upper = Number(zone.upper);
+    if (Number.isFinite(lower) && Number.isFinite(upper)) {
+      if (!(lower < upper)) {
+        issues.push(`入场区间下沿 ${r2(lower)} 必须小于上沿 ${r2(upper)}，请交易员改单`);
+      }
+      if (el.direction === 'bearish' && upper > stopLevel) {
+        issues.push(`空单入场区间上沿 ${r2(upper)} 高于止损 ${r2(stopLevel)}，入场价不得高于止损，请交易员改单`);
+      }
+      if (el.direction === 'bullish' && lower < stopLevel) {
+        issues.push(`多单入场区间下沿 ${r2(lower)} 低于止损 ${r2(stopLevel)}，入场价不得低于止损，请交易员改单`);
+      }
+      if (level < lower || level > upper) {
+        issues.push(`触发价 ${r2(level)} 不在入场区间 [${r2(lower)}, ${r2(upper)}] 内，请交易员确认区间与触发条件一致`);
+      }
+    }
+  } else if (!zone) {
+    // 旧要素没有 entryZone 时，保留对称偏离带检查（legacy 兼容）。
+    const abandonPts = firstNumber(el.abandon);
+    if (stopLevel != null && abandonPts != null && abandonPts > 0) {
+      if (el.direction === 'bearish' && level + abandonPts > stopLevel) {
+        issues.push(`空单偏离带上沿 ${r2(level + abandonPts)}（=${r2(level)}+${r2(abandonPts)}）高于止损 ${r2(stopLevel)}，按偏离条款可能以高于止损的价格入场，交易单自相矛盾，请交易员改单`);
+      } else if (el.direction === 'bullish' && level - abandonPts < stopLevel) {
+        issues.push(`多单偏离带下沿 ${r2(level - abandonPts)}（=${r2(level)}−${r2(abandonPts)}）低于止损 ${r2(stopLevel)}，按偏离条款可能以低于止损的价格入场，交易单自相矛盾，请交易员改单`);
+      }
     }
   }
   return { ok: issues.length === 0, issues };

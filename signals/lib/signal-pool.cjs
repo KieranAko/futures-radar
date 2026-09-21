@@ -198,7 +198,13 @@ function versionFromPlan(signal, n, plan, p, prevVersion) {
       execution: (p.entry && p.entry.execution) || '',
       gapThresholdPts: p.entry && Number.isFinite(Number(p.entry.gapThresholdPts)) ? Number(p.entry.gapThresholdPts) : null,
       triggerStyle: (p.entry && p.entry.triggerStyle) || null,
-      triggerMode: (p.entry && p.entry.triggerMode) || null
+      triggerMode: (p.entry && p.entry.triggerMode) || null,
+      entryZone: p.entry && p.entry.entryZone ? {
+        lower: Number(p.entry.entryZone.lower),
+        upper: Number(p.entry.entryZone.upper),
+        lowerBasis: p.entry.entryZone.lowerBasis || '',
+        upperBasis: p.entry.entryZone.upperBasis || ''
+      } : null
     },
     stop: {
       stopPrice: p.stop && Number.isFinite(Number(p.stop.stopPrice)) ? Number(p.stop.stopPrice) : null,

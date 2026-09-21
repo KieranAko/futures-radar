@@ -583,6 +583,38 @@
           ],
           "description": "执行偏离放弃阈值（点数）：trader-ticket 路径由交易单 abandon 给出；PB-07/PB-03 为 0.75×ATR5、其余 0.5×ATR5 仅用于 legacy 回放兜底"
         },
+        "entryZone": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "lower",
+            "upper",
+            "lowerBasis",
+            "upperBasis"
+          ],
+          "properties": {
+            "lower": {
+              "type": "number",
+              "description": "入场执行区间下沿（交易员给出）"
+            },
+            "upper": {
+              "type": "number",
+              "description": "入场执行区间上沿（交易员给出）"
+            },
+            "lowerBasis": {
+              "type": "string",
+              "description": "下沿依据（交易员原话）"
+            },
+            "upperBasis": {
+              "type": "string",
+              "description": "上沿依据（交易员原话）"
+            }
+          },
+          "description": "入场执行区间：trader-ticket 路径由交易员明确给出，图表与验证引擎只消费该对象；legacy 计划为 null 并回退旧口径"
+        },
         "triggerStyle": {
           "type": "string",
           "enum": [

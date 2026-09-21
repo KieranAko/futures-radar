@@ -229,12 +229,12 @@ function validatePlan(plan, schema, root) {
         if (node.maximum !== undefined && value > node.maximum) errors.push(`${pth}: > maximum ${node.maximum}`);
         if (node.exclusiveMinimum !== undefined && value <= node.exclusiveMinimum) errors.push(`${pth}: <= exclusiveMinimum`);
       }
-      if (types.includes('array')) {
+      if (types.includes('array') && Array.isArray(value)) {
         if (node.minItems !== undefined && value.length < node.minItems) errors.push(`${pth}: minItems ${node.minItems}`);
         if (node.maxItems !== undefined && value.length > node.maxItems) errors.push(`${pth}: maxItems ${node.maxItems}`);
         if (node.items) for (let i = 0; i < value.length; i++) check(value[i], node.items, `${pth}[${i}]`);
       }
-      if (types.includes('object')) {
+      if (types.includes('object') && value !== null && typeof value === 'object' && !Array.isArray(value)) {
         if (node.required) for (const r of node.required) {
           if (!(r in value)) errors.push(`${pth}: missing required ${r}`);
         }
@@ -1073,7 +1073,8 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
       : (pb.playbookId === 'PB-03' ? 'T+1 交易日开盘；执行偏离 >0.75×ATR5 放弃' : 'T+1 交易日开盘；执行偏离 >0.5×ATR5 放弃')),
     gapThresholdPts,
     triggerStyle,
-    triggerMode: elementsEntry && elementsEntry.triggerMode ? elementsEntry.triggerMode : null
+    triggerMode: elementsEntry && elementsEntry.triggerMode ? elementsEntry.triggerMode : null,
+    entryZone: (elementsEntry && elementsEntry.entryZone) || null
   };
   const stop = {
     stopPrice: risk.riskAssessment.stopPrice,

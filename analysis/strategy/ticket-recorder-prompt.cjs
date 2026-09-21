@@ -38,7 +38,7 @@ function main() {
   L.push('2. 拆不出来的要素留空，并把问题写进 unresolved；');
   L.push('3. 确认方式按交易员原话保留，不要给确认方式分类或改写成别的说法；');
   L.push('4. 价格能对应到冻结数据源的，填进 source；不能对应的不要猜；');
-  L.push('5. 拆出的每个数字（activationLevel、stop.level、abandon 点数、maxHold 的 T+N）必须能在交易单原文里找到，找不到就留空并写进 unresolved。');
+  L.push('5. 拆出的每个数字（activationLevel、stop.level、abandon 点数、entryZone 的 lower/upper、maxHold 的 T+N）必须能在交易单原文里找到，找不到就留空并写进 unresolved。');
   L.push('');
   L.push('## 交易单原文');
   L.push('');
@@ -67,6 +67,7 @@ function main() {
       confirmation: '<原文：确认方式>',
       entry: '<原文：入场方式>',
       abandon: '<原文：放弃条款，含点数>',
+      entryZone: { lower: '<数字>', upper: '<数字>', lowerBasis: '<原文：下边依据>', upperBasis: '<原文：上边依据>' },
       stop: { level: '<数字>', basis: '<原文：止损依据>' },
       targets: { t1: '<原文>', t2: '<原文>', basis: '<原文>' },
       maxHold: '<原文：最长持有>',
@@ -79,7 +80,7 @@ function main() {
   L.push('');
   L.push('上面的尖括号内容全部是占位符，禁止照抄；最终文件里 activationLevel、stop.level 必须是数字，note 必须是交易单原文全文。');
   L.push('');
-  L.push('direction 只允许 bullish/bearish/neutral；activationLevel、stop.level 必须是数字；targets.t1 至少一个目标。');
+  L.push('direction 只允许 bullish/bearish/neutral；activationLevel、stop.level、entryZone.lower、entryZone.upper 必须是数字；targets.t1 至少一个目标。');
 
   const outDir = path.join(dir, 'strategies', 'prompts');
   fs.mkdirSync(outDir, { recursive: true });

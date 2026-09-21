@@ -139,6 +139,14 @@ function recordFromPlan(plan, p) {
     timingFallback,
     stopPrice: p.stop && Number.isFinite(Number(p.stop.stopPrice)) ? Number(p.stop.stopPrice) : null,
     gapThresholdPts: p.entry && Number.isFinite(Number(p.entry.gapThresholdPts)) ? Number(p.entry.gapThresholdPts) : null,
+    entryZone: p.entry && p.entry.entryZone && Number.isFinite(Number(p.entry.entryZone.lower)) && Number.isFinite(Number(p.entry.entryZone.upper))
+      ? {
+          lower: Number(p.entry.entryZone.lower),
+          upper: Number(p.entry.entryZone.upper),
+          lowerBasis: p.entry.entryZone.lowerBasis || '',
+          upperBasis: p.entry.entryZone.upperBasis || ''
+        }
+      : null,
     triggerStyle: p.entry && p.entry.triggerStyle ? p.entry.triggerStyle : null,
     triggerMode: p.entry && p.entry.triggerMode ? p.entry.triggerMode : null,
     atr5: p.riskAssessment && Number.isFinite(Number(p.riskAssessment.atr5)) ? Number(p.riskAssessment.atr5) : null,
@@ -202,6 +210,7 @@ function normalizeLedgerRecord(rec) {
     target1Text: rec.target1Text || '',
     target1Level: Number.isFinite(Number(rec.target1Level)) ? Number(rec.target1Level) : parseFirstNumber(rec.target1Text),
     gapThresholdPts: Number.isFinite(Number(rec.gapThresholdPts)) ? Number(rec.gapThresholdPts) : null,
+    entryZone: rec.entryZone && Number.isFinite(Number(rec.entryZone.lower)) && Number.isFinite(Number(rec.entryZone.upper)) ? rec.entryZone : null,
     triggerStyle: rec.triggerStyle || null,
     triggerMode: rec.triggerMode || null,
     atr5: Number.isFinite(Number(rec.atr5)) ? Number(rec.atr5) : null,
@@ -263,7 +272,7 @@ function fillMissingStateFields(target, source) {
   for (const k of ['recordedAt', 'rank', 'name', 'contract', 'direction', 'planMode', 'verificationMode', 'signalDirection',
     'executionStatus', 'plannedLots', 'confidence', 'strategyId', 'playbookId', 'entryTrigger',
     'triggerLevel', 'triggerTiming', 'timingFallback', 'stopPrice', 'target1Text', 'target1Level', 'maxHoldingDays', 'invalidation',
-    'gapThresholdPts', 'triggerStyle', 'triggerMode', 'atr5', 'regimeGrade', 'regimeDirection']) {
+    'gapThresholdPts', 'entryZone', 'triggerStyle', 'triggerMode', 'atr5', 'regimeGrade', 'regimeDirection']) {
     if (target[k] === undefined || target[k] === null) target[k] = source[k];
   }
   if (target.terminal !== true && isTerminalStatus(target.status)) target.terminal = true;
@@ -277,7 +286,7 @@ function applyPlanFields(target, source) {
   for (const k of ['recordedAt', 'rank', 'name', 'contract', 'direction', 'planMode', 'verificationMode', 'signalDirection',
     'executionStatus', 'plannedLots', 'confidence', 'strategyId', 'playbookId', 'entryTrigger',
     'triggerLevel', 'triggerTiming', 'timingFallback', 'stopPrice', 'target1Text', 'target1Level', 'maxHoldingDays', 'invalidation',
-    'gapThresholdPts', 'triggerStyle', 'triggerMode', 'atr5', 'regimeGrade', 'regimeDirection']) {
+    'gapThresholdPts', 'entryZone', 'triggerStyle', 'triggerMode', 'atr5', 'regimeGrade', 'regimeDirection']) {
     target[k] = source[k];
   }
 }
@@ -485,6 +494,18 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
       verifyDate: entryBar.date, triggerDate: t1.date, entryDate: entryBar.date, entryPrice, verificationSeries: series.source,
       attribution: [{ code: 'gap_skip', detail: `T+2 开盘 ${entryPrice} 越过止损 ${stopPrice}（${record.direction === 'bearish' ? '空头入场不得高于止损' : '多头入场不得低于止损'}），放弃执行` }]
     };
+  }
+  if (record.entryZone && Number.isFinite(Number(record.entryZone.lower)) && Number.isFinite(Number(record.entryZone.upper))) {
+    const z = record.entryZone;
+    if (entryPrice < z.lower || entryPrice > z.upper) {
+      const side = entryPrice < z.lower ? '下沿' : '上沿';
+      const basis = entryPrice < z.lower ? (z.lowerBasis || `低于 ${z.lower} 放弃`) : (z.upperBasis || `高于 ${z.upper} 放弃`);
+      return {
+        recordId: record.recordId, status: 'skipped_gap', signalDate: record.signalDate,
+        verifyDate: entryBar.date, triggerDate: t1.date, entryDate: entryBar.date, entryPrice, verificationSeries: series.source,
+        attribution: [{ code: 'gap_skip', detail: `T+2 开盘 ${entryPrice} 超出入场区间 [${z.lower}, ${z.upper}]（${side}：${basis}），放弃执行` }]
+      };
+    }
   }
   if (gapThreshold && gapPts > gapThreshold) {
     return {

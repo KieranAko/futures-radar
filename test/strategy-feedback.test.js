@@ -72,6 +72,37 @@ describe('strategy-feedback 证伪反馈机制', () => {
     }
   });
 
+  it('交易单 entryZone：T+2 开盘超出入场区间 → skipped_gap（引用上沿依据）', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-feedback-'));
+    try {
+      recordExecutablePlans(makePlan('run-prev', 'RM0', {
+        meta: { runId: 'run-prev', signalDate: '2026-08-26', inputsSha: 'x', planMode: 'trader-ticket' },
+        entry: {
+          trigger: '收盘站稳 100 上方',
+          triggerLevel: 100,
+          triggerTiming: 'T+1 收盘确认；确认后下一交易日开盘执行',
+          entryZone: { lower: 99, upper: 100.5, lowerBasis: '偏离 >1 放弃', upperBasis: '反抽不破 100.5' }
+        }
+      }), '2026-08-26T00:00:00Z', root);
+      const raw = {
+        contracts: {
+          RM0: {
+            ohlcv: {
+              dates: ['2026-08-26', '2026-08-27', '2026-08-28'],
+              open: [98, 101, 102], high: [101, 103, 103], low: [97, 100, 101], close: [100, 101, 102]
+            }
+          }
+        }
+      };
+      const out = verifyPlans('run-next', raw, root);
+      const r = out.results[0];
+      assert.equal(r.status, 'skipped_gap');
+      assert.ok(r.attribution.some((a) => a.code === 'gap_skip' && a.detail.includes('入场区间 [99, 100.5]') && a.detail.includes('反抽不破 100.5')));
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it('增量验证：已终态记录在后续 run 不再被重复验证', () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fr-feedback-'));
     try {

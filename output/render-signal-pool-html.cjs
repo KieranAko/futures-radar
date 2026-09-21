@@ -295,20 +295,31 @@ function lifecycleChart(sig, versions, bars) {
     return out;
   };
   const gapThreshold = av && av.entry && Number.isFinite(Number(av.entry.gapThresholdPts)) ? Number(av.entry.gapThresholdPts) : null;
+  const avZone = av && av.entry && av.entry.entryZone && Number.isFinite(Number(av.entry.entryZone.lower)) && Number.isFinite(Number(av.entry.entryZone.upper))
+    ? av.entry.entryZone
+    : null;
   let entryLo = null;
   let entryHi = null;
-  if (triggerLevel != null && gapThreshold != null) {
+  let entryZoneNote = '';
+  if (avZone) {
+    // trader-ticket：直接画交易员给出的入场执行区间，不重算。
+    entryLo = Number(avZone.lower);
+    entryHi = Number(avZone.upper);
+    entryZoneNote = `入场区间：${fmt(entryLo)} ~ ${fmt(entryHi)}（下沿：${avZone.lowerBasis || '交易员指定'}；上沿：${avZone.upperBasis || '交易员指定'}）`;
+  } else if (triggerLevel != null && gapThreshold != null) {
+    // legacy 回放：保留旧对称口径。
     entryLo = triggerLevel - gapThreshold;
     entryHi = triggerLevel + gapThreshold;
     if (sig.direction === 'bearish' && stopPrice != null) entryHi = Math.min(entryHi, stopPrice);
     if (sig.direction === 'bullish' && stopPrice != null) entryLo = Math.max(entryLo, stopPrice);
+    entryZoneNote = `入场区间：${fmt(entryLo)} ~ ${fmt(entryHi)}（偏离触发价 ≤${fmt(gapThreshold)}，legacy 口径）`;
   }
-  // 背景区间块：失效区 / 入场区间（偏离触发价≤gap，且不越过止损）/ 目标区间（目标1↔目标2）
+  // 背景区间块：失效区 / 入场区间（交易员 entryZone 或 legacy 对称口径）/ 目标区间（目标1↔目标2）
   if (stopPrice != null) {
     if (sig.direction === 'bullish') parts.push(zone(stopPrice, min + (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c', `失效区：价格跌破止损 ${fmt(stopPrice, 0)} 后逻辑失效`));
     else parts.push(zone(stopPrice, max - (max - min) * 0.02, 'zp-invalid', '失效区', '#b91c1c', `失效区：价格站上止损 ${fmt(stopPrice, 0)} 后逻辑失效`));
   }
-  if (entryLo != null && entryHi != null && Math.abs(entryHi - entryLo) > zoneGap) parts.push(zone(entryLo, entryHi, 'zp-plan', '入场区间', '#b45309', `入场区间：${fmt(entryLo)} ~ ${fmt(entryHi)}（偏离触发价 ≤${fmt(gapThreshold)}）`));
+  if (entryLo != null && entryHi != null && Math.abs(entryHi - entryLo) > zoneGap) parts.push(zone(entryLo, entryHi, 'zp-plan', '入场区间', '#b45309', entryZoneNote));
   if (t1Level != null && t2Level != null && Math.abs(t1Level - t2Level) > zoneGap) parts.push(zone(t1Level, t2Level, 'zp-target', '目标区间', '#2563eb', `目标区间：目标1 ${fmt(t1Level, 0)} ~ 目标2 ${fmt(t2Level, 0)}`));
   for (let i = 0; i < n; i++) {
     const b = win[i];
@@ -1119,6 +1130,7 @@ module.exports = {
   signalPoolPanelsHtml,
   signalClosedPanelsHtml,
   signalAnchorGrid,
+  lifecycleChart,
   main
 };
 

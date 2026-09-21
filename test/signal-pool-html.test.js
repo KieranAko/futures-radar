@@ -37,9 +37,9 @@ function makeView() {
     strategyId: 'MS-01',
     playbookId: 'PB-01',
     stateTransition: 'signal_created',
-    entry: { trigger: '回踩 8798–8845', triggerLevel: 8819, triggerTiming: 'T+1 收盘确认', execution: '执行偏离 >0.75×ATR5 放弃' },
+    entry: { trigger: '回踩 8798–8845', triggerLevel: 8819, triggerTiming: 'T+1 收盘确认', execution: '执行偏离 >0.75×ATR5 放弃', entryZone: { lower: 8798, upper: 8845, lowerBasis: '回踩不破 8798', upperBasis: '偏离 >47 放弃' } },
     stop: { stopPrice: 8619, basis: 'Q5' },
-    targets: { t1: '9235', t2: '2R' },
+    targets: { t1: '9235', t2: '9445' },
     invalidation: { hard: ['收盘跌破 8619'] },
     regime: { grade: 'elevated', direction: 'rising' },
     verification: { status: 'verified', terminal: true, lastResult: { status: 'verified', exitType: 'time_exit', directionCorrect: true, entryPrice: 8800, exitPrice: 8876 } }
@@ -139,6 +139,19 @@ describe('signal-pool-html 看板渲染', () => {
     assert.ok(html.includes('sig-chart-block'));
     assert.ok(html.includes('sig-chart-missing'));
     assert.ok(!html.includes('<details class="version">'));
+  });
+
+  it('入场区间直接使用交易员 entryZone（8798.0 ~ 8845.0）而不是对称推导', () => {
+    const view = makeView();
+    const bars = [
+      { date: '2026-09-10', open: 8800, high: 8860, low: 8790, close: 8810, volume: 1 },
+      { date: '2026-09-11', open: 8810, high: 8880, low: 8800, close: 8830, volume: 1 },
+      { date: '2026-09-14', open: 8830, high: 8890, low: 8810, close: 8850, volume: 1 },
+    ];
+    const html = signalPoolPanelsHtml(view, { barsOf: () => bars });
+    assert.ok(html.includes('8798.0 ~ 8845.0'));
+    assert.ok(html.includes('回踩不破 8798'));
+    assert.ok(html.includes('偏离 &gt;47 放弃'));
   });
 
   it('出池信号与池内信号同面板样式，且默认折叠', () => {
