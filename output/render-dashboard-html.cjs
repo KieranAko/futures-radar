@@ -154,6 +154,20 @@ function seriesBars(mainSeries, raw, symbol, contract) {
   return extractBars(raw, symbol);
 }
 
+function contractMapFromBarsLibrary() {
+  const map = {};
+  const dir = path.join(skillRoot, 'data', 'contract-bars');
+  if (!fs.existsSync(dir)) return map;
+  for (const name of fs.readdirSync(dir)) {
+    const m = /^([A-Za-z]+)\d+\.json$/.exec(name);
+    if (!m) continue;
+    const prefix = m[1].toUpperCase();
+    const code = name.replace(/\.json$/, '');
+    if (!map[prefix] || code > map[prefix]) map[prefix] = code;
+  }
+  return map;
+}
+
 function change5dPct(bars) {
   if (!bars || bars.length < 6) return null;
   const last = bars[bars.length - 1].close;
@@ -681,6 +695,19 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
       storyThemeMap[c.chainId] = c.theme || c.sourceId || '';
     }
   }
+  const contractLibrary = contractMapFromBarsLibrary();
+  const contractMap = {};
+  for (const o of opps) {
+    if (o && o.contract) contractMap[o.symbol] = o.contract;
+  }
+  for (const p of planMap.values()) {
+    if (p && p.contract) contractMap[p.symbol] = p.contract;
+  }
+  const contractOf = (symbol) => {
+    if (contractMap[symbol]) return contractMap[symbol];
+    const prefix = String(symbol || '').replace(/\d+$/, '').toUpperCase();
+    return contractLibrary[prefix] || null;
+  };
   const downgradedCount = pool.filter((s) => s.poolStatus === 'downgraded').length;
   const activeCount = pool.length - downgradedCount;
   const storyStats = (storyView && storyView.stats) || {};
@@ -732,8 +759,12 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
 
   const oppHtml = opps.length ? oppLayout(opps, raw, mainSeries, signalDate, Object.fromEntries(planMap), storyMap) : storyWatchHtml(storyView);
   const barsOf = (s) => seriesBars(mainSeries, raw, s.symbol, s.contract);
-  const poolPanels = signalPoolPanelsHtml(signalPoolView || {}, { storyThemes: storyThemeMap, barsOf });
-  const sigClosedPanels = signalClosedPanelsHtml(signalPoolView || {}, { storyThemes: storyThemeMap, barsOf });
+  const signalContractMap = {};
+  for (const s of [...pool, ...(signalPoolView && Array.isArray(signalPoolView.recentClosed) ? signalPoolView.recentClosed : [])]) {
+    if (s && s.symbol) signalContractMap[s.symbol] = contractOf(s.symbol);
+  }
+  const poolPanels = signalPoolPanelsHtml(signalPoolView || {}, { storyThemes: storyThemeMap, contracts: signalContractMap, barsOf });
+  const sigClosedPanels = signalClosedPanelsHtml(signalPoolView || {}, { storyThemes: storyThemeMap, contracts: signalContractMap, barsOf });
 
   const histRows = historyTable(history);
   const pagination = paginationControl(history.length, 10);

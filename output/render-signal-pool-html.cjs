@@ -982,13 +982,15 @@ function signalObservationLine(sig) {
   return `<div class="signal-obs">最近观察：${escapeHtml(obs.date ? obs.date.slice(5) : '—')} · ${escapeHtml(ev)}</div>`;
 }
 
-function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyTheme = null, storyChainId = null } = {}) {
+function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyTheme = null, storyChainId = null, contract = null } = {}) {
   const sig = { ...(detail || {}), ...s, versions: (detail && Array.isArray(detail.versions) ? detail.versions : []) };
   const versions = sig.versions;
   const isClosed = closed || sig.poolStatus === 'closed';
   const st = signalStatusOf(sig);
   const statusText = poolStatusLabel(sig);
   const badgeCls = isClosed ? 'sig-closed' : (st === 'holding' || st === 'ready' || st === 'armed') ? 'st-run' : 'st-watch';
+  const versionContract = [...versions].reverse().find((v) => v && v.contract)?.contract || null;
+  const displayContract = sig.contract || (sig.currentVersion && sig.currentVersion.contract) || versionContract || contract || null;
   const currentId = sig.currentVersionId || (sig.currentVersion && sig.currentVersion.versionId) || null;
   const currentNum = !isClosed && currentId ? `V${String(currentId).includes(':V') ? String(currentId).split(':V')[1] : '?'}` : null;
   const dirHtml = `<span class="sig-dir ${dirClass(sig.direction)}">${escapeHtml(dirText(sig.direction))}</span>`;
@@ -1007,7 +1009,7 @@ function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyThe
   const timeline = signalTimelineHtml(sig, versions, { closed: isClosed });
   const chart = lifecycleChart(sig, versions, bars);
   const chartHtml = chart || '<div class="sig-chart-missing muted">暂无价格序列，无法绘制价格轨迹。</div>';
-  const headHtml = `<span class="story-theme">${escapeHtml(sig.name || sig.symbol || '—')} <span class="muted">${escapeHtml(sig.symbol || '')}</span></span>
+  const headHtml = `<span class="story-theme">${escapeHtml(sig.name || sig.symbol || '—')} <span class="muted">${escapeHtml(displayContract || sig.symbol || '')}</span></span>
       <span class="story-status ${badgeCls}">${escapeHtml(statusText)}</span>
       ${dirHtml}
       ${storyHtml}
@@ -1034,11 +1036,13 @@ function signalPoolPanelsHtml(view, opts = {}) {
   const pool = view && Array.isArray(view.pool) ? view.pool : [];
   const details = view && view.details ? view.details : {};
   const storyThemes = opts.storyThemes || {};
+  const contracts = opts.contracts || {};
   const barsOf = typeof opts.barsOf === 'function' ? opts.barsOf : () => null;
   if (pool.length === 0) return '<p class="muted">当前池内无信号。</p>';
   return pool.map((s) => signalPanelHtml(s, details[s.signalId] || {}, {
     storyTheme: storyThemes[s.storyChainId] || null,
     storyChainId: s.storyChainId || null,
+    contract: contracts[s.symbol] || null,
     bars: barsOf(s)
   })).join('\n');
 }
@@ -1047,12 +1051,14 @@ function signalClosedPanelsHtml(view, opts = {}) {
   const closed = view && Array.isArray(view.recentClosed) ? view.recentClosed : [];
   const details = view && view.details ? view.details : {};
   const storyThemes = opts.storyThemes || {};
+  const contracts = opts.contracts || {};
   const barsOf = typeof opts.barsOf === 'function' ? opts.barsOf : () => null;
   if (closed.length === 0) return '<p class="muted">暂无出池信号。</p>';
   return closed.map((s) => signalPanelHtml(s, details[s.signalId] || {}, {
     closed: true,
     storyTheme: storyThemes[s.storyChainId] || null,
     storyChainId: s.storyChainId || null,
+    contract: contracts[s.symbol] || null,
     bars: barsOf(s)
   })).join('\n');
 }

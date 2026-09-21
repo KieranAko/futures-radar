@@ -177,6 +177,7 @@ function versionFromPlan(signal, n, plan, p, prevVersion) {
     versionId: `${signal.signalId}:V${n}`,
     runId: plan.meta.runId,
     signalDate: plan.meta.signalDate,
+    contract: p.contract || null,
     storyChainId: p.storyChainId || signal.storyChainId || null, // V2 前向盖章：版本级血缘
     state: curState,
     executionStatus: curExec,
@@ -267,6 +268,7 @@ function appendVersion(signal, plan, p) {
   signal.lastSeenRunId = plan.meta.runId;
   signal.lastSeenDate = plan.meta.signalDate;
   signal.currentVersionId = version.versionId;
+  if (version.contract) signal.contract = version.contract;
   if (version.state === 'armed') {
     signal.poolStatus = 'active';
     signal.consecutiveNonExecutable = 0;
@@ -297,6 +299,7 @@ function refreshPoolState(signal, version) {
   signal.lastSeenRunId = version.runId;
   signal.lastSeenDate = version.signalDate;
   signal.currentVersionId = version.versionId;
+  if (version.contract) signal.contract = version.contract;
   if (version.state === 'armed') {
     signal.poolStatus = 'active';
     signal.consecutiveNonExecutable = 0;
@@ -803,6 +806,7 @@ function summarizeSignal(signal) {
       versionId: cur.versionId,
       runId: cur.runId,
       signalDate: cur.signalDate,
+      contract: cur.contract || signal.contract,
       storyChainId: cur.storyChainId || signal.storyChainId || null,
       state: versionStateOf(cur),
       executionStatus: cur.executionStatus,
