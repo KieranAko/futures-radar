@@ -68,7 +68,7 @@ function main() {
       abandon: '偏离超过 0.5 ATR 放弃',
       stop: { level: 3132, basis: '收盘站回价值区上沿' },
       targets: { t1: '3065', t2: '3034', basis: '…' },
-      maxHold: 'T+5 交易日未到目标市价离场',
+      maxHold: 'T+4 交易日收盘前未到目标则离场（入场后最多持有 3 个交易日）',
       invalidation: ['收盘站上 3132'],
       unresolved: [],
       note: '交易单原文'
