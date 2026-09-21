@@ -59,6 +59,10 @@ describe('strategy-matcher: 真实 run 复现（workedExample 关键值）', () 
     assert.deepEqual(plan.plans.map(p => p.symbol), ['RM0', 'EG0', 'PX0']);
   });
 
+  it('ST-08: 无 LLM 输入时 meta.planMode=legacy-deterministic（不伪装 LLM 决策）', () => {
+    assert.equal(plan.meta.planMode, 'legacy-deterministic');
+  });
+
   it('AC-1: 每个 TOP3 matchedStrategies ≥ 1', () => {
     for (const p of plan.plans) assert.ok(p.matchedStrategies.length >= 1, p.symbol);
   });

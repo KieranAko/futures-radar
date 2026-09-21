@@ -58,7 +58,7 @@ function main() {
     runId: '<runId>',
     tickets: [{
       symbol: '<symbol>',
-      direction: 'bearish',
+      direction: '<bullish|bearish|neutral>',
       contract: '<contract>',
       activation: '<原文：什么价位成立>',
       activationLevel: '<数字>',

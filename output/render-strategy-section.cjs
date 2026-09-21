@@ -66,11 +66,15 @@ function stateEmoji(state) {
 function directionLabel(dir) {
   if (dir === 'bullish') return '↑ 多';
   if (dir === 'bearish') return '↓ 空';
-  return '→ 中性';
+  if (dir === 'neutral') return '→ 中性';
+  return '—';
 }
 
 function confidenceLabel(conf) {
-  return conf === 'high' ? '高' : conf === 'medium' ? '中' : '低';
+  if (conf === 'high') return '高';
+  if (conf === 'medium') return '中';
+  if (conf === 'low') return '低';
+  return '—';
 }
 
 function feedbackStatusLabel(r) {
@@ -510,7 +514,7 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
       const downgrade = p.confidenceDowngradeReasons && p.confidenceDowngradeReasons.length
         ? `（${p.confidenceDowngradeReasons.join('；')}）`
         : '';
-      const fitLabel = p.theoryFit === 'aligned' ? '较好符合' : p.theoryFit === 'approximate' ? '大致符合' : '无合适理论';
+      const fitLabel = p.theoryFit === 'aligned' ? '较好符合' : p.theoryFit === 'approximate' ? '大致符合' : p.theoryFit === 'none' ? '无合适理论' : '—';
       const t = planTrust(p, familyEvidence);
 
       lines.push(`### ${p.symbol} ${p.name}（锚定合约 ${p.contract || '—'}）`);
@@ -529,7 +533,10 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
       }
       lines.push(`| 入场机会点 | ${p.entry.trigger}（触发价 ${triggerLevel}） |`);
       lines.push(`| 触发/执行时点 | ${p.entry.triggerTiming} |`);
-      lines.push(`| 执行口径 | ${p.playbook.executionConvention} |`);
+      const executionLine = (plan && plan.meta && plan.meta.planMode === 'trader-ticket')
+        ? (p.entry.execution || p.playbook.executionConvention || '—')
+        : (p.playbook.executionConvention || p.entry.execution || '—');
+      lines.push(`| 执行口径 | ${executionLine} |`);
       lines.push(`| 止损 | ${fmt(p.stop.stopPrice)}（距离 ${fmt(p.stop.stopDistancePts)} 点；${p.stop.basis}） |`);
       lines.push(`| 目标 | T1 ${p.targets.t1}；T2 ${p.targets.t2} |`);
       lines.push(`| 仓位 | ${p.position.lots} 手（${p.position.lotsBasis}） |`);
@@ -569,7 +576,10 @@ function renderStrategySection(plan, library, familyEvidence = null, closeMap = 
     }
     lines.push(`- **入场机会点**: ${p.entry.trigger}（触发价 ${triggerLevel}）`);
     lines.push(`- **触发/执行时点**: ${p.entry.triggerTiming}`);
-    lines.push(`- **执行口径**: ${p.playbook.executionConvention}`);
+    const executionLine = (plan && plan.meta && plan.meta.planMode === 'trader-ticket')
+      ? (p.entry.execution || p.playbook.executionConvention || '—')
+      : (p.playbook.executionConvention || p.entry.execution || '—');
+    lines.push(`- **执行口径**: ${executionLine}`);
     lines.push(`- **止损**: ${fmt(p.stop.stopPrice)}（距离 ${fmt(p.stop.stopDistancePts)} 点）`);
     lines.push(`- **目标**: T1 ${p.targets.t1}；T2 ${p.targets.t2}`);
     lines.push(`- **仓位**: ${p.position.lots} 手（${p.position.lotsBasis}）`);

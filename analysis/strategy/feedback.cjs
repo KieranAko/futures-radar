@@ -101,13 +101,18 @@ function recordFromPlan(plan, p) {
   ].filter(Boolean).join(' ');
   const signalDirection = mode === 'signal' ? deriveSignalDirection(triggerText) : null;
 
+  // AUTH-D-03：交易单路径保留交易员/计划原语义；仅 legacy 计划沿用旧口径。
+  const planMode = plan.meta && plan.meta.planMode ? plan.meta.planMode : 'legacy-deterministic';
   let triggerTiming = (p.entry && p.entry.triggerTiming) || '';
-  if (mode === 'signal' && (!triggerTiming || /无执行时点|仅观察/.test(triggerTiming))) {
-    triggerTiming = (p.entry && p.entry.execution)
-      || (p.playbook && p.playbook.executionConvention)
-      || 'T+1 收盘确认；确认后下一交易日开盘执行';
+  let timingFallback = false;
+  if (!triggerTiming && p.entry && p.entry.execution) {
+    triggerTiming = p.entry.execution;
+    timingFallback = true;
   }
-  if (!triggerTiming) triggerTiming = 'T+1 收盘确认；确认后下一交易日开盘执行';
+  if (!triggerTiming && planMode !== 'trader-ticket') {
+    triggerTiming = (p.playbook && p.playbook.executionConvention) || '';
+    timingFallback = true;
+  }
 
   return {
     schema: STATE_SCHEMA,
@@ -120,6 +125,7 @@ function recordFromPlan(plan, p) {
     name: p.name || p.symbol,
     contract: p.contract || null,
     direction,
+    planMode,
     verificationMode: mode,
     signalDirection,
     executionStatus: p.executionStatus || 'watch',
@@ -130,6 +136,7 @@ function recordFromPlan(plan, p) {
     entryTrigger: (p.entry && p.entry.trigger) || '',
     triggerLevel: p.entry && Number.isFinite(Number(p.entry.triggerLevel)) ? Number(p.entry.triggerLevel) : null,
     triggerTiming,
+    timingFallback,
     stopPrice: p.stop && Number.isFinite(Number(p.stop.stopPrice)) ? Number(p.stop.stopPrice) : null,
     gapThresholdPts: p.entry && Number.isFinite(Number(p.entry.gapThresholdPts)) ? Number(p.entry.gapThresholdPts) : null,
     triggerStyle: p.entry && p.entry.triggerStyle ? p.entry.triggerStyle : null,
@@ -177,6 +184,7 @@ function normalizeLedgerRecord(rec) {
     name: rec.name || rec.symbol,
     contract: rec.contract || null,
     direction,
+    planMode: rec.planMode || 'legacy-deterministic',
     verificationMode: mode,
     signalDirection: rec.signalDirection != null
       ? rec.signalDirection
@@ -188,7 +196,8 @@ function normalizeLedgerRecord(rec) {
     playbookId: rec.playbookId || 'PB-01',
     entryTrigger: rec.entryTrigger || rec.trigger || '',
     triggerLevel: Number.isFinite(Number(rec.triggerLevel)) ? Number(rec.triggerLevel) : null,
-    triggerTiming: rec.triggerTiming || 'T+1 收盘确认；确认后下一交易日开盘执行',
+    triggerTiming: rec.triggerTiming || '',
+    timingFallback: rec.timingFallback === true,
     stopPrice: Number.isFinite(Number(rec.stopPrice)) ? Number(rec.stopPrice) : null,
     target1Text: rec.target1Text || '',
     target1Level: Number.isFinite(Number(rec.target1Level)) ? Number(rec.target1Level) : parseFirstNumber(rec.target1Text),
@@ -251,9 +260,9 @@ function saveState(state, rootOverride = null) {
 }
 
 function fillMissingStateFields(target, source) {
-  for (const k of ['recordedAt', 'rank', 'name', 'contract', 'direction', 'verificationMode', 'signalDirection',
+  for (const k of ['recordedAt', 'rank', 'name', 'contract', 'direction', 'planMode', 'verificationMode', 'signalDirection',
     'executionStatus', 'plannedLots', 'confidence', 'strategyId', 'playbookId', 'entryTrigger',
-    'triggerLevel', 'triggerTiming', 'stopPrice', 'target1Text', 'target1Level', 'maxHoldingDays', 'invalidation',
+    'triggerLevel', 'triggerTiming', 'timingFallback', 'stopPrice', 'target1Text', 'target1Level', 'maxHoldingDays', 'invalidation',
     'gapThresholdPts', 'triggerStyle', 'triggerMode', 'atr5', 'regimeGrade', 'regimeDirection']) {
     if (target[k] === undefined || target[k] === null) target[k] = source[k];
   }
@@ -265,9 +274,9 @@ function fillMissingStateFields(target, source) {
  * 但绝不覆盖验证状态（status/terminal/lastResult/lastVerifiedRunId）。
  */
 function applyPlanFields(target, source) {
-  for (const k of ['recordedAt', 'rank', 'name', 'contract', 'direction', 'verificationMode', 'signalDirection',
+  for (const k of ['recordedAt', 'rank', 'name', 'contract', 'direction', 'planMode', 'verificationMode', 'signalDirection',
     'executionStatus', 'plannedLots', 'confidence', 'strategyId', 'playbookId', 'entryTrigger',
-    'triggerLevel', 'triggerTiming', 'stopPrice', 'target1Text', 'target1Level', 'maxHoldingDays', 'invalidation',
+    'triggerLevel', 'triggerTiming', 'timingFallback', 'stopPrice', 'target1Text', 'target1Level', 'maxHoldingDays', 'invalidation',
     'gapThresholdPts', 'triggerStyle', 'triggerMode', 'atr5', 'regimeGrade', 'regimeDirection']) {
     target[k] = source[k];
   }
@@ -462,10 +471,10 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
   }
   const entryBar = bars[tIdx + 2];
   const entryPrice = entryBar.open;
-  // 执行偏离阈值优先用计划内置 gapThresholdPts（与 execution 文案一致）；旧计划无该字段时回退 0.5×|stop-trigger|。
+  // AUTH-C-04：执行偏离阈值优先用计划内置 gapThresholdPts；0.5×|stop-trigger| 回退仅限 legacy 计划。
   const gapThreshold = Number.isFinite(Number(record.gapThresholdPts))
     ? Number(record.gapThresholdPts)
-    : (record.stopPrice != null && record.stopPrice !== record.triggerLevel)
+    : (record.planMode !== 'trader-ticket' && record.stopPrice != null && record.stopPrice !== record.triggerLevel)
       ? Math.abs(record.stopPrice - record.triggerLevel) * 0.5
       : null;
   const gapPts = Math.abs(entryPrice - (record.triggerLevel || entryPrice));
@@ -499,7 +508,8 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
     target1 = parseFloat(priceMatch[1]);
   } else if (rMatch && stop != null) {
     target1 = entryPrice + sign * parseFloat(rMatch[1]) * (entryPrice - stop);
-  } else if (stop != null) {
+  } else if (stop != null && record.planMode !== 'trader-ticket') {
+    // AUTH-C-02：2R 公式回算仅限 legacy 计划；交易单路径目标不可解析时不得自产目标价。
     target1 = entryPrice + sign * 2 * (entryPrice - stop);
   }
 

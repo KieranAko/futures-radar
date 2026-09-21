@@ -46,7 +46,7 @@ function main() {
   L.push('1. 论点绑定：提取报告方向/置信度/驱动/确认/失效。');
   L.push('2. 可执行性评估：Q4 触发价是否可达？现价与触发价、p68/p95 的关系？');
   L.push('3. 表达选择：breakout / confirmation / pullback / event-confirmation / conditional-watch。');
-  L.push('4. 语义自洽：现价相对价值区的位置必须与表达类型和触发文案一致——现价在区间内用“确认”，在区间上方等待下跌用“回踩”，在区间下方等待站上用“突破/站回”；不得出现“现价在区间内却写回踩”。');
+  L.push('4. 表达自洽：自行说明现价相对价值区的位置（区内/上方/下方）与你选择该表达类型的理由；触发文案与表达类型是否一致由你判断，不再有机器映射表。');
   L.push('5. 止损/目标：止损来自 Q5 失效位或近端结构；目标来自 Q3 逻辑点或 Q4 结构位。');
   L.push('6. 仓位意图：confidence + 波动率目标 + 尾部风险。');
   L.push('7. 自检：每个参数可溯源到报告字段；theoryFit 与 strategyConfidence 自洽；触发文案与表达类型一致。');
@@ -86,7 +86,7 @@ L.push('8. 执行口径文案（何时入场、什么情况放弃、放弃距离
   }
   L.push('## 输出 JSON 结构');
   L.push('```json');
-  L.push('{"schema":"futures-radar-strategy-reasoning/1","runId":"...","strategies":[{"symbol":"SA0","direction":"neutral","strategyConfidence":"low","confidenceDowngradeReasons":["..."],"theoryFit":"none|approximate|aligned","theoryRefs":[],"theoryGapNote":"...","regimePlan":{"normal":"full|reduced|watch","elevated":"reduced|watch","extreme":"watch"},"expression":{"type":"conditional-watch","reason":"..."},"entry":{"trigger":"...","triggerSource":"...","triggerLevel":1018,"triggerTiming":"...","execution":"..."},"stop":{"stopPrice":1018,"basis":"Q5 失效位/概率尾"},"targets":{"t1":"...","t2":"...","basis":"..."},"reasoningRef":{"artifactId":"strategy-reasoning-json"}}]}');
+  L.push('{"schema":"futures-radar-strategy-reasoning/1","runId":"...","strategies":[{"symbol":"<symbol>","direction":"bullish|bearish|neutral","strategyConfidence":"high|medium|low","confidenceDowngradeReasons":["..."],"theoryFit":"none|approximate|aligned","theoryRefs":[],"theoryGapNote":"...","regimePlan":{"normal":"full|reduced|watch","elevated":"reduced|watch","extreme":"watch"},"expression":{"type":"<expression-type>","reason":"..."},"entry":{"trigger":"...","triggerSource":"...","triggerLevel":"<数字>","triggerTiming":"...","execution":"..."},"stop":{"stopPrice":"<数字>","basis":"..."},"targets":{"t1":"...","t2":"...","basis":"..."},"reasoningRef":{"artifactId":"strategy-reasoning-json"}}]}');
   L.push('```');
   L.push('');
   L.push('strategyConfidence 不得高于报告 finalConfidence。theoryFit=none|approximate 时必须给 confidenceDowngradeReasons 与 theoryGapNote。');

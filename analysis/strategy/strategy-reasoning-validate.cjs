@@ -31,10 +31,16 @@ function validateStrategyReasoning(reasoning, reportModel) {
   for (const r of reasoning.strategies) {
     const opp = opps.get(r.symbol);
     if (!opp) { errors.push(`${r.symbol}: 不在报告 TOP3 机会中`); continue; }
-    const reportConf = opp.thesis?.finalConfidence || 'low';
-    const stratConf = r.strategyConfidence || 'low';
-    if (!CONF_LEVEL[stratConf]) errors.push(`${r.symbol}: invalid strategyConfidence ${stratConf}`);
-    if (!confLte(stratConf, reportConf)) {
+    // SR-C-005：缺失字段报错，不用 'low' 默认值放行或钳制 LLM 判断。
+    const reportConf = opp.thesis?.finalConfidence || null;
+    const stratConf = r.strategyConfidence || null;
+    if (!reportConf) errors.push(`${r.symbol}: 报告 finalConfidence 缺失，无法校验 strategyConfidence`);
+    if (!stratConf) {
+      errors.push(`${r.symbol}: strategyConfidence 缺失（必须由 Strategy-LLM 给出）`);
+    } else if (!CONF_LEVEL[stratConf]) {
+      errors.push(`${r.symbol}: invalid strategyConfidence ${stratConf}`);
+    }
+    if (stratConf && reportConf && CONF_LEVEL[stratConf] && !confLte(stratConf, reportConf)) {
       errors.push(`${r.symbol}: strategyConfidence ${stratConf} 高于报告置信度 ${reportConf}`);
     }
     if (!THEORY_FIT.includes(r.theoryFit)) errors.push(`${r.symbol}: theoryFit 必须为 ${THEORY_FIT.join('/')}`);

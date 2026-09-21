@@ -1016,13 +1016,24 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   const reasons = [...risk.statusReasons];
   if (gateAbandonNote) reasons.push(gateAbandonNote);
 
+  // Strategy-LLM / 交易员输出优先：报告驱动表达层的入场/止损/目标/理论匹配
+  const reasoningEntry = reasoning && reasoning.entry ? reasoning.entry : null;
+  const reasoningStop = reasoning && reasoning.stop ? reasoning.stop : null;
+  const reasoningTargets = reasoning && reasoning.targets ? reasoning.targets : null;
+  const reasoningConf = reasoning && reasoning.strategyConfidence ? reasoning.strategyConfidence : null;
+  const elementsEntry = elements ? entryFromElements(elements) : null;
+
   // t13：执行条款按方向选择——bullish 省略空头专用约束（空头距涨停/空头反抽），
   // 替换为多头侧对等约束（多头距跌停/多头回踩持仓不塌）；bearish 反之。
+  // ST-04：交易单存在时，executionConvention 直接来自交易员 entry/abandon；
+  // 机器模板仅用于 legacy（reasoning/确定性回放）。
   const longClause = '多头距跌停 <1×ATR5 禁开（Q6 口径）';
   const shortClause = '空头距涨停 <1×ATR5 禁开（Q6 口径）';
   const dirClause = dir === 'bullish' ? longClause : dir === 'bearish' ? shortClause : '方向中性：仅观察';
   let executionConvention;
-  if (playbookOut.playbookId === 'PB-03') {
+  if (elementsEntry && elementsEntry.execution) {
+    executionConvention = elementsEntry.execution;
+  } else if (playbookOut.playbookId === 'PB-03') {
     executionConvention = dir === 'bullish'
       ? 'T+1 开盘；执行偏离 >0.75×ATR5 放弃；多头回踩要求持仓不塌（报告既有表述）'
       : 'T+1 开盘；执行偏离 >0.75×ATR5 放弃；空头反抽要求持仓不增（报告既有表述）';
@@ -1036,15 +1047,11 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
     ? elements.invalidation
     : rm.thesis.invalidations?.conditions || [];
 
-  // Strategy-LLM 输出优先：报告驱动表达层的入场/止损/目标/理论匹配
-  const reasoningEntry = reasoning && reasoning.entry ? reasoning.entry : null;
-  const reasoningStop = reasoning && reasoning.stop ? reasoning.stop : null;
-  const reasoningTargets = reasoning && reasoning.targets ? reasoning.targets : null;
-  const reasoningConf = reasoning && reasoning.strategyConfidence ? reasoning.strategyConfidence : null;
   const reportConf = rm.thesis.finalConfidence || 'medium';
-  const strategyConfidence = reasoningConf || reportConf;
+  // ST-05：strategyConfidence 只由 Strategy-LLM 给出；elements（交易单）路径没有该字段，置空而非回退报告置信度。
+  const strategyConfidence = reasoningConf;
   const atr5ForGap = ctx.rm.priceRanges?.[0]?.atrBand?.atr5 ?? 0;
-  const elementsEntry = elements ? entryFromElements(elements) : null;
+  // ST-01：elements 路径 validateElements 已强制 abandon 含具体点数；playbookGap 仅为 legacy 回放兜底。
   const playbookGap = round2((pb.playbookId === 'PB-07' || pb.playbookId === 'PB-03') ? 0.75 * atr5ForGap : 0.5 * atr5ForGap);
   const ticketGap = elements ? firstNumber(elements.abandon) : null;
   const gapThresholdPts = elements && Number.isFinite(ticketGap) ? round2(ticketGap) : playbookGap;
@@ -1071,9 +1078,11 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   const stop = {
     stopPrice: risk.riskAssessment.stopPrice,
     stopDistancePts: risk.riskAssessment.stopDistancePts,
+    // ST-06：elements 路径 validateElements 已强制 stop.basis；公式文案仅为 legacy 回放兜底。
     basis: (elements && elements.stop && elements.stop.basis) || (reasoningStop && reasoningStop.basis) || `min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)${risk.notes.length ? '；' + risk.notes.join('；') : ''}`
   };
   const finalTargets = {
+    // ST-02：elements 路径 validateElements 已强制 t1/t2；buildTargets 仅为 legacy 回放兜底。
     t1: (elements && elements.targets && elements.targets.t1) || (reasoningTargets && reasoningTargets.t1) || targets.t1,
     t2: (elements && elements.targets && elements.targets.t2) || (reasoningTargets && reasoningTargets.t2) || targets.t2,
     basis: (elements && elements.targets && elements.targets.basis) || (reasoningTargets && reasoningTargets.basis) || targets.basis
@@ -1295,6 +1304,8 @@ function buildStrategyPlan({ runId, equityCny = 100000, reasoning = null, elemen
   const concentrationDecisions = arbitrateConcentration(plans);
   for (const p of plans) delete p._rrT2Distance;
 
+  // ST-08：显式标注本计划的决策来源，机器兜底不再伪装成 LLM 判断。
+  const planMode = elements ? 'trader-ticket' : reasoning ? 'legacy-strategy-reasoning' : 'legacy-deterministic';
   const plan = {
     schemaVersion: '1.0.0',
     meta: {
@@ -1303,6 +1314,7 @@ function buildStrategyPlan({ runId, equityCny = 100000, reasoning = null, elemen
       matcherVersion: '1.0.0',
       rulesVersion: rules.schemaVersion,
       libraryVersion: library.schemaVersion,
+      planMode,
       equityCny,
       volTargetPerPosition: effRc.volTargetPerPosition,
       marginRate: effRc.marginRate,

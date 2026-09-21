@@ -49,11 +49,11 @@ function fmt(x, d = 1) {
   return Number(x).toFixed(d);
 }
 
-// 旧计划文案里的 N×ATR5 表达式换算成具体点数，执行场景不用临场心算。
+// 旧计划文案里的 N×ATR5 表达式换算成具体点数，并保留原式（REND-05）。
 function concreteAtrText(text, atr5) {
   const s = String(text == null ? '' : text);
   if (!Number.isFinite(Number(atr5)) || Number(atr5) <= 0) return s;
-  return s.replace(/(\d+(?:\.\d+)?)\s*×ATR5/g, (_, m) => (Number(m) * Number(atr5)).toFixed(1));
+  return s.replace(/(\d+(?:\.\d+)?)\s*×ATR5/g, (_, m) => `${m}×ATR5≈${(Number(m) * Number(atr5)).toFixed(1)}点`);
 }
 
 function pctChange(start, latest) {

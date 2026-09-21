@@ -66,6 +66,21 @@ describe('ticket-elements 交易单要素契约', () => {
     assert.ok(r3.errors.some((e) => e.includes('abandon 点数 13.8') && e.includes('找不到')));
   });
 
+  it('交易单缺 abandon 点数 / targets.t2 / stop.basis 时结构校验失败（ST-01/02/06）', () => {
+    const r1 = validateElements(makeElements({ abandon: '' }));
+    assert.equal(r1.ok, false);
+    assert.ok(r1.errors.some((e) => e.includes('abandon')));
+    const r2 = validateElements(makeElements({ targets: { t1: '3065', t2: '', basis: '…' } }));
+    assert.equal(r2.ok, false);
+    assert.ok(r2.errors.some((e) => e.includes('targets.t2')));
+    const r3 = validateElements(makeElements({ stop: { level: 3132, basis: '' } }));
+    assert.equal(r3.ok, false);
+    assert.ok(r3.errors.some((e) => e.includes('stop.basis')));
+    const r4 = validateElements(makeElements({ abandon: '偏离超过阈值放弃' }));
+    assert.equal(r4.ok, false);
+    assert.ok(r4.errors.some((e) => e.includes('abandon') && e.includes('具体点数')));
+  });
+
   it('空单偏离带越过止损时绑定回问（只验不修）', () => {
     const el = makeElements().tickets[0];
     const opp = { marketFacts: { pdh: 3140, pdl: 3119, valueAreaHigh: 3132, valueAreaLow: 3119 }, priceRanges: [{ atrBand: { atr5: 27.6 }, hvCone: { p68: [3018.8, 3175.1], p95: [2931.8, 3253] } }] };

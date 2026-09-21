@@ -155,8 +155,9 @@ function spotBasisLine(opp) {
   const sourceLabel = b.source === 'mysteel' ? '现货折盘面（Mysteel）' : '市场现货价（生意社）';
   const basis = b.basis != null ? `${b.basis > 0 ? '+' : ''}${fmt(b.basis, 1)}` : '—';
   const rate = b.basisRate != null ? `${b.basisRate > 0 ? '+' : ''}${fmt(b.basisRate * 100, 2)}%` : '—';
+  // REND-02：只保留事实性描述（升贴水方向），判断句（如“追多安全边际较差”）归 LLM。
   const meaning = b.source === 'mysteel'
-    ? (b.basisRate != null && b.basisRate < 0 ? '期货升水，追多安全边际较差' : b.basisRate != null && b.basisRate > 0 ? '现货升水，期货贴水' : '基差接近平水')
+    ? (b.basisRate != null && b.basisRate < 0 ? '期货升水' : b.basisRate != null && b.basisRate > 0 ? '现货升水，期货贴水' : '基差接近平水')
     : '市场综合价，不作为交割基差';
   return `${sourceLabel} ${fmt(b.spotAdjustedPrice != null ? b.spotAdjustedPrice : b.spotPrice, 1)}；基差 ${basis}；基差率 ${rate} — ${meaning}`;
 }

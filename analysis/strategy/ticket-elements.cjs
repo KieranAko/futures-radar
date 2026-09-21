@@ -80,12 +80,23 @@ function validateElements(elements) {
     requiredString(t, 'note', errors, `${t.symbol || '?'}: note`);
     if (!t.stop || typeof t.stop !== 'object' || t.stop.level == null || !Number.isFinite(Number(t.stop.level))) {
       errors.push(`${t.symbol || '?'}: stop.level 缺失或不是数字（交易单必须给出止损价）`);
+    } else {
+      requiredString(t.stop, 'basis', errors, `${t.symbol || '?'}: stop.basis`);
     }
     if (!t.targets || typeof t.targets !== 'object' || !String(t.targets.t1 || '').trim()) {
       errors.push(`${t.symbol || '?'}: targets.t1 缺失（交易单必须给出第一目标）`);
     }
+    if (!t.targets || typeof t.targets !== 'object' || !String(t.targets.t2 || '').trim()) {
+      errors.push(`${t.symbol || '?'}: targets.t2 缺失（交易单必须给出第二目标）`);
+    }
     if (!Array.isArray(t.invalidation) || t.invalidation.length === 0) {
       errors.push(`${t.symbol || '?'}: invalidation 缺失（交易单必须写清逻辑作废条件）`);
+    }
+    if (t.direction !== 'neutral') {
+      const abandon = requiredString(t, 'abandon', errors, `${t.symbol || '?'}: abandon`);
+      if (abandon && firstNumber(abandon) == null) {
+        errors.push(`${t.symbol || '?'}: abandon 必须给出具体点数（如 偏离 >X 放弃），不允许只写公式或空泛表述`);
+      }
     }
     const maxHoldDays = parseMaxHoldDays(t.maxHold);
     if (!Number.isFinite(maxHoldDays) || maxHoldDays < 1 || maxHoldDays > 10) {

@@ -192,7 +192,9 @@ function versionFromPlan(signal, n, plan, p, prevVersion) {
       trigger: (p.entry && p.entry.trigger) || '',
       triggerLevel: p.entry && Number.isFinite(Number(p.entry.triggerLevel)) ? Number(p.entry.triggerLevel) : null,
       triggerSource: (p.entry && p.entry.triggerSource) || '',
-      triggerTiming: (p.entry && p.entry.triggerTiming) || 'T+1 收盘确认；确认后下一交易日开盘执行',
+      // AUTH-C-05：交易单路径缺 triggerTiming 保留空，不再注入机器默认执行文案；legacy 保留旧口径。
+      triggerTiming: (p.entry && p.entry.triggerTiming)
+        || ((!p.meta || !p.meta.planMode || p.meta.planMode !== 'trader-ticket') ? 'T+1 收盘确认；确认后下一交易日开盘执行' : ''),
       execution: (p.entry && p.entry.execution) || '',
       gapThresholdPts: p.entry && Number.isFinite(Number(p.entry.gapThresholdPts)) ? Number(p.entry.gapThresholdPts) : null,
       triggerStyle: (p.entry && p.entry.triggerStyle) || null,

@@ -56,6 +56,15 @@
           "minLength": 1,
           "description": "strategy-library.json 的 schemaVersion"
         },
+        "planMode": {
+          "type": "string",
+          "enum": [
+            "trader-ticket",
+            "legacy-strategy-reasoning",
+            "legacy-deterministic"
+          ],
+          "description": "决策来源：trader-ticket=交易员交易单（LLM）；legacy-strategy-reasoning=旧 Strategy-LLM 链路；legacy-deterministic=纯机器回放"
+        },
         "equityCny": {
           "type": "number",
           "exclusiveMinimum": 0,
@@ -572,7 +581,7 @@
             "number",
             "null"
           ],
-          "description": "执行偏离放弃阈值（点数）：PB-07/PB-03 为 0.75×ATR5，其余为 0.5×ATR5"
+          "description": "执行偏离放弃阈值（点数）：trader-ticket 路径由交易单 abandon 给出；PB-07/PB-03 为 0.75×ATR5、其余 0.5×ATR5 仅用于 legacy 回放兜底"
         },
         "triggerStyle": {
           "type": "string",

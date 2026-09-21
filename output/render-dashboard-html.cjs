@@ -42,6 +42,7 @@ function fmt(x, d = 1) {
 
 // ── 图形组件 ──────────────────────────────────────────────────
 function confidenceMeter(level) {
+  if (!level) return '<span class="confidence" title="置信度缺失">—</span>';
   const n = level === 'high' ? 3 : level === 'medium' ? 2 : 1;
   let blocks = '';
   for (let i = 0; i < 3; i++) blocks += `<span class="cm ${i < n ? 'on' : ''}"></span>`;
@@ -386,7 +387,8 @@ function strategyCard(plan) {
 // ── 机会分析：导航 + 面板 ────────────────────────────────────
 function oppNavItem(opp, raw, mainSeries, active, contractOverride = null) {
   const t = opp.thesis || {};
-  const dir = t.finalDirection || 'neutral';
+  // REND-03：缺失 finalDirection 显示 '—'，不用 neutral 顶替 LLM 判断。
+  const dir = t.finalDirection || '';
   const close = opp.marketFacts && opp.marketFacts.close != null ? fmt(opp.marketFacts.close) : '—';
   const conf = confidenceLabel(t.finalConfidence);
   const resolvedContract = contractOverride || opp.contract;
@@ -400,7 +402,7 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}, 
   const t = opp.thesis || {};
   const driver = t.driver || {};
   const odds = t.odds || {};
-  const dir = t.finalDirection || 'neutral';
+  const dir = t.finalDirection || '';
   const close = opp.marketFacts && opp.marketFacts.close != null ? fmt(opp.marketFacts.close) : '—';
   const resolvedContract = contractOverride || opp.contract;
 

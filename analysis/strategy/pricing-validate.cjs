@@ -46,7 +46,7 @@ function validatePricing(reasoning, reportModel, probability) {
 
     if (isConditional(r)) continue;
     if (entryDistAtr != null && entryDistAtr > 1.0) {
-      errors.push(`${r.symbol}: 入场距离现价 ${entryDistAtr.toFixed(2)}×ATR > 1.0×ATR，应为 conditional`);
+      errors.push(`${r.symbol}: 入场距离现价 ${entryDistAtr.toFixed(2)}×ATR > 1.0×ATR（conditional 类表达除外），请交易员调整表达或说明仍可执行的理由`);
     }
     if (stopDistAtr != null && stopDistAtr > 1.5) {
       errors.push(`${r.symbol}: 止损距离入场 ${stopDistAtr.toFixed(2)}×ATR > 1.5×ATR`);

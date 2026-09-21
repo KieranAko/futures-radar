@@ -1,60 +1,19 @@
 // analysis/strategy/semantic-fact-validate.cjs — 语义事实校验（v1）
 //
-// 目标：校验 Strategy-LLM 的交易表达与价格位置事实一致。
-// 不生成模板，只做事实比对：现价相对价值区的位置必须与 expression.type 匹配，
-// 触发文案的第一动作词必须与 expression.type 匹配。不一致则要求重新生成。
+// 权威错位修复（SR-B-001/SR-B-002）：
+// 表达类型与触发文案的语义判断归 LLM；本模块只做数值事实比对
+// （现价相对价值区的位置），不再用正则/决策表替 LLM 决定
+// expression.type 或触发措辞，也不再因此打回 LLM。
+// 上下文缺失仍 fail-closed（结构校验）。
 'use strict';
 
 const { computeNearTermStructure } = require('./near-term-structure.cjs');
-
-const LONG_TYPES = ['breakout', 'pullback', 'confirmation', 'reclaim', 'conditional-watch'];
-const SHORT_TYPES = ['breakdown', 'rally', 'confirmation', 'reclaim', 'conditional-watch'];
-
-function parseNumber(text) {
-  if (text == null) return null;
-  const m = String(text).match(/(\d{2,}(?:\.\d+)?)/);
-  return m ? parseFloat(m[1]) : null;
-}
 
 function positionOf(close, low, high) {
   if (!Number.isFinite(close) || !Number.isFinite(low) || !Number.isFinite(high)) return 'unknown';
   if (close < low) return 'below';
   if (close > high) return 'above';
   return 'inside';
-}
-
-function firstActionWord(text) {
-  const s = String(text || '');
-  if (/回踩/.test(s)) return 'pullback';
-  if (/突破|站上/.test(s)) return 'breakout';
-  if (/跌破/.test(s)) return 'breakdown';
-  if (/确认|站稳/.test(s)) return 'confirmation';
-  if (/观察|等待/.test(s)) return 'conditional-watch';
-  return 'unknown';
-}
-
-function allowedTypesForPosition(direction, position) {
-  if (direction === 'bullish') {
-    if (position === 'above') return ['pullback', 'conditional-watch', 'breakout'];
-    if (position === 'inside') return ['confirmation', 'breakout', 'conditional-watch'];
-    if (position === 'below') return ['breakout', 'reclaim', 'conditional-watch'];
-  } else {
-    if (position === 'below') return ['rally', 'conditional-watch', 'breakdown'];
-    if (position === 'inside') return ['confirmation', 'breakdown', 'conditional-watch'];
-    if (position === 'above') return ['breakdown', 'reclaim', 'conditional-watch'];
-  }
-  return ['conditional-watch'];
-}
-
-function typeMatchesAction(type, action) {
-  if (type === 'conditional-watch') return true;
-  if (type === 'confirmation') return action === 'confirmation';
-  if (type === 'pullback') return action === 'pullback';
-  if (type === 'breakout') return action === 'breakout';
-  if (type === 'breakdown') return action === 'breakdown';
-  if (type === 'reclaim') return action === 'confirmation' || action === 'breakout';
-  if (type === 'rally') return action === 'confirmation' || action === 'breakdown';
-  return true;
 }
 
 function deriveSignalDate(raw) {
@@ -96,26 +55,15 @@ function validateSemanticFacts(reasoning, reportModel, raw) {
     const zoneLow = near.valueAreaLow;
     const zoneHigh = near.valueAreaHigh;
     const position = positionOf(close, zoneLow, zoneHigh);
-    const type = r.expression?.type || 'conditional-watch';
-    const action = firstActionWord(r.entry?.trigger);
-    const direction = r.direction || opp.thesis?.finalDirection || 'bullish';
-    const allowed = allowedTypesForPosition(direction, position);
-    const check = { symbol: r.symbol, close, zoneLow, zoneHigh, position, type, action, allowed };
-    checks.push(check);
-
-    if (!allowed.includes(type)) {
-      errors.push(`${r.symbol}: 现价 ${close} 相对价值区 [${zoneLow}, ${zoneHigh}] 为 ${position}，表达类型 ${type} 不匹配（允许：${allowed.join('/')}）`);
-    }
-    if (!typeMatchesAction(type, action)) {
-      errors.push(`${r.symbol}: 表达类型 ${type} 与触发文案首动作词 ${action} 不一致`);
-    }
+    // 位置是冻结事实，仅供诊断与下游参考；表达类型与措辞是否一致由 LLM 自检。
+    checks.push({ symbol: r.symbol, close, zoneLow, zoneHigh, position });
   }
   return { ok: errors.length === 0, errors, checks };
 }
 
 /**
- * 校验 analyze outputs-v2 的 Q4 信号与近端位置事实一致。
- * 现价在价值区内时，多头 Q4 不得使用“回踩”；空头镜像。
+ * 校验 analyze outputs-v2 的 Q4 信号上下文可用性（结构校验）。
+ * 语义是否与价格位置一致由 LLM selfCheck 负责，不再用正则替 LLM 判断。
  */
 function validateQ4Semantics(outputs, packets) {
   const errors = [];
@@ -124,29 +72,10 @@ function validateQ4Semantics(outputs, packets) {
     const p = packets?.[r.symbol];
     const near = p?.near_term;
     if (!near || !p?.price_data) {
-      errors.push(`${r.symbol}: 缺少 near_term/price_data，无法校验 Q4 语义`);
-      continue;
-    }
-    const close = p.price_data.close;
-    const position = positionOf(close, near.valueAreaLow, near.valueAreaHigh);
-    if (position === 'unknown') continue;
-    const dir = r.direction;
-    if (dir === 'pass' || dir === 'neutral') continue;
-    const signals = r.q4_confirmations?.signals || r.q4_confirmations?.signals || [];
-    for (const signal of signals) {
-      const action = firstActionWord(signal);
-      if (dir === 'long' || dir === 'bullish') {
-        if (action === 'pullback' && position !== 'above') {
-          errors.push(`${r.symbol}: Q4 信号“${signal}”语义错误：现价在价值区${position === 'inside' ? '内' : '下方'}，不应使用“回踩”`);
-        }
-      } else if (dir === 'short' || dir === 'bearish') {
-        if (action === 'rally' && position !== 'below') {
-          errors.push(`${r.symbol}: Q4 信号“${signal}”语义错误：现价在价值区${position === 'inside' ? '内' : '上方'}，不应使用“反抽/回抽”`);
-        }
-      }
+      errors.push(`${r.symbol}: 缺少 near_term/price_data，无法校验 Q4 事实上下文`);
     }
   }
   return { ok: errors.length === 0, errors };
 }
 
-module.exports = { validateSemanticFacts, validateQ4Semantics, positionOf, firstActionWord };
+module.exports = { validateSemanticFacts, validateQ4Semantics, positionOf };
