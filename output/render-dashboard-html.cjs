@@ -325,11 +325,6 @@ function ticketStrategyCard(plan) {
   const state = planStateOf(plan);
   const cls = strategyStatusClass(state);
   const conf = plan.strategyConfidence ? confidenceLabel(plan.strategyConfidence) : (plan.reportBaseline && plan.reportBaseline.confidence ? confidenceLabel(plan.reportBaseline.confidence) : '—');
-  const riskLine = [
-    plan.riskAssessment && plan.riskAssessment.unitRiskCny != null ? `每手风险 ${Math.round(plan.riskAssessment.unitRiskCny)} CNY` : null,
-    plan.riskAssessment && plan.riskAssessment.marginPerLotCny != null ? `保证金/手 ${Math.round(plan.riskAssessment.marginPerLotCny)} CNY` : null,
-    plan.riskAssessment && plan.riskAssessment.tailGapPct3d != null ? `尾部边距 ${fmt(plan.riskAssessment.tailGapPct3d)}%` : null
-  ].filter(Boolean).join(' · ');
   const reasons = Array.isArray(plan.stateReasons) && plan.stateReasons.length ? plan.stateReasons.join('；') : '';
   const view = ticketViewHtml({
     direction: plan.reportBaseline && plan.reportBaseline.direction,
@@ -346,8 +341,7 @@ function ticketStrategyCard(plan) {
     t2: plan.targets && plan.targets.t2,
     targetsBasis: plan.targets && plan.targets.basis,
     maxHold: t.maxHold || (plan.invalidation && plan.invalidation.timeStop),
-    invalidation: Array.isArray(t.invalidation) && t.invalidation.length ? t.invalidation : (plan.invalidation && plan.invalidation.hard) || [],
-    riskLine: riskLine
+    invalidation: Array.isArray(t.invalidation) && t.invalidation.length ? t.invalidation : (plan.invalidation && plan.invalidation.hard) || []
   });
   return `<div class="strategy-card ticket-card ${cls}">
     <div class="strategy-head"><span class="strategy-title">📌 交易单</span><span class="strategy-badges">${statusBadge(state)} · ${conf}置信</span></div>
@@ -953,14 +947,17 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .strategy-card.st-watch { border-left-color: #b45309; }
   .strategy-card.st-skip { border-left-color: #b91c1c; }
   .ticket-card { background: #fff; }
-  .ticket-view { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .ticket-view { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
   .ticket-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .ticket-dir { font-size: 14px; font-weight: 800; }
   .ticket-dir.up { color: var(--up); }
   .ticket-dir.down { color: var(--down); }
   .ticket-contract { font-size: 14px; font-weight: 700; }
   .ticket-state { font-size: 12px; color: var(--muted); }
-  .ticket-rows { border-top: 1px solid var(--border); }
+  .ticket-sections { display: flex; flex-direction: column; gap: 8px; }
+  .ticket-section { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .ticket-section-head { padding: 4px 10px; background: #fafafa; border-bottom: 1px solid var(--border); font-size: 12px; color: #374151; font-weight: 600; }
+  .ticket-rows { padding: 0 10px; }
   .ticket-row { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding: 5px 0; border-bottom: 1px solid #f1f3f5; line-height: 1.6; }
   .ticket-row:last-child { border-bottom: none; }
   .ticket-label { color: var(--muted); font-weight: 600; font-size: 12px; }

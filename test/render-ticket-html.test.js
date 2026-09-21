@@ -25,6 +25,8 @@ describe('render-ticket-html 共享交易单视图', () => {
       riskLine: ''
     });
     assert.ok(html.includes('ticket-view'));
+    assert.ok(html.includes('开仓执行'));
+    assert.ok(html.includes('持仓管理'));
     assert.ok(html.includes('>空</span>'));
     assert.ok(html.includes('RB2701'));
     assert.ok(html.includes('生效条件'));
