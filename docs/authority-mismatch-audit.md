@@ -679,3 +679,16 @@
   - AUTH-C-02/04、AUTH-D-03、AUTH-C-05：feedback/signal-pool 的 target1、gap 阈值、triggerTiming 兜底仅限 legacy，交易单路径缺字段不再由机器注入。
   - REND-01/02/03/04/05/06：执行口径优先渲染 `entry.execution`；删除"追多安全边际较差"判断句；缺失方向/置信度/theoryFit 显示 '—'；ATR 换算保留原式并标"≈点"。
   - 测试更新：`semantic-fact-validate.test.js` 改测新契约，新增 ticket/matcher 必填与 planMode 断言；`npm test` 853 通过。
+
+- 批次3（席位层，commit `af6a38a`）：
+  - ASM-03：`build-filtered-from-story-pool` 的 filtered.json 声明 `meta.author=deterministic-seats`，每个机器席位带 `author:'machine-seat'`。
+  - ASM-04：席位方向非法即跳过（不再默认为 bullish）；confidence 缺失置 null（不再用 'medium' 冒充）。
+  - ASM-02/AUTH-D-01：legacy 的 `apply-story-seats`/`apply-tracking-seats` 注入席位带 `author:'machine-seat'` 与 `meta.seatAuthor`，不再伪装 LLM 产物。
+  - 测试：新增 ASM-03/04 断言与 machine-seat 标记断言；`npm test` 854 通过。
+
+- 批次4（legacy/research，commit `9631cf6`）：
+  - AM-01：`reasoning-runner` grounding 降级返回加 `degraded:true` / `authority:'legacy-machine'`。
+  - AM-02：FinCoT 提示词"决策门禁"增加说明：门禁是约束，最终判断由 LLM 说明理由。
+  - AM-05：四份 legacy prompt 的 `invalidate_if` 示例改占位符。
+  - AM-03/04/06/07：源码内加 legacy 兜底注释标记（不改回放输出，golden 测试不漂移）。
+  - `npm test` 854 通过。
