@@ -27,9 +27,9 @@ describe('render-ticket-html 共享交易单视图', () => {
     assert.ok(html.includes('ticket-view'));
     assert.ok(html.includes('>空</span>'));
     assert.ok(html.includes('RB2701'));
+    assert.ok(html.includes('生效条件'));
     assert.ok(html.includes('反抽至 3119 下方不破'));
     assert.ok(html.includes('确认：T+1 收盘仍位于 3119 下方'));
-    assert.ok(html.includes('关键价位'));
     assert.ok(html.includes('T+2 开盘入场'));
     assert.ok(html.includes('偏离 &gt;0.5×ATR5 放弃'));
     assert.ok(html.includes('3132'));

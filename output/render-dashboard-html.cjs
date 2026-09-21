@@ -334,7 +334,7 @@ function ticketStrategyCard(plan) {
   const view = ticketViewHtml({
     direction: plan.reportBaseline && plan.reportBaseline.direction,
     contract: plan.contract,
-    state: `${statusBadge(state)} · ${conf}置信`,
+    state: '',
     activation: t.activation,
     activationLevel: t.activationLevel,
     confirmation: t.confirmation,
@@ -347,11 +347,12 @@ function ticketStrategyCard(plan) {
     targetsBasis: plan.targets && plan.targets.basis,
     maxHold: t.maxHold || (plan.invalidation && plan.invalidation.timeStop),
     invalidation: Array.isArray(t.invalidation) && t.invalidation.length ? t.invalidation : (plan.invalidation && plan.invalidation.hard) || [],
-    riskLine: [riskLine, reasons].filter(Boolean).join(' · ')
+    riskLine: riskLine
   });
   return `<div class="strategy-card ticket-card ${cls}">
     <div class="strategy-head"><span class="strategy-title">📌 交易单</span><span class="strategy-badges">${statusBadge(state)} · ${conf}置信</span></div>
     ${view}
+    ${reasons ? `<div class="strategy-risk">${escapeHtml(reasons)}</div>` : ''}
   </div>`;
 }
 
@@ -951,34 +952,20 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .strategy-card.st-executable { border-left-color: #047857; }
   .strategy-card.st-watch { border-left-color: #b45309; }
   .strategy-card.st-skip { border-left-color: #b91c1c; }
-  .ticket-card { background: #fffdf5; }
-  .ticket-view { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .ticket-card { background: #fff; }
+  .ticket-view { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
   .ticket-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .ticket-dir { font-size: 16px; font-weight: 800; padding: 0 8px; border-radius: 5px; }
-  .ticket-dir.up { background: #fdeaea; color: var(--up); }
-  .ticket-dir.down { background: #e7f6ec; color: var(--down); }
-  .ticket-contract { font-size: 14px; }
+  .ticket-dir { font-size: 14px; font-weight: 800; }
+  .ticket-dir.up { color: var(--up); }
+  .ticket-dir.down { color: var(--down); }
+  .ticket-contract { font-size: 14px; font-weight: 700; }
   .ticket-state { font-size: 12px; color: var(--muted); }
-  .ticket-active { background: #eef4ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 8px 12px; }
-  .ticket-active-main { font-size: 14px; font-weight: 700; line-height: 1.6; }
-  .ticket-active-confirm { font-size: 12px; color: var(--muted); margin-top: 3px; }
-  .ticket-active-level { margin-top: 4px; font-size: 12px; color: var(--muted); }
-  .ticket-active-level b { color: var(--accent); font-size: 16px; }
-  .ticket-entry-line { display: flex; gap: 10px; font-size: 13px; align-items: baseline; }
-  .ticket-entry-line > span { color: var(--muted); font-weight: 600; flex: 0 0 36px; }
-  .ticket-entry-main { flex: 1; min-width: 0; }
-  .ticket-abandon { display: inline-block; margin-left: 8px; color: #b45309; font-size: 12px; }
-  .ticket-params { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  .ticket-param { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; min-width: 0; }
-  .ticket-param > span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 2px; }
-  .ticket-param div, .ticket-param b { font-size: 13px; line-height: 1.5; word-break: break-word; }
-  .ticket-param small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
-  .ticket-price { font-size: 16px; }
-  .ticket-inval { display: flex; gap: 10px; font-size: 12px; color: #b45309; align-items: baseline; }
-  .ticket-inval > span { color: var(--muted); font-weight: 600; flex: 0 0 36px; }
-  .ticket-inval div { flex: 1; min-width: 0; }
-  .ticket-risk { font-size: 11px; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 6px; }
-  @media (max-width: 900px) { .ticket-params { grid-template-columns: 1fr; } }
+  .ticket-rows { border-top: 1px solid var(--border); }
+  .ticket-row { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding: 5px 0; border-bottom: 1px solid #f1f3f5; line-height: 1.6; }
+  .ticket-row:last-child { border-bottom: none; }
+  .ticket-label { color: var(--muted); font-weight: 600; font-size: 12px; }
+  .ticket-value { color: var(--text); font-size: 13px; min-width: 0; word-break: break-word; }
+  .ticket-value b { font-weight: 700; }
   .strategy-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   .strategy-title { font-weight: 700; }
   .strategy-badges { font-size: 12px; color: var(--muted); }

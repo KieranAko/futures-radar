@@ -887,7 +887,7 @@ function signalTimelineItem(sig, v, isCurrent) {
     ? ticketViewHtml({
         direction: sig.direction,
         contract: v.contract || sig.contract || sig.symbol,
-        state: d.stateLabel,
+        state: '',
         activation: v.ticket.activation,
         activationLevel: v.ticket.activationLevel,
         confirmation: v.ticket.confirmation,
