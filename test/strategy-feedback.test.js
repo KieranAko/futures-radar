@@ -246,7 +246,7 @@ describe('strategy-feedback 证伪反馈机制', () => {
       [98, 92], [101, 93], [97, 90], [100, 91]
     ), 'next', new Map());
     assert.equal(miss.status, 'invalidated_not_triggered');
-    assert.match(miss.attribution[0].detail, /反抽\/回踩不破未成立/);
+    assert.match(miss.attribution[0].detail, /反抽\/回踩未成立/);
 
     // T+1 反抽至 99（进入 100 下方 0.5×ATR 范围）且收盘 98 仍在下 → 触发成立
     const hit = verifyTradeRecord(record, baseRaw(
@@ -254,6 +254,13 @@ describe('strategy-feedback 证伪反馈机制', () => {
       [98, 96], [101, 99.5], [97, 95.5], [100, 98]
     ), 'next', new Map());
     assert.equal(hit.status, 'triggered_pending_entry');
+
+    // T+1 盘中略越触发价（100.8 > 100）但进入偏离带且收盘 98.5 回到带内 → 仍成立（不破按收盘判定）
+    const poke = verifyTradeRecord(record, baseRaw(
+      ['2026-08-26', '2026-08-27'],
+      [98, 96], [101, 100.8], [97, 95.5], [100, 98.5]
+    ), 'next', new Map());
+    assert.equal(poke.status, 'triggered_pending_entry');
   });
 
   it('入场价越过止损直接放弃：空头不得高于止损，多头不得低于止损', () => {

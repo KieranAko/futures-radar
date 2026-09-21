@@ -443,16 +443,19 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
   const atr5 = Number.isFinite(Number(record.atr5)) && Number(record.atr5) > 0 ? Number(record.atr5) : null;
   let triggered = false;
   if (record.triggerMode === 'pullback' && triggerLevel != null) {
-    // 反抽/回踩不破：T+1 盘中必须真的走到触发位附近，且收盘仍不破位。
-    const nearTol = atr5 != null ? atr5 * 0.5 : Math.max(Math.abs(triggerLevel) * 0.002, 5);
+    // 反抽/回踩不破：T+1 盘中必须进入触发价附近的偏离带（触位），
+    // 「不破」按收盘判定——市场不会精确贴在点位，盘中略越触发价但收盘回到带内仍算成立。
+    const tol = Number.isFinite(Number(record.gapThresholdPts)) && Number(record.gapThresholdPts) > 0
+      ? Number(record.gapThresholdPts)
+      : (atr5 != null ? atr5 * 0.5 : Math.max(Math.abs(triggerLevel) * 0.002, 5));
     if (record.direction === 'bearish') {
-      const pulledBack = t1.high >= triggerLevel - nearTol;
-      const notBroken = t1.high <= triggerLevel;
-      triggered = pulledBack && notBroken && t1.close < triggerLevel;
+      const pulledBack = t1.high >= triggerLevel - tol;
+      const closeIntact = t1.close < triggerLevel;
+      triggered = pulledBack && closeIntact;
     } else {
-      const pulledBack = t1.low <= triggerLevel + nearTol;
-      const notBroken = t1.low >= triggerLevel;
-      triggered = pulledBack && notBroken && t1.close > triggerLevel;
+      const pulledBack = t1.low <= triggerLevel + tol;
+      const closeIntact = t1.close > triggerLevel;
+      triggered = pulledBack && closeIntact;
     }
   } else if (triggerStyle === 'close') {
     triggered = record.direction === 'bullish' ? t1.close > triggerLevel : t1.close < triggerLevel;
@@ -464,7 +467,7 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
     triggered = record.direction === 'bullish' ? t1.open > triggerLevel : t1.open < triggerLevel;
   }
   if (!triggered) {
-    const modeDetail = record.triggerMode === 'pullback' ? `（反抽/回踩不破未成立：T+1 高 ${t1.high} 低 ${t1.low} 收 ${t1.close}，触发位 ${triggerLevel}）` : '';
+    const modeDetail = record.triggerMode === 'pullback' ? `（反抽/回踩未成立：T+1 高 ${t1.high} 低 ${t1.low} 收 ${t1.close}，触发位 ${triggerLevel}；要求盘中触达偏离带且收盘不破位）` : '';
     return {
       recordId: record.recordId, status: 'invalidated_not_triggered',
       signalDate: record.signalDate, verifyDate: t1.date, triggerDate: t1.date, verificationSeries: series.source,
