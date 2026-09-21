@@ -159,14 +159,14 @@ describe('dashboard-html 四 Tab 看板', () => {
     }
   });
 
-  it('机会分析 tab 渲染机会卡片字段', () => {
+  it('机会分析 tab 渲染机会卡片字段（Q4/Q5/Q6 不再以旧 chips 展示）', () => {
     const html = renderDashboardHtml({ runId: 'r1', reportModel: makeReportModel(), signalPoolView: makeSignalPoolView(), history: [] });
     assert.ok(html.includes('聚丙烯 <span class="muted">（PP2701）</span>'));
     assert.ok(html.includes('SC0 原油 5日 +29.37% 成本端推动'));
     assert.ok(html.includes('趋势与成本偏多'));
-    assert.ok(html.includes('放量突破 9086'));
-    assert.ok(html.includes('收盘跌破 8619'));
-    assert.ok(html.includes('涨跌停幅度 4%'));
+    assert.ok(!html.includes('chip green'));
+    assert.ok(!html.includes('chip red'));
+    assert.ok(!html.includes('chip gray'));
   });
 
   it('信号池 tab 采用统一信号面板：折叠版本时间线 + 价格轨迹图', () => {
@@ -183,7 +183,7 @@ describe('dashboard-html 四 Tab 看板', () => {
     assert.ok(html.includes('signal-panel is-closed'));
   });
 
-  it('机会卡片含价格趋势图/区间条/多空面板/chips', () => {
+  it('机会卡片含价格趋势图/区间条/多空面板（确认/失效/风险 chips 已移除）', () => {
     const model = makeReportModel();
     model.opportunities[0].priceRanges = [
       { period: '3d', hvCone: { p68: [8607.7, 9152.7], p95: [8357.7, 9426.4] } },
@@ -210,9 +210,10 @@ describe('dashboard-html 四 Tab 看板', () => {
     assert.ok(html.includes('range-p68'));
     assert.ok(html.includes('factor-panel support'));
     assert.ok(html.includes('factor-panel oppose'));
-    assert.ok(html.includes('chip green'));
-    assert.ok(html.includes('chip red'));
-    assert.ok(html.includes('chip gray'));    assert.ok(html.includes('概率区间 · 未来价格可能波动的范围'));
+    assert.ok(!html.includes('chip green'));
+    assert.ok(!html.includes('chip red'));
+    assert.ok(!html.includes('chip gray'));
+    assert.ok(html.includes('概率区间 · 未来价格可能波动的范围'));
     assert.ok(html.includes('未来 3 日'));
     assert.ok(html.includes('现价处于区间'));
     assert.ok(html.includes('68%区间'));

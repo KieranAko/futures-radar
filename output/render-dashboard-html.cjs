@@ -307,12 +307,6 @@ function factorPanel(side, items) {
   return `<div class="factor-panel ${cls}"><h4>${title}</h4><ul>${lis}</ul></div>`;
 }
 
-function chipList(label, items, tone) {
-  if (!items || items.length === 0) return '';
-  const chips = items.map((s) => `<span class="chip ${tone}">${escapeHtml(s)}</span>`).join('');
-  return `<div class="chip-row"><span class="chip-label">${label}</span><div class="chips">${chips}</div></div>`;
-}
-
 // ── 交易策略卡 ────────────────────────────────────────────────
 function strategyStatusClass(state) {
   if (state === 'armed') return 'st-executable';
@@ -419,10 +413,6 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}, 
   const supportPanel = factorPanel('support', cr.supportingFactors);
   const opposePanel = factorPanel('oppose', cr.opposingFactors);
 
-  const confirmations = t.confirmations && Array.isArray(t.confirmations.signals) ? t.confirmations.signals : [];
-  const invalidations = t.invalidations && Array.isArray(t.invalidations.conditions) ? t.invalidations.conditions : [];
-  const risks = t.risks && Array.isArray(t.risks.items) ? t.risks.items : [];
-
   const detail = [];
   if (driver.primary || driver.secondary) {
     detail.push(`<div class="q-item"><h4>Q1 驱动</h4><div>${escapeHtml(driver.primary || '')}${driver.secondary ? `<br><span class="muted">${escapeHtml(driver.secondary)}</span>` : ''}${driver.evidence ? `<br><span class="muted">证据：${escapeHtml(driver.evidence)}</span>` : ''}${driver.source ? `<br><span class="muted">来源：${escapeHtml(driver.source)}</span>` : ''}</div></div>`);
@@ -446,9 +436,6 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}, 
     <div class="opp-grid">
       <div class="opp-grid-main">
         ${ranges ? `<div class="rangebars">${ranges}</div><div class="range-legend"><span>概率区间 · 未来价格可能波动的范围（EWMA 条件波动率）</span><span class="muted">深蓝 = 68% 大概率区间 · 浅蓝 = 95% 较宽区间 · 竖线 = 现价</span></div>` : ''}
-        ${chipList('✅ 确认', confirmations, 'green')}
-        ${chipList('❌ 失效', invalidations, 'red')}
-        ${chipList('⚠️ 风险', risks, 'gray')}
       </div>
       <div class="opp-grid-side">${supportPanel || opposePanel ? `<div class="factors">${supportPanel}${opposePanel}</div>` : ''}</div>
     </div>
