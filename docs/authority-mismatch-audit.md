@@ -692,3 +692,9 @@
   - AM-05：四份 legacy prompt 的 `invalidate_if` 示例改占位符。
   - AM-03/04/06/07：源码内加 legacy 兜底注释标记（不改回放输出，golden 测试不漂移）。
   - `npm test` 854 通过。
+
+## 后续补充：入场执行区间（entryZone）
+
+- 问题：信号区图表用 `trigger ± gap（止损截断）` 对称推导入场区间，违反交易单语义（RB 反抽至 3119 下方不破，但图画出 3105.2–3132）。
+- 修复（commit `cf712c7`）：交易员在交易单中直接给出入场执行区间（两条边及各自依据），录入员拆成 `entryZone {lower,upper,lowerBasis,upperBasis}`，构造器只做三条算术校验（lower<upper；空单 upper≤止损/多单 lower≥止损；触发价落在区间内），图表与验证引擎只消费该对象；legacy 计划回退旧口径。
+- 测试：RB 区间 `3105.2–3119` 的绑定/验证/绘图断言；`npm test` 856 通过。
