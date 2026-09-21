@@ -34,6 +34,7 @@ const {
   directionResultLabel,
   executionResultLabel
 } = require('../shared/strategy-state.cjs');
+const { ticketViewHtml } = require('./render-ticket-html.cjs');
 
 function escapeHtml(s) {
   return String(s == null ? '' : s)
@@ -882,6 +883,26 @@ function signalTimelineItem(sig, v, isCurrent) {
     rows.push(`<div class="tl-row"><span class="tl-label">结果归因</span><span class="tl-text">${escapeHtml(d.attribution.join('；'))}</span></div>`);
   }
   const chipCls = d.statusClass === 'tl-ok' ? 'vc-ok' : d.statusClass === 'tl-bad' ? 'vc-bad' : d.statusClass === 'tl-skip' ? 'vc-skip' : 'vc-pending';
+  const bodyHtml = v.ticket
+    ? ticketViewHtml({
+        direction: sig.direction,
+        contract: v.contract || sig.contract || sig.symbol,
+        state: d.stateLabel,
+        activation: v.ticket.activation,
+        activationLevel: v.ticket.activationLevel,
+        confirmation: v.ticket.confirmation,
+        entry: v.ticket.entry,
+        abandon: v.ticket.abandon,
+        stopPrice: d.stopPrice,
+        stopBasis: d.stopBasis,
+        t1: v.targets && v.targets.t1,
+        t2: v.targets && v.targets.t2,
+        targetsBasis: v.targets && v.targets.basis,
+        maxHold: v.ticket.maxHold,
+        invalidation: Array.isArray(v.ticket.invalidation) && v.ticket.invalidation.length ? v.ticket.invalidation : d.hardInvalidations,
+        riskLine: ''
+      })
+    : `<div class="tl-body">${rows.join('')}</div>`;
   return `<div class="tl-item ${d.statusClass}${isCurrent ? ' current' : ''}">
     <span class="tl-dot"></span>
     <div class="tl-card">
@@ -894,7 +915,7 @@ function signalTimelineItem(sig, v, isCurrent) {
           <span class="tl-dir ${dirClass(sig.direction)}">${escapeHtml(dirText(sig.direction))}</span>
           ${isCurrent ? '<span class="tl-current-tag">当前版本</span>' : ''}
         </summary>
-        <div class="tl-body">${rows.join('')}</div>
+        ${bodyHtml}
       </details>
     </div>
   </div>`;

@@ -27,6 +27,7 @@ const {
   signalClosedPanelsHtml
 } = require('./render-signal-pool-html.cjs');
 const { storyPoolHtml } = require('./render-story-pool-html.cjs');
+const { ticketViewHtml } = require('./render-ticket-html.cjs');
 const storyChain = require('../stories/lib/story-chain.cjs');
 const { planStateOf, eventLabel } = require('../shared/strategy-state.cjs');
 
@@ -323,30 +324,34 @@ function ticketStrategyCard(plan) {
   const t = plan.ticket || {};
   const state = planStateOf(plan);
   const cls = strategyStatusClass(state);
-  const dir = plan.reportBaseline && plan.reportBaseline.direction;
-  const dirText = dir === 'bullish' ? '多' : dir === 'bearish' ? '空' : '观察';
-  const dirCls = dir === 'bullish' ? 'up' : dir === 'bearish' ? 'down' : '';
   const conf = plan.strategyConfidence ? confidenceLabel(plan.strategyConfidence) : (plan.reportBaseline && plan.reportBaseline.confidence ? confidenceLabel(plan.reportBaseline.confidence) : '—');
-  const rows = [];
-  const row = (label, value, tone = '') => `<div class="ticket-row"><span class="ticket-label">${escapeHtml(label)}</span><span class="ticket-value ${tone}">${value}</span></div>`;
-  rows.push(row('生效条件', `${escapeHtml(t.activation || '—')}${t.activationLevel != null ? `（<b>${fmt(t.activationLevel)}</b>）` : ''}`));
-  rows.push(row('确认', escapeHtml(t.confirmation || '—')));
-  rows.push(row('入场', escapeHtml(t.entry || '—')));
-  if (t.abandon) rows.push(row('放弃条件', escapeHtml(t.abandon)));
-  rows.push(row('止损', plan.stop && plan.stop.stopPrice != null ? `<b class="down">${fmt(plan.stop.stopPrice)}</b> <span class="muted">${escapeHtml(plan.stop.basis || '')}</span>` : '—'));
-  rows.push(row('目标', plan.targets ? `${escapeHtml(plan.targets.t1 || '—')} → ${escapeHtml(plan.targets.t2 || '—')}` : '—'));
-  rows.push(row('最长持有', escapeHtml(t.maxHold || (plan.invalidation && plan.invalidation.timeStop) || '—')));
-  rows.push(row('证伪', escapeHtml((Array.isArray(t.invalidation) ? t.invalidation : (plan.invalidation && plan.invalidation.hard) || []).join('；'))));
   const riskLine = [
     plan.riskAssessment && plan.riskAssessment.unitRiskCny != null ? `每手风险 ${Math.round(plan.riskAssessment.unitRiskCny)} CNY` : null,
     plan.riskAssessment && plan.riskAssessment.marginPerLotCny != null ? `保证金/手 ${Math.round(plan.riskAssessment.marginPerLotCny)} CNY` : null,
     plan.riskAssessment && plan.riskAssessment.tailGapPct3d != null ? `尾部边距 ${fmt(plan.riskAssessment.tailGapPct3d)}%` : null
   ].filter(Boolean).join(' · ');
   const reasons = Array.isArray(plan.stateReasons) && plan.stateReasons.length ? plan.stateReasons.join('；') : '';
+  const view = ticketViewHtml({
+    direction: plan.reportBaseline && plan.reportBaseline.direction,
+    contract: plan.contract,
+    state: `${statusBadge(state)} · ${conf}置信`,
+    activation: t.activation,
+    activationLevel: t.activationLevel,
+    confirmation: t.confirmation,
+    entry: t.entry,
+    abandon: t.abandon,
+    stopPrice: plan.stop && plan.stop.stopPrice,
+    stopBasis: plan.stop && plan.stop.basis,
+    t1: plan.targets && plan.targets.t1,
+    t2: plan.targets && plan.targets.t2,
+    targetsBasis: plan.targets && plan.targets.basis,
+    maxHold: t.maxHold || (plan.invalidation && plan.invalidation.timeStop),
+    invalidation: Array.isArray(t.invalidation) && t.invalidation.length ? t.invalidation : (plan.invalidation && plan.invalidation.hard) || [],
+    riskLine: [riskLine, reasons].filter(Boolean).join(' · ')
+  });
   return `<div class="strategy-card ticket-card ${cls}">
-    <div class="strategy-head"><span class="strategy-title">📌 交易单</span><span class="strategy-badges"><span class="ticket-dir ${dirCls}">${dirText}</span> · ${statusBadge(state)} · ${conf}置信</span></div>
-    <div class="ticket-rows">${rows.join('')}</div>
-    ${riskLine || reasons ? `<div class="strategy-risk">${escapeHtml(riskLine)}${riskLine && reasons ? ' · ' : ''}<span class="muted">${escapeHtml(reasons)}</span></div>` : ''}
+    <div class="strategy-head"><span class="strategy-title">📌 交易单</span><span class="strategy-badges">${statusBadge(state)} · ${conf}置信</span></div>
+    ${view}
   </div>`;
 }
 
@@ -947,11 +952,33 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .strategy-card.st-watch { border-left-color: #b45309; }
   .strategy-card.st-skip { border-left-color: #b91c1c; }
   .ticket-card { background: #fffdf5; }
-  .ticket-dir { font-weight: 700; }
-  .ticket-rows { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 0; }
-  .ticket-row { display: flex; gap: 12px; align-items: baseline; line-height: 1.6; }
-  .ticket-label { flex: 0 0 76px; color: var(--muted); font-weight: 600; }
-  .ticket-value { flex: 1; min-width: 0; word-break: break-word; }
+  .ticket-view { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .ticket-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ticket-dir { font-size: 16px; font-weight: 800; padding: 0 8px; border-radius: 5px; }
+  .ticket-dir.up { background: #fdeaea; color: var(--up); }
+  .ticket-dir.down { background: #e7f6ec; color: var(--down); }
+  .ticket-contract { font-size: 14px; }
+  .ticket-state { font-size: 12px; color: var(--muted); }
+  .ticket-active { background: #eef4ff; border: 1px solid #dbeafe; border-radius: 8px; padding: 8px 12px; }
+  .ticket-active-main { font-size: 14px; font-weight: 700; line-height: 1.6; }
+  .ticket-active-confirm { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .ticket-active-level { margin-top: 4px; font-size: 12px; color: var(--muted); }
+  .ticket-active-level b { color: var(--accent); font-size: 16px; }
+  .ticket-entry-line { display: flex; gap: 10px; font-size: 13px; align-items: baseline; }
+  .ticket-entry-line > span { color: var(--muted); font-weight: 600; flex: 0 0 36px; }
+  .ticket-entry-main { flex: 1; min-width: 0; }
+  .ticket-abandon { display: inline-block; margin-left: 8px; color: #b45309; font-size: 12px; }
+  .ticket-params { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .ticket-param { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+  .ticket-param > span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 2px; }
+  .ticket-param div, .ticket-param b { font-size: 13px; line-height: 1.5; word-break: break-word; }
+  .ticket-param small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .ticket-price { font-size: 16px; }
+  .ticket-inval { display: flex; gap: 10px; font-size: 12px; color: #b45309; align-items: baseline; }
+  .ticket-inval > span { color: var(--muted); font-weight: 600; flex: 0 0 36px; }
+  .ticket-inval div { flex: 1; min-width: 0; }
+  .ticket-risk { font-size: 11px; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 6px; }
+  @media (max-width: 900px) { .ticket-params { grid-template-columns: 1fr; } }
   .strategy-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   .strategy-title { font-weight: 700; }
   .strategy-badges { font-size: 12px; color: var(--muted); }
@@ -1069,6 +1096,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .tl-dir.down { background: #e7f6ec; color: var(--down); }
   .tl-current-tag { background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
   .tl-body { padding: 8px 14px 10px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 4px; }
+  .tl-details > .ticket-view { margin: 8px 14px 12px; }
   .tl-row { display: flex; gap: 10px; font-size: 13px; line-height: 1.7; }
   .tl-label { flex: 0 0 64px; color: var(--muted); font-size: 12px; padding-top: 1px; }
   .tl-text { flex: 1; min-width: 0; word-break: break-word; }

@@ -178,6 +178,7 @@ function versionFromPlan(signal, n, plan, p, prevVersion) {
     runId: plan.meta.runId,
     signalDate: plan.meta.signalDate,
     contract: p.contract || null,
+    ticket: p.ticket ? JSON.parse(JSON.stringify(p.ticket)) : null,
     storyChainId: p.storyChainId || signal.storyChainId || null, // V2 前向盖章：版本级血缘
     state: curState,
     executionStatus: curExec,
@@ -1018,10 +1019,15 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
       const sameDay = sameDayVersionOf(existing, plan.meta.signalDate);
       if (sameDay) {
         if (sameDay.runId === plan.meta.runId) {
-          // 幂等重跑：只补/改锚定合约，不重置验证状态、不重写计划要素
-          if (p.contract && (sameDay.contract !== p.contract || existing.contract !== p.contract)) {
-            sameDay.contract = p.contract;
-            existing.contract = p.contract;
+          // 幂等重跑：只补/改锚定合约与交易单要素，不重置验证状态、不重写计划要素
+          const ticketChanged = p.ticket && JSON.stringify(sameDay.ticket) !== JSON.stringify(p.ticket);
+          const contractChanged = p.contract && (sameDay.contract !== p.contract || existing.contract !== p.contract);
+          if (ticketChanged || contractChanged) {
+            if (ticketChanged) sameDay.ticket = JSON.parse(JSON.stringify(p.ticket));
+            if (contractChanged) {
+              sameDay.contract = p.contract;
+              existing.contract = p.contract;
+            }
             saveSignal(existing, root);
           }
           continue;
