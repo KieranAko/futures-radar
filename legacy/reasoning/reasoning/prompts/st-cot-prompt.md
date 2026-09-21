@@ -41,7 +41,7 @@
   "evidence_ids": ["price_data.close_60d", "volume_oi.avgVolume5d"],
   "opposing_ids": ["basis.basis_pct"],
   "reasoning_summary": "1-2句话推理链摘要",
-  "invalidate_if": ["若价格跌破MA20且成交量放大→失效"],
+  "invalidate_if": ["<失效条件1>"],
   "branch_status": null
 }
 ```

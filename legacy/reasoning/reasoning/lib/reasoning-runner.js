@@ -154,6 +154,9 @@ export async function runReasoningArm({
       },
       grounding: { grounded: true, ungrounded_evidence: [], ungrounded_opposing: [], ungrounded_macro: [] },
       originalGrounding: grounding,
+      // AM-01（legacy 标记）：降级结果由固化代码生成，显式标注，不伪装为 LLM 判断。
+      degraded: true,
+      authority: 'legacy-machine',
       promptHash
     };
   }

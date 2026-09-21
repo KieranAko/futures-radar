@@ -60,6 +60,8 @@
 
 ## 决策门禁（必须遵守）
 
+说明：以下门禁是格式与一致性约束；最终 direction/confidence 仍由你基于证据推理得出，门禁触发时请在 reasoning_summary 里说明你自己的判断，不要把门禁当作方向答案。
+
 1. **分支数量检查**:
    - available分支 < 2 → 强制pass (data_insufficient)
    
@@ -100,7 +102,7 @@
   "evidence_ids": ["price_data.close_60d", "volume_oi.avgVolume5d", "basis.basis_pct"],
   "opposing_ids": ["inventory.社会库存"],
   "reasoning_summary": "1-2句话推理链摘要",
-  "invalidate_if": ["若价格跌破MA20且成交量放大→失效"],
+  "invalidate_if": ["<失效条件1>"],
   "branch_status": {
     "regime": "available",
     "macro_fundamental": "available|abstain",

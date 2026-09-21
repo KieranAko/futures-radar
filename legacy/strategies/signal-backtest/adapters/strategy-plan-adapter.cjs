@@ -144,6 +144,7 @@ function reportModel(symbol, row, fin, atr5, close) {
       thesis: {
         driver: { primary: fin.q.q1_driver.text || '', secondary: '' },
         trendOrImpulse: { assessment: fin.q.q2_trend.text || '' },
+        // AM-04（legacy 标记）：以下失效条件由适配器模板补写，非 LLM 原文。
         odds: { bias: fin.direction === 'bullish' ? 'bullish' : fin.direction === 'bearish' ? 'bearish' : 'neutral', reasoning: fin.q.q3_odds.text || '' },
         confirmations: { signals: [`${fin.blueprintId}:${fin.q.q4_confirmation.type}@${fin.q.q4_confirmation.level}`] },
         invalidations: { conditions: [fin.q.q5_invalidation.levelType === 'ma20_relative'
@@ -169,6 +170,7 @@ function analysis(symbol, fin) {
       q2_trendOrImpulse: { judgment: fin.regime, volumeConviction: fin.q.q2_trend.text || '' },
       q3_odds: { bias: fin.direction, reasoning: fin.q.q3_odds.text || '', opposing: (fin.q.q3_odds.opposingRefs || []).join(',') },
       q4_confirmations: { signals: [`${fin.q.q4_confirmation.type}@${fin.q.q4_confirmation.level}`] },
+      // AM-04/AM-07（legacy 标记）：Q5 模板文案与 limitDistance 占位值均为适配器兜底。
       q5_invalidations: { conditions: [fin.q.q5_invalidation.levelType === 'ma20_relative'
         ? `MA20（约${fin.q.q5_invalidation.level}）${fin.q.q5_invalidation.reason || 'Q5 失效'}`
         : `${fin.q.q5_invalidation.reason || 'Q5 失效'}（Q5 结构位 ${fin.q.q5_invalidation.level}）`] },

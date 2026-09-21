@@ -16,6 +16,7 @@ function buildPlans(symbol) {
   const rowByDate = Object.fromEntries(evidence.rows.map(r => [r.d, r]));
   const anchors = fin.entries.map(e => {
     const row = rowByDate[e.anchorDate];
+    // AM-03（legacy 标记）：blueprintId 缺失时回退 BP-TREND，属历史回放兼容，不视为 LLM 决策。
     const bp = bps[e.blueprintId] || bps['BP-TREND'];
     const tpl = bp.planTemplate;
     if (e.direction === 'neutral') {
@@ -33,6 +34,7 @@ function buildPlans(symbol) {
     const triggerType = tpl.triggerType === 'pullback' ? 'pullback' : 'breakout';
     const q4Level = e.q.q4_confirmation.level;
     const pullbackLevel = triggerType === 'pullback' ? q4Level : null;
+    // AM-03（legacy 标记）：riskExecution 缺失时的默认参数属历史回放兼容。
     const riskExec = e.q.q6_risk.riskExecution || { positionScale: 1, weekendRule: 'hold', maxAdverseExcursionR: 1.0 };
     const contextRefs = [...new Set([...(e.q.q1_driver.evidenceRefs || []), ...(e.q.q2_trend.structureRefs || [])])];
     return {

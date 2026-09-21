@@ -69,6 +69,7 @@ export function extractResult(rawOutput, context = null) {
       throw new Error('evidence_ids must be an array');
     }
 
+  // AM-06（legacy 标记）：opposing_ids/invalidate_if 缺失时默认 []，属历史契约兼容，不再视为 LLM 明确输出。
     // opposing_ids, invalidate_if 可选
     const opposing_ids = Array.isArray(result.opposing_ids) ? result.opposing_ids : [];
     const invalidate_if = Array.isArray(result.invalidate_if) ? result.invalidate_if : [];
