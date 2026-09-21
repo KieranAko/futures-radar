@@ -655,3 +655,16 @@
 
 - `AUTH-D-01`（execution-signal 分区）与 `ASM-02`（stories 分区）指向同一文件同一问题：`signals/seats/apply-tracking-seats.cjs` 把机器 KEEP 席位写入 LLM 初筛产物。
 - `ASM-03` 与 `AUTH-D-01` 同族：`stories/seats/build-filtered-from-story-pool.cjs` 整表重写 filtered.json，与 apply-tracking-seats 属同一席位层病根。
+
+## 处置记录
+
+- 批次1（六问层，commit `d05fd5e`）：
+  - AUTH-01：prefill 不再产出 Q2；Q6 数值事实加 `provenance.kind=deterministic-facts`；assemble 的 Q2/eventRisk 改为消费 LLM 输出。
+  - AUTH-02：prompt-builder 改为只贴 `risk_facts` 数值事实，不再注入 prefill q2/q6 结论。
+  - AUTH-03：删除"方向必须与 prefill 结构一致"约束。
+  - AUTH-04：costAnchorRef 示例 routeRefs 改 `<route>` 占位符。
+  - AUTH-05：assemble 对缺失 q4/q5 fail-closed（`validateLlmOutputShape`）。
+  - AUTH-06：confidence 不再因 neutral 静默改写为 low；pass 也要求给出合法 confidence。
+  - AUTH-07：cost-anchor extract 不再预填 confidence=low / route.status=known，交 validate.cjs 推导。
+  - AUTH-08：pass_reason/mechanismRef 缺失 fail-closed，不再用 `model_abstain` / `{family:'none'}` 占位。
+  - 测试：新增 `test/analyze-v2.test.js`（6 条），`npm test` 853 通过。
