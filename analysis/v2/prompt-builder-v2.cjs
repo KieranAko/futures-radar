@@ -73,7 +73,8 @@ function main() {
       return `${a.indicator}=${a.valueLow}-${a.valueHigh}${a.unit} (asOf ${a.asOf}, ${a.confidence})${problems ? ` problems[${problems}]` : ''}`;
     })() : '不可用'}`);
     const nt = p.near_term || null;
-    L.push(`- prefill q2: ${pf.q2.judgment}/${pf.q2.priceAlignment}; q6=${JSON.stringify(pf.q6)}`);
+    // AUTH-02：只给 Q6 数值事实（deterministic-facts），不给成品结论；Q2 由 LLM 自行判断。
+    L.push(`- risk_facts: ${JSON.stringify(pf.q6)}`);
     if (nt) {
       const d = nt.distances || {};
       const f = (x) => x == null ? '—' : `${x.pts}pt/${x.atr}ATR`;
@@ -92,10 +93,11 @@ function main() {
   L.push('');
   L.push('输出 JSON（数组，每品种一条）：');
   L.push('```json');
-  L.push(`[{"symbol":"...","direction":"long|short|pass","confidence":"high|medium|low","confidenceRationale":{"supportingFactors":[{"type":"numeric|text","ref":"packet字段或q1_driver/q3_odds","note":"为什么支持"}],"opposingFactors":[{"type":"numeric|text","ref":"...","note":"为什么反向"}],"uncertainties":["..."]},"q1_driver":{"primary":"...","secondary":"...","evidence":"引用 packet 数值或前日同源线索","source":"..."},"q3_odds":{"bias":"bullish|bearish|neutral","longCase":["..."],"shortCase":["..."],"summary":"..."},"q4_confirmations":{"selected":"long|short","signals":["..."]},"q5_invalidation":{"conditions":["..."]},"mechanismRef":{"family":"carry|value|event|momentum|none","mechanismId":"候选机制或 null","matchStatus":"matched|unknown"},"costAnchorRef":{"used":true,"routeRefs":["天然碱法","氨碱法"],"evidenceIds":["cost_anchor.routes"]},"selfCheck":{"unitCheck":{"pass":true,"note":"..."},"evidenceCheck":{"pass":true,"evidenceIds":["price_data.close_60d","term_structure.br","cost_anchor.routes"]},"opposingCheck":{"pass":true,"opposing":["..."]}}}]`);
+  L.push(`[{"symbol":"...","direction":"long|short|pass","confidence":"high|medium|low","passReason":"pass 时必填：data_insufficient|model_abstain|conflict_unresolved","confidenceRationale":{"supportingFactors":[{"type":"numeric|text","ref":"packet字段或q1_driver/q3_odds","note":"为什么支持"}],"opposingFactors":[{"type":"numeric|text","ref":"...","note":"为什么反向"}],"uncertainties":["..."]},"q1_driver":{"primary":"...","secondary":"...","evidence":"引用 packet 数值或前日同源线索","source":"..."},"q2_trendOrImpulse":{"assessment":"一句话：趋势/脉冲/震荡与结构冲突的判断"},"q3_odds":{"bias":"bullish|bearish|neutral","longCase":["..."],"shortCase":["..."],"summary":"..."},"q4_confirmations":{"selected":"long|short","signals":["..."]},"q5_invalidation":{"conditions":["..."]},"q6_eventRisk":"一句话：本期最需要警惕的事件风险","mechanismRef":{"family":"carry|value|event|momentum|none","mechanismId":"候选机制或 null","matchStatus":"matched|unknown"},"costAnchorRef":{"used":true,"routeRefs":["<route>"],"evidenceIds":["cost_anchor.routes"]},"selfCheck":{"unitCheck":{"pass":true,"note":"..."},"evidenceCheck":{"pass":true,"evidenceIds":["price_data.close_60d","term_structure.br","cost_anchor.routes"]},"opposingCheck":{"pass":true,"opposing":["..."]}}}]`);
   L.push('```');
+  L.push('Q2/Q6 要求：Q2 由你基于 close/MA20/MA60/5日变化/量价/OI 自行判断，写 assessment 一句话；Q6 只把 risk_facts 里的数值事实写进你的推理，eventRisk 由你判断写一句话，不要照抄机器字段。');
   L.push('Q4/Q5 定价规则：Q4 确认信号必须是“近端、可执行”的具体触发（优先使用 near_term 的 PDH/PDL、3日高低、价值区），触发位与现价距离不得明显超过 1×ATR5；Q5 失效位必须是论点证伪点，与 Q4 触发位距离不得明显超过 1.5×ATR5。禁止用 MA20 作为 Q4/Q5 唯一定价（MA20 只用于 Q2 趋势状态）。');
-  L.push('约束：evidenceCheck.evidenceIds 只能引用 packet 字段；方向必须与 prefill 结构一致或显式说明 override；pass 时给出 data_insufficient/model_abstain/conflict_unresolved 原因。cost_anchor 是成本上下文证据，只可进入 q1_driver.evidence/q3_odds 的推理，不得单独决定方向。若推理中使用了 cost_anchor，必须输出 costAnchorRef.used=true 且 evidenceIds 至少包含一个 cost_anchor.* 字段；未使用则 costAnchorRef.used=false。q1_driver.primary=unknown 时 confidence 不得为 high。');
+  L.push('约束：evidenceCheck.evidenceIds 只能引用 packet 字段；pass 时给出 data_insufficient/model_abstain/conflict_unresolved 原因。cost_anchor 是成本上下文证据，只可进入 q1_driver.evidence/q3_odds 的推理，不得单独决定方向。若推理中使用了 cost_anchor，必须输出 costAnchorRef.used=true 且 evidenceIds 至少包含一个 cost_anchor.* 字段；未使用则 costAnchorRef.used=false。q1_driver.primary=unknown 时 confidence 不得为 high。');
 
   const outFile = path.join(runPath, 'analyze', 'prompts-v2.md');
   fs.writeFileSync(outFile, L.join('\n'), 'utf8');

@@ -46,6 +46,31 @@ const CONFIDENCE_VALUES = ['high', 'medium', 'low'];
 const TEXT_REF_PREFIXES = ['q1_driver', 'q3_odds', 'cost_anchor', 'prevAnalysisCache', 'mechanismRef'];
 
 /**
+ * 权威错位修复（AUTH-03/05/06/08）：
+ * LLM 决策字段缺失/非法时 fail-closed，不提供机器默认值。
+ */
+function validateLlmOutputShape(o) {
+  const errors = [];
+  const sym = o && o.symbol ? o.symbol : '?';
+  if (!o) return { ok: false, errors: ['LLM output is missing'] };
+  if (!CONFIDENCE_VALUES.includes(o.confidence)) errors.push(`${sym}: confidence 缺失或非法（须为 high|medium|low）`);
+  if (o.direction === 'pass' && !String(o.passReason || '').trim()) errors.push(`${sym}: direction=pass 必须给出 passReason`);
+  if (!o.q1_driver || !String(o.q1_driver.primary || '').trim()) errors.push(`${sym}: q1_driver.primary 缺失`);
+  if (!o.q2_trendOrImpulse || !String(o.q2_trendOrImpulse.assessment || '').trim()) errors.push(`${sym}: q2_trendOrImpulse.assessment 缺失`);
+  if (!o.q3_odds || !['bullish', 'bearish', 'neutral'].includes(o.q3_odds.bias)) errors.push(`${sym}: q3_odds.bias 缺失或非法`);
+  if (!o.q4_confirmations || !['long', 'short'].includes(o.q4_confirmations.selected)
+    || !Array.isArray(o.q4_confirmations.signals) || o.q4_confirmations.signals.length === 0) {
+    errors.push(`${sym}: q4_confirmations 缺失（selected 须为 long|short 且 signals 非空）`);
+  }
+  if (!Array.isArray(o.q5_invalidation?.conditions) || o.q5_invalidation.conditions.length === 0) {
+    errors.push(`${sym}: q5_invalidation.conditions 缺失或为空`);
+  }
+  if (!String(o.q6_eventRisk || '').trim()) errors.push(`${sym}: q6_eventRisk 缺失`);
+  if (!o.mechanismRef || typeof o.mechanismRef.family !== 'string') errors.push(`${sym}: mechanismRef.family 缺失`);
+  return { ok: errors.length === 0, errors };
+}
+
+/**
  * 方向置信度护栏（终稿方案）：
  *   - 等级只由 LLM 整链判断；确定性只校验枚举、pass、driver=unknown、rationale 完整性/grounding。
  *   - 旧 run 无 rationale → 允许（标记 legacy），但输出不携带 rationale。
@@ -216,27 +241,31 @@ function main() {
       for (const e of confCheck.errors) console.error(`  - ${e}`);
       process.exit(1);
     }
+    const shapeCheck = validateLlmOutputShape(o);
+    if (!shapeCheck.ok) {
+      console.error('FATAL: LLM output shape failed（决策字段缺失，不允许机器兜底）:');
+      for (const e of shapeCheck.errors) console.error(`  - ${e}`);
+      process.exit(1);
+    }
     const costAnchor = buildCostAnchorRef(o, p);
     if (costAnchor.error) issues.push(costAnchor.error);
-    // 六问组装（Q2/Q6 确定性预填 + LLM 写 Q1/Q3/Q4/Q5）
-    const q4 = o.q4_confirmations || { selected: 'long', signals: [] };
-    const q5 = o.q5_invalidation || { conditions: [] };
+    // 六问组装：LLM 写 Q1/Q2/Q3/Q4/Q5/q6_eventRisk；Q6 数值事实来自 deterministic prefill。
+    const q4 = o.q4_confirmations;
+    const q5 = o.q5_invalidation;
     const analysesEntry = {
       symbol: o.symbol,
       name: p.name,
       storyChainId: p.story_chain_id || null, // V2 前向盖章：故事席位血缘
       reasoningRef: { artifactId: 'reasoning-results-v2-json', packetHash: sha256(JSON.stringify(p)), arm: 'fincot' },
       direction,
-      confidence: direction === 'neutral' ? 'low' : o.confidence,
+      confidence: o.confidence,
       confidenceRationale: confCheck.rationale,
       override: null,
       costAnchorRef: costAnchor.ref,
       q1_driver: o.q1_driver,
       q2_trendOrImpulse: {
-        judgment: pf.q2.judgment,
-        volumeConviction: pf.q2.volumeConviction,
-        oiStructure: pf.q2.oiStructure,
-        priceAlignment: pf.q2.priceAlignment,
+        assessment: o.q2_trendOrImpulse.assessment,
+        provenance: { artifactId: 'outputs-v2-json', field: 'q2_trendOrImpulse', kind: 'llm' },
       },
       q3_odds: o.q3_odds,
       [q4Key]: { signals: q4.signals },
@@ -245,8 +274,9 @@ function main() {
         limitDistance: pf.q6.limitDistance,
         overnightGap: pf.q6.overnightGap,
         margin: `合约价值约 ${pf.q6.contractValue} 元/手，保证金按 5%-15% 估算（${pf.q6.marginRange.low}-${pf.q6.marginRange.high}）`,
-        eventRisk: o.q1_driver?.primary || '—',
+        eventRisk: o.q6_eventRisk,
         tailGap3d: pf.q6.tail3dP95ReversePct,
+        provenance: { artifactId: 'prefill-v2', kind: 'deterministic-facts', eventRiskKind: 'llm' },
       },
       termStructure: p.term_structure,
     };
@@ -269,20 +299,20 @@ function main() {
         strategy: 'fincot',
         direction: o.direction,
         confidence: o.confidence,
-        pass_reason: o.direction === 'pass' ? (o.passReason || 'model_abstain') : null,
+        pass_reason: o.direction === 'pass' ? o.passReason : null,
         evidence_ids: (self.evidenceCheck && self.evidenceCheck.evidenceIds) || [],
         opposing_ids: (self.opposingCheck && self.opposingCheck.opposing) || [],
         reasoning_summary: o.q3_odds?.summary || '',
         invalidate_if: q5.conditions,
         branch_status: { regime: 'available', macro_fundamental: 'available', position_flow: 'available' },
-        mechanismRef: o.mechanismRef || { family: 'none', mechanismId: null, matchStatus: 'unknown' },
+        mechanismRef: o.mechanismRef,
         cost_anchor_ref: costAnchor.ref,
       },
     });
   }
 
   const analysis = {
-    meta: { runId, analyzedAt: `${signalDate}T00:00:00Z`, candidateCount: analyses.length, mode: 'daily-v2', note: 'analyze candidate v2：单轮合并推理（O1），预填最大化（O4），机制候选前置（O3）；所有输出不构成投资建议。' },
+    meta: { runId, analyzedAt: `${signalDate}T00:00:00Z`, candidateCount: analyses.length, mode: 'daily-v2', note: 'analyze candidate v2：单轮合并推理（O1）；Q1/Q2/Q3/Q4/Q5/q6_eventRisk 由 LLM 产出，Q6 数值事实确定性预填并带 provenance（O4）；所有输出不构成投资建议。' },
     analyses,
   };
   const reasoning = {
@@ -321,7 +351,7 @@ function main() {
     generatedAt: new Date().toISOString(),
     sixQuestions: {
       q1: analyses.every((a) => a.q1_driver?.primary),
-      q2: analyses.every((a) => a.q2_trendOrImpulse?.judgment),
+      q2: analyses.every((a) => a.q2_trendOrImpulse?.assessment),
       q3: analyses.every((a) => a.q3_odds?.bias),
       q4: analyses.every((a) => Array.isArray(a[q4Key]?.signals)),
       q5: analyses.every((a) => Array.isArray(a.q5_invalidation?.conditions)),
@@ -341,4 +371,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { main, validateGrounding, buildProductionSectorSectors, buildCostAnchorRef, validateConfidenceRationale };
+module.exports = { main, validateGrounding, buildProductionSectorSectors, buildCostAnchorRef, validateConfidenceRationale, validateLlmOutputShape };

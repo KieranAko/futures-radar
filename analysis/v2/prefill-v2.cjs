@@ -1,8 +1,10 @@
 // analysis/v2/prefill-v2.cjs — O4：确定性预填
 //
-// 预填：Q2 全部 / Q6 全部可计算项。
-// Q4/Q5 不再确定性预填（历史 MA20 模板会导致远端机械定价），
-// 改由 LLM 基于 Q1–Q3 逻辑与 packet.near_term 近端结构生成。
+// 权威错位修复（AUTH-01）：
+//   - Q2 趋势/脉冲判断是推理内容，不再由引擎预填，交给 LLM（outputs-v2.json）。
+//   - Q6 只预填可计算数值事实，并带 provenance 标记 deterministic-facts，
+//     不再伪装成 LLM 判断。
+// Q4/Q5 不预填：由 LLM 基于 Q1–Q3 逻辑与 packet.near_term 近端结构生成。
 //
 // 用法: node analysis/v2/prefill-v2.cjs --runId <runId>
 'use strict';
@@ -30,18 +32,9 @@ function round(v, d = 2) {
 function prefillOne(sym, packet, probability) {
   const p = packet;
   const close = p.price_data.close;
-  const ma20 = p.price_data.ma20;
-  const ma60 = p.price_data.ma60;
-  const chg5 = p.price_data.change5dPct;
-  const volMult = p.price_data.volMultiplier;
-  const oiChg = p.volume_oi.oiChange5dPct;
-  const alignedUp = close > ma20 && ma20 > ma60;
-  const alignedDown = close < ma20 && ma20 < ma60;
-  const judgment = alignedUp ? 'trend' : alignedDown ? 'trend' : Math.abs(chg5) >= 2 ? 'impulse' : 'chop';
-  const trendSide = alignedUp ? '向上' : alignedDown ? '向下' : '结构冲突';
 
-  // Q4/Q5 不预填：由 LLM 基于 Q1–Q3 逻辑与近端结构生成，避免 MA20 远端机械定价。
-  // Q6 可计算项
+  // Q2 判断交给 LLM，不再确定性预填。
+  // Q6 可计算项：只输出数值/事实字段，并显式标记 provenance。
   const mult = p.multiplier || 10;
   const contractValue = close * mult;
   const margin = { low: round(contractValue * 0.05), high: round(contractValue * 0.15) };
@@ -53,13 +46,7 @@ function prefillOne(sym, packet, probability) {
 
   return {
     symbol: sym,
-    q2: {
-      judgment,
-      trendSide,
-      volumeConviction: `volMult ${volMult}x（${volMult != null && volMult >= 1.2 ? '量能确认' : '量能不足'}`,
-      oiStructure: oiChg == null ? 'OI 数据不可得' : `OI 5日 ${oiChg >= 0 ? '+' : ''}${oiChg}%`,
-      priceAlignment: `close ${close} vs MA20(${round(ma20)})/MA60(${round(ma60)})，5日 ${chg5 >= 0 ? '+' : ''}${chg5}%，${trendSide}`,
-    },
+    q2: null, // 推理字段，由 LLM 产出；此处仅为契约占位
     q4: null,
     q5: null,
     q6: {
@@ -70,6 +57,7 @@ function prefillOne(sym, packet, probability) {
       limitDistance: p.price_data && Number.isFinite(Number(p.price_data.limitPct))
         ? `涨跌停幅度 ${Number(p.price_data.limitPct)}%（交易所公告为准）`
         : '涨跌停幅度以交易所当日公告为准',
+      provenance: { artifactId: 'prefill-v2', kind: 'deterministic-facts' },
     },
   };
 }

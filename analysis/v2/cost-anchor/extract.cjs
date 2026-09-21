@@ -40,12 +40,15 @@ function normalizeResearchResult(raw, ctx) {
     sourceDates: Array.isArray(raw.sourceDates) ? raw.sourceDates.map(String) : [],
     sourceTiers: Array.isArray(raw.sourceTiers) ? raw.sourceTiers.map(String) : [],
     sources: Array.isArray(raw.sources) ? raw.sources : [],
-    confidence: raw.confidence || 'low',
+    // AUTH-07：检索结果未给 confidence 时保持缺失，交 validate.cjs 按来源层级 derive，
+    // 不在此处用 'low' 抢占推导结果。
+    confidence: raw.confidence || undefined,
     reason: raw.reason || null,
     structure: raw.structure || null,
     routes: Array.isArray(raw.routes) ? raw.routes.map((r) => ({
       route: r.route,
-      status: r.status || 'known',
+      // AUTH-07：status 缺失时如实标 unknown，不默认为 known。
+      status: r.status || 'unknown',
       valueLow: toNumber(r.valueLow),
       valueHigh: toNumber(r.valueHigh),
       unit: r.unit || raw.unit || '元/吨',

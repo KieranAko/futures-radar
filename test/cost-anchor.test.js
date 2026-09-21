@@ -86,6 +86,10 @@ describe('cost-anchor 模块（theory-base/05 实现）', () => {
     assert.equal(tomb.anchorType, 'unknown');
     const rec = normalizeResearchResult({ symbol: 'SA0', anchorType: 'processing_margin', valueLow: '550', valueHigh: '1550' }, { runId: 'r', signalDate: '2026-08-31' });
     assert.equal(rec.valueLow, 550);
+    // AUTH-07：缺失 confidence/status 不预填 low/known，交 validate.cjs 推导
+    assert.equal(rec.confidence, undefined);
+    const withRoute = normalizeResearchResult({ symbol: 'SA0', anchorType: 'processing_margin', valueLow: '550', valueHigh: '1550', routes: [{ route: 'A' }] }, { runId: 'r', signalDate: '2026-08-31' });
+    assert.equal(withRoute.routes[0].status, 'unknown');
   });
 
   it('validateResearchBatch 要求每个待研究品种都有结果', () => {
