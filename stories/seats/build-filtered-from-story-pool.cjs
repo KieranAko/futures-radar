@@ -38,18 +38,22 @@ function trackingSeatEntries(poolSignals) {
   // 只有诞生自故事链的信号才允许继续占深挖席位；孤儿/legacy 信号只留在信号池验证，不进入机会分析
   const withStory = (poolSignals || []).filter((s) => s && s.storyChainId);
   for (const sig of withStory) {
+    // ASM-04：方向缺失/非法时跳过，不静默当作 bullish。
+    if (!['bearish', 'bullish'].includes(sig.direction)) continue;
     const cur = (sig.versions || []).find((v) => v.versionId === sig.currentVersionId) || (sig.versions || [])[sig.versions.length - 1];
     out.push({
       symbol: sig.symbol,
       rank: 90 + out.length,
-      directionHint: sig.direction === 'bearish' ? 'bearish' : 'bullish',
-      directionBias: sig.direction === 'bearish' ? 'bearish' : 'bullish',
+      directionHint: sig.direction,
+      directionBias: sig.direction,
       decision: 'KEEP',
-      confidence: cur && ['high', 'medium', 'low'].includes(cur.confidence) ? cur.confidence : 'medium',
+      // ASM-04：confidence 缺失时如实置 null，不用 'medium' 冒充判断。
+      confidence: cur && ['high', 'medium', 'low'].includes(cur.confidence) ? cur.confidence : null,
       reason: `信号池追踪席位 ${sig.signalId}：入池 ${sig.createdDate}，${sig.thesis || '品种机会持续追踪'}`,
       informationGap: '信号池追踪席位：需与故事席位同规格完整再分析',
       tracking: true,
       signalId: sig.signalId,
+      author: 'machine-seat',
     });
   }
   return out;
@@ -115,17 +119,20 @@ function storySeatEntries(chains) {
       || String(a.chainId).localeCompare(String(b.chainId))
     );
     const primary = refs[0];
+    const seatDir = primary.direction === -1 ? 'bearish' : primary.direction === 1 ? 'bullish' : null;
+    if (!seatDir) return null; // ASM-04：方向缺失/非法时跳过，不默认 bullish。
     return {
       symbol,
       rank: 80 + i,
-      directionHint: primary.direction === -1 ? 'bearish' : 'bullish',
-      directionBias: primary.direction === -1 ? 'bearish' : 'bullish',
+      directionHint: seatDir,
+      directionBias: seatDir,
       decision: 'KEEP',
-      confidence: 'medium',
+      confidence: null, // ASM-03：席位为确定性注入，置信度不冒充 LLM 判断。
       reason: `故事传导链席位：${refs.map((r) => `${r.chainId}${r.branchId ? '/' + r.branchId : ''}(${r.status})`).join('、')}`,
       informationGap: '故事传导链席位：只要有故事链即完整六问深挖',
       tracking: true,
       storyChainId: primary.chainId,
+      author: 'machine-seat',
       storyRefs: refs.map((r) => ({
         chainId: r.chainId,
         branchId: r.branchId,
@@ -135,7 +142,7 @@ function storySeatEntries(chains) {
         impactRationale: r.impactRationale,
       })),
     };
-  });
+  }).filter(Boolean);
 }
 
 /**
@@ -157,6 +164,7 @@ function buildFilteredFromStoryPool({ runId, filteredAt, provenChains = [], pool
       note: `V2 初筛：故事池活跃链席位 ${storySeats.length}（resolving/pending/proven 都分析）+ 信号池追踪席位 ${trackingSeats.length}（已去重，孤儿/legacy 信号不入深挖）；filter-llm 已退役`,
       storySeats: storySeats.length,
       trackingSeats: trackingSeats.length,
+      author: 'deterministic-seats',
     },
     candidates,
     downgraded: [],

@@ -113,4 +113,24 @@ describe('build-filtered-from-story-pool（filter-llm 退役替代品）', () =>
     assert.equal(orphan.candidates.length, 0);
     assert.equal(orphan.meta.trackingSeats, 0);
   });
+
+  it('ASM-03/04：机器席位带 author 标记，confidence 缺失为 null，非法方向跳过', () => {
+    const out = builder.buildFilteredFromStoryPool({
+      runId: 'r',
+      filteredAt: 't',
+      provenChains: [{ chainId: 'CH-X-1', sector: 'black', representative: 'RB0', direction: -1, status: 'pending', entryProofIndex: 1 }],
+      poolSignals: [
+        { signalId: 'SIG-A-1', symbol: 'A0', direction: 'sideways', poolStatus: 'active', thesis: 'x', storyChainId: 'CH-X-1', versions: [] },
+        { signalId: 'SIG-B-1', symbol: 'B0', direction: 'bearish', poolStatus: 'active', thesis: 'y', storyChainId: 'CH-X-1', versions: [] },
+      ],
+    });
+    assert.equal(out.meta.author, 'deterministic-seats');
+    const story = out.candidates.find((c) => c.storyChainId === 'CH-X-1');
+    assert.equal(story.author, 'machine-seat');
+    assert.equal(story.confidence, null);
+    assert.equal(out.candidates.some((c) => c.symbol === 'A0'), false);
+    const sig = out.candidates.find((c) => c.signalId === 'SIG-B-1');
+    assert.equal(sig.author, 'machine-seat');
+    assert.equal(sig.confidence, null);
+  });
 });

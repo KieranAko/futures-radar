@@ -78,7 +78,8 @@ function applyStorySeats(filtered, provenChains, now = new Date().toISOString())
       reason: chainReason(chain),
       informationGap: '故事传导链追踪席位：需与 TOP3 同规格完整再分析',
       tracking: true,
-      storyChainId: chain.chainId
+      storyChainId: chain.chainId,
+      author: 'machine-seat',
     });
     added.push(chain.representative);
   }
@@ -95,6 +96,7 @@ function applyStorySeats(filtered, provenChains, now = new Date().toISOString())
   filtered.meta.storySeats = added.length;
   filtered.meta.note = (filtered.meta.note ? filtered.meta.note + '；' : '') + `故事传导链追踪席位注入 ${added.length} 个`;
   filtered.meta.storySeatsAppliedAt = now;
+  filtered.meta.seatAuthor = 'machine-seat';
   return { filtered, added };
 }
 

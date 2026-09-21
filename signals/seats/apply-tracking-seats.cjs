@@ -52,7 +52,8 @@ function applyTrackingSeats(filtered, poolSignals, now = new Date().toISOString(
       reason: `信号池追踪席位 ${sig.signalId}：入池 ${sig.createdDate}，${sig.thesis || '品种机会持续追踪'}`,
       informationGap: '信号池追踪席位：需与 TOP3 同规格完整再分析',
       tracking: true,
-      signalId: sig.signalId
+      signalId: sig.signalId,
+      author: 'machine-seat',
     });
     added.push(sig.symbol);
   }
@@ -69,6 +70,7 @@ function applyTrackingSeats(filtered, poolSignals, now = new Date().toISOString(
   filtered.meta.trackingSeats = added.length;
   filtered.meta.note = (filtered.meta.note ? filtered.meta.note + '；' : '') + `信号池追踪席位注入 ${added.length} 个`;
   filtered.meta.trackingAppliedAt = now;
+  filtered.meta.seatAuthor = 'machine-seat';
   return { filtered, added };
 }
 

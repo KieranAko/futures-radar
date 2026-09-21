@@ -35,6 +35,8 @@ describe('signal-pool 追踪席位注入', () => {
     assert.equal(t.tracking, true);
     assert.equal(t.signalId, 'SIG-TA0-20260911-01');
     assert.equal(t.directionHint, 'bullish');
+    assert.equal(t.author, 'machine-seat');
+    assert.equal(out.meta.seatAuthor, 'machine-seat');
     assert.equal(out.downgraded.length, 0);
     assert.equal(out.meta.outputCount, 2);
     assert.equal(out.meta.trackingSeats, 1);
