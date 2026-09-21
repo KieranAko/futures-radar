@@ -6,7 +6,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { recordExecutablePlans, verifyPlans, verifyIncremental } = require('../analysis/strategy/feedback.cjs');
+const { recordExecutablePlans, verifyPlans, verifyIncremental, verifyTradeRecord } = require('../analysis/strategy/feedback.cjs');
 
 function makePlan(runId, symbol, overrides = {}) {
   return {
@@ -185,5 +185,43 @@ describe('strategy-feedback 证伪反馈机制', () => {
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }
+  });
+
+  it('pullback 触发：反抽未到触发位附近不作数，必须盘中触位且收盘不破位', () => {
+    const record = {
+      recordId: 'pullback-test',
+      symbol: 'RM0',
+      name: 'RM0',
+      contract: null,
+      direction: 'bearish',
+      verificationMode: 'trade',
+      signalDate: '2026-08-26',
+      executionStatus: 'executable',
+      triggerLevel: 100,
+      triggerMode: 'pullback',
+      triggerStyle: 'close',
+      atr5: 10,
+      stopPrice: 105,
+      target1Text: '90',
+      gapThresholdPts: 5,
+      maxHoldingDays: 3
+    };
+    const baseRaw = (dates, open, high, low, close) => ({
+      contracts: { RM0: { ohlcv: { dates, open, high, low, close } } }
+    });
+    // T+1 盘中从未反弹到 95（触发位 100 附近）→ 不算触发
+    const miss = verifyTradeRecord(record, baseRaw(
+      ['2026-08-26', '2026-08-27'],
+      [98, 92], [101, 93], [97, 90], [100, 91]
+    ), 'next', new Map());
+    assert.equal(miss.status, 'invalidated_not_triggered');
+    assert.match(miss.attribution[0].detail, /反抽\/回踩不破未成立/);
+
+    // T+1 反抽至 99（进入 100 下方 0.5×ATR 范围）且收盘 98 仍在下 → 触发成立
+    const hit = verifyTradeRecord(record, baseRaw(
+      ['2026-08-26', '2026-08-27'],
+      [98, 96], [101, 99.5], [97, 95.5], [100, 98]
+    ), 'next', new Map());
+    assert.equal(hit.status, 'triggered_pending_entry');
   });
 });

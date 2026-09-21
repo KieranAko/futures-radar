@@ -582,6 +582,18 @@
             "low"
           ],
           "description": "触发确认口径：close=收盘确认；high=盘中高点突破；low=盘中低点回踩/跌破"
+        },
+        "triggerMode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "pullback",
+            "breakout",
+            null
+          ],
+          "description": "交易单触发语义原语：pullback=反抽/回踩不破；breakout=突破/跌破；旧计划为 null"
         }
       }
     },

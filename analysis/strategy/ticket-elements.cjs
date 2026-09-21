@@ -20,12 +20,30 @@ function firstNumber(text) {
   return m ? Number(m[0]) : null;
 }
 
+function parseMaxHoldDays(text) {
+  if (text == null) return null;
+  const s = String(text);
+  const tn = s.match(/T\+\s*(\d{1,2})/);
+  if (tn) return Number(tn[1]);
+  const dn = s.match(/(\d{1,2})\s*个?交易日/);
+  if (dn) return Number(dn[1]);
+  return null;
+}
+
 function requiredString(el, key, errors, label) {
   if (el == null || typeof el[key] !== 'string' || !String(el[key]).trim()) {
     errors.push(`${label || key} 缺失：录入员未从交易单中拆出该要素`);
     return null;
   }
   return String(el[key]).trim();
+}
+
+// 触发语义：从交易员自然语言识别验证引擎需要的执行原语（不做展示分类）。
+function triggerModeOf(el) {
+  const s = `${el && el.activation || ''} ${el && el.confirmation || ''}`;
+  if (/反抽|回踩|回抽|不破/.test(s)) return 'pullback';
+  if (/突破|跌破|站上|站回|站稳/.test(s)) return 'breakout';
+  return null;
 }
 
 // 结构校验：只查“该有的要素在不在”，不查“写得好不好”。
@@ -60,6 +78,16 @@ function validateElements(elements) {
     if (!Array.isArray(t.invalidation) || t.invalidation.length === 0) {
       errors.push(`${t.symbol || '?'}: invalidation 缺失（交易单必须写清逻辑作废条件）`);
     }
+    const maxHoldDays = parseMaxHoldDays(t.maxHold);
+    if (!Number.isFinite(maxHoldDays) || maxHoldDays < 1 || maxHoldDays > 10) {
+      errors.push(`${t.symbol || '?'}: maxHold 必须写成 T+N 交易日且 N 在 1–10 之间（交易单必须给出最长持有时间）`);
+    }
+    if (t.direction !== 'neutral') {
+      const mode = triggerModeOf(t);
+      if (!mode) {
+        errors.push(`${t.symbol || '?'}: activation 无法识别触发语义（应为反抽/回踩不破或突破/跌破类，供验证引擎执行）`);
+      }
+    }
   }
   return { ok: errors.length === 0, errors };
 }
@@ -81,7 +109,8 @@ function entryFromElements(el) {
     triggerLevel: activationLevel,
     triggerSource: [el.activationSource, el.activationQuote].filter(Boolean).join(' / ') || String(el.activation || '').trim(),
     triggerTiming: String(el.confirmation || '').trim(),
-    execution: executionParts.filter(Boolean).join('；')
+    execution: executionParts.filter(Boolean).join('；'),
+    triggerMode: triggerModeOf(el)
   };
 }
 
@@ -159,5 +188,7 @@ module.exports = {
   entryFromElements,
   bindCheck,
   askBackMessage,
-  firstNumber
+  firstNumber,
+  parseMaxHoldDays,
+  triggerModeOf
 };

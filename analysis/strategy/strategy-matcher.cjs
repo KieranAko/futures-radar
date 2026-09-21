@@ -20,7 +20,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { skillRoot, runDir } = require('../../shared/workspace.cjs');
 const { PLAN_STATE_ALIASES, planStateOf } = require('../../shared/strategy-state.cjs');
-const { entryFromElements } = require('./ticket-elements.cjs');
+const { entryFromElements, parseMaxHoldDays } = require('./ticket-elements.cjs');
 
 // ── 常量（与 strategy-library.json riskConfig / risk-framework §9 一致） ──
 const LIBRARY_PATH = () => path.join(skillRoot, 'analysis', 'strategy', 'strategy-library.json');
@@ -1001,6 +1001,12 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   const rrInfo = playbookRRInfo(pb.playbookId, ctx, ind, stopDistEst);
   const regimePlan = (reasoning && reasoning.regimePlan) || null;
   const risk = riskLayer(ctx, ind, { equityCny, limitPct, structuralStop, rrInfo, rc: rcEff, customStopPrice, entryPrice, expressionType, regimePlan });
+  if (elements) {
+    const traderMaxHold = parseMaxHoldDays(elements.maxHold);
+    if (Number.isFinite(traderMaxHold) && traderMaxHold >= 1 && traderMaxHold <= 10) {
+      risk.riskAssessment.maxHoldingDays = traderMaxHold;
+    }
+  }
   const targets = buildTargets(pb.playbookId, ctx, ind);
   // PB-08 放弃条款：锥形止损（p95 反向沿 ±0.25×ATR5）> 1.5×T1 预期 → 当日放弃（gateNote 口径）
   const gateAbandonNote = pb.playbookId === 'PB-08' ? pb08AbandonNote(ctx, ind) : null;
@@ -1051,13 +1057,14 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
     triggerTiming: (elementsEntry && elementsEntry.triggerTiming) || (reasoningEntry && reasoningEntry.triggerTiming) || (dir === 'neutral'
       ? '无执行时点（观察）'
       : (pb.playbookId === 'PB-07'
-        ? 'T+1 收盘确认；确认后下一交易日开盘执行'
-        : 'T+1 开盘执行')),
+        ? 'T+1 交易日收盘确认；确认后下一交易日开盘执行'
+        : 'T+1 交易日开盘执行')),
     execution: (elementsEntry && elementsEntry.execution) || (reasoningEntry && reasoningEntry.execution) || (pb.playbookId === 'PB-07'
-      ? 'T+1 收盘确认；确认后下一交易日开盘执行；执行偏离 >0.75×ATR5 放弃'
-      : (pb.playbookId === 'PB-03' ? 'T+1 开盘；执行偏离 >0.75×ATR5 放弃' : 'T+1 开盘；执行偏离 >0.5×ATR5 放弃')),
+      ? 'T+1 交易日收盘确认；确认后下一交易日开盘执行；执行偏离 >0.75×ATR5 放弃'
+      : (pb.playbookId === 'PB-03' ? 'T+1 交易日开盘；执行偏离 >0.75×ATR5 放弃' : 'T+1 交易日开盘；执行偏离 >0.5×ATR5 放弃')),
     gapThresholdPts,
-    triggerStyle
+    triggerStyle,
+    triggerMode: elementsEntry && elementsEntry.triggerMode ? elementsEntry.triggerMode : null
   };
   const stop = {
     stopPrice: risk.riskAssessment.stopPrice,
@@ -1105,7 +1112,7 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
     statusReasons: reasons,
     invalidation: {
       hard: [...invalidation],
-      timeStop: (elements && elements.maxHold) || 'T+5 无确认无失效则市价退出',
+      timeStop: (elements && elements.maxHold) || '最长持有未指定（旧链路回放缺省）',
       supersededByNextRun: true
     },
     notes: [...risk.notes],

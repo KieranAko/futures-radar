@@ -195,7 +195,8 @@ function versionFromPlan(signal, n, plan, p, prevVersion) {
       triggerTiming: (p.entry && p.entry.triggerTiming) || 'T+1 收盘确认；确认后下一交易日开盘执行',
       execution: (p.entry && p.entry.execution) || '',
       gapThresholdPts: p.entry && Number.isFinite(Number(p.entry.gapThresholdPts)) ? Number(p.entry.gapThresholdPts) : null,
-      triggerStyle: (p.entry && p.entry.triggerStyle) || null
+      triggerStyle: (p.entry && p.entry.triggerStyle) || null,
+      triggerMode: (p.entry && p.entry.triggerMode) || null
     },
     stop: {
       stopPrice: p.stop && Number.isFinite(Number(p.stop.stopPrice)) ? Number(p.stop.stopPrice) : null,

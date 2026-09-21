@@ -96,7 +96,7 @@
 | `riskAssessment` | object | ✓ | 15 键：riskPerTradePct/confidenceScale/stopK/stopDistancePts/stopPrice/structuralStop/unitRiskCny/lots/marginPerLotCny/marginUtilizationPct/volContributionPctAnnual/tailGapPct3d/stressRiskCny/eventRiskNote/maxHoldingDays |
 | `executionStatus` | enum | ✓ | executable \| watch \| skip |
 | `statusReasons[]` | array ≥1 | ✓ | watch/skip 必须给出原因；集中度冲突原因固定含“集中度冲突”字样 |
-| `invalidation` | object | ✓ | hard[]（Q5 逐条直译）、timeStop（T+5 无确认无失效则市价退出）、supersededByNextRun=true |
+| `invalidation` | object | ✓ | hard[]（Q5 逐条直译）、timeStop（新链路=交易员 maxHold；旧链路回放缺省）、supersededByNextRun=true |
 | `notes[]` | array | ✓ | 事件风险/夜盘/换月/连续停板等提示，可空 |
 | `disclaimer` | string | ✓ | 品种级免责（可同板块级文案） |
 

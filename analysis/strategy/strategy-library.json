@@ -114,7 +114,7 @@
     "maxConcurrentPositions": { "value": 3, "type": "hard", "note": "与雷达 TOP3 上限一致" },
     "marginUtilizationCap": { "value": 0.33, "preferred": 0.20, "type": "hard-cap" },
     "singleSymbolMarginGate": { "value": 0.20, "range": [0.10, 0.30], "meaning": "1 手保证金 > 20% 权益 → 该品种降级为观察", "type": "hard" },
-    "maxHoldingDays": { "default": 5, "range": [3, 5], "note": "对齐 5d 概率锥", "type": "hard" },
+    "maxHoldingDays": { "default": 5, "range": [1, 10], "note": "旧链路回放缺省；新链路以交易员交易单 maxHold 为唯一权威", "type": "default" },
     "minRR": { "value": 1.5, "range": [1.0, null], "meaning": "目标距离 ≥ 1.5 × 止损距离", "type": "hard" },
     "volPercentileWarn": { "value": 0.85, "action": "减半且仅 high 置信可执行", "type": "warning" },
     "volPercentileSkip": { "value": 0.95, "action": "跳过（status=skip）", "type": "hard" },

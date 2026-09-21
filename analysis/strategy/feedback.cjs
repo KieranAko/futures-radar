@@ -133,11 +133,13 @@ function recordFromPlan(plan, p) {
     stopPrice: p.stop && Number.isFinite(Number(p.stop.stopPrice)) ? Number(p.stop.stopPrice) : null,
     gapThresholdPts: p.entry && Number.isFinite(Number(p.entry.gapThresholdPts)) ? Number(p.entry.gapThresholdPts) : null,
     triggerStyle: p.entry && p.entry.triggerStyle ? p.entry.triggerStyle : null,
+    triggerMode: p.entry && p.entry.triggerMode ? p.entry.triggerMode : null,
+    atr5: p.riskAssessment && Number.isFinite(Number(p.riskAssessment.atr5)) ? Number(p.riskAssessment.atr5) : null,
     regimeGrade: p.riskAssessment && p.riskAssessment.regimeGrade ? p.riskAssessment.regimeGrade : 'unknown',
     regimeDirection: p.riskAssessment && p.riskAssessment.regimeDirection ? p.riskAssessment.regimeDirection : 'stable',
     target1Text: (p.targets && p.targets.t1) || '',
     target1Level: parseTarget1Level(p.targets && p.targets.t1),
-    maxHoldingDays: p.riskAssessment && p.riskAssessment.maxHoldingDays ? p.riskAssessment.maxHoldingDays : 5,
+    maxHoldingDays: p.riskAssessment && Number.isFinite(Number(p.riskAssessment.maxHoldingDays)) ? Number(p.riskAssessment.maxHoldingDays) : 5,
     invalidation: p.invalidation && Array.isArray(p.invalidation.hard) ? p.invalidation.hard : [],
     status: 'pending_verification',
     terminal: false,
@@ -192,6 +194,8 @@ function normalizeLedgerRecord(rec) {
     target1Level: Number.isFinite(Number(rec.target1Level)) ? Number(rec.target1Level) : parseFirstNumber(rec.target1Text),
     gapThresholdPts: Number.isFinite(Number(rec.gapThresholdPts)) ? Number(rec.gapThresholdPts) : null,
     triggerStyle: rec.triggerStyle || null,
+    triggerMode: rec.triggerMode || null,
+    atr5: Number.isFinite(Number(rec.atr5)) ? Number(rec.atr5) : null,
     regimeGrade: rec.regimeGrade || 'unknown',
     regimeDirection: rec.regimeDirection || 'stable',
     maxHoldingDays: rec.maxHoldingDays || 5,
@@ -250,7 +254,7 @@ function fillMissingStateFields(target, source) {
   for (const k of ['recordedAt', 'rank', 'name', 'contract', 'direction', 'verificationMode', 'signalDirection',
     'executionStatus', 'plannedLots', 'confidence', 'strategyId', 'playbookId', 'entryTrigger',
     'triggerLevel', 'triggerTiming', 'stopPrice', 'target1Text', 'target1Level', 'maxHoldingDays', 'invalidation',
-    'gapThresholdPts', 'triggerStyle', 'regimeGrade', 'regimeDirection']) {
+    'gapThresholdPts', 'triggerStyle', 'triggerMode', 'atr5', 'regimeGrade', 'regimeDirection']) {
     if (target[k] === undefined || target[k] === null) target[k] = source[k];
   }
   if (target.terminal !== true && isTerminalStatus(target.status)) target.terminal = true;
@@ -264,7 +268,7 @@ function applyPlanFields(target, source) {
   for (const k of ['recordedAt', 'rank', 'name', 'contract', 'direction', 'verificationMode', 'signalDirection',
     'executionStatus', 'plannedLots', 'confidence', 'strategyId', 'playbookId', 'entryTrigger',
     'triggerLevel', 'triggerTiming', 'stopPrice', 'target1Text', 'target1Level', 'maxHoldingDays', 'invalidation',
-    'gapThresholdPts', 'triggerStyle', 'regimeGrade', 'regimeDirection']) {
+    'gapThresholdPts', 'triggerStyle', 'triggerMode', 'atr5', 'regimeGrade', 'regimeDirection']) {
     target[k] = source[k];
   }
 }
@@ -418,8 +422,21 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
   const t1 = bars[tIdx + 1];
   const triggerLevel = record.triggerLevel;
   const triggerStyle = record.triggerStyle || (/收盘/.test(record.triggerTiming || '') ? 'close' : 'open');
+  const atr5 = Number.isFinite(Number(record.atr5)) && Number(record.atr5) > 0 ? Number(record.atr5) : null;
   let triggered = false;
-  if (triggerStyle === 'close') {
+  if (record.triggerMode === 'pullback' && triggerLevel != null) {
+    // 反抽/回踩不破：T+1 盘中必须真的走到触发位附近，且收盘仍不破位。
+    const nearTol = atr5 != null ? atr5 * 0.5 : Math.max(Math.abs(triggerLevel) * 0.002, 5);
+    if (record.direction === 'bearish') {
+      const pulledBack = t1.high >= triggerLevel - nearTol;
+      const notBroken = t1.high <= triggerLevel;
+      triggered = pulledBack && notBroken && t1.close < triggerLevel;
+    } else {
+      const pulledBack = t1.low <= triggerLevel + nearTol;
+      const notBroken = t1.low >= triggerLevel;
+      triggered = pulledBack && notBroken && t1.close > triggerLevel;
+    }
+  } else if (triggerStyle === 'close') {
     triggered = record.direction === 'bullish' ? t1.close > triggerLevel : t1.close < triggerLevel;
   } else if (triggerStyle === 'high') {
     triggered = t1.high > triggerLevel;
@@ -429,10 +446,11 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
     triggered = record.direction === 'bullish' ? t1.open > triggerLevel : t1.open < triggerLevel;
   }
   if (!triggered) {
+    const modeDetail = record.triggerMode === 'pullback' ? `（反抽/回踩不破未成立：T+1 高 ${t1.high} 低 ${t1.low} 收 ${t1.close}，触发位 ${triggerLevel}）` : '';
     return {
       recordId: record.recordId, status: 'invalidated_not_triggered',
       signalDate: record.signalDate, verifyDate: t1.date, triggerDate: t1.date, verificationSeries: series.source,
-      attribution: [{ code: 'trigger_miss', detail: `T+1 未触发入场（${record.direction} 触发价 ${triggerLevel}），计划按契约作废` }]
+      attribution: [{ code: 'trigger_miss', detail: `T+1 交易日未触发入场（${record.direction} 触发价 ${triggerLevel}）${modeDetail}，计划按契约作废` }]
     };
   }
 
@@ -459,7 +477,7 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
     };
   }
 
-  // T+5 计划离场：maxHoldingDays 从信号日算起（与 timeStop 契约一致），不是入场后再持 N 天
+  // 计划离场：maxHoldingDays 从信号日算起（与 timeStop 契约一致），不是入场后再持 N 天
   const maxHoldingDays = Number.isFinite(Number(record.maxHoldingDays)) ? Number(record.maxHoldingDays) : 5;
   const timeExitIdx = Math.max(tIdx + 2, tIdx + maxHoldingDays);
   const maxEnd = Math.min(bars.length - 1, timeExitIdx);
@@ -492,7 +510,7 @@ function verifyTradeRecord(record, raw, currentRunId, cache) {
   }
 
   if (!exitType) {
-    // 未触发止损/目标：若 T+5 数据已到 → 时间离场；否则持仓中等待数据
+    // 未触发止损/目标：若 maxHoldingDays 到期 → 时间离场；否则持仓中等待数据
     if (maxEnd >= timeExitIdx) {
       exit = bars[timeExitIdx].close;
       exitType = 'time_exit';
