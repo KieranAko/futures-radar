@@ -990,7 +990,7 @@ function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyThe
   const statusText = poolStatusLabel(sig);
   const badgeCls = isClosed ? 'sig-closed' : (st === 'holding' || st === 'ready' || st === 'armed') ? 'st-run' : 'st-watch';
   const versionContract = [...versions].reverse().find((v) => v && v.contract)?.contract || null;
-  const displayContract = sig.contract || (sig.currentVersion && sig.currentVersion.contract) || versionContract || contract || null;
+  const displayContract = contract || sig.contract || (sig.currentVersion && sig.currentVersion.contract) || versionContract || null;
   const currentId = sig.currentVersionId || (sig.currentVersion && sig.currentVersion.versionId) || null;
   const currentNum = !isClosed && currentId ? `V${String(currentId).includes(':V') ? String(currentId).split(':V')[1] : '?'}` : null;
   const dirHtml = `<span class="sig-dir ${dirClass(sig.direction)}">${escapeHtml(dirText(sig.direction))}</span>`;

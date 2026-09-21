@@ -1017,7 +1017,16 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
       // 同一天只允许一个策略：同交易日新 plan 覆盖旧版本，不追加 V2/V3…
       const sameDay = sameDayVersionOf(existing, plan.meta.signalDate);
       if (sameDay) {
-        if (sameDay.runId !== plan.meta.runId && !MARKET_PROGRESSED_STATUSES.has(sameDay.verification && sameDay.verification.status)) {
+        if (sameDay.runId === plan.meta.runId) {
+          // 幂等重跑时补/改锚定合约，不重置验证状态
+          if (p.contract && (sameDay.contract !== p.contract || existing.contract !== p.contract)) {
+            sameDay.contract = p.contract;
+            existing.contract = p.contract;
+            saveSignal(existing, root);
+          }
+          continue;
+        }
+        if (!MARKET_PROGRESSED_STATUSES.has(sameDay.verification && sameDay.verification.status)) {
           refreshVersionFromPlan(existing, sameDay, plan, p);
           refreshPoolState(existing, sameDay);
           versionsUpdatedThisRun++;

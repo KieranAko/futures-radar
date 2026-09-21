@@ -358,25 +358,27 @@ function strategyCard(plan) {
 }
 
 // ── 机会分析：导航 + 面板 ────────────────────────────────────
-function oppNavItem(opp, raw, mainSeries, active) {
+function oppNavItem(opp, raw, mainSeries, active, contractOverride = null) {
   const t = opp.thesis || {};
   const dir = t.finalDirection || 'neutral';
   const close = opp.marketFacts && opp.marketFacts.close != null ? fmt(opp.marketFacts.close) : '—';
   const conf = confidenceLabel(t.finalConfidence);
-  const bars = seriesBars(mainSeries, raw, opp.symbol, opp.contract);
+  const resolvedContract = contractOverride || opp.contract;
+  const bars = seriesBars(mainSeries, raw, opp.symbol, resolvedContract);
   const chg = change5dPct(bars);
   const chgHtml = chg == null ? '' : ` · <span class="${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg.toFixed(1)}%</span>`;
   return `<button class="opp-nav-item ${active ? 'active' : ''}" data-opp="${escapeHtml(opp.symbol)}"><span class="nav-dot ${escapeHtml(dir)}"></span><span class="nav-text"><span class="nav-main"><b>${escapeHtml(opp.name || opp.symbol)}</b><span class="nav-badge ${escapeHtml(dir)}">${directionLabel(dir)}</span></span><span class="nav-sub">${conf}置信 · ${close}${chgHtml}</span></span></button>`;
 }
 
-function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}) {
+function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}, contractOverride = null) {
   const t = opp.thesis || {};
   const driver = t.driver || {};
   const odds = t.odds || {};
   const dir = t.finalDirection || 'neutral';
   const close = opp.marketFacts && opp.marketFacts.close != null ? fmt(opp.marketFacts.close) : '—';
+  const resolvedContract = contractOverride || opp.contract;
 
-  const bars = seriesBars(mainSeries, raw, opp.symbol, opp.contract);
+  const bars = seriesBars(mainSeries, raw, opp.symbol, resolvedContract);
   const chart = renderPriceChart(bars, { signalDate });
 
   const ranges = (opp.priceRanges || []).map((r) => rangeBar(r.period, r.hvCone && r.hvCone.p68, r.hvCone && r.hvCone.p95, opp.marketFacts && opp.marketFacts.close)).join('');
@@ -401,7 +403,7 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}) 
   return `<article class="opp-pane ${active ? 'active' : ''} dir-${escapeHtml(dir)}" data-opp="${escapeHtml(opp.symbol)}">
     <div class="instr-head">
       <div class="instr-title">
-        <div class="instr-name">${escapeHtml(opp.name || opp.symbol)} <span class="muted">（${escapeHtml(opp.contract || opp.symbol)}）</span></div>
+        <div class="instr-name">${escapeHtml(opp.name || opp.symbol)} <span class="muted">（${escapeHtml(resolvedContract || opp.symbol)}）</span></div>
         <div class="instr-sub">${directionLabel(dir)} · ${confidenceLabel(t.finalConfidence)}置信 · 收盘 ${close}</div>
         ${story ? `<button type="button" class="story-jump" data-story-jump="${escapeHtml(story.chainId)}">🔗 故事：${escapeHtml(story.theme || '')}</button>` : ''}
       </div>
@@ -423,9 +425,9 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}) 
   </article>`;
 }
 
-function oppLayout(opps, raw, mainSeries, signalDate, planMap, storyMap = {}) {
-  const nav = opps.map((o, i) => oppNavItem(o, raw, mainSeries, i === 0)).join('\n');
-  const panes = opps.map((o, i) => oppPane(o, raw, mainSeries, signalDate, i === 0, planMap ? planMap[o.symbol] : null, storyMap)).join('\n');
+function oppLayout(opps, raw, mainSeries, signalDate, planMap, storyMap = {}, contractMap = {}) {
+  const nav = opps.map((o, i) => oppNavItem(o, raw, mainSeries, i === 0, contractMap[o.symbol] || null)).join('\n');
+  const panes = opps.map((o, i) => oppPane(o, raw, mainSeries, signalDate, i === 0, planMap ? planMap[o.symbol] : null, storyMap, contractMap[o.symbol] || null)).join('\n');
   return `<div class="opp-layout"><nav class="opp-nav">${nav}</nav><div class="opp-content">${panes}</div></div>`;
 }
 
@@ -704,9 +706,11 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
     if (p && p.contract) contractMap[p.symbol] = p.contract;
   }
   const contractOf = (symbol) => {
-    if (contractMap[symbol]) return contractMap[symbol];
+    const explicit = contractMap[symbol] || null;
+    if (explicit && fs.existsSync(path.join(skillRoot, 'data', 'contract-bars', `${explicit}.json`))) return explicit;
     const prefix = String(symbol || '').replace(/\d+$/, '').toUpperCase();
-    return contractLibrary[prefix] || null;
+    if (contractLibrary[prefix]) return contractLibrary[prefix];
+    return explicit;
   };
   const downgradedCount = pool.filter((s) => s.poolStatus === 'downgraded').length;
   const activeCount = pool.length - downgradedCount;
@@ -757,12 +761,15 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   };
   if (signalDate) writeKpiSnapshot(signalDate, kpiCurrent);
 
-  const oppHtml = opps.length ? oppLayout(opps, raw, mainSeries, signalDate, Object.fromEntries(planMap), storyMap) : storyWatchHtml(storyView);
-  const barsOf = (s) => seriesBars(mainSeries, raw, s.symbol, s.contract);
   const signalContractMap = {};
   for (const s of [...pool, ...(signalPoolView && Array.isArray(signalPoolView.recentClosed) ? signalPoolView.recentClosed : [])]) {
     if (s && s.symbol) signalContractMap[s.symbol] = contractOf(s.symbol);
   }
+  const oppContractMap = {};
+  for (const o of opps) if (o && o.symbol) oppContractMap[o.symbol] = contractOf(o.symbol);
+
+  const oppHtml = opps.length ? oppLayout(opps, raw, mainSeries, signalDate, Object.fromEntries(planMap), storyMap, oppContractMap) : storyWatchHtml(storyView);
+  const barsOf = (s) => seriesBars(mainSeries, raw, s.symbol, contractOf(s.symbol));
   const poolPanels = signalPoolPanelsHtml(signalPoolView || {}, { storyThemes: storyThemeMap, contracts: signalContractMap, barsOf });
   const sigClosedPanels = signalClosedPanelsHtml(signalPoolView || {}, { storyThemes: storyThemeMap, contracts: signalContractMap, barsOf });
 

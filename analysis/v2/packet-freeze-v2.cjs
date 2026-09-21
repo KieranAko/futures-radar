@@ -28,6 +28,29 @@ function writeJson(file, obj) {
   fs.writeFileSync(file, JSON.stringify(obj, null, 2) + '\n', 'utf8');
 }
 
+// 锚定合约解析：优先用 GA-8 dominantContract（且合约K线库中有该文件），
+// 否则回退合约K线库中该品种前缀的最新合约文件，避免“标签 rb2610、数据 RB2701”的错配。
+function contractMapFromBarsLibrary() {
+  const map = {};
+  const dir = path.join(ROOT, 'data', 'contract-bars');
+  if (!fs.existsSync(dir)) return map;
+  for (const name of fs.readdirSync(dir)) {
+    const m = /^([A-Za-z]+)\d+\.json$/.exec(name);
+    if (!m) continue;
+    const prefix = m[1].toUpperCase();
+    const code = name.replace(/\.json$/, '');
+    if (!map[prefix] || code > map[prefix]) map[prefix] = code;
+  }
+  return map;
+}
+
+function resolveMainContract(symbol, dominant, libraryMap) {
+  if (dominant && fs.existsSync(path.join(ROOT, 'data', 'contract-bars', `${dominant}.json`))) return dominant;
+  const prefix = String(symbol || '').replace(/\d+$/, '').toUpperCase();
+  if (libraryMap[prefix]) return libraryMap[prefix];
+  return dominant || null;
+}
+
 const symbolsConfig = readJson(path.join(ROOT, 'config', 'symbols.json'));
 function limitPctFor(symbol) {
   const hit = Object.values(symbolsConfig.symbols || {}).find((s) => s && s.symbol === symbol);
@@ -269,11 +292,12 @@ function main() {
   // V2 无网络、不解析主力合约；合约名取自 GA-8 基差库 domContract，
   // bars 用 raw.json 主力连续序列（probability 在干净序列不可用时的既有回退口径）。
   const mainSeries = {};
+  const contractLibrary = contractMapFromBarsLibrary();
   for (const [sym, packet] of Object.entries(packets)) {
     const c = raw.contracts?.[sym];
     const o = c?.ohlcv;
     mainSeries[sym] = {
-      contract: packet.term_structure?.dominantContract || null,
+      contract: resolveMainContract(sym, packet.term_structure?.dominantContract || null, contractLibrary),
       bars: o && Array.isArray(o.dates)
         ? o.dates.map((date, i) => ({
             date,
