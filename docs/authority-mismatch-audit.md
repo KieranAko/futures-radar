@@ -668,3 +668,14 @@
   - AUTH-07：cost-anchor extract 不再预填 confidence=low / route.status=known，交 validate.cjs 推导。
   - AUTH-08：pass_reason/mechanismRef 缺失 fail-closed，不再用 `model_abstain` / `{family:'none'}` 占位。
   - 测试：新增 `test/analyze-v2.test.js`（6 条），`npm test` 853 通过。
+
+- 批次2（策略层，commit `280fcd8`）：
+  - SR-B-001/002：删除推理提示词与 `semantic-fact-validate` 中"位置→表达类型/触发措辞"的机器映射与正则分类；校验只回传数值位置事实，语义一致性交 LLM selfCheck。
+  - SR-B-003：入场距离超 1×ATR 的错误文案改为回问句式，不再写"应为 conditional"。
+  - SR-A-004：strategy-reasoning 输出 JSON 示例全部占位符。
+  - SR-C-005/006：strategyConfidence/expression.type/direction 缺失即报错，不再默认 low/conditional-watch/bullish。
+  - ST-01/02/06：`validateElements` 要求 abandon 含具体点数、targets.t2、stop.basis 非空；schema 标注 playbook 公式仅 legacy。
+  - ST-03/04/05/08：计划新增 `meta.planMode`（trader-ticket / legacy-strategy-reasoning / legacy-deterministic）；交易单路径 executionConvention 取自交易员，strategyConfidence 不再回退报告置信度；legacy 路径显式标注。
+  - AUTH-C-02/04、AUTH-D-03、AUTH-C-05：feedback/signal-pool 的 target1、gap 阈值、triggerTiming 兜底仅限 legacy，交易单路径缺字段不再由机器注入。
+  - REND-01/02/03/04/05/06：执行口径优先渲染 `entry.execution`；删除"追多安全边际较差"判断句；缺失方向/置信度/theoryFit 显示 '—'；ATR 换算保留原式并标"≈点"。
+  - 测试更新：`semantic-fact-validate.test.js` 改测新契约，新增 ticket/matcher 必填与 planMode 断言；`npm test` 853 通过。
