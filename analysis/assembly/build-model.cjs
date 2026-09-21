@@ -226,6 +226,15 @@ for (const opp of reportFacts.opportunities) {
           conflictCount: analysisEntry.auditRef.conflictCount,
           impact: analysisEntry.auditRef.impact,
           response: analysisEntry.auditRef.response,
+          conflicts: Array.isArray(analysisEntry.auditRef.conflicts)
+            ? analysisEntry.auditRef.conflicts.map((c) => ({
+                dimension: c.dimension,
+                chainClaim: c.chainClaim,
+                analysisClaim: c.analysisClaim,
+                question: c.question,
+                factIds: Array.isArray(c.factIds) ? c.factIds : [],
+              }))
+            : [],
         }
       : null,
     auditImpact: analysisEntry.auditImpact || null,

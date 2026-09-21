@@ -314,6 +314,13 @@ function main() {
           conflictCount: (auditFinding.conflicts || []).length,
           impact: reconRev ? reconRev.auditImpact : null,
           response: reconRev ? reconRev.auditResponse : null,
+          conflicts: (auditFinding.conflicts || []).map((c) => ({
+            dimension: c.dimension,
+            chainClaim: c.chainClaim,
+            analysisClaim: c.analysisClaim,
+            question: c.question,
+            factIds: c.factIds || [],
+          })),
         }
       : null;
     const p = packets[o.symbol];

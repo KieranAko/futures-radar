@@ -307,7 +307,7 @@ describe('dashboard-html 四 Tab 看板', () => {
   it('机会面板展示链审计徽标与传导链证据对照（链只是证据）', () => {
     const model = makeReportModel();
     model.opportunities[0].storyChainId = 'CH-BLACK-20260917-01';
-    model.opportunities[0].audit = { verdict: 'conflict', chainId: 'CH-BLACK-20260917-01', conflictCount: 1, impact: 'revised_driver', response: '已修订' };
+    model.opportunities[0].audit = { verdict: 'conflict', chainId: 'CH-BLACK-20260917-01', conflictCount: 1, impact: 'revised_driver', response: '已修订', conflicts: [] };
     model.opportunities[0].auditImpact = 'revised_driver';
     const html = renderDashboardHtml({
       runId: 'r1', reportModel: model, signalPoolView: makeSignalPoolView(), storyView: makeStoryView(), history: [],
@@ -317,6 +317,39 @@ describe('dashboard-html 四 Tab 看板', () => {
     assert.ok(html.includes('链是证据，不是结论'));
     assert.ok(html.includes('源节点'));
     assert.ok(html.includes('终点节点'));
+    assert.ok(html.includes('链审计详情（点击展开）'));
+  });
+
+  it('链审计详情可展开并展示冲突点与六问最终综合', () => {
+    const model = makeReportModel();
+    model.opportunities[0].storyChainId = 'CH-BLACK-20260917-01';
+    model.opportunities[0].audit = {
+      verdict: 'conflict',
+      chainId: 'CH-BLACK-20260917-01',
+      conflictCount: 1,
+      impact: 'kept_with_reasons',
+      response: '资金流为佐证，维持价格结构主驱动。',
+      conflicts: [
+        {
+          dimension: 'driver',
+          chainClaim: '链认为主驱动是板块持仓流出',
+          analysisClaim: '六问认为主驱动是价格结构',
+          question: '资金流证据是否足以改变主驱动？',
+          factIds: ['price_data.close', 'news-1'],
+        },
+      ],
+    };
+    const html = renderDashboardHtml({
+      runId: 'r1', reportModel: model, signalPoolView: makeSignalPoolView(), storyView: makeStoryView(), history: [],
+    });
+    assert.ok(html.includes('冲突 1 · 驱动'));
+    assert.ok(html.includes('链主张'));
+    assert.ok(html.includes('六问原话'));
+    assert.ok(html.includes('审计追问'));
+    assert.ok(html.includes('资金流证据是否足以改变主驱动？'));
+    assert.ok(html.includes('事实引用'));
+    assert.ok(html.includes('六问最终综合'));
+    assert.ok(html.includes('维持价格结构主驱动'));
   });
 
   it('无审计数据时显示"链审计 未运行"，不伪造审计结论', () => {

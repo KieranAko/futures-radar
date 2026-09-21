@@ -71,6 +71,30 @@ function auditBadge(opp) {
   return `<span class="pill audit-conflict">链审计 ${escapeHtml(String(a.conflictCount || 0))} 冲突 · ${escapeHtml(AUDIT_IMPACT_LABEL[a.impact] || a.impact || '—')}</span>`;
 }
 
+function auditPanelHtml(opp) {
+  const a = opp && opp.audit;
+  if (!a) {
+    return `<details class="audit-panel"><summary>链审计详情（点击展开）</summary><div class="muted">本期未运行链审计，无审计详情。</div></details>`;
+  }
+  const dimLabel = {
+    direction: '方向', driver: '驱动', mechanism: '机制',
+    timing: '时滞', confidence: '置信度', evidence: '证据使用',
+  };
+  const conflictBlocks = (a.conflicts || []).map((c, i) => `
+    <div class="audit-conflict">
+      <div class="audit-conflict-head">冲突 ${i + 1} · ${escapeHtml(dimLabel[c.dimension] || c.dimension)}</div>
+      <div class="audit-line"><b>链主张</b>：${escapeHtml(c.chainClaim || '—')}</div>
+      <div class="audit-line"><b>六问原话</b>：${escapeHtml(c.analysisClaim || '—')}</div>
+      <div class="audit-line"><b>审计追问</b>：${escapeHtml(c.question || '—')}</div>
+      ${(c.factIds || []).length ? `<div class="audit-line muted"><b>事实引用</b>：${escapeHtml(c.factIds.join('、'))}</div>` : ''}
+    </div>`).join('');
+  const content = a.verdict === 'aligned'
+    ? '<div class="muted">六问与传导链的语义主张一致，没有需要追问的冲突。</div>'
+    : `${conflictBlocks}
+      <div class="audit-response"><b>六问最终综合</b>：${escapeHtml(AUDIT_IMPACT_LABEL[a.impact] || a.impact || '—')}${a.response ? ` — ${escapeHtml(a.response)}` : ''}</div>`;
+  return `<details class="audit-panel"><summary>链审计详情（点击展开）· ${escapeHtml(AUDIT_IMPACT_LABEL[a.impact] || (a.verdict === 'aligned' ? '对齐' : '—'))}</summary>${content}</details>`;
+}
+
 function nodeProgressShort(n) {
   if (!n) return '—';
   if (n.status === 'confirmed') return '已证明';
@@ -482,6 +506,7 @@ function oppPane(opp, raw, mainSeries, signalDate, active, plan, storyMap = {}, 
     </div>
     ${strategyCard(plan)}
     ${chainEvidenceHtml(story, opp)}
+    ${auditPanelHtml(opp)}
     ${detail.length ? `<details class="detail"><summary>完整六问详情</summary>${detail.join('')}</details>` : ''}
   </article>`;
 }
@@ -965,6 +990,12 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .story-evidence .fields { width: 100%; border-collapse: collapse; }
   .story-evidence .fields th { text-align: left; color: #64748b; font-weight: 600; padding: 3px 6px 3px 0; width: 90px; vertical-align: top; }
   .story-evidence .fields td { padding: 3px 0; }
+  .audit-panel { margin: 10px 0; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; background: #fff; }
+  .audit-panel summary { cursor: pointer; font-size: 13px; font-weight: 600; color: #1e293b; }
+  .audit-panel .audit-conflict { margin: 8px 0; padding: 8px 10px; border-left: 3px solid #f59e0b; background: #fffbeb; border-radius: 6px; }
+  .audit-panel .audit-conflict-head { font-weight: 700; color: #92400e; margin-bottom: 4px; }
+  .audit-panel .audit-line { font-size: 13px; line-height: 1.6; }
+  .audit-panel .audit-response { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e2e8f0; font-size: 13px; line-height: 1.6; }
 
   .price-chart { width: 100%; height: auto; display: block; background: #fcfcfd; border: 1px solid var(--border); border-radius: 8px; }
   .price-chart-wrap { position: relative; }
