@@ -33,7 +33,7 @@ function makeElements(overrides = {}) {
       maxHold: 'T+5 未到目标市价离场',
       invalidation: ['收盘站上 3132'],
       unresolved: [],
-      note: '空 RB2701。…',
+      note: '空 RB2701。反抽至 3119 下方不破；T+1 收盘仍位于 3119 下方；偏离超过 0.5 ATR 放弃。止损 3132，目标 3065/3034。T+5 未到目标市价离场。收盘站上 3132。',
       ...overrides
     }]
   };
@@ -52,6 +52,35 @@ describe('ticket-elements 交易单要素契约', () => {
     assert.ok(r.errors.some((e) => e.includes('stop.level')));
     assert.ok(r.errors.some((e) => e.includes('targets.t1')));
     assert.ok(r.errors.some((e) => e.includes('invalidation')));
+  });
+
+  it('录入员改写/补充原文没有的数字时校验失败（保真）', () => {
+    const r1 = validateElements(makeElements({ maxHold: 'T+4 未到目标离场' }));
+    assert.equal(r1.ok, false);
+    assert.ok(r1.errors.some((e) => e.includes('T+4') && e.includes('找不到')));
+    const r2 = validateElements(makeElements({ stop: { level: 3133, basis: '收盘站回价值区上沿' } }));
+    assert.equal(r2.ok, false);
+    assert.ok(r2.errors.some((e) => e.includes('stop.level 3133') && e.includes('找不到')));
+    const r3 = validateElements(makeElements({ abandon: '偏离 >13.8 放弃' }));
+    assert.equal(r3.ok, false);
+    assert.ok(r3.errors.some((e) => e.includes('abandon 点数 13.8') && e.includes('找不到')));
+  });
+
+  it('空单偏离带越过止损时绑定回问（只验不修）', () => {
+    const el = makeElements().tickets[0];
+    const opp = { marketFacts: { pdh: 3140, pdl: 3119, valueAreaHigh: 3132, valueAreaLow: 3119 }, priceRanges: [{ atrBand: { atr5: 27.6 }, hvCone: { p68: [3018.8, 3175.1], p95: [2931.8, 3253] } }] };
+    assert.equal(bindCheck({ ...el, abandon: '偏离 >10 放弃' }, opp).ok, true);
+    const r = bindCheck({ ...el, abandon: '偏离 >13.8 放弃' }, opp);
+    assert.equal(r.ok, false);
+    assert.ok(r.issues.some((i) => i.includes('3132.8') && i.includes('高于止损 3132')));
+  });
+
+  it('多单偏离带跌破止损时绑定回问（镜像）', () => {
+    const el = { ...makeElements().tickets[0], symbol: 'CU0', direction: 'bullish', activation: '回踩至 109150 不破', activationLevel: 109150, activationSource: 'near_term.valueAreaLow', stop: { level: 107870, basis: '收盘跌破价值区上沿' }, abandon: '偏离 >1500 放弃' };
+    const opp = { marketFacts: { pdh: 108580, pdl: 107410, valueAreaHigh: 107870, valueAreaLow: 109150 }, priceRanges: [{ atrBand: { atr5: 1200 }, hvCone: { p68: [104150, 112200], p95: [100150, 116700] } }] };
+    const r = bindCheck(el, opp);
+    assert.equal(r.ok, false);
+    assert.ok(r.issues.some((i) => i.includes('107650') && i.includes('低于止损 107870')));
   });
 
   it('entryFromElements 从要素拼出计划字段，不复制单段自由文本', () => {

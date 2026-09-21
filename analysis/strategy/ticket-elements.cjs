@@ -7,6 +7,7 @@
 //     不做确认方式的分类，也不把交易员文本机械复制进计划。
 //
 // 要素字段本身是“交易单上写了什么”，而不是“机器规定交易员必须怎么写”。
+// 边界原则：判断与文字归 LLM；引擎只做数值读取、算术与数值校验，不生成/拼接策略句子。
 
 'use strict';
 
@@ -28,6 +29,13 @@ function parseMaxHoldDays(text) {
   const dn = s.match(/(\d{1,2})\s*个?交易日/);
   if (dn) return Number(dn[1]);
   return null;
+}
+
+// 机械保真检查：数字必须原样出现在交易单原文里（不判断语义，只做字符串匹配）。
+function containsNumberInText(text, value) {
+  if (text == null || !Number.isFinite(value)) return false;
+  const v = String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^0-9.])${v}([^0-9.]|$)`).test(String(text));
 }
 
 function requiredString(el, key, errors, label) {
@@ -69,6 +77,7 @@ function validateElements(elements) {
     requiredString(t, 'activation', errors, `${t.symbol || '?'}: activation`);
     requiredString(t, 'confirmation', errors, `${t.symbol || '?'}: confirmation`);
     requiredString(t, 'entry', errors, `${t.symbol || '?'}: entry`);
+    requiredString(t, 'note', errors, `${t.symbol || '?'}: note`);
     if (!t.stop || typeof t.stop !== 'object' || t.stop.level == null || !Number.isFinite(Number(t.stop.level))) {
       errors.push(`${t.symbol || '?'}: stop.level 缺失或不是数字（交易单必须给出止损价）`);
     }
@@ -87,6 +96,21 @@ function validateElements(elements) {
       if (!mode) {
         errors.push(`${t.symbol || '?'}: activation 无法识别触发语义（应为反抽/回踩不破或突破/跌破类，供验证引擎执行）`);
       }
+    }
+    // 录入员保真：拆出的数字必须能在交易单原文（note）里找到，找不到就回问，不给修正值。
+    const note = typeof t.note === 'string' ? t.note : '';
+    const checkNumberInNote = (value, label) => {
+      if (value == null || !Number.isFinite(Number(value))) return;
+      if (!containsNumberInText(note, Number(value))) {
+        errors.push(`${t.symbol || '?'}: ${label} ${Number(value)} 在交易单原文（note）中找不到，录入员不得改写或补充数字`);
+      }
+    };
+    checkNumberInNote(t.activationLevel, 'activationLevel');
+    if (t.stop && typeof t.stop === 'object') checkNumberInNote(t.stop.level, 'stop.level');
+    const abandonPts = firstNumber(t.abandon);
+    if (abandonPts != null) checkNumberInNote(abandonPts, 'abandon 点数');
+    if (Number.isFinite(maxHoldDays) && !new RegExp(`T\\+\\s*${maxHoldDays}`).test(note)) {
+      errors.push(`${t.symbol || '?'}: maxHold 的 T+${maxHoldDays} 在交易单原文（note）中找不到，录入员不得改写或补充数字`);
     }
   }
   return { ok: errors.length === 0, errors };
@@ -153,6 +177,17 @@ function bindCheck(el, reportOpp) {
     const hit = candidates.find((c) => Math.abs(c.value - level) <= tol);
     if (!hit) {
       issues.push(`激活价 ${level} 与冻结近端价位都对不上（容差 ${tol.toFixed(1)}），请交易员确认价位或补充来源`);
+    }
+  }
+  // 组合算术校验：偏离带不得越过止损（只验不修，矛盾就回问交易员）。
+  const stopLevel = el.stop && Number.isFinite(Number(el.stop.level)) ? Number(el.stop.level) : null;
+  const abandonPts = firstNumber(el.abandon);
+  if (stopLevel != null && abandonPts != null && abandonPts > 0) {
+    const r2 = (x) => Math.round(x * 100) / 100;
+    if (el.direction === 'bearish' && level + abandonPts > stopLevel) {
+      issues.push(`空单偏离带上沿 ${r2(level + abandonPts)}（=${r2(level)}+${r2(abandonPts)}）高于止损 ${r2(stopLevel)}，按偏离条款可能以高于止损的价格入场，交易单自相矛盾，请交易员改单`);
+    } else if (el.direction === 'bullish' && level - abandonPts < stopLevel) {
+      issues.push(`多单偏离带下沿 ${r2(level - abandonPts)}（=${r2(level)}−${r2(abandonPts)}）低于止损 ${r2(stopLevel)}，按偏离条款可能以低于止损的价格入场，交易单自相矛盾，请交易员改单`);
     }
   }
   return { ok: issues.length === 0, issues };
