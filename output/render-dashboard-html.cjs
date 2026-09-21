@@ -319,8 +319,40 @@ function strategyStatusClass(state) {
   return 'st-skip';
 }
 
+function ticketStrategyCard(plan) {
+  const t = plan.ticket || {};
+  const state = planStateOf(plan);
+  const cls = strategyStatusClass(state);
+  const dir = plan.reportBaseline && plan.reportBaseline.direction;
+  const dirText = dir === 'bullish' ? '多' : dir === 'bearish' ? '空' : '观察';
+  const dirCls = dir === 'bullish' ? 'up' : dir === 'bearish' ? 'down' : '';
+  const conf = plan.strategyConfidence ? confidenceLabel(plan.strategyConfidence) : (plan.reportBaseline && plan.reportBaseline.confidence ? confidenceLabel(plan.reportBaseline.confidence) : '—');
+  const rows = [];
+  const row = (label, value, tone = '') => `<div class="ticket-row"><span class="ticket-label">${escapeHtml(label)}</span><span class="ticket-value ${tone}">${value}</span></div>`;
+  rows.push(row('生效条件', `${escapeHtml(t.activation || '—')}${t.activationLevel != null ? `（<b>${fmt(t.activationLevel)}</b>）` : ''}`));
+  rows.push(row('确认', escapeHtml(t.confirmation || '—')));
+  rows.push(row('入场', escapeHtml(t.entry || '—')));
+  if (t.abandon) rows.push(row('放弃条件', escapeHtml(t.abandon)));
+  rows.push(row('止损', plan.stop && plan.stop.stopPrice != null ? `<b class="down">${fmt(plan.stop.stopPrice)}</b> <span class="muted">${escapeHtml(plan.stop.basis || '')}</span>` : '—'));
+  rows.push(row('目标', plan.targets ? `${escapeHtml(plan.targets.t1 || '—')} → ${escapeHtml(plan.targets.t2 || '—')}` : '—'));
+  rows.push(row('最长持有', escapeHtml(t.maxHold || (plan.invalidation && plan.invalidation.timeStop) || '—')));
+  rows.push(row('证伪', escapeHtml((Array.isArray(t.invalidation) ? t.invalidation : (plan.invalidation && plan.invalidation.hard) || []).join('；'))));
+  const riskLine = [
+    plan.riskAssessment && plan.riskAssessment.unitRiskCny != null ? `每手风险 ${Math.round(plan.riskAssessment.unitRiskCny)} CNY` : null,
+    plan.riskAssessment && plan.riskAssessment.marginPerLotCny != null ? `保证金/手 ${Math.round(plan.riskAssessment.marginPerLotCny)} CNY` : null,
+    plan.riskAssessment && plan.riskAssessment.tailGapPct3d != null ? `尾部边距 ${fmt(plan.riskAssessment.tailGapPct3d)}%` : null
+  ].filter(Boolean).join(' · ');
+  const reasons = Array.isArray(plan.stateReasons) && plan.stateReasons.length ? plan.stateReasons.join('；') : '';
+  return `<div class="strategy-card ticket-card ${cls}">
+    <div class="strategy-head"><span class="strategy-title">📌 交易单</span><span class="strategy-badges"><span class="ticket-dir ${dirCls}">${dirText}</span> · ${statusBadge(state)} · ${conf}置信</span></div>
+    <div class="ticket-rows">${rows.join('')}</div>
+    ${riskLine || reasons ? `<div class="strategy-risk">${escapeHtml(riskLine)}${riskLine && reasons ? ' · ' : ''}<span class="muted">${escapeHtml(reasons)}</span></div>` : ''}
+  </div>`;
+}
+
 function strategyCard(plan) {
   if (!plan) return '';
+  if (plan.ticket) return ticketStrategyCard(plan);
   const state = planStateOf(plan);
   const cls = strategyStatusClass(state);
   const conf = plan.strategyConfidence ? confidenceLabel(plan.strategyConfidence) : '—';
@@ -914,6 +946,12 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .strategy-card.st-executable { border-left-color: #047857; }
   .strategy-card.st-watch { border-left-color: #b45309; }
   .strategy-card.st-skip { border-left-color: #b91c1c; }
+  .ticket-card { background: #fffdf5; }
+  .ticket-dir { font-weight: 700; }
+  .ticket-rows { display: flex; flex-direction: column; gap: 4px; margin: 8px 0 0; }
+  .ticket-row { display: flex; gap: 12px; align-items: baseline; line-height: 1.6; }
+  .ticket-label { flex: 0 0 76px; color: var(--muted); font-weight: 600; }
+  .ticket-value { flex: 1; min-width: 0; word-break: break-word; }
   .strategy-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   .strategy-title { font-weight: 700; }
   .strategy-badges { font-size: 12px; color: var(--muted); }

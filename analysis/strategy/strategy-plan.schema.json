@@ -462,6 +462,27 @@
           },
           "description": "执行注释（事件风险、夜盘、换月提示等）"
         },
+        "ticket": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["activation", "confirmation", "entry"],
+              "properties": {
+                "activation": { "type": "string" },
+                "activationLevel": { "type": ["number", "null"] },
+                "confirmation": { "type": "string" },
+                "entry": { "type": "string" },
+                "abandon": { "type": "string" },
+                "maxHold": { "type": "string" },
+                "invalidation": { "type": "array", "items": { "type": "string" } },
+                "note": { "type": "string" }
+              },
+              "description": "交易员自然语言交易单经录入员拆解后的要素（新链路）"
+            }
+          ]
+        },
         "disclaimer": {
           "type": "string",
           "minLength": 20

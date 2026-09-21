@@ -1018,7 +1018,7 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
       const sameDay = sameDayVersionOf(existing, plan.meta.signalDate);
       if (sameDay) {
         if (sameDay.runId === plan.meta.runId) {
-          // 幂等重跑时补/改锚定合约，不重置验证状态
+          // 幂等重跑：只补/改锚定合约，不重置验证状态、不重写计划要素
           if (p.contract && (sameDay.contract !== p.contract || existing.contract !== p.contract)) {
             sameDay.contract = p.contract;
             existing.contract = p.contract;

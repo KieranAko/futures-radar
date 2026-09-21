@@ -19,6 +19,12 @@ const { buildStrategyPlan, validatePlan, loadStrategyRuntime } = require('./stra
 const { validateStrategyReasoning } = require('./strategy-reasoning-validate.cjs');
 const { validatePricing } = require('./pricing-validate.cjs');
 const { validateSemanticFacts } = require('./semantic-fact-validate.cjs');
+const {
+  validateElements,
+  elementForSymbol,
+  bindCheck,
+  askBackMessage
+} = require('./ticket-elements.cjs');
 const { recordPlans, verifyIncremental } = require('./feedback.cjs');
 
 const args = process.argv.slice(2);
@@ -46,15 +52,50 @@ if (volTargetPerPosition !== undefined && (volTargetPerPosition < 0.05 || volTar
   process.exit(1);
 }
 
-// Strategy-LLM 输出：理论软参照下的交易表达决策。
-// 生产新 run 应先生成 strategy-reasoning.json；历史回放/实验线无该文件时回退旧确定性 matcher。
+// 新链路：交易员交易单 → 录入员要素 → 构造器绑定。
+//   strategies/strategy-elements.json 存在时，它优先于旧 strategy-reasoning.json。
+// 旧 strategy-reasoning.json 仅作为历史回放 fallback（不参与新逻辑，避免两套语义冲突）。
+const elementsPath = path.join(runDir(runId), 'strategies', 'strategy-elements.json');
 const reasoningPath = path.join(runDir(runId), 'strategy-reasoning.json');
 const rawPath = path.join(runDir(runId), 'raw.json');
 const raw = fs.existsSync(rawPath) ? JSON.parse(fs.readFileSync(rawPath, 'utf8')) : { contracts: {} };
+const reportModelPath = path.join(runDir(runId), 'report-model.json');
+const reportModel = JSON.parse(fs.readFileSync(reportModelPath, 'utf8'));
+let elements = null;
 let reasoning = null;
-if (fs.existsSync(reasoningPath)) {
+if (fs.existsSync(elementsPath)) {
+  elements = JSON.parse(fs.readFileSync(elementsPath, 'utf8'));
+  const eCheck = validateElements(elements);
+  if (!eCheck.ok) {
+    console.error('strategy-elements.json validation FAILED:');
+    for (const e of eCheck.errors) console.error('  - ' + e);
+    process.exit(1);
+  }
+  // 构造器绑定：要素必须能绑定到冻结价位，绑定不上就回问交易员。
+  const issues = [];
+  for (const opp of reportModel.opportunities || []) {
+    const el = elementForSymbol(elements, opp.symbol);
+    if (!el) {
+      issues.push(`${opp.symbol}: 交易单要素缺失，录入员未覆盖该机会`);
+      continue;
+    }
+    if (el.direction !== 'neutral' && opp.thesis?.finalDirection && el.direction !== opp.thesis.finalDirection) {
+      issues.push(`${opp.symbol}: 交易单方向 ${el.direction} 与分析六问结论 ${opp.thesis.finalDirection} 不一致，请交易员确认`);
+    }
+    const bind = bindCheck(el, opp);
+    for (const issue of bind.issues) issues.push(`${opp.symbol}: ${issue}`);
+  }
+  if (issues.length) {
+    const askPath = path.join(runDir(runId), 'strategies', 'strategy-askback.md');
+    fs.writeFileSync(askPath, askBackMessage(elements, issues) + '\n', 'utf8');
+    console.error('strategy-elements binding FAILED（构造器回问交易员）:');
+    for (const e of issues) console.error('  - ' + e);
+    console.error(`ask-back written: ${askPath}`);
+    process.exit(1);
+  }
+  console.log(`strategy-elements: loaded (${elements.tickets.length} tickets)`);
+} else if (fs.existsSync(reasoningPath)) {
   reasoning = JSON.parse(fs.readFileSync(reasoningPath, 'utf8'));
-  const reportModel = JSON.parse(fs.readFileSync(path.join(runDir(runId), 'report-model.json'), 'utf8'));
   const rCheck = validateStrategyReasoning(reasoning, reportModel);
   if (!rCheck.ok) {
     console.error('strategy-reasoning.json validation FAILED:');
@@ -74,12 +115,12 @@ if (fs.existsSync(reasoningPath)) {
     for (const e of sCheck.errors) console.error('  - ' + e);
     process.exit(1);
   }
-  console.log(`strategy-reasoning: loaded (${reasoning.strategies.length} strategies)`);
+  console.log(`strategy-reasoning: loaded (${reasoning.strategies.length} strategies, legacy fallback)`);
 } else {
-  console.warn('strategy-reasoning.json not found — using legacy deterministic matcher (回放/兼容模式)');
+  console.warn('strategy-elements.json / strategy-reasoning.json not found — using legacy deterministic matcher (回放/兼容模式)');
 }
 
-const { plan, schema } = buildStrategyPlan({ runId, equityCny, reasoning, volTargetPerPosition });
+const { plan, schema } = buildStrategyPlan({ runId, equityCny, reasoning, elements, volTargetPerPosition });
 
 // 自检：按 t7 schema 机械校验（t8 acceptance：schema 完整、字段可校验）
 const check = validatePlan(plan, schema);

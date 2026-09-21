@@ -20,6 +20,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { skillRoot, runDir } = require('../../shared/workspace.cjs');
 const { PLAN_STATE_ALIASES, planStateOf } = require('../../shared/strategy-state.cjs');
+const { entryFromElements } = require('./ticket-elements.cjs');
 
 // ── 常量（与 strategy-library.json riskConfig / risk-framework §9 一致） ──
 const LIBRARY_PATH = () => path.join(skillRoot, 'analysis', 'strategy', 'strategy-library.json');
@@ -976,7 +977,7 @@ function buildTargets(pbId, ctx, ind) {
 }
 
 // ── plan 组装 ─────────────────────────────────────────────────
-function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, rank, rc, playbookTemplate, reasoning = null }) {
+function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, rank, rc, playbookTemplate, reasoning = null, elements = null }) {
   const rm = ctx.rm;
   const dir = rm.thesis.finalDirection;
   const { matched, supporting } = matchStrategies(library, ctx, ind, formulas);
@@ -990,8 +991,10 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
     : parseFirstNumber(confirmText);
   const structuralStop = parseStructuralStop([...(rm.thesis.invalidations?.conditions || []), ctx.analysisEntry?.q5_invalidation ? JSON.stringify(ctx.analysisEntry.q5_invalidation) : '']);
   const rcEff = rc || RISK_CFG_DEFAULTS;
-  const customStopPrice = reasoning && reasoning.stop && Number.isFinite(Number(reasoning.stop.stopPrice)) ? Number(reasoning.stop.stopPrice) : null;
-  const expressionType = reasoning && reasoning.expression && reasoning.expression.type ? reasoning.expression.type : 'confirmation';
+  const customStopPrice = elements && elements.stop && Number.isFinite(Number(elements.stop.level))
+    ? Number(elements.stop.level)
+    : reasoning && reasoning.stop && Number.isFinite(Number(reasoning.stop.stopPrice)) ? Number(reasoning.stop.stopPrice) : null;
+  const expressionType = elements ? 'confirmation' : reasoning && reasoning.expression && reasoning.expression.type ? reasoning.expression.type : 'confirmation';
   const entryPrice = Number.isFinite(Number(triggerLevel)) ? Number(triggerLevel) : null;
   const riskBasisPrice = (expressionType === 'pullback' || expressionType === 'breakout') && entryPrice !== null ? entryPrice : ind.close;
   const stopDistEst = customStopPrice != null ? Math.max(Math.abs(customStopPrice - riskBasisPrice), 0.01) : riskLayerStubStop(ctx, ind, limitPct, structuralStop, rcEff);
@@ -1023,7 +1026,9 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
     executionConvention = `T+1 开盘；执行偏离 >0.5×ATR5 放弃；${dirClause}`;
   }
   const dirLabel = dir === 'bullish' ? '↑ 多' : dir === 'bearish' ? '↓ 空' : '→ 中性';
-  const invalidation = rm.thesis.invalidations?.conditions || [];
+  const invalidation = elements && Array.isArray(elements.invalidation) && elements.invalidation.length
+    ? elements.invalidation
+    : rm.thesis.invalidations?.conditions || [];
 
   // Strategy-LLM 输出优先：报告驱动表达层的入场/止损/目标/理论匹配
   const reasoningEntry = reasoning && reasoning.entry ? reasoning.entry : null;
@@ -1037,16 +1042,18 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   const triggerStyle = expressionType === 'pullback' ? 'low'
     : expressionType === 'breakout' ? (dir === 'bullish' ? 'high' : 'low')
     : 'close';
+  const elementsEntry = elements ? entryFromElements(elements) : null;
   const entry = {
-    trigger: (reasoningEntry && reasoningEntry.trigger) || `${dirLabel}：${confirmText}`,
-    triggerLevel: reasoningEntry && reasoningEntry.triggerLevel != null ? reasoningEntry.triggerLevel : triggerLevel,
-    triggerSource: (reasoningEntry && reasoningEntry.triggerSource) || confirmText,
-    triggerTiming: (reasoningEntry && reasoningEntry.triggerTiming) || (dir === 'neutral'
+    trigger: (elementsEntry && elementsEntry.trigger) || (reasoningEntry && reasoningEntry.trigger) || `${dirLabel}：${confirmText}`,
+    triggerLevel: elementsEntry && elementsEntry.triggerLevel != null ? elementsEntry.triggerLevel
+      : reasoningEntry && reasoningEntry.triggerLevel != null ? reasoningEntry.triggerLevel : triggerLevel,
+    triggerSource: (elementsEntry && elementsEntry.triggerSource) || (reasoningEntry && reasoningEntry.triggerSource) || confirmText,
+    triggerTiming: (elementsEntry && elementsEntry.triggerTiming) || (reasoningEntry && reasoningEntry.triggerTiming) || (dir === 'neutral'
       ? '无执行时点（观察）'
       : (pb.playbookId === 'PB-07'
         ? 'T+1 收盘确认；确认后下一交易日开盘执行'
         : 'T+1 开盘执行')),
-    execution: (reasoningEntry && reasoningEntry.execution) || (pb.playbookId === 'PB-07'
+    execution: (elementsEntry && elementsEntry.execution) || (reasoningEntry && reasoningEntry.execution) || (pb.playbookId === 'PB-07'
       ? 'T+1 收盘确认；确认后下一交易日开盘执行；执行偏离 >0.75×ATR5 放弃'
       : (pb.playbookId === 'PB-03' ? 'T+1 开盘；执行偏离 >0.75×ATR5 放弃' : 'T+1 开盘；执行偏离 >0.5×ATR5 放弃')),
     gapThresholdPts,
@@ -1055,12 +1062,12 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
   const stop = {
     stopPrice: risk.riskAssessment.stopPrice,
     stopDistancePts: risk.riskAssessment.stopDistancePts,
-    basis: (reasoningStop && reasoningStop.basis) || `min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)${risk.notes.length ? '；' + risk.notes.join('；') : ''}`
+    basis: (elements && elements.stop && elements.stop.basis) || (reasoningStop && reasoningStop.basis) || `min(stopK×ATR5, 0.8×limitPct×close, |Q5 结构位−close|)${risk.notes.length ? '；' + risk.notes.join('；') : ''}`
   };
   const finalTargets = {
-    t1: (reasoningTargets && reasoningTargets.t1) || targets.t1,
-    t2: (reasoningTargets && reasoningTargets.t2) || targets.t2,
-    basis: (reasoningTargets && reasoningTargets.basis) || targets.basis
+    t1: (elements && elements.targets && elements.targets.t1) || (reasoningTargets && reasoningTargets.t1) || targets.t1,
+    t2: (elements && elements.targets && elements.targets.t2) || (reasoningTargets && reasoningTargets.t2) || targets.t2,
+    basis: (elements && elements.targets && elements.targets.basis) || (reasoningTargets && reasoningTargets.basis) || targets.basis
   };
   const plan = {
     symbol: rm.symbol,
@@ -1098,10 +1105,20 @@ function buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, 
     statusReasons: reasons,
     invalidation: {
       hard: [...invalidation],
-      timeStop: 'T+5 无确认无失效则市价退出',
+      timeStop: (elements && elements.maxHold) || 'T+5 无确认无失效则市价退出',
       supersededByNextRun: true
     },
     notes: [...risk.notes],
+    ticket: elements ? {
+      activation: elements.activation || '',
+      activationLevel: elements.activationLevel ?? null,
+      confirmation: elements.confirmation || '',
+      entry: elements.entry || '',
+      abandon: elements.abandon || '',
+      maxHold: elements.maxHold || '',
+      invalidation: [...invalidation],
+      note: elements.note || ''
+    } : null,
     disclaimer: DISCLAIMER
   };
   if (reasoning) {
@@ -1171,7 +1188,7 @@ function applyGuarantee(matched) {
   return [{ ...BASE01, role: 'direction', pairsWith: [], weight: 0 }];
 }
 
-function buildStrategyPlan({ runId, equityCny = 100000, reasoning = null, volTargetPerPosition = null }) {
+function buildStrategyPlan({ runId, equityCny = 100000, reasoning = null, elements = null, volTargetPerPosition = null }) {
   const library = readJSON(LIBRARY_PATH());
   const rules = readJSON(RULES_PATH());
   const schema = readJSON(PLAN_SCHEMA_PATH());
@@ -1248,7 +1265,10 @@ function buildStrategyPlan({ runId, equityCny = 100000, reasoning = null, volTar
     const reasoningEntry = reasoning && Array.isArray(reasoning.strategies)
       ? reasoning.strategies.find((r) => r.symbol === op.symbol) || null
       : null;
-    const plan = buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, rank: op.planRank, rc: effRc, reasoning: reasoningEntry });
+    const elementsEntry = elements && Array.isArray(elements.tickets)
+      ? elements.tickets.find((t) => t && t.symbol === op.symbol) || null
+      : null;
+    const plan = buildPlanForSymbol({ library, ctx, ind, formulas, equityCny, limitPct, rank: op.planRank, rc: effRc, reasoning: reasoningEntry, elements: elementsEntry });
     // 记录 RR 供集中度仲裁使用
     const stopDist = plan.riskAssessment.stopDistancePts;
     const rrInfo = playbookRRInfo(plan.playbook.playbookId, ctx, ind, stopDist);
