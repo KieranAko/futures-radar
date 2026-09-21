@@ -16,7 +16,7 @@
 
 ## 二、一条合格传导链的四个标准
 
-1. **自洽**：边与边之间逻辑不打架（例如不能一边说流动性宽松利好黑色，另一边又假设资金流出黑色）。
+1. **自洽**：每条边必须回答「为什么上一环会触发下一环」——机制、中间环节、可观测含义；边与边之间逻辑不打架。禁止只用箭头把两个节点名连起来。
 2. **可监测**：每个节点要么引用 `config/story-chain-indicators.json` 目录（T0 稳定源），要么带 `concept + dataPlan` 声明 T2 WebSearch 检索意图（含基线 baseline、单位 unit、新鲜度上限）。**没有任何可监测指标的节点，链不能注册。**
 3. **可证伪**：每条边都有预期方向与时间窗（1..10 交易日）；链有自声明证明点 `entryProofIndex`（1 ≤ p < 节点数）。
 4. **未走完**：只注册尚未被市场完全确认的链。已经全部兑现的链没有肉。
@@ -44,34 +44,32 @@
 {
   "schema": "futures-radar-story-chain/3",
   "chainId": "CH-<SOURCE>-<YYYYMMDD>-<NN>",
-  "createdAt": "YYYY-MM-DD",
-  "sourceId": "macro.SC0.change5d",
-  "theme": "原油坍塌的能化传导",
-  "themeDetail": "SC0 成本坍塌向能化与航运成本传导，燃料油补跌尚未走完",
+  "createdAt": "<YYYY-MM-DD>",
+  "sourceId": "macro.<ANCHOR>.change5d",
+  "theme": "<主标题短语：主语+状态 / 事件+传导 / 力量+对象>",
+  "themeDetail": "<驱动 + 传导 + 品种 + 当前阶段的一句话>",
   "nodes": [
-    { "id": "n1", "indicatorId": "macro.SC0.change5d", "expectation": -1, "label": "原油下跌" },
-    { "id": "n2", "indicatorId": "sector.energy_chemical.oi.flow5d", "expectation": -1, "label": "能化资金流出" },
-    { "id": "n3", "indicatorId": "symbol.FU0.price.ret5d", "expectation": -1, "label": "燃料油补跌", "terminal": true, "priority": "primary", "impactRationale": "燃料油对 SC0 成本弹性最大，且前期跌幅滞后，补跌空间最大", "proofIndex": 2 },
-    { "id": "n4", "indicatorId": "symbol.PG0.price.ret5d", "expectation": -1, "label": "LPG 下行", "terminal": true, "priority": "secondary", "impactRationale": "LPG 成本支撑直接下移，但弹性弱于燃料油", "proofIndex": 2 }
+    { "id": "n1", "indicatorId": "macro.<ANCHOR>.change5d", "expectation": "<±1>", "label": "<节点里程碑>" },
+    { "id": "n2", "indicatorId": "sector.<SECTOR>.oi.flow5d", "expectation": "<±1>", "label": "<资金流节点>" },
+    { "id": "n3", "indicatorId": "symbol.<SYMBOL>.price.ret5d", "expectation": "<±1>", "label": "<代表品种节点>", "terminal": true, "priority": "primary|secondary", "impactRationale": "<8–80字：为什么选这个品种>", "proofIndex": "<2..祖先节点数>" }
   ],
   "edges": [
-    { "id": "e1", "from": "n1", "to": "n2", "latencyDays": 5, "logic": "原油下跌→能化资金流出" },
-    { "id": "e2", "from": "n2", "to": "n3", "latencyDays": 5, "logic": "能化资金流出→燃料油补跌" },
-    { "id": "e3", "from": "n1", "to": "n4", "latencyDays": 7, "logic": "原油下跌→LPG 成本支撑下移" }
+    { "id": "e1", "from": "n1", "to": "n2", "latencyDays": "<1..10>", "logic": "<机制说明：上一环通过什么路径触发下一环>" }
   ],
-  "maxLifespanTradingDays": 20
+  "maxLifespanTradingDays": "<≤20>"
 }
 ```
+
+> 上面尖括号全部是占位符，只展示字段形状。具体锚点、板块、品种、方向、时滞必须来自当日冻结数据和你自己的机制判断，禁止照抄任何示例内容。
 
 ### 主题写作规范（主标题 + 副标题）
 
 - `theme` 是**主标题**：4–14 字，像新闻标题或策略短语，不是完整句子，禁止 `→`。
-  - 主语+状态：`黑色流动性退潮`
-  - 事件+传导：`原油坍塌的能化传导`
-  - 力量+对象：`人民币升值压制有色`
+  - 主语+状态：`<板块/力量>+<状态词>`
+  - 事件+传导：`<事件>的<板块>传导`
+  - 力量+对象：`<力量>压制<板块>`
 - `themeDetail` 是**副标题**：10–60 字，完整一句话，说清 **驱动 + 传导 + 品种 + 当前阶段/预期**，禁止 `→`。
-  - 示例：`DR007 抬头收紧流动性，黑色资金持续流出，螺纹钢等待需求证伪`
-  - 示例：`原油成本坍塌向能化板块传导，燃料油补跌尚未走完`
+  - 句式：`<驱动一句话>，<传导路径一句话>，<品种>等待<阶段确认>`
 
 硬约束（脚本校验，违反即拒收）：
 
