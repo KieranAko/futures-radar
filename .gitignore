@@ -19,6 +19,10 @@ __pycache__/
 *.log
 logs/
 
+# ── 过程截图/临时文件 ──
+review_*.png
+*.tmp
+
 # ── 回测可重建产物（结论见 research/backtest/*.md 报告）──
 /research/backtest/data/
 /research/backtest/logs/
