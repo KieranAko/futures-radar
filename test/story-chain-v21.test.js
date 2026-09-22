@@ -847,6 +847,11 @@ describe('V2.1 并行观察与节点三态（观察中/已证明/已证伪）', 
     assert.match(src, /document\.addEventListener\('click'/);
     assert.match(src, /data-detail-mode/);
     assert.doesNotMatch(src, /el\.addEventListener\('click'/);
+    // 浮层支持按住拖动：鼠标在浮层内按下并移动时拖动，拖动后的 click 不关闭浮层。
+    assert.match(src, /beginDetailDrag/);
+    assert.match(src, /document\.addEventListener\('mousedown'/);
+    assert.match(src, /sg-dragging/);
+    assert.match(src, /suppressDragClickUntil/);
     assert.doesNotMatch(src, /className = 'sg-detail/);
     assert.doesNotMatch(src, /alignmentMarkerHtml/);
     assert.doesNotMatch(src, /node-align-marker/);

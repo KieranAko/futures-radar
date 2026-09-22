@@ -1285,7 +1285,11 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .sg-edge { transition: opacity .15s ease; cursor: pointer; }
   .sg-dim { opacity: 0.18; }
   .sg-detail { position: absolute; top: 10px; right: 10px; max-width: 280px; z-index: 5; }
-  .sg-detail-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(15,23,42,.12); padding: 10px 12px; font-size: 12px; }
+  .sg-detail-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(15,23,42,.12); padding: 10px 12px; font-size: 12px; cursor: grab; }
+  .sg-detail-card:active { cursor: grabbing; }
+  .sg-detail.sg-dragging { user-select: none; }
+  .sg-detail.sg-dragging .sg-detail-card { cursor: grabbing; }
+  .sg-detail-card a { cursor: pointer; }
   .sg-detail-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
   .sg-detail-close { border: none; background: transparent; font-size: 16px; line-height: 1; cursor: pointer; color: var(--muted); }
   .sg-detail-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; color: var(--muted); }

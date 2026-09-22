@@ -763,6 +763,9 @@ function dagScript() {
     var d = g.querySelector('.dg-detail');
     if (!d) return;
     g.setAttribute('data-detail-mode', 'node');
+    d.style.left = '';
+    d.style.top = '';
+    d.style.right = '';
     d.classList.remove('wide');
     var rows = [];
     rows.push('<div class="sg-detail-head"><b>' + n.label + '</b><button class="sg-detail-close">×</button></div>');
@@ -793,6 +796,9 @@ function dagScript() {
     var d = g.querySelector('.dg-detail');
     if (!d) return;
     g.setAttribute('data-detail-mode', 'caliber');
+    d.style.left = '';
+    d.style.top = '';
+    d.style.right = '';
     var c = n.caliber || {};
     var rows = [];
     rows.push('<div class="sg-detail-head"><b>指标口径</b><button class="sg-detail-close">×</button></div>');
@@ -853,7 +859,14 @@ function dagScript() {
   function closeDetail(g) {
     if (!g) return;
     var d = g.querySelector('.dg-detail');
-    if (d) { d.innerHTML = ''; d.classList.remove('wide'); }
+    if (d) {
+      d.innerHTML = '';
+      d.classList.remove('wide');
+      d.classList.remove('sg-dragging');
+      d.style.left = '';
+      d.style.top = '';
+      d.style.right = '';
+    }
     g.removeAttribute('data-detail-mode');
   }
   function findNode(g, id) {
@@ -868,9 +881,58 @@ function dagScript() {
     var d = g.querySelector('.dg-detail');
     if (!d) return;
     g.setAttribute('data-detail-mode', 'edge');
+    d.style.left = '';
+    d.style.top = '';
+    d.style.right = '';
     d.classList.remove('wide');
     d.innerHTML = '<div class="sg-detail-card"><div class="sg-detail-head"><b>传导边</b><button class="sg-detail-close">×</button></div><div class="sg-detail-row"><span>逻辑</span><b>' + esc(e.logic) + '</b></div><div class="sg-detail-row"><span>时间窗</span><b>' + esc(e.latencyDays) + ' 个交易日</b></div></div>';
   }
+  // 浮层拖拽：按住浮层任意非按钮/非链接区域拖动，位置约束在所在 DAG 画布内。
+  var suppressDragClickUntil = 0;
+  function clampDrag(v, min, max) { return Math.max(min, Math.min(max, v)); }
+  function beginDetailDrag(d, ev) {
+    var canvas = d.closest('.dg-canvas');
+    if (!canvas) return;
+    var cRect = canvas.getBoundingClientRect();
+    var dRect = d.getBoundingClientRect();
+    var startX = ev.clientX;
+    var startY = ev.clientY;
+    var startLeft = dRect.left - cRect.left;
+    var startTop = dRect.top - cRect.top;
+    d.style.left = startLeft + 'px';
+    d.style.top = startTop + 'px';
+    d.style.right = 'auto';
+    var dragging = false;
+    function onMove(e) {
+      if (!dragging) {
+        if (Math.abs(e.clientX - startX) < 4 && Math.abs(e.clientY - startY) < 4) return;
+        dragging = true;
+        d.classList.add('sg-dragging');
+      }
+      var maxLeft = Math.max(0, canvas.scrollWidth - d.offsetWidth);
+      var maxTop = Math.max(0, canvas.scrollHeight - d.offsetHeight);
+      d.style.left = clampDrag(startLeft + (e.clientX - startX), 0, maxLeft) + 'px';
+      d.style.top = clampDrag(startTop + (e.clientY - startY), 0, maxTop) + 'px';
+      if (e.preventDefault) e.preventDefault();
+    }
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      d.classList.remove('sg-dragging');
+      if (dragging) suppressDragClickUntil = Date.now() + 300;
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+  document.addEventListener('mousedown', function (ev) {
+    var t = ev.target || {};
+    if (!t || !t.closest) return;
+    if (ev.button !== 0) return;
+    if (t.closest('.sg-detail-close') || t.closest('a') || t.closest('button')) return;
+    var d = t.closest('.dg-detail');
+    if (!d || !d.querySelector('.sg-detail-card')) return;
+    beginDetailDrag(d, ev);
+  });
   document.querySelectorAll('.dg-canvas').forEach(drawDag);
 
   // 单一全局点击路由：
@@ -879,6 +941,8 @@ function dagScript() {
   document.addEventListener('click', function (ev) {
     var t = ev.target || {};
     if (!t || !t.closest) return;
+    // 浮层刚被拖拽过：mouseup 后浏览器补发的 click 不算“点空白”，不能关闭浮层。
+    if (Date.now() < suppressDragClickUntil) return;
     var closeBtn = t.closest('.sg-detail-close');
     if (closeBtn) {
       document.querySelectorAll('.dg-canvas').forEach(closeDetail);
