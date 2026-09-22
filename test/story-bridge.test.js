@@ -108,10 +108,12 @@ describe('build-filtered-from-story-pool（filter-llm 退役替代品）', () =>
     assert.equal(empty.candidates.length, 0);
     assert.equal(empty.meta.outputCount, 0);
     assert.match(empty.meta.note, /filter-llm 已退役/);
-    // 孤儿信号（无 storyChainId）不进入机会分析
+    // 孤儿信号（无 storyChainId）也要进入机会分析：验证追踪需要每轮产生新交易单
     const orphan = builder.buildFilteredFromStoryPool({ runId: 'r', filteredAt: 't', provenChains: [], poolSignals: [{ signalId: 'SIG-ORPHAN-01', symbol: 'X0', direction: 'bearish', poolStatus: 'active', thesis: 'x', versions: [] }] });
-    assert.equal(orphan.candidates.length, 0);
-    assert.equal(orphan.meta.trackingSeats, 0);
+    assert.equal(orphan.candidates.length, 1);
+    assert.equal(orphan.meta.trackingSeats, 1);
+    assert.equal(orphan.candidates[0].signalId, 'SIG-ORPHAN-01');
+    assert.equal(orphan.candidates[0].storyChainId, null);
   });
 
   it('ASM-03/04：机器席位带 author 标记，confidence 缺失为 null，非法方向跳过', () => {

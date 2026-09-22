@@ -35,9 +35,9 @@ function writeJSONAtomic(p, data) {
 
 function trackingSeatEntries(poolSignals) {
   const out = [];
-  // 只有诞生自故事链的信号才允许继续占深挖席位；孤儿/legacy 信号只留在信号池验证，不进入机会分析
-  const withStory = (poolSignals || []).filter((s) => s && s.storyChainId);
-  for (const sig of withStory) {
+  // v6 修正：信号池内所有未关闭信号都要进入机会分析——验证追踪需要每轮产生新交易单，
+  // 没有深挖分析就没有新报价，信号会变成只读台账。孤儿/legacy 信号同样入池分析。
+  for (const sig of poolSignals || []) {
     // ASM-04：方向缺失/非法时跳过，不静默当作 bullish。
     if (!['bearish', 'bullish'].includes(sig.direction)) continue;
     const cur = (sig.versions || []).find((v) => v.versionId === sig.currentVersionId) || (sig.versions || [])[sig.versions.length - 1];
@@ -49,10 +49,11 @@ function trackingSeatEntries(poolSignals) {
       decision: 'KEEP',
       // ASM-04：confidence 缺失时如实置 null，不用 'medium' 冒充判断。
       confidence: cur && ['high', 'medium', 'low'].includes(cur.confidence) ? cur.confidence : null,
-      reason: `信号池追踪席位 ${sig.signalId}：入池 ${sig.createdDate}，${sig.thesis || '品种机会持续追踪'}`,
-      informationGap: '信号池追踪席位：需与故事席位同规格完整再分析',
+      reason: `信号池追踪席位 ${sig.signalId}：入池 ${sig.createdDate}，${sig.thesis || '品种机会持续追踪'}${sig.storyChainId ? `（故事链 ${sig.storyChainId}）` : '（无故事链，仍需完整分析以产生新交易单验证）'}`,
+      informationGap: '信号池追踪席位：需与故事席位同规格完整再分析，产生新交易单用于验证追踪',
       tracking: true,
       signalId: sig.signalId,
+      storyChainId: sig.storyChainId || null,
       author: 'machine-seat',
     });
   }
@@ -162,7 +163,7 @@ function buildFilteredFromStoryPool({ runId, filteredAt, provenChains = [], pool
       inputCount: 0,
       outputCount: candidates.filter((c) => c.decision === 'KEEP').length,
       hardFilterRejectsImmutable: true,
-      note: `V2 初筛：故事池活跃链席位 ${storySeats.length}（resolving/pending/proven 都分析）+ 信号池追踪席位 ${trackingSeats.length}（已去重，孤儿/legacy 信号不入深挖）；filter-llm 已退役`,
+      note: `V2 初筛：故事池活跃链席位 ${storySeats.length}（resolving/pending/proven 都分析）+ 信号池追踪席位 ${trackingSeats.length}（未关闭信号全部分析，已去重；filter-llm 已退役）`,
       storySeats: storySeats.length,
       trackingSeats: trackingSeats.length,
       author: 'deterministic-seats',
