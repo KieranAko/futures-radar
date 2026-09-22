@@ -761,7 +761,8 @@ function dagScript() {
   }
   function showNodeDetail(g, n) {
     var d = g.querySelector('.dg-detail');
-    d.className = 'sg-detail';
+    if (!d) return;
+    d.classList.remove('wide');
     var rows = [];
     rows.push('<div class="sg-detail-head"><b>' + n.label + '</b><button class="sg-detail-close">×</button></div>');
     var st = n.status === 'confirmed' ? '已证明' : n.status === 'broken' ? '已证伪' : '观察中';
@@ -834,9 +835,9 @@ function dagScript() {
         }).join('；') + '</div>');
       }
     }
-    d.className = 'sg-detail wide';
+    d.classList.add('wide');
     d.innerHTML = '<div class="sg-detail-card">' + rows.join('') + '</div>';
-    d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; d.className = 'sg-detail'; });
+    d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; d.classList.remove('wide'); });
   }
   document.querySelectorAll('.closed-row').forEach(function (row) {
     row.addEventListener('click', function () {
@@ -869,8 +870,10 @@ function dagScript() {
         var e = edges.find(function (x) { return x.from === ev.target.getAttribute('data-from') && x.to === ev.target.getAttribute('data-to'); });
         if (e) {
           var d = g.querySelector('.dg-detail');
+          if (!d) return;
+          d.classList.remove('wide');
           d.innerHTML = '<div class="sg-detail-card"><div class="sg-detail-head"><b>传导边</b><button class="sg-detail-close">×</button></div><div class="sg-detail-row"><span>逻辑</span><b>' + e.logic + '</b></div><div class="sg-detail-row"><span>时间窗</span><b>' + e.latencyDays + ' 个交易日</b></div></div>';
-          d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; });
+          d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; d.classList.remove('wide'); });
         }
       }
     });
@@ -879,8 +882,9 @@ function dagScript() {
       if (!t.closest) return;
       if (t.closest('.dg-node') || t.closest('.dg-edges') || t.closest('.sg-detail')) return;
       var d = g.querySelector('.dg-detail');
+      if (!d) return;
       d.innerHTML = '';
-      d.className = 'sg-detail';
+      d.classList.remove('wide');
     });
   });
   window.addEventListener('resize', function () { document.querySelectorAll('.dg-canvas').forEach(drawDag); });
