@@ -94,8 +94,10 @@ function changeTextHtml(n) {
 function dagNodeCard(n, isSource = false) {
   const cur = n.lastValue ?? n.observedValue;
   const dir = n.expectation === 1 ? '<span class="up">多</span>' : n.expectation === -1 ? '<span class="down">空</span>' : '—';
+  const calName = (n.caliber && n.caliber.name) || n.indicatorId || n.concept || '指标口径';
   return `<div class="dg-node ${nodeClass(n)}${n.terminal ? ' terminal' : ''}" data-node-id="${escapeHtml(n.id)}">
     <div class="dg-node-head"><b>${escapeHtml(n.label || n.id)}</b><span class="dg-node-dir">${dir}</span></div>
+    <button type="button" class="dg-node-caliber" data-node-caliber="${escapeHtml(n.id)}" title="点击查看指标口径">📋 ${escapeHtml(calName)}</button>
     <div class="dg-node-val">${fmtVal(cur)} ${escapeHtml(n.unit || '')}</div>
     <div class="dg-node-foot">${n.terminal ? `${n.priority === 'primary' ? '主支' : '次支'} · p=${n.proofIndex ?? '—'} · ` : ''}${nodeProgressLabel(n)}</div>
   </div>`;
@@ -115,6 +117,7 @@ function dagPanelHtml(c) {
   const graphNodes = nodes.map((n) => ({
     id: n.id, label: n.label || n.id, status: n.status, terminal: !!n.terminal,
     priority: n.priority || null, proofIndex: n.proofIndex ?? null, expectation: n.expectation,
+    caliber: n.caliber || null,
     credibility: n.credibility, unit: n.unit || '', lastValue: n.lastValue ?? null,
     lastValueAt: n.lastValueAt || null, prevValue: n.prevValue ?? null, prevValueAt: n.prevValueAt || null,
     changeValue: n.changeValue ?? null, changeLabel: n.changeLabel || null, changeText: n.changeText || null,
@@ -722,6 +725,11 @@ function closedChainModalHtml(c) {
 function dagScript() {
   return `<script>
 (function () {
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
   function drawDag(g) {
     var nodes = JSON.parse(g.getAttribute('data-nodes') || '[]');
     var edges = JSON.parse(g.getAttribute('data-edges') || '[]');
@@ -772,6 +780,54 @@ function dagScript() {
     d.innerHTML = '<div class="sg-detail-card">' + rows.join('') + '</div>';
     d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; });
   }
+  function rowHtml(label, value) {
+    return '<div class="sg-detail-row"><span>' + esc(label) + '</span><b>' + (value == null || value === '' ? '—' : esc(value)) + '</b></div>';
+  }
+  function linkHtml(url, label) {
+    if (!/^https?:\\/\\//i.test(url || '')) return esc(url || '—');
+    return '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">' + esc(label || url) + '</a>';
+  }
+  function showCaliberDetail(g, n) {
+    var d = g.querySelector('.dg-detail');
+    var c = n.caliber || {};
+    var rows = [];
+    rows.push('<div class="sg-detail-head"><b>指标口径</b><button class="sg-detail-close">×</button></div>');
+    if (c.name) rows.push(rowHtml('指标名称', c.name));
+    if (c.indicatorId) rows.push(rowHtml('指标 ID', c.indicatorId));
+    if (c.unit) rows.push(rowHtml('单位', c.unit));
+    if (c.kind === 'catalog') {
+      if (c.source) rows.push(rowHtml('数据来源', c.source));
+      if (c.valueScale) rows.push(rowHtml('计量尺度', c.valueScale));
+      if (c.changeKind) rows.push(rowHtml('变化类型', c.changeKind));
+      if (c.sourceClass) rows.push(rowHtml('源类', c.sourceClass));
+      if (c.allowAsRoot === true) rows.push(rowHtml('可否作链首', '允许（allowAsRoot=true）'));
+      if (c.directionNote) rows.push(rowHtml('方向口径', c.directionNote));
+    } else {
+      if (c.concept) rows.push(rowHtml('概念', c.concept));
+      var dp = c.dataPlan || {};
+      if (dp.kind) rows.push(rowHtml('数据路径', dp.kind));
+      if (dp.metric) rows.push(rowHtml('metric', dp.metric));
+      if (dp.basis) rows.push(rowHtml('basis', dp.basis));
+      if (dp.baseline != null) rows.push(rowHtml('baseline', dp.baseline));
+      if (dp.unit) rows.push(rowHtml('单位', dp.unit));
+      if (dp.maxFreshDays != null) rows.push(rowHtml('新鲜度', dp.maxFreshDays + ' 天'));
+      if (dp.minSources != null) rows.push(rowHtml('最少来源', dp.minSources));
+      if (dp.searchHints && dp.searchHints.length) rows.push(rowHtml('检索词', dp.searchHints.join('；')));
+      var r = c.resolution || {};
+      if (r.sourceUrl) rows.push('<div class="sg-detail-row"><span>来源</span><b>' + linkHtml(r.sourceUrl, r.sourceTitle || r.sourceUrl) + '</b></div>');
+      if (r.sourceTier) rows.push(rowHtml('来源层级', r.sourceTier));
+      if (r.asOf) rows.push(rowHtml('数据日期', r.asOf));
+      if (r.value != null) rows.push(rowHtml('取值', r.value));
+      if (r.sources && r.sources.length) {
+        rows.push('<div class="sg-detail-note">多源明细：' + r.sources.map(function (s) {
+          return linkHtml(s.url, s.title || s.url) + '（' + esc(s.tier || '—') + '，' + esc(s.asOf || '—') + '）';
+        }).join('；') + '</div>');
+      }
+    }
+    d.className = 'sg-detail wide';
+    d.innerHTML = '<div class="sg-detail-card">' + rows.join('') + '</div>';
+    d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; d.className = 'sg-detail'; });
+  }
   document.querySelectorAll('.closed-row').forEach(function (row) {
     row.addEventListener('click', function () {
       var d = document.getElementById(row.getAttribute('data-detail-id'));
@@ -790,6 +846,13 @@ function dagScript() {
       el.addEventListener('click', function () {
         var n = nodes.find(function (x) { return x.id === el.getAttribute('data-node-id'); });
         if (n) showNodeDetail(g, n);
+      });
+    });
+    g.querySelectorAll('.dg-node-caliber').forEach(function (btn) {
+      btn.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        var n = nodes.find(function (x) { return x.id === btn.getAttribute('data-node-caliber'); });
+        if (n) showCaliberDetail(g, n);
       });
     });
     g.querySelector('.dg-edges').addEventListener('click', function (ev) {

@@ -1261,9 +1261,12 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .dg-node-head { display: flex; align-items: center; gap: 6px; }
   .dg-node-head b { font-size: 13px; }
   .dg-node-dir { color: var(--muted); }
+  .dg-node-caliber { margin-top: 6px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; border-radius: 999px; font-size: 11px; padding: 2px 8px; cursor: pointer; text-align: left; }
+  .dg-node-caliber:hover { border-color: #94a3b8; background: #f1f5f9; }
   .dg-node-val { margin-top: 4px; font-size: 13px; font-weight: 600; }
   .dg-node-foot { margin-top: 2px; font-size: 11px; color: var(--muted); }
   .dg-node .node-state { width: 14px; text-align: center; }
+  .sg-detail.wide { max-width: 360px; }
   .dg-detail { position: absolute; top: 8px; right: 8px; z-index: 10; max-width: 340px; }
 
   .story-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0; margin-bottom: 12px; overflow: hidden; }

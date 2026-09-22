@@ -1632,6 +1632,61 @@ function auditActiveChains({ root = null } = {}) {
   return { audits, ok: audits.every((a) => a.ok), failures: audits.filter((a) => !a.ok) };
 }
 
+// ── 节点口径投影（供看板「指标口径」按钮渲染；纯确定性投影，不产生新判断）────
+function nodeCaliber(n, catDef) {
+  if (!n) return null;
+  if (catDef) {
+    return {
+      kind: 'catalog',
+      indicatorId: n.indicatorId || null,
+      name: catDef.name || n.indicatorId || null,
+      unit: catDef.unit || n.unit || null,
+      source: catDef.source || null,
+      valueScale: catDef.valueScale || null,
+      changeKind: catDef.changeKind || null,
+      sourceClass: catDef.sourceClass || null,
+      allowAsRoot: catDef.allowAsRoot === true,
+      directionNote: catDef.directionNote || null,
+    };
+  }
+  const dp = n.dataPlan || null;
+  const r = n.resolution || null;
+  const basisText = dp && dp.basis ? T2_BASIS_LABELS[dp.basis] || dp.basis : null;
+  const name = dp
+    ? [dp.metric || n.concept, basisText ? `基准=${basisText}` : null].filter(Boolean).join(' · ')
+    : (n.concept || null);
+  return {
+    kind: r && r.path === 'T2' ? 't2' : 'concept',
+    indicatorId: n.indicatorId || null,
+    concept: n.concept || null,
+    name,
+    unit: n.unit || (dp && dp.unit) || null,
+    dataPlan: dp
+      ? {
+          paths: dp.paths || [],
+          kind: dp.kind || null,
+          metric: dp.metric || null,
+          basis: dp.basis || null,
+          baseline: dp.baseline ?? null,
+          maxFreshDays: dp.maxFreshDays ?? null,
+          minSources: dp.minSources ?? null,
+          searchHints: dp.searchHints || [],
+        }
+      : null,
+    resolution: r
+      ? {
+          path: r.path,
+          sourceUrl: r.sourceUrl || null,
+          sourceTitle: r.sourceTitle || null,
+          sourceTier: r.sourceTier || null,
+          asOf: r.asOf || null,
+          value: r.value ?? null,
+          sources: Array.isArray(r.sources) ? r.sources : [],
+        }
+      : null,
+  };
+}
+
 // ── 池视图 ─────────────────────────────────────────────────
 function buildView({ root = null } = {}) {
   const ledger = loadLedger(root);
@@ -1694,6 +1749,7 @@ function buildView({ root = null } = {}) {
             id: n.id, indicatorId: n.indicatorId, concept: n.concept, expectation: n.expectation,
             label: n.label, status: n.status, credibility: n.credibility, brokenReason: n.brokenReason,
             unit: (catDef && catDef.unit) || n.unit || null,
+            caliber: nodeCaliber(n, catDef),
             observedValue: n.observedValue, observedDirection: n.observedDirection,
             observedAt: n.observedAt,
             windowStartDate: n.windowStartDate || null,
@@ -1755,6 +1811,7 @@ function buildView({ root = null } = {}) {
             id: n.id, indicatorId: n.indicatorId, concept: n.concept, expectation: n.expectation,
             label: n.label, status: n.status, credibility: n.credibility, brokenReason: n.brokenReason,
             unit: (catDef && catDef.unit) || n.unit || null,
+            caliber: nodeCaliber(n, catDef),
             observedValue: n.observedValue, observedDirection: n.observedDirection,
             observedAt: n.observedAt,
             windowStartDate: n.windowStartDate || null,
@@ -1843,6 +1900,7 @@ module.exports = {
   auditActiveChains,
   deriveCredibility,
   instantiatedCatalogMap,
+  nodeCaliber,
   nodeChange,
   applyObservation,
   observeAll,

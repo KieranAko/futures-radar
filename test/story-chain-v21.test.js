@@ -696,6 +696,10 @@ describe('V2.1 计量尺度与变化语义（引擎算，渲染只显示）', ()
     const view = sc.buildView({ root });
     assert.equal(view.schema, 'futures-radar-story-pool-view/2');
     const nodes = view.active[0].nodes;
+    assert.equal(nodes[0].caliber.kind, 'catalog');
+    assert.equal(nodes[0].caliber.name, 'SC0 原油 5 交易日涨跌');
+    assert.equal(nodes[1].caliber.name, '板块指数 5 交易日收益');
+    assert.equal(nodes[2].caliber.name, '品种收盘相对 MA20 位置');
     assert.equal(nodes[1].changeLabel, '个百分点');
     assert.equal(Number(nodes[1].changeValue).toFixed(2), '0.08');
     assert.equal(nodes[1].unit, '%');
@@ -826,6 +830,9 @@ describe('V2.1 并行观察与节点三态（观察中/已证明/已证伪）', 
     assert.match(src, /已证伪/);
     assert.match(src, /观察中/);
     assert.match(src, /nodeProgressLabel/);
+    assert.match(src, /dg-node-caliber/);
+    assert.match(src, /showCaliberDetail/);
+    assert.match(src, /指标口径/);
     assert.doesNotMatch(src, /alignmentMarkerHtml/);
     assert.doesNotMatch(src, /node-align-marker/);
     assert.doesNotMatch(src, /dg-stack/);
