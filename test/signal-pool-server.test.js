@@ -40,6 +40,7 @@ describe('signal-pool-server 一期服务壳', () => {
 
     const { server, start } = startServer({ runId: 'run-2', root: poolRoot, render: false, port: 0, host: '127.0.0.1' });
     const addr = await start();
+    server.unref();
     const port = addr.port;
     const baseUrl = `http://127.0.0.1:${port}`;
 
@@ -81,6 +82,7 @@ describe('signal-pool-server 一期服务壳', () => {
     updateSignalPool({ runId: 'run-1', raw: { contracts: {} }, rootOverride: poolRoot, plan: makePlan('run-1', 'PP0') });
     const { server, start } = startServer({ runId: 'run-1', root: poolRoot, render: false, port: 0, host: '127.0.0.1' });
     const addr = await start();
+    server.unref();
     const res = await (await fetch(`http://127.0.0.1:${addr.port}/api/decisions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -88,6 +90,9 @@ describe('signal-pool-server 一期服务壳', () => {
     })).json();
     assert.equal(res.ok, false);
     assert.ok(Array.isArray(res.details));
-    await new Promise((resolve) => { server.close(resolve); });
+    await new Promise((resolve) => {
+      if (server.closeAllConnections) server.closeAllConnections();
+      server.close(resolve);
+    });
   });
 });

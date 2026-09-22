@@ -1155,7 +1155,7 @@ function decisionRecordHtml(record, versions, { local = false } = {}) {
   const dt = record.decidedAt ? String(record.decidedAt).replace('T', ' ').slice(0, 16) : '—';
   const cls = local ? 'is-local' : 'is-applied';
   const badge = local ? '<span class="dr-badge">待回填</span>' : '<span class="dr-badge applied">已回填</span>';
-  return `<details class="decision-record ${cls}">
+  return `<details class="decision-record ${cls}" data-key="${escapeHtml(record.signalId || '')}|${escapeHtml(record.quoteVersionId || '')}">
     <summary><b>对账决策</b> · ${escapeHtml(actionLabelText(record.action))} · ${escapeHtml(record.quoteVersionId || '—')} · ${escapeHtml(dt)} ${badge}</summary>
     ${local ? '' : fullComparisonViewHtml(record, versions)}
   </details>`;

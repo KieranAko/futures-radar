@@ -1641,9 +1641,12 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
     document.querySelectorAll('.decision-records').forEach((zone) => {
       zone.querySelectorAll('.decision-record.is-local').forEach((el) => el.remove());
       const signalId = zone.dataset.signalId;
+      const appliedKeys = new Set(Array.from(zone.querySelectorAll('.decision-record.is-applied[data-key]')).map((el) => el.dataset.key));
       Object.values(decisions).filter((d) => d.signalId === signalId).forEach((d) => {
+        const key = d.signalId + '|' + d.quoteVersionId;
+        if (appliedKeys.has(key)) return; // 已回填过的记录不再注入本地待回填副本
         zone.insertAdjacentHTML('beforeend', localDecisionRecordHtml(d));
-        const rec = zone.querySelector('.decision-record.is-local[data-key="' + d.signalId + '|' + d.quoteVersionId + '"]');
+        const rec = zone.querySelector('.decision-record.is-local[data-key="' + key + '"]');
         const src = document.querySelector('.quote-compare[data-quote-version-id="' + d.quoteVersionId + '"]');
         if (rec && src) {
           const slot = rec.querySelector('.local-compare-slot');
@@ -1728,6 +1731,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
           body: JSON.stringify(doc)
         }).then((r) => r.json()).then((res) => {
           if (res && res.ok) {
+            delete decisions[rec.dataset.key];
+            saveDecisions(decisions);
             alert('回填成功，页面将刷新。');
             window.location.reload();
           } else {

@@ -65,7 +65,7 @@ function readBody(req) {
   });
 }
 
-function handlerFactory({ runId, rootOverride, renderEnabled, port, host, startedAt, shutdown }) {
+function handlerFactory({ runId, rootOverride, renderEnabled, host, startedAt, shutdown, portRef }) {
   return async function handler(req, res) {
     const url = (req.url || '/').split('?')[0];
     try {
@@ -85,7 +85,7 @@ function handlerFactory({ runId, rootOverride, renderEnabled, port, host, starte
           ok: true,
           service: 'futures-radar-dashboard',
           runId,
-          port,
+          port: portRef ? portRef.value : null,
           host,
           pid: process.pid,
           startedAt,
@@ -122,14 +122,18 @@ function handlerFactory({ runId, rootOverride, renderEnabled, port, host, starte
 function startServer(options = {}) {
   const runId = options.runId || latestRunId();
   if (!runId) throw new Error('--runId required and no runs found under output/runs');
-  const port = Number(options.port || process.env.FR_PORT || DEFAULT_PORT);
+  const port = options.port != null ? Number(options.port) : Number(process.env.FR_PORT || DEFAULT_PORT);
   const host = options.host || DEFAULT_HOST;
   const renderEnabled = options.render !== false;
   const rootOverride = options.root || null;
   const startedAt = new Date().toISOString();
+  const portRef = { value: port };
   const server = http.createServer(handlerFactory({
-    runId, rootOverride, renderEnabled, port, host, startedAt,
-    shutdown() { server.close(() => {}); }
+    runId, rootOverride, renderEnabled, host, startedAt, portRef,
+    shutdown() {
+      if (server.closeAllConnections) server.closeAllConnections();
+      server.close(() => {});
+    }
   }));
   server.on('error', (e) => {
     if (e && e.code === 'EADDRINUSE') {
@@ -138,7 +142,7 @@ function startServer(options = {}) {
     }
     throw e;
   });
-  return { server, runId, port, host, start() { return new Promise((resolve) => server.listen(port, host, () => resolve(server.address()))); } };
+  return { server, runId, port, host, start() { return new Promise((resolve) => server.listen(port, host, () => { portRef.value = server.address().port; resolve(server.address()); })); } };
 }
 
 function main() {
@@ -153,9 +157,13 @@ function main() {
   const renderEnabled = !args.includes('--no-render');
   const rootOverride = flag('--root') || null;
   const startedAt = new Date().toISOString();
+  const portRef = { value: port };
   const server = http.createServer(handlerFactory({
-    runId, rootOverride, renderEnabled, port, host: DEFAULT_HOST, startedAt,
-    shutdown() { server.close(() => process.exit(0)); }
+    runId, rootOverride, renderEnabled, host: DEFAULT_HOST, startedAt, portRef,
+    shutdown() {
+      if (server.closeAllConnections) server.closeAllConnections();
+      server.close(() => process.exit(0));
+    }
   }));
   server.on('error', (e) => {
     if (e && e.code === 'EADDRINUSE') {
@@ -165,8 +173,9 @@ function main() {
     throw e;
   });
   server.listen(port, DEFAULT_HOST, () => {
+    portRef.value = server.address().port;
     console.log(`futures-radar dashboard service`);
-    console.log(`  url: http://${DEFAULT_HOST}:${port}`);
+    console.log(`  url: http://${DEFAULT_HOST}:${portRef.value}`);
     console.log(`  runId: ${runId}`);
     console.log(`  render: ${renderEnabled ? 'on' : 'off'}`);
   });
