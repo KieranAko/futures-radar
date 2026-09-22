@@ -887,7 +887,7 @@ function dagScript() {
     d.classList.remove('wide');
     d.innerHTML = '<div class="sg-detail-card"><div class="sg-detail-head"><b>传导边</b><button class="sg-detail-close">×</button></div><div class="sg-detail-row"><span>逻辑</span><b>' + esc(e.logic) + '</b></div><div class="sg-detail-row"><span>时间窗</span><b>' + esc(e.latencyDays) + ' 个交易日</b></div></div>';
   }
-  // 浮层拖拽：按住浮层任意非按钮/非链接区域拖动，位置约束在所在 DAG 画布内。
+  // 浮层拖拽：按住浮层任意非按钮/非链接区域拖动，位置约束在浏览器可视区域内。
   var suppressDragClickUntil = 0;
   function clampDrag(v, min, max) { return Math.max(min, Math.min(max, v)); }
   function beginDetailDrag(d, ev) {
@@ -897,10 +897,10 @@ function dagScript() {
     var dRect = d.getBoundingClientRect();
     var startX = ev.clientX;
     var startY = ev.clientY;
-    var startLeft = dRect.left - cRect.left;
-    var startTop = dRect.top - cRect.top;
-    d.style.left = startLeft + 'px';
-    d.style.top = startTop + 'px';
+    var startViewLeft = dRect.left;
+    var startViewTop = dRect.top;
+    d.style.left = (startViewLeft - cRect.left) + 'px';
+    d.style.top = (startViewTop - cRect.top) + 'px';
     d.style.right = 'auto';
     var dragging = false;
     function onMove(e) {
@@ -909,10 +909,15 @@ function dagScript() {
         dragging = true;
         d.classList.add('sg-dragging');
       }
-      var maxLeft = Math.max(0, canvas.scrollWidth - d.offsetWidth);
-      var maxTop = Math.max(0, canvas.scrollHeight - d.offsetHeight);
-      d.style.left = clampDrag(startLeft + (e.clientX - startX), 0, maxLeft) + 'px';
-      d.style.top = clampDrag(startTop + (e.clientY - startY), 0, maxTop) + 'px';
+      var viewW = window.innerWidth || document.documentElement.clientWidth || 1024;
+      var viewH = window.innerHeight || document.documentElement.clientHeight || 768;
+      var maxViewLeft = Math.max(0, viewW - d.offsetWidth);
+      var maxViewTop = Math.max(0, viewH - d.offsetHeight);
+      var viewLeft = clampDrag(startViewLeft + (e.clientX - startX), 0, maxViewLeft);
+      var viewTop = clampDrag(startViewTop + (e.clientY - startY), 0, maxViewTop);
+      var cNow = canvas.getBoundingClientRect();
+      d.style.left = (viewLeft - cNow.left) + 'px';
+      d.style.top = (viewTop - cNow.top) + 'px';
       if (e.preventDefault) e.preventDefault();
     }
     function onUp() {
