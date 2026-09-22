@@ -199,17 +199,28 @@ describe('signal-pool-html 看板渲染', () => {
     assert.ok(html.includes('data-action="keep"'));
     assert.ok(html.includes('data-action="pause"'));
     assert.ok(html.includes('data-action="close"'));
+    assert.ok(html.includes('待对账 1'));
   });
 
   it('对账决策记录：服务端记录默认折叠展示，报价对比 N 忠实计数', () => {
     const base = makeView();
     const view = JSON.parse(JSON.stringify(base));
     const detail = view.details['SIG-PP0-20260910-01'];
+    const living = detail.versions[0];
+    const quote = JSON.parse(JSON.stringify(living));
+    quote.versionId = 'SIG-PP0-20260910-01:V2';
+    quote.signalDate = '2026-09-11';
+    quote.quoteDate = '2026-09-11';
+    quote.stop = { stopPrice: 8700, basis: 'Q5 收紧' };
+    quote.decision = { status: 'adopted', reason: '采用新报价作为当前有效交易单', decidedAt: '2026-09-15T09:00:00.000Z' };
+    quote.diff = { relation: 'refined', changedFields: [{ field: 'stop.stopPrice', label: '止损价', oldValue: 8619, newValue: 8700 }] };
+    detail.versions = [living, quote];
     detail.decisionRecords = [{
       schema: 'futures-radar-signal-decision-record/1',
       recordId: 'DR-SIG-PP0-20260910-01-V2-1',
       signalId: 'SIG-PP0-20260910-01',
       quoteVersionId: 'SIG-PP0-20260910-01:V2',
+      livingVersionIdBefore: 'SIG-PP0-20260910-01:V1',
       action: 'adopt',
       reason: '采用新报价作为当前有效交易单',
       decidedAt: '2026-09-15T09:00:00.000Z',
@@ -223,5 +234,11 @@ describe('signal-pool-html 看板渲染', () => {
     assert.ok(html.includes('采用新报价'));
     assert.ok(html.includes('待回填') === false);
     assert.ok(html.includes('报价对比 2'));
+    // 展开后重放完整对账视图：并排交易单 + 差异高亮 + 决策时 livingTicket。
+    assert.ok(html.includes('quote-compare-grid'));
+    assert.ok(html.includes('ticket-fields'));
+    assert.ok(html.includes('tk-diff'));
+    assert.ok(html.includes('决策时有效交易单 SIG-PP0-20260910-01:V1'));
+    assert.ok(html.indexOf('对账决策记录') > html.indexOf('sig-timeline'));
   });
 });

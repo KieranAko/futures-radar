@@ -1123,6 +1123,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .story-status.sig-closed { background: #f1f3f5; color: #6b7280; }
   .sig-price-line { font-size: 12px; color: var(--muted); background: #f7f8fa; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; margin: 8px 0 2px; }
   .quote-pending-badge { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+  .quote-count-badge { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: #f1f3f5; color: #475569; border: 1px solid var(--border); }
   .quote-compare { margin: 10px 0; border: 1px solid #fde68a; border-radius: 8px; background: #fffbeb; padding: 10px 12px; }
   .quote-compare-head { font-size: 13px; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .rel { font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); background: #fff; }
@@ -1616,6 +1617,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
     return '<details class="decision-record is-local" data-key="' + d.signalId + '|' + d.quoteVersionId + '">' +
       '<summary><b>对账决策</b> · ' + (labels[d.action] || d.action) + ' · ' + d.quoteVersionId + ' · ' + dt + ' <span class="dr-badge">待回填</span></summary>' +
       '<div class="decision-record-body">' +
+      '<div class="local-compare-slot"></div>' +
       '<div class="dr-row"><span>理由</span><span>' + d.reason + '</span></div>' +
       '<div class="dr-row"><span>动作</span><span>' + (labels[d.action] || d.action) + '</span></div>' +
       '<button type="button" class="decision-record-edit">修改决策</button>' +
@@ -1633,6 +1635,15 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
       const signalId = zone.dataset.signalId;
       Object.values(decisions).filter((d) => d.signalId === signalId).forEach((d) => {
         zone.insertAdjacentHTML('beforeend', localDecisionRecordHtml(d));
+        const rec = zone.querySelector('.decision-record.is-local[data-key="' + d.signalId + '|' + d.quoteVersionId + '"]');
+        const src = document.querySelector('.quote-compare[data-quote-version-id="' + d.quoteVersionId + '"]');
+        if (rec && src) {
+          const slot = rec.querySelector('.local-compare-slot');
+          ['quote-compare-head', 'quote-diff-notes', 'quote-compare-grid', 'quote-recon'].forEach((cls) => {
+            const el = src.querySelector('.' + cls);
+            if (el) slot.appendChild(el.cloneNode(true));
+          });
+        }
       });
       if (!zone.querySelector('.decision-record')) zone.innerHTML = '';
     });

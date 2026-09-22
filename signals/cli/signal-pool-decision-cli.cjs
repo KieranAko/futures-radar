@@ -41,13 +41,14 @@ function writeFile(p, s) {
   fs.writeFileSync(p, s, 'utf8');
 }
 
-function appendDecisionRecord(sig, d, runId, now) {
+function appendDecisionRecord(sig, d, runId, now, livingBefore = null) {
   if (!Array.isArray(sig.decisionRecords)) sig.decisionRecords = [];
   const record = {
     schema: DECISION_RECORD_SCHEMA,
     recordId: `DR-${sig.signalId}-${String(d.quoteVersionId).replace(/[^A-Za-z0-9-]/g, '-')}-${Date.now()}`,
     signalId: sig.signalId,
     quoteVersionId: d.quoteVersionId,
+    livingVersionIdBefore: livingBefore || sig.livingVersionId || null,
     action: d.action,
     reason: d.reason,
     decidedAt: d.decidedAt || now,
@@ -85,13 +86,14 @@ function applyDecisions(runId, file, rootOverride = null) {
       continue;
     }
     const now = new Date().toISOString();
+    const livingBefore = sig.livingVersionId || null;
     if (d.action === 'adopt') {
       if (quote.direction !== sig.direction) {
         // 反向报价被人类采纳 = 旧假设被人类推翻：旧信号 flipped 关闭，新信号重新出生（新 T0）。
         closeSignal(sig, 'flipped');
         sig.closedAt = d.decidedAt || now;
         quote.decision = { status: 'adopted', reason: d.reason, decidedAt: d.decidedAt || now, decidedRunId: runId };
-        appendDecisionRecord(sig, d, runId, now);
+        appendDecisionRecord(sig, d, runId, now, livingBefore);
         saveSignal(sig, root);
         const neu = createSignalFromVersion(sig, quote, runId, root);
         ledger.signals.push({ signalId: neu.signalId, symbol: neu.symbol });
@@ -104,23 +106,23 @@ function applyDecisions(runId, file, rootOverride = null) {
         if (quote.contract) sig.contract = quote.contract;
         quote.decision = { status: 'adopted', reason: d.reason, decidedAt: d.decidedAt || now, decidedRunId: runId };
         sig.poolStatus = 'active';
-        appendDecisionRecord(sig, d, runId, now);
+        appendDecisionRecord(sig, d, runId, now, livingBefore);
       }
       summary.adopt++;
     } else if (d.action === 'keep') {
       quote.decision = { status: 'kept', reason: d.reason, decidedAt: d.decidedAt || now, decidedRunId: runId };
-      appendDecisionRecord(sig, d, runId, now);
+      appendDecisionRecord(sig, d, runId, now, livingBefore);
       summary.keep++;
     } else if (d.action === 'pause') {
       quote.decision = { status: 'paused', reason: d.reason, decidedAt: d.decidedAt || now, decidedRunId: runId };
       sig.poolStatus = 'downgraded';
-      appendDecisionRecord(sig, d, runId, now);
+      appendDecisionRecord(sig, d, runId, now, livingBefore);
       summary.pause++;
     } else if (d.action === 'close') {
       closeSignal(sig, d.closeReason || 'faded');
       sig.closedAt = d.decidedAt || now;
       quote.decision = { status: 'closed', reason: d.reason, decidedAt: d.decidedAt || now, decidedRunId: runId };
-      appendDecisionRecord(sig, d, runId, now);
+      appendDecisionRecord(sig, d, runId, now, livingBefore);
       summary.close++;
     }
     touched.add(sig.signalId);

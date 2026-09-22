@@ -1117,23 +1117,53 @@ function actionLabelText(action) {
   return { adopt: '采用新报价', keep: '维持旧单', pause: '暂停信号', close: '关闭信号' }[action] || action || '—';
 }
 
-function decisionRecordHtml(record, { local = false } = {}) {
+function fullComparisonViewHtml(record, versions) {
+  const list = Array.isArray(versions) ? versions : [];
+  const quote = list.find((v) => v.versionId === record.quoteVersionId) || null;
+  if (!quote) {
+    return `<div class="decision-record-body"><div class="dr-row"><span>理由</span><span>${escapeHtml(record.reason || '—')}</span></div></div>`;
+  }
+  const living = list.find((v) => v.versionId === record.livingVersionIdBefore)
+    || (() => {
+      const idx = list.findIndex((v) => v.versionId === record.quoteVersionId);
+      for (let i = idx - 1; i >= 0; i--) {
+        if (list[i] && list[i].decision && (list[i].decision.status === 'born' || list[i].decision.status === 'adopted')) return list[i];
+      }
+      return list[0] || null;
+    })();
+  const diff = quote.diff || {};
+  const changed = Array.isArray(diff.changedFields) ? diff.changedFields : [];
+  const diffNotes = changed.length
+    ? `<div class="quote-diff-notes"><b>差异字段</b><ul>${changed.map((d) => `<li><b>${escapeHtml(d.label)}</b>（${escapeHtml(d.field)}）：旧 <span class="diff-old-val">${escapeHtml(d.oldValue == null ? '—' : String(d.oldValue))}</span> → 新 <span class="diff-new-val">${escapeHtml(d.newValue == null ? '—' : String(d.newValue))}</span></li>`).join('')}</ul></div>`
+    : '<div class="quote-diff-notes muted">两份交易单无字段差异。</div>';
+  const recon = quote.reconciliation;
+  const reconBlock = recon ? `<div class="quote-recon"><b>对账 LLM 解释</b><div>${escapeHtml(recon.summary || '')}</div>${Array.isArray(recon.conflicts) && recon.conflicts.length ? `<ul class="quote-conflicts">${recon.conflicts.map((c) => `<li>${escapeHtml(c.field || '')}（${escapeHtml(c.severity || '')}）：${escapeHtml(c.explanation || '')}</li>`).join('')}</ul>` : ''}</div>` : '';
+  return `<div class="decision-record-body">
+    <div class="dr-row"><span>关系</span><span class="rel rel-${escapeHtml(diff.relation || 'aligned')}">${relationLabel(diff.relation)}</span></div>
+    ${diffNotes}
+    <div class="quote-compare-grid">
+      <div class="quote-col"><div class="quote-col-head">决策时有效交易单 ${escapeHtml(living ? living.versionId : '—')}</div>${living ? ticketCompareTable(living, changed) : '<div class="muted">—</div>'}</div>
+      <div class="quote-col"><div class="quote-col-head">新报价 ${escapeHtml(quote.versionId)}</div>${ticketCompareTable(quote, changed)}</div>
+    </div>
+    ${reconBlock}
+    <div class="dr-row"><span>动作</span><span>${escapeHtml(actionLabelText(record.action))}</span></div>
+    <div class="dr-row"><span>理由</span><span>${escapeHtml(record.reason || '—')}</span></div>
+  </div>`;
+}
+
+function decisionRecordHtml(record, versions, { local = false } = {}) {
   const dt = record.decidedAt ? String(record.decidedAt).replace('T', ' ').slice(0, 16) : '—';
   const cls = local ? 'is-local' : 'is-applied';
   const badge = local ? '<span class="dr-badge">待回填</span>' : '<span class="dr-badge applied">已回填</span>';
   return `<details class="decision-record ${cls}">
     <summary><b>对账决策</b> · ${escapeHtml(actionLabelText(record.action))} · ${escapeHtml(record.quoteVersionId || '—')} · ${escapeHtml(dt)} ${badge}</summary>
-    <div class="decision-record-body">
-      <div class="dr-row"><span>理由</span><span>${escapeHtml(record.reason || '—')}</span></div>
-      <div class="dr-row"><span>动作</span><span>${escapeHtml(actionLabelText(record.action))}</span></div>
-      ${local ? `<button type="button" class="decision-record-edit" data-action="edit-local-decision">修改决策</button>` : ''}
-    </div>
+    ${local ? '' : fullComparisonViewHtml(record, versions)}
   </details>`;
 }
 
-function decisionRecordsHtml(sig) {
+function decisionRecordsHtml(sig, versions) {
   const records = Array.isArray(sig.decisionRecords) ? sig.decisionRecords : [];
-  const server = records.map((r) => decisionRecordHtml(r, { local: false })).join('');
+  const server = records.map((r) => decisionRecordHtml(r, versions, { local: false })).join('');
   return `<div class="decision-records" data-signal-id="${escapeHtml(sig.signalId)}">
     ${server ? `<h4>对账决策记录</h4>${server}` : ''}
   </div>`;
@@ -1166,22 +1196,24 @@ function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyThe
   const timeline = signalTimelineHtml(sig, versions, { closed: isClosed });
   const comparison = !isClosed ? quoteComparisonHtml(sig) : '';
   const comparisonCount = sig.comparisonCount != null ? sig.comparisonCount : versions.filter((v) => v && v.diff).length;
+  const pendingCount = versions.filter((v) => v && v.decision && v.decision.status === 'pending').length;
   const chart = lifecycleChart(sig, versions, bars);
   const chartHtml = chart || '<div class="sig-chart-missing muted">暂无价格序列，无法绘制价格轨迹。</div>';
   const headHtml = `<span class="story-theme">${escapeHtml(sig.name || sig.symbol || '—')} <span class="muted">${escapeHtml(displayContract || sig.symbol || '')}</span></span>
       <span class="story-status ${badgeCls}">${escapeHtml(statusText)}</span>
       ${dirHtml}
       ${storyHtml}
-      ${comparisonCount > 0 ? `<span class="quote-pending-badge">报价对比 ${comparisonCount}</span>` : ''}
+      ${pendingCount > 0 ? `<span class="quote-pending-badge">待对账 ${pendingCount}</span>` : ''}
+      ${comparisonCount > 0 ? `<span class="quote-count-badge">报价对比 ${comparisonCount}</span>` : ''}
       <span class="story-proof">${versions.length} 报价${currentNum ? ` · 当前 ${escapeHtml(currentNum)}` : ''}${sig.createdDate ? ` · T0 ${escapeHtml(sig.createdDate)}` : ''}</span>`;
   const bodyHtml = `${sig.thesis ? `<div class="story-subtitle">${escapeHtml(typeof sig.thesis === 'string' ? sig.thesis : (sig.thesis.summary || ''))}</div>` : ''}
     ${priceLine}
     ${comparison}
-    ${decisionRecordsHtml(sig)}
     <div class="sig-chart-block"><div class="sig-chart-head">📈 价格轨迹</div>${chartHtml}</div>
     ${!isClosed ? signalObservationLine(sig) : ''}
     ${signalAnchorGrid(sig, { closed: isClosed })}
-    ${timeline}`;
+    ${timeline}
+    ${decisionRecordsHtml(sig, versions)}`;
   if (isClosed) {
     return `<details class="story-panel signal-panel is-closed">
     <summary class="story-panel-head">${headHtml}</summary>

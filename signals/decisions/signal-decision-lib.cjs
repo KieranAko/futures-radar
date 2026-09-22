@@ -23,6 +23,7 @@ function validateDecisionRecords(records) {
     if (!r.recordId) errors.push(`decisionRecords[${i}].recordId 缺失`);
     if (!r.signalId) errors.push(`decisionRecords[${i}].signalId 缺失`);
     if (!r.quoteVersionId) errors.push(`decisionRecords[${i}].quoteVersionId 缺失`);
+    if (r.livingVersionIdBefore != null && typeof r.livingVersionIdBefore !== 'string') errors.push(`decisionRecords[${i}].livingVersionIdBefore 必须是字符串`);
     if (!ACTIONS.includes(r.action)) errors.push(`decisionRecords[${i}].action 必须是 ${ACTIONS.join('/')}`);
     if (typeof r.reason !== 'string' || !r.reason.trim()) errors.push(`decisionRecords[${i}].reason 必须是非空理由`);
   });

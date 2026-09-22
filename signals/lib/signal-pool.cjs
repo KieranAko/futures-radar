@@ -497,8 +497,10 @@ function normalizeVersions(signal) {
     changed = true;
   }
   const actionOfStatus = { adopted: 'adopt', kept: 'keep', paused: 'pause', closed: 'close' };
+  let prevAdopted = null;
   for (const v of collapsed) {
     const st = v.decision && v.decision.status;
+    if (isAdoptedVersion(v)) prevAdopted = v;
     if (!st || st === 'born' || st === 'pending') continue;
     const action = actionOfStatus[st];
     if (!action) continue;
@@ -509,10 +511,11 @@ function normalizeVersions(signal) {
       recordId: `DR-${signal.signalId}-${String(v.versionId).replace(/[^A-Za-z0-9-]/g, '-')}-${Date.now()}`,
       signalId: signal.signalId,
       quoteVersionId: v.versionId,
+      livingVersionIdBefore: prevAdopted && prevAdopted.versionId !== v.versionId ? prevAdopted.versionId : null,
       action,
       reason: v.decision.reason || 'legacy 迁移',
       decidedAt: v.decision.decidedAt || v.quoteDate || v.signalDate,
-      decidedBy: v.decision.decidedRunId ? 'legacy-migration' : 'legacy-migration',
+      decidedBy: 'legacy-migration',
       status: 'applied'
     });
     changed = true;
