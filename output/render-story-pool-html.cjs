@@ -766,6 +766,7 @@ function dagScript() {
     d.style.left = '';
     d.style.top = '';
     d.style.right = '';
+    d.style.width = '';
     d.classList.remove('wide');
     var rows = [];
     rows.push('<div class="sg-detail-head"><b>' + n.label + '</b><button class="sg-detail-close">×</button></div>');
@@ -799,6 +800,7 @@ function dagScript() {
     d.style.left = '';
     d.style.top = '';
     d.style.right = '';
+    d.style.width = '';
     var c = n.caliber || {};
     var rows = [];
     rows.push('<div class="sg-detail-head"><b>指标口径</b><button class="sg-detail-close">×</button></div>');
@@ -866,6 +868,7 @@ function dagScript() {
       d.style.left = '';
       d.style.top = '';
       d.style.right = '';
+      d.style.width = '';
     }
     g.removeAttribute('data-detail-mode');
   }
@@ -884,6 +887,7 @@ function dagScript() {
     d.style.left = '';
     d.style.top = '';
     d.style.right = '';
+    d.style.width = '';
     d.classList.remove('wide');
     d.innerHTML = '<div class="sg-detail-card"><div class="sg-detail-head"><b>传导边</b><button class="sg-detail-close">×</button></div><div class="sg-detail-row"><span>逻辑</span><b>' + esc(e.logic) + '</b></div><div class="sg-detail-row"><span>时间窗</span><b>' + esc(e.latencyDays) + ' 个交易日</b></div></div>';
   }
@@ -899,6 +903,9 @@ function dagScript() {
     var startY = ev.clientY;
     var startViewLeft = dRect.left;
     var startViewTop = dRect.top;
+    // 冻结拖拽时的宽度：绝对定位元素 left 超出包含块时，width:auto 会触发
+    // shrink-to-fit 重新计算并把浮层压成最小内容宽度，拖过画布边界就会“变窄”。
+    d.style.width = dRect.width + 'px';
     d.style.left = (startViewLeft - cRect.left) + 'px';
     d.style.top = (startViewTop - cRect.top) + 'px';
     d.style.right = 'auto';
@@ -908,9 +915,11 @@ function dagScript() {
         if (Math.abs(e.clientX - startX) < 4 && Math.abs(e.clientY - startY) < 4) return;
         dragging = true;
         d.classList.add('sg-dragging');
+        // 清除 mousedown 阶段已经开始的文字选区，避免拖拽时出现高亮。
+        if (window.getSelection) window.getSelection().removeAllRanges();
       }
-      var viewW = window.innerWidth || document.documentElement.clientWidth || 1024;
-      var viewH = window.innerHeight || document.documentElement.clientHeight || 768;
+      var viewW = Math.max(0, (window.innerWidth || document.documentElement.clientWidth || 1024) - 2);
+      var viewH = Math.max(0, (window.innerHeight || document.documentElement.clientHeight || 768) - 2);
       var maxViewLeft = Math.max(0, viewW - d.offsetWidth);
       var maxViewTop = Math.max(0, viewH - d.offsetHeight);
       var viewLeft = clampDrag(startViewLeft + (e.clientX - startX), 0, maxViewLeft);
@@ -936,6 +945,8 @@ function dagScript() {
     if (t.closest('.sg-detail-close') || t.closest('a') || t.closest('button')) return;
     var d = t.closest('.dg-detail');
     if (!d || !d.querySelector('.sg-detail-card')) return;
+    // 阻止浏览器在 mousedown 阶段启动文字选中（不影响 click 触发）。
+    if (ev.preventDefault) ev.preventDefault();
     beginDetailDrag(d, ev);
   });
   document.querySelectorAll('.dg-canvas').forEach(drawDag);

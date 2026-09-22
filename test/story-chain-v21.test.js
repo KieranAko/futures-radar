@@ -852,6 +852,11 @@ describe('V2.1 并行观察与节点三态（观察中/已证明/已证伪）', 
     assert.match(src, /document\.addEventListener\('mousedown'/);
     assert.match(src, /sg-dragging/);
     assert.match(src, /suppressDragClickUntil/);
+    // 拖动时冻结宽度（防止 left 超出包含块触发 shrink-to-fit 变窄），并阻止文字选中。
+    assert.match(src, /d\.style\.width = dRect\.width/);
+    assert.match(src, /d\.style\.width = ''/);
+    assert.match(src, /ev\.preventDefault\(\)/);
+    assert.match(src, /getSelection\(\)\.removeAllRanges/);
     assert.doesNotMatch(src, /className = 'sg-detail/);
     assert.doesNotMatch(src, /alignmentMarkerHtml/);
     assert.doesNotMatch(src, /node-align-marker/);
