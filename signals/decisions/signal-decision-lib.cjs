@@ -7,7 +7,27 @@
 'use strict';
 
 const DECISION_SCHEMA = 'futures-radar-signal-decisions/1';
+const DECISION_RECORD_SCHEMA = 'futures-radar-signal-decision-record/1';
 const ACTIONS = ['adopt', 'keep', 'pause', 'close'];
+
+function actionLabel(action) {
+  return { adopt: '采用新报价', keep: '维持旧单', pause: '暂停信号', close: '关闭信号' }[action] || action;
+}
+
+function validateDecisionRecords(records) {
+  const errors = [];
+  if (!Array.isArray(records)) return { ok: false, errors: ['decisionRecords 必须为数组'] };
+  records.forEach((r, i) => {
+    if (!r || typeof r !== 'object') { errors.push(`decisionRecords[${i}] 必须是对象`); return; }
+    if (r.schema && r.schema !== DECISION_RECORD_SCHEMA) errors.push(`decisionRecords[${i}].schema 非法`);
+    if (!r.recordId) errors.push(`decisionRecords[${i}].recordId 缺失`);
+    if (!r.signalId) errors.push(`decisionRecords[${i}].signalId 缺失`);
+    if (!r.quoteVersionId) errors.push(`decisionRecords[${i}].quoteVersionId 缺失`);
+    if (!ACTIONS.includes(r.action)) errors.push(`decisionRecords[${i}].action 必须是 ${ACTIONS.join('/')}`);
+    if (typeof r.reason !== 'string' || !r.reason.trim()) errors.push(`decisionRecords[${i}].reason 必须是非空理由`);
+  });
+  return { ok: errors.length === 0, errors };
+}
 
 function validateDecisions(doc) {
   const errors = [];
@@ -34,4 +54,4 @@ function validateDecisions(doc) {
   return { ok: errors.length === 0, errors };
 }
 
-module.exports = { DECISION_SCHEMA, ACTIONS, validateDecisions };
+module.exports = { DECISION_SCHEMA, DECISION_RECORD_SCHEMA, ACTIONS, validateDecisions, validateDecisionRecords, actionLabel };

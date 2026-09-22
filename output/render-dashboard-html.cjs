@@ -1150,6 +1150,21 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .quote-decide:hover { border-color: var(--accent); color: var(--accent); }
   .quote-decide.danger { color: #b91c1c; border-color: #fca5a5; }
   .quote-decide.danger:hover { background: #fef2f2; }
+  .decision-records { margin: 8px 0; }
+  .decision-records h4 { margin: 0 0 4px; font-size: 12px; color: var(--muted); }
+  .decision-record { border: 1px solid var(--border); border-radius: 6px; background: #fff; padding: 4px 10px; margin: 4px 0; font-size: 12px; }
+  .decision-record > summary { list-style: none; cursor: pointer; }
+  .decision-record > summary::-webkit-details-marker { display: none; }
+  .decision-record > summary::before { content: "▸"; color: var(--muted); margin-right: 6px; font-size: 11px; display: inline-block; }
+  .decision-record[open] > summary::before { transform: rotate(90deg); }
+  .decision-record.is-local { border-style: dashed; border-color: #fcd34d; background: #fffbeb; }
+  .dr-badge { font-size: 10px; padding: 0 6px; border-radius: 999px; background: #fef3c7; color: #92400e; margin-left: 4px; }
+  .dr-badge.applied { background: #ecfdf5; color: #047857; }
+  .decision-record-body { padding: 4px 0 6px; color: var(--muted); }
+  .dr-row { display: flex; gap: 8px; padding: 1px 0; }
+  .dr-row span:first-child { min-width: 42px; color: var(--muted); }
+  .dr-row span:last-child { color: var(--text); }
+  .decision-record-edit { margin-top: 4px; border: 1px solid var(--border); background: #fff; border-radius: 5px; padding: 2px 8px; font-size: 11px; cursor: pointer; }
   .quote-decision-state { font-size: 11px; margin-top: 4px; }
   .decision-export-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; color: var(--muted); }
   .decision-export-btn { border: 1px solid var(--border); background: #fff; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
@@ -1595,16 +1610,53 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   function saveDecisions(obj) {
     localStorage.setItem(DECISION_STORE_KEY, JSON.stringify(obj));
   }
+  function localDecisionRecordHtml(d) {
+    const dt = d.decidedAt ? d.decidedAt.replace('T', ' ').slice(0, 16) : '—';
+    const labels = { adopt: '采用新报价', keep: '维持旧单', pause: '暂停信号', close: '关闭信号' };
+    return '<details class="decision-record is-local" data-key="' + d.signalId + '|' + d.quoteVersionId + '">' +
+      '<summary><b>对账决策</b> · ' + (labels[d.action] || d.action) + ' · ' + d.quoteVersionId + ' · ' + dt + ' <span class="dr-badge">待回填</span></summary>' +
+      '<div class="decision-record-body">' +
+      '<div class="dr-row"><span>理由</span><span>' + d.reason + '</span></div>' +
+      '<div class="dr-row"><span>动作</span><span>' + (labels[d.action] || d.action) + '</span></div>' +
+      '<button type="button" class="decision-record-edit">修改决策</button>' +
+      '</div></details>';
+  }
   function renderDecisionStates() {
     const decisions = loadDecisions();
+    const labels = { adopt: '采用新报价', keep: '维持旧单', pause: '暂停信号', close: '关闭信号' };
     document.querySelectorAll('.quote-compare').forEach((box) => {
       const key = box.dataset.signalId + '|' + box.dataset.quoteVersionId;
-      const d = decisions[key];
-      const state = box.querySelector('.quote-decision-state');
-      if (!state) return;
-      if (!d) { state.textContent = ''; return; }
-      const labels = { adopt: '已决定：采用新报价', keep: '已决定：维持旧单', pause: '已决定：暂停信号', close: '已决定：关闭信号' };
-      state.textContent = (labels[d.action] || d.action) + ' · 理由：' + d.reason;
+      box.style.display = decisions[key] ? 'none' : '';
+    });
+    document.querySelectorAll('.decision-records').forEach((zone) => {
+      zone.querySelectorAll('.decision-record.is-local').forEach((el) => el.remove());
+      const signalId = zone.dataset.signalId;
+      Object.values(decisions).filter((d) => d.signalId === signalId).forEach((d) => {
+        zone.insertAdjacentHTML('beforeend', localDecisionRecordHtml(d));
+      });
+      if (!zone.querySelector('.decision-record')) zone.innerHTML = '';
+    });
+    document.querySelectorAll('.decision-record.is-local .decision-record-edit').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const rec = btn.closest('.decision-record');
+        const d = decisions[rec.dataset.key];
+        if (!d) return;
+        const body = rec.querySelector('.decision-record-body');
+        const opts = Object.entries(labels).map(([v, l]) => '<option value="' + v + '"' + (v === d.action ? ' selected' : '') + '>' + l + '</option>').join('');
+        body.innerHTML = '<div class="dr-row"><span>动作</span><span><select class="local-action">' + opts + '</select></span></div>' +
+          '<div class="dr-row"><span>理由</span><span><input class="local-reason" type="text" maxlength="200" value="' + d.reason + '"></span></div>' +
+          '<button type="button" class="local-save">保存修改</button> <button type="button" class="local-cancel">取消</button>';
+        body.querySelector('.local-save').addEventListener('click', () => {
+          const reason = body.querySelector('.local-reason').value.trim();
+          if (!reason) { alert('理由不能为空'); return; }
+          d.action = body.querySelector('.local-action').value;
+          d.reason = reason;
+          d.decidedAt = new Date().toISOString();
+          saveDecisions(decisions);
+          renderDecisionStates();
+        });
+        body.querySelector('.local-cancel').addEventListener('click', () => renderDecisionStates());
+      });
     });
   }
   document.querySelectorAll('.quote-decide').forEach((btn) => {

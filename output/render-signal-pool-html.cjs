@@ -1113,6 +1113,32 @@ function quoteComparisonHtml(sig) {
   }).join('');
 }
 
+function actionLabelText(action) {
+  return { adopt: '采用新报价', keep: '维持旧单', pause: '暂停信号', close: '关闭信号' }[action] || action || '—';
+}
+
+function decisionRecordHtml(record, { local = false } = {}) {
+  const dt = record.decidedAt ? String(record.decidedAt).replace('T', ' ').slice(0, 16) : '—';
+  const cls = local ? 'is-local' : 'is-applied';
+  const badge = local ? '<span class="dr-badge">待回填</span>' : '<span class="dr-badge applied">已回填</span>';
+  return `<details class="decision-record ${cls}">
+    <summary><b>对账决策</b> · ${escapeHtml(actionLabelText(record.action))} · ${escapeHtml(record.quoteVersionId || '—')} · ${escapeHtml(dt)} ${badge}</summary>
+    <div class="decision-record-body">
+      <div class="dr-row"><span>理由</span><span>${escapeHtml(record.reason || '—')}</span></div>
+      <div class="dr-row"><span>动作</span><span>${escapeHtml(actionLabelText(record.action))}</span></div>
+      ${local ? `<button type="button" class="decision-record-edit" data-action="edit-local-decision">修改决策</button>` : ''}
+    </div>
+  </details>`;
+}
+
+function decisionRecordsHtml(sig) {
+  const records = Array.isArray(sig.decisionRecords) ? sig.decisionRecords : [];
+  const server = records.map((r) => decisionRecordHtml(r, { local: false })).join('');
+  return `<div class="decision-records" data-signal-id="${escapeHtml(sig.signalId)}">
+    ${server ? `<h4>对账决策记录</h4>${server}` : ''}
+  </div>`;
+}
+
 function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyTheme = null, storyChainId = null, contract = null } = {}) {
   const sig = { ...(detail || {}), ...s, versions: (detail && Array.isArray(detail.versions) ? detail.versions : []) };
   const versions = sig.versions;
@@ -1139,18 +1165,19 @@ function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyThe
   }
   const timeline = signalTimelineHtml(sig, versions, { closed: isClosed });
   const comparison = !isClosed ? quoteComparisonHtml(sig) : '';
-  const pendingCount = versions.filter((v) => v.decision && v.decision.status === 'pending').length;
+  const comparisonCount = sig.comparisonCount != null ? sig.comparisonCount : versions.filter((v) => v && v.diff).length;
   const chart = lifecycleChart(sig, versions, bars);
   const chartHtml = chart || '<div class="sig-chart-missing muted">暂无价格序列，无法绘制价格轨迹。</div>';
   const headHtml = `<span class="story-theme">${escapeHtml(sig.name || sig.symbol || '—')} <span class="muted">${escapeHtml(displayContract || sig.symbol || '')}</span></span>
       <span class="story-status ${badgeCls}">${escapeHtml(statusText)}</span>
       ${dirHtml}
       ${storyHtml}
-      ${pendingCount > 0 ? `<span class="quote-pending-badge">报价对比 ${pendingCount}</span>` : ''}
+      ${comparisonCount > 0 ? `<span class="quote-pending-badge">报价对比 ${comparisonCount}</span>` : ''}
       <span class="story-proof">${versions.length} 报价${currentNum ? ` · 当前 ${escapeHtml(currentNum)}` : ''}${sig.createdDate ? ` · T0 ${escapeHtml(sig.createdDate)}` : ''}</span>`;
   const bodyHtml = `${sig.thesis ? `<div class="story-subtitle">${escapeHtml(typeof sig.thesis === 'string' ? sig.thesis : (sig.thesis.summary || ''))}</div>` : ''}
     ${priceLine}
     ${comparison}
+    ${decisionRecordsHtml(sig)}
     <div class="sig-chart-block"><div class="sig-chart-head">📈 价格轨迹</div>${chartHtml}</div>
     ${!isClosed ? signalObservationLine(sig) : ''}
     ${signalAnchorGrid(sig, { closed: isClosed })}

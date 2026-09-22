@@ -491,6 +491,32 @@ function normalizeVersions(signal) {
     if (!Object.prototype.hasOwnProperty.call(v, 'reconciliation')) { v.reconciliation = null; changed = true; }
     prev = v;
   }
+  // v6.1 迁移：决策记录入信号文件。旧数据无 decisionRecords 时，从历史版本决策状态回填。
+  if (!Array.isArray(signal.decisionRecords)) {
+    signal.decisionRecords = [];
+    changed = true;
+  }
+  const actionOfStatus = { adopted: 'adopt', kept: 'keep', paused: 'pause', closed: 'close' };
+  for (const v of collapsed) {
+    const st = v.decision && v.decision.status;
+    if (!st || st === 'born' || st === 'pending') continue;
+    const action = actionOfStatus[st];
+    if (!action) continue;
+    const exists = signal.decisionRecords.some((r) => r && r.quoteVersionId === v.versionId && r.action === action);
+    if (exists) continue;
+    signal.decisionRecords.push({
+      schema: 'futures-radar-signal-decision-record/1',
+      recordId: `DR-${signal.signalId}-${String(v.versionId).replace(/[^A-Za-z0-9-]/g, '-')}-${Date.now()}`,
+      signalId: signal.signalId,
+      quoteVersionId: v.versionId,
+      action,
+      reason: v.decision.reason || 'legacy 迁移',
+      decidedAt: v.decision.decidedAt || v.quoteDate || v.signalDate,
+      decidedBy: v.decision.decidedRunId ? 'legacy-migration' : 'legacy-migration',
+      status: 'applied'
+    });
+    changed = true;
+  }
   for (const o of Array.isArray(signal.observations) ? signal.observations : []) {
     for (const e of Array.isArray(o.events) ? o.events : []) {
       if (e && e.versionId && oldToNew.has(e.versionId)) e.versionId = oldToNew.get(e.versionId);
@@ -982,6 +1008,8 @@ function summarizeSignal(signal) {
     lastSeenDate: signal.lastSeenDate,
     versionCount: signal.versions.length,
     consecutiveNonExecutable: signal.consecutiveNonExecutable || 0,
+    comparisonCount: Array.isArray(signal.versions) ? signal.versions.filter((v) => v && v.diff).length : 0,
+    decisionRecords: Array.isArray(signal.decisionRecords) ? signal.decisionRecords : [],
     livingVersionId: signal.livingVersionId || (living ? living.versionId : null),
     livingVersion: living ? versionToSummary(living) : null,
     currentVersion: cur ? {

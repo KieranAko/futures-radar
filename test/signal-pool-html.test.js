@@ -200,4 +200,28 @@ describe('signal-pool-html 看板渲染', () => {
     assert.ok(html.includes('data-action="pause"'));
     assert.ok(html.includes('data-action="close"'));
   });
+
+  it('对账决策记录：服务端记录默认折叠展示，报价对比 N 忠实计数', () => {
+    const base = makeView();
+    const view = JSON.parse(JSON.stringify(base));
+    const detail = view.details['SIG-PP0-20260910-01'];
+    detail.decisionRecords = [{
+      schema: 'futures-radar-signal-decision-record/1',
+      recordId: 'DR-SIG-PP0-20260910-01-V2-1',
+      signalId: 'SIG-PP0-20260910-01',
+      quoteVersionId: 'SIG-PP0-20260910-01:V2',
+      action: 'adopt',
+      reason: '采用新报价作为当前有效交易单',
+      decidedAt: '2026-09-15T09:00:00.000Z',
+      decidedBy: 'human-dashboard',
+      status: 'applied'
+    }];
+    detail.comparisonCount = 2;
+    const html = signalPoolPanelsHtml(view);
+    assert.ok(html.includes('class="decision-record is-applied"'));
+    assert.ok(html.includes('对账决策'));
+    assert.ok(html.includes('采用新报价'));
+    assert.ok(html.includes('待回填') === false);
+    assert.ok(html.includes('报价对比 2'));
+  });
 });

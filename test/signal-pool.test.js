@@ -669,6 +669,10 @@ describe('signal-pool v6：信号身份、T0 锚点与报价决策', () => {
       assert.equal(updated.livingVersionId, quote.versionId);
       assert.equal(adopted.decision.status, 'adopted');
       assert.equal(adopted.decision.reason, '采用新报价作为当前有效交易单');
+      assert.equal(updated.decisionRecords.length, 1);
+      assert.equal(updated.decisionRecords[0].action, 'adopt');
+      assert.equal(updated.decisionRecords[0].status, 'applied');
+      assert.equal(updated.decisionRecords[0].signalId, sig.signalId);
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }

@@ -14,7 +14,7 @@
 const fs = require('fs');
 const path = require('path');
 const { skillRoot, runDir, runtimeRoot } = require('../../shared/workspace.cjs');
-const { validateDecisions } = require('../decisions/signal-decision-lib.cjs');
+const { validateDecisions, DECISION_RECORD_SCHEMA } = require('../decisions/signal-decision-lib.cjs');
 const {
   loadLedger,
   saveLedger,
@@ -39,6 +39,23 @@ function readJSON(p, fallback = null) {
 function writeFile(p, s) {
   fs.mkdirSync(path.dirname(p), { recursive: true });
   fs.writeFileSync(p, s, 'utf8');
+}
+
+function appendDecisionRecord(sig, d, runId, now) {
+  if (!Array.isArray(sig.decisionRecords)) sig.decisionRecords = [];
+  const record = {
+    schema: DECISION_RECORD_SCHEMA,
+    recordId: `DR-${sig.signalId}-${String(d.quoteVersionId).replace(/[^A-Za-z0-9-]/g, '-')}-${Date.now()}`,
+    signalId: sig.signalId,
+    quoteVersionId: d.quoteVersionId,
+    action: d.action,
+    reason: d.reason,
+    decidedAt: d.decidedAt || now,
+    decidedBy: 'human-dashboard',
+    status: 'applied'
+  };
+  sig.decisionRecords.push(record);
+  return record;
 }
 
 function applyDecisions(runId, file, rootOverride = null) {
@@ -74,6 +91,7 @@ function applyDecisions(runId, file, rootOverride = null) {
         closeSignal(sig, 'flipped');
         sig.closedAt = d.decidedAt || now;
         quote.decision = { status: 'adopted', reason: d.reason, decidedAt: d.decidedAt || now, decidedRunId: runId };
+        appendDecisionRecord(sig, d, runId, now);
         saveSignal(sig, root);
         const neu = createSignalFromVersion(sig, quote, runId, root);
         ledger.signals.push({ signalId: neu.signalId, symbol: neu.symbol });
@@ -86,19 +104,23 @@ function applyDecisions(runId, file, rootOverride = null) {
         if (quote.contract) sig.contract = quote.contract;
         quote.decision = { status: 'adopted', reason: d.reason, decidedAt: d.decidedAt || now, decidedRunId: runId };
         sig.poolStatus = 'active';
+        appendDecisionRecord(sig, d, runId, now);
       }
       summary.adopt++;
     } else if (d.action === 'keep') {
       quote.decision = { status: 'kept', reason: d.reason, decidedAt: d.decidedAt || now, decidedRunId: runId };
+      appendDecisionRecord(sig, d, runId, now);
       summary.keep++;
     } else if (d.action === 'pause') {
       quote.decision = { status: 'paused', reason: d.reason, decidedAt: d.decidedAt || now, decidedRunId: runId };
       sig.poolStatus = 'downgraded';
+      appendDecisionRecord(sig, d, runId, now);
       summary.pause++;
     } else if (d.action === 'close') {
       closeSignal(sig, d.closeReason || 'faded');
       sig.closedAt = d.decidedAt || now;
       quote.decision = { status: 'closed', reason: d.reason, decidedAt: d.decidedAt || now, decidedRunId: runId };
+      appendDecisionRecord(sig, d, runId, now);
       summary.close++;
     }
     touched.add(sig.signalId);

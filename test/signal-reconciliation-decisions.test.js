@@ -7,7 +7,7 @@ import path from 'node:path';
 
 const require = createRequire(import.meta.url);
 const { validateReconciliation } = require('../signals/reconciliation/ticket-reconciliation-lib.cjs');
-const { validateDecisions } = require('../signals/decisions/signal-decision-lib.cjs');
+const { validateDecisions, validateDecisionRecords, actionLabel, DECISION_RECORD_SCHEMA } = require('../signals/decisions/signal-decision-lib.cjs');
 const { updateSignalPool, loadLedger, loadSignal } = require('../signals/lib/signal-pool.cjs');
 const { buildPrompt, applyReconciliation } = require('../signals/cli/signal-reconcile-cli.cjs');
 
@@ -66,6 +66,23 @@ describe('signal-decisions 人类决策契约', () => {
     const r = validateDecisions(doc);
     assert.equal(r.ok, false);
     assert.ok(r.errors.some((e) => e.includes('reason')));
+  });
+
+  it('decisionRecord 契约：合法记录通过，缺理由拒绝', () => {
+    const record = {
+      schema: DECISION_RECORD_SCHEMA,
+      recordId: 'DR-S-1',
+      signalId: 'S',
+      quoteVersionId: 'S:V2',
+      action: 'adopt',
+      reason: '采用新报价',
+      decidedAt: '2026-09-22T15:30:00.000Z',
+      decidedBy: 'human-dashboard',
+      status: 'applied'
+    };
+    assert.equal(validateDecisionRecords([record]).ok, true);
+    assert.equal(actionLabel('adopt'), '采用新报价');
+    assert.equal(validateDecisionRecords([{ ...record, reason: '' }]).ok, false);
   });
 });
 
