@@ -842,6 +842,11 @@ describe('V2.1 并行观察与节点三态（观察中/已证明/已证伪）', 
     assert.match(src, /classList\.remove\('wide'\)/);
     assert.match(src, /class="dg-detail sg-detail"/);
     assert.match(src, /t\.closest\('\.dg-detail'\)/);
+    // 交互必须走单一全局点击路由：口径浮层只认口径按钮+浮层内部，
+    // 节点浮层只认节点+浮层内部，点页面其他任何位置都关闭。
+    assert.match(src, /document\.addEventListener\('click'/);
+    assert.match(src, /data-detail-mode/);
+    assert.doesNotMatch(src, /el\.addEventListener\('click'/);
     assert.doesNotMatch(src, /className = 'sg-detail/);
     assert.doesNotMatch(src, /alignmentMarkerHtml/);
     assert.doesNotMatch(src, /node-align-marker/);

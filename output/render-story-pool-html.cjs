@@ -762,6 +762,7 @@ function dagScript() {
   function showNodeDetail(g, n) {
     var d = g.querySelector('.dg-detail');
     if (!d) return;
+    g.setAttribute('data-detail-mode', 'node');
     d.classList.remove('wide');
     var rows = [];
     rows.push('<div class="sg-detail-head"><b>' + n.label + '</b><button class="sg-detail-close">×</button></div>');
@@ -780,7 +781,6 @@ function dagScript() {
     if (n.windowStartDate) rows.push('<div class="sg-detail-row"><span>观察窗口</span><b>' + n.windowStartDate + ' → ' + (n.windowDeadlineDate || '—') + '</b></div>');
     if (n.brokenReason) rows.push('<div class="sg-detail-row"><span>断裂原因</span><b>' + n.brokenReason + '</b></div>');
     d.innerHTML = '<div class="sg-detail-card">' + rows.join('') + '</div>';
-    d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; });
   }
   function rowHtml(label, value) {
     return '<div class="sg-detail-row"><span>' + esc(label) + '</span><b>' + (value == null || value === '' ? '—' : esc(value)) + '</b></div>';
@@ -791,6 +791,8 @@ function dagScript() {
   }
   function showCaliberDetail(g, n) {
     var d = g.querySelector('.dg-detail');
+    if (!d) return;
+    g.setAttribute('data-detail-mode', 'caliber');
     var c = n.caliber || {};
     var rows = [];
     rows.push('<div class="sg-detail-head"><b>指标口径</b><button class="sg-detail-close">×</button></div>');
@@ -837,7 +839,6 @@ function dagScript() {
     }
     d.classList.add('wide');
     d.innerHTML = '<div class="sg-detail-card">' + rows.join('') + '</div>';
-    d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; d.classList.remove('wide'); });
   }
   document.querySelectorAll('.closed-row').forEach(function (row) {
     row.addEventListener('click', function () {
@@ -849,44 +850,80 @@ function dagScript() {
     });
   });
 
-  document.querySelectorAll('.dg-canvas').forEach(function (g) {
-    drawDag(g);
+  function closeDetail(g) {
+    if (!g) return;
+    var d = g.querySelector('.dg-detail');
+    if (d) { d.innerHTML = ''; d.classList.remove('wide'); }
+    g.removeAttribute('data-detail-mode');
+  }
+  function findNode(g, id) {
     var nodes = JSON.parse(g.getAttribute('data-nodes') || '[]');
+    return nodes.find(function (x) { return x.id === id; }) || null;
+  }
+  function findEdge(g, from, to) {
     var edges = JSON.parse(g.getAttribute('data-edges') || '[]');
-    g.querySelectorAll('.dg-node').forEach(function (el) {
-      el.addEventListener('click', function (ev) {
-        var n = nodes.find(function (x) { return x.id === el.getAttribute('data-node-id'); });
-        if (!n) return;
-        var target = ev.target || {};
-        if (target.closest && target.closest('.dg-node-caliber')) {
-          showCaliberDetail(g, n);
-        } else {
-          showNodeDetail(g, n);
-        }
-      });
-    });
-    g.querySelector('.dg-edges').addEventListener('click', function (ev) {
-      if (ev.target && ev.target.getAttribute && ev.target.getAttribute('data-from')) {
-        var e = edges.find(function (x) { return x.from === ev.target.getAttribute('data-from') && x.to === ev.target.getAttribute('data-to'); });
-        if (e) {
-          var d = g.querySelector('.dg-detail');
-          if (!d) return;
-          d.classList.remove('wide');
-          d.innerHTML = '<div class="sg-detail-card"><div class="sg-detail-head"><b>传导边</b><button class="sg-detail-close">×</button></div><div class="sg-detail-row"><span>逻辑</span><b>' + e.logic + '</b></div><div class="sg-detail-row"><span>时间窗</span><b>' + e.latencyDays + ' 个交易日</b></div></div>';
-          d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; d.classList.remove('wide'); });
-        }
+    return edges.find(function (x) { return x.from === from && x.to === to; }) || null;
+  }
+  function showEdgeDetail(g, e) {
+    var d = g.querySelector('.dg-detail');
+    if (!d) return;
+    g.setAttribute('data-detail-mode', 'edge');
+    d.classList.remove('wide');
+    d.innerHTML = '<div class="sg-detail-card"><div class="sg-detail-head"><b>传导边</b><button class="sg-detail-close">×</button></div><div class="sg-detail-row"><span>逻辑</span><b>' + esc(e.logic) + '</b></div><div class="sg-detail-row"><span>时间窗</span><b>' + esc(e.latencyDays) + ' 个交易日</b></div></div>';
+  }
+  document.querySelectorAll('.dg-canvas').forEach(drawDag);
+
+  // 单一全局点击路由：
+  // 口径浮层只认“口径按钮 + 浮层内部”；节点浮层只认“节点 + 浮层内部”；
+  // 点页面其他任何位置（空白、其他元素）都关闭当前浮层。
+  document.addEventListener('click', function (ev) {
+    var t = ev.target || {};
+    if (!t || !t.closest) return;
+    var closeBtn = t.closest('.sg-detail-close');
+    if (closeBtn) {
+      document.querySelectorAll('.dg-canvas').forEach(closeDetail);
+      return;
+    }
+    var calBtn = t.closest('.dg-node-caliber');
+    var nodeEl = t.closest('.dg-node');
+    var edgeEl = t.closest('.dg-edge');
+    var host = null;
+    if (calBtn) host = calBtn.closest('.dg-canvas');
+    if (!host && nodeEl) host = nodeEl.closest('.dg-canvas');
+    if (!host && edgeEl) host = edgeEl.closest('.dg-canvas');
+    if (!host) host = t.closest('.dg-canvas');
+    var action = null;
+    if (host) {
+      var n;
+      if (calBtn && host.contains(calBtn)) {
+        n = findNode(host, calBtn.getAttribute('data-node-caliber'));
+        if (n) action = { kind: 'caliber', g: host, n: n };
+      } else if (nodeEl && host.contains(nodeEl)) {
+        n = findNode(host, nodeEl.getAttribute('data-node-id'));
+        if (n) action = { kind: 'node', g: host, n: n };
+      } else if (edgeEl && host.contains(edgeEl)) {
+        var e = findEdge(host, edgeEl.getAttribute('data-from'), edgeEl.getAttribute('data-to'));
+        if (e) action = { kind: 'edge', g: host, e: e };
       }
-    });
-    g.addEventListener('click', function (ev) {
-      var t = ev.target || {};
-      if (!t.closest) return;
-      // 点节点、边、以及弹窗面板本身（含面板内部空白）都不关闭；只有点图区其他空白才关闭。
-      if (t.closest('.dg-node') || t.closest('.dg-edges') || t.closest('.dg-detail')) return;
-      var d = g.querySelector('.dg-detail');
-      if (!d) return;
-      d.innerHTML = '';
-      d.classList.remove('wide');
-    });
+    }
+    if (action) {
+      // 打开新浮层时，先关闭其他画布上的浮层，保证全页同一时刻只有一个浮层。
+      document.querySelectorAll('.dg-canvas').forEach(function (g) {
+        if (g !== action.g) closeDetail(g);
+      });
+      if (action.kind === 'caliber') showCaliberDetail(action.g, action.n);
+      else if (action.kind === 'node') showNodeDetail(action.g, action.n);
+      else showEdgeDetail(action.g, action.e);
+      return;
+    }
+    // 没有任何触发按钮被点中：只有点在浮层面板内部（含内部空白）才保留，其余一律关闭。
+    if (host && t.closest('.dg-detail')) {
+      document.querySelectorAll('.dg-canvas').forEach(function (g) {
+        if (g !== host) closeDetail(g);
+      });
+      return;
+    }
+    document.querySelectorAll('.dg-canvas').forEach(closeDetail);
   });
   window.addEventListener('resize', function () { document.querySelectorAll('.dg-canvas').forEach(drawDag); });
 })();
