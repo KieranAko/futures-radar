@@ -395,6 +395,9 @@ const MARKET_PROGRESSED_STATUSES = new Set([
 function refreshVersionFromPlan(signal, version, plan, p) {
   const idx = (signal.versions || []).findIndex((v) => v.versionId === version.versionId);
   const prev = idx > 0 ? signal.versions[idx - 1] : null;
+  const previousDecision = version.decision || null;
+  const previousDiff = version.diff || null;
+  const isLiving = signal.livingVersionId === version.versionId;
   const refreshed = versionFromPlan(signal, idx + 1, plan, p, prev);
   Object.assign(version, refreshed, {
     versionId: version.versionId,
@@ -405,6 +408,11 @@ function refreshVersionFromPlan(signal, version, plan, p) {
   if (living && version.versionId !== living.versionId) {
     const diff = diffTickets(living, version);
     version.diff = { relation: diff.relation, changedFields: diff.changedFields };
+  }
+  // 出生单/已采纳的 livingTicket 刷新后不得退回 pending，diff 也保留历史关系。
+  if (isLiving || (previousDecision && (previousDecision.status === 'born' || previousDecision.status === 'adopted'))) {
+    version.decision = previousDecision || { status: 'adopted', reason: 'livingTicket 同日报价刷新', decidedAt: version.quoteDate || version.signalDate, decidedRunId: version.runId };
+    if (isLiving && previousDiff) version.diff = previousDiff;
   }
   return version;
 }
@@ -460,7 +468,9 @@ function normalizeVersions(signal) {
       changed = true;
     }
   } else if (!collapsed.some((v) => v.versionId === signal.livingVersionId)) {
-    signal.livingVersionId = signal.currentVersionId;
+    // livingVersionId 缺失或失效时，回退到最后一个 born/adopted 版本，而不是盲目取 currentVersionId（可能是 pending 报价）。
+    const adopted = [...collapsed].reverse().find((v) => isAdoptedVersion(v)) || null;
+    signal.livingVersionId = adopted ? adopted.versionId : signal.currentVersionId;
     changed = true;
   }
   let prev = null;
