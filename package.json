@@ -10,6 +10,7 @@
   "scripts": {
     "probe": "node collection/probe-sources.cjs",
     "run": "node pipeline/run.cjs",
+    "serve": "node signals/cli/signal-pool-server.cjs",
     "freeze": "node analysis/freeze-packets.mjs",
     "assemble": "node legacy/analyze-v1/assemble-results.mjs",
     "assemble:sector-driver": "node legacy/analyze-v1/assemble-sector-driver.cjs",

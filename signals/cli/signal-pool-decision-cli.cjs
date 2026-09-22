@@ -62,11 +62,14 @@ function appendDecisionRecord(sig, d, runId, now, livingBefore = null) {
 function applyDecisions(runId, file, rootOverride = null) {
   if (!fs.existsSync(file)) return { skipped: true, file, reason: '决策文件不存在' };
   const doc = readJSON(file);
+  if (!doc) return { skipped: true, file, reason: '决策文件无法解析' };
+  return applyDecisionsDoc(runId, doc, rootOverride);
+}
+
+function applyDecisionsDoc(runId, doc, rootOverride = null) {
   const check = validateDecisions(doc);
   if (!check.ok) {
-    console.error('decision validation FAILED:');
-    for (const e of check.errors) console.error('  - ' + e);
-    process.exit(1);
+    return { ok: false, error: 'decision validation FAILED', details: check.errors };
   }
   const root = rootOverride || poolRoot();
   const ledger = loadLedger(root);
@@ -137,7 +140,7 @@ function applyDecisions(runId, file, rootOverride = null) {
   const view = buildView(runId, ledger, root);
   const viewPath = path.join(runDir(runId), 'signal-pool.json');
   writeFile(viewPath, JSON.stringify(view, null, 2) + '\n');
-  return { summary, viewPath };
+  return { ok: true, summary, viewPath };
 }
 
 function main() {
@@ -157,6 +160,11 @@ function main() {
       console.warn(`decisions skipped: ${r.reason}`);
       return;
     }
+    if (r.ok === false) {
+      console.error(r.error);
+      for (const e of r.details) console.error('  - ' + e);
+      process.exit(1);
+    }
     console.log(`decisions applied: ${JSON.stringify(r.summary)}`);
     console.log(`signal-pool.json rebuilt: ${r.viewPath}`);
     return;
@@ -167,4 +175,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { applyDecisions };
+module.exports = { applyDecisions, applyDecisionsDoc };

@@ -131,6 +131,11 @@ describe('dashboard-html 四 Tab 看板', () => {
     assert.ok(html.includes('href="runs/r1/report.html"'));
     assert.ok(!html.includes('<script src'));
     assert.ok(!html.includes('https://'));
+    // 一期服务壳：服务状态条 + 回填确认按钮 + 健康检查 API
+    assert.ok(html.includes('id="svc-status"'));
+    assert.ok(html.includes('local-backfill'));
+    assert.ok(html.includes('/api/health'));
+    assert.ok(html.includes('/api/decisions'));
   });
 
   it('最近出池故事：标题保留 20 条，容器固定高度可滚动且 20 条全部渲染', () => {

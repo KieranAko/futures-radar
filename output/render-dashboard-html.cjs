@@ -1169,6 +1169,12 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .quote-decision-state { font-size: 11px; margin-top: 4px; }
   .decision-export-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; color: var(--muted); }
   .decision-export-btn { border: 1px solid var(--border); background: #fff; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+  .svc-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .svc-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .svc-dot.on { background: #16a34a; }
+  .svc-dot.off { background: #9ca3af; }
+  .local-backfill { margin-top: 4px; border: 1px solid #16a34a; color: #047857; background: #ecfdf5; border-radius: 5px; padding: 2px 8px; font-size: 11px; cursor: pointer; }
+  .local-backfill:hover { background: #d1fae5; }
   .sig-timeline { position: relative; margin: 10px 0 6px; }
   .tl-item { position: relative; padding: 0 0 14px 34px; }
   .tl-item::before { content: ""; position: absolute; left: 12px; top: 26px; bottom: -4px; width: 2px; background: #e5e7eb; }
@@ -1501,6 +1507,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
       <button class="tab" data-tab="pool">📊 信号池</button>
       <button class="tab" data-tab="history">🗂 历史报告</button>
     </nav>
+    <span class="svc-status" id="svc-status"><span class="svc-dot off" id="svc-dot"></span><span id="svc-text">服务：未连接</span></span>
     <div class="run-meta">${escapeHtml(runId)}${signalDate ? ` · 信号日 ${escapeHtml(signalDate)}` : ''} · ${dataBadges(strategyPlan, signalPoolView, costAnchorAvailable)}</div>
   </div>
 </header>
@@ -1620,7 +1627,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
       '<div class="local-compare-slot"></div>' +
       '<div class="dr-row"><span>理由</span><span>' + d.reason + '</span></div>' +
       '<div class="dr-row"><span>动作</span><span>' + (labels[d.action] || d.action) + '</span></div>' +
-      '<button type="button" class="decision-record-edit">修改决策</button>' +
+      '<button type="button" class="decision-record-edit">修改决策</button> ' +
+      '<button type="button" class="local-backfill">回填确认</button>' +
       '</div></details>';
   }
   function renderDecisionStates() {
@@ -1669,6 +1677,68 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
         body.querySelector('.local-cancel').addEventListener('click', () => renderDecisionStates());
       });
     });
+    attachLocalBackfillHandlers();
+  }
+  function exportDecisions(list) {
+    if (!list || list.length === 0) { alert('还没有任何决策'); return; }
+    const doc = {
+      schema: 'futures-radar-signal-decisions/1',
+      runId: DASH_RUN_ID,
+      decisions: list
+    };
+    const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'signal-pool-decisions-' + DASH_RUN_ID + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+  function updateServiceStatus() {
+    fetch('/api/health', { cache: 'no-store' }).then((r) => r.json()).then((h) => {
+      if (h && h.ok) {
+        document.getElementById('svc-dot').className = 'svc-dot on';
+        document.getElementById('svc-text').textContent = '服务运行中 · ' + h.host + ':' + h.port;
+      } else {
+        throw new Error('bad health');
+      }
+    }).catch(() => {
+      document.getElementById('svc-dot').className = 'svc-dot off';
+      document.getElementById('svc-text').textContent = '服务未连接 · 回填将降级为导出 JSON';
+    });
+  }
+  function attachLocalBackfillHandlers() {
+    document.querySelectorAll('.decision-record.is-local .local-backfill').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const rec = btn.closest('.decision-record');
+        const decisions = loadDecisions();
+        const d = decisions[rec.dataset.key];
+        if (!d) return;
+        if (!confirm('确认回填到文件库？回填后该决策只读。')) return;
+        const doc = {
+          schema: 'futures-radar-signal-decisions/1',
+          runId: DASH_RUN_ID,
+          decisions: [d]
+        };
+        fetch('/api/decisions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(doc)
+        }).then((r) => r.json()).then((res) => {
+          if (res && res.ok) {
+            alert('回填成功，页面将刷新。');
+            window.location.reload();
+          } else {
+            alert('回填失败：' + (res && res.error ? res.error : '未知错误'));
+          }
+        }).catch(() => {
+          alert('服务未连接，已降级为导出 JSON。');
+          exportDecisions([d]);
+        });
+      });
+    });
   }
   document.querySelectorAll('.quote-decide').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -1693,26 +1763,12 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   const exportBtn = document.getElementById('signal-decisions-export');
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
-      const decisions = loadDecisions();
-      const list = Object.values(decisions);
-      if (list.length === 0) { alert('还没有任何决策'); return; }
-      const doc = {
-        schema: 'futures-radar-signal-decisions/1',
-        runId: DASH_RUN_ID,
-        decisions: list
-      };
-      const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'signal-pool-decisions-' + DASH_RUN_ID + '.json';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      exportDecisions(Object.values(loadDecisions()));
     });
   }
   renderDecisionStates();
+  updateServiceStatus();
+  setInterval(updateServiceStatus, 5000);
 
   // 信号池表格：点击行展开/折叠详情
   document.querySelectorAll('.signal-row').forEach((row) => {    row.addEventListener('click', () => {
