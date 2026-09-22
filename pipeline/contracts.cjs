@@ -58,6 +58,8 @@ const artifacts = [
   { id: 'signal-pool-json', path: '{runDir}/signal-pool.json', stage: 'strategy-plan', phase: 'signal-pool', required: false, producedBy: 'analysis/strategy/build-strategy-plan.cjs (updates signals/lib/signal-pool.cjs)' },
   { id: 'signal-pool-ledger', path: '{skillRoot}/data/signal-pool/ledger.json', stage: 'strategy-plan', phase: 'signal-pool', required: false, producedBy: 'signals/lib/signal-pool.cjs (ledger)' },
   { id: 'strategy-feedback-json', path: '{runDir}/strategy-feedback.json', stage: 'strategy-plan', phase: 'signal-pool', required: false, producedBy: 'analysis/strategy/build-strategy-plan.cjs' },
+  { id: 'signal-reconcile-prompt-md', path: '{runDir}/signals/reconcile-prompt.md', stage: 'signal-reconcile-prompt', phase: 'signal-pool', required: false, producedBy: 'signals/cli/signal-reconcile-cli.cjs prompt' },
+  { id: 'signal-reconcile-json', path: '{runDir}/signals/reconcile-output.json', stage: 'signal-reconcile-llm', phase: 'signal-pool', required: false, producedBy: 'manual (LLM follows reconcile-prompt.md；无待决策报价可写空 signals)' },
 
   // ── Phase 6: 结果输出 ──
   { id: 'report', path: '{runDir}/report.md', stage: 'render-markdown', phase: 'result-output', required: true, producedBy: 'output/render-markdown.cjs' },
@@ -140,7 +142,10 @@ const phases = [
     name: '信号池',
     description: '交易策略计划生成后自动更新信号池：入池/版本追加/出池判定；信号台账供报告与故事链血缘追踪。',
     stages: [
-      { id: 'strategy-plan', name: '生成交易策略计划并更新信号池', auto: true, script: 'analysis/strategy/build-strategy-plan.cjs', args: (runId) => ['--runId', runId], inputs: ['report-model-json', 'probability-json', 'raw-json', 'strategy-reasoning-json'], outputs: ['strategy-plan-json', 'strategy-feedback-json', 'signal-pool-json', 'signal-pool-ledger'], failurePolicy: 'hard_fail', note: 'executable 策略诞生信号（入池）、同向后续 plan 追加版本、反向/Q5 证伪/机会衰竭/窗口到期出池。' }
+      { id: 'strategy-plan', name: '生成交易策略计划并更新信号池', auto: true, script: 'analysis/strategy/build-strategy-plan.cjs', args: (runId) => ['--runId', runId], inputs: ['report-model-json', 'probability-json', 'raw-json', 'strategy-reasoning-json'], outputs: ['strategy-plan-json', 'strategy-feedback-json', 'signal-pool-json', 'signal-pool-ledger'], failurePolicy: 'hard_fail', note: 'executable 策略诞生信号（入池）；同向/反向新报价只做结构化 diff 并待人类决策；Q5 证伪/机会衰竭/窗口到期自动出池。' },
+      { id: 'signal-reconcile-prompt', name: '交易单对账提示词', auto: true, script: 'signals/cli/signal-reconcile-cli.cjs', args: (runId) => ['prompt', '--runId', runId], inputs: ['signal-pool-json'], outputs: ['signal-reconcile-prompt-md'], failurePolicy: 'warn', note: '把 livingTicket 与待决策新报价并排 + 结构化 diff + 市场追踪状态交给对账 LLM；只解释差异与冲突。' },
+      { id: 'signal-reconcile-llm', name: '交易单对账 LLM', auto: false, script: null, args: null, inputs: ['signal-reconcile-prompt-md'], outputs: ['signal-reconcile-json'], failurePolicy: 'warn', note: 'LLM 按提示词解释每对交易单的差异与冲突实质，不判胜负、不改单；写 signals/reconcile-output.json（无待决策报价可写空 signals）。' },
+      { id: 'signal-reconcile-apply', name: '对账结果回填', auto: true, script: 'signals/cli/signal-reconcile-cli.cjs', args: (runId) => ['apply', '--runId', runId], inputs: ['signal-reconcile-json'], outputs: ['signal-pool-json', 'signal-pool-ledger'], failurePolicy: 'warn', note: '校验对账 JSON 并回填 quote.reconciliation，重建 signal-pool.json；缺失时跳过（warn）。' }
     ]
   },
   {

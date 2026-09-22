@@ -35,6 +35,7 @@ const {
   executionResultLabel
 } = require('../shared/strategy-state.cjs');
 const { ticketViewHtml } = require('./render-ticket-html.cjs');
+const { FIELD_LABELS, RELATIONS } = require('../signals/lib/ticket-diff.cjs');
 
 function escapeHtml(s) {
   return String(s == null ? '' : s)
@@ -1030,6 +1031,88 @@ function signalObservationLine(sig) {
   return `<div class="signal-obs">最近观察：${escapeHtml(obs.date ? obs.date.slice(5) : '—')} · ${escapeHtml(ev)}</div>`;
 }
 
+// v6 报价对比：livingTicket 与待决策新报价完整并排 + diff 高亮 + 对账解释 + 人类决策。
+function relationLabel(r) {
+  if (r === 'conflicted') return '冲突';
+  if (r === 'refined') return '修订';
+  return '一致';
+}
+
+function decisionStatusLabel(v) {
+  const st = v && v.decision && v.decision.status;
+  if (st === 'born') return '出生交易单';
+  if (st === 'adopted') return '已采用';
+  if (st === 'kept') return '已维持旧单';
+  if (st === 'paused') return '已暂停';
+  if (st === 'closed') return '已关闭';
+  return '待决策';
+}
+
+function ticketFieldValue(v, field) {
+  const parts = field.split('.');
+  let cur = v;
+  for (const p of parts) {
+    if (cur == null) return '—';
+    cur = cur[p];
+  }
+  if (cur === null || cur === undefined || cur === '') return '—';
+  if (Array.isArray(cur)) return cur.join('；') || '—';
+  if (typeof cur === 'object') return JSON.stringify(cur);
+  return String(cur);
+}
+
+function ticketCompareTable(v, changedFields) {
+  const changed = new Set(Array.isArray(changedFields) ? changedFields.map((d) => d.field) : (changedFields || []));
+  const rows = Object.keys(FIELD_LABELS).map((field) => {
+    const cls = changed.has(field) ? 'tk-diff' : '';
+    return `<tr class="${cls}"><th>${escapeHtml(FIELD_LABELS[field])}</th><td>${escapeHtml(ticketFieldValue(v, field))}</td></tr>`;
+  }).join('');
+  return `<table class="fields ticket-fields">${rows}</table>`;
+}
+
+function quoteComparisonHtml(sig) {
+  if (!sig || sig.poolStatus === 'closed') return '';
+  const versions = Array.isArray(sig.versions) ? sig.versions : [];
+  if (versions.length === 0) return '';
+  const livingId = sig.livingVersionId || null;
+  const living = versions.find((v) => v.versionId === livingId)
+    || [...versions].reverse().find((v) => v.decision && (v.decision.status === 'born' || v.decision.status === 'adopted'))
+    || versions[0];
+  const pending = versions.filter((v) => v.decision && v.decision.status === 'pending');
+  if (!living || pending.length === 0) return '';
+  return pending.map((q) => {
+    const diff = q.diff || {};
+    const changed = Array.isArray(diff.changedFields) ? diff.changedFields : [];
+    const changedSet = new Set(changed.map((d) => d.field));
+    const diffNotes = changed.map((d) =>
+      `<li><b>${escapeHtml(d.label)}</b>（${escapeHtml(d.field)}）：旧 <span class="diff-old-val">${escapeHtml(d.oldValue == null ? '—' : String(d.oldValue))}</span> → 新 <span class="diff-new-val">${escapeHtml(d.newValue == null ? '—' : String(d.newValue))}</span></li>`
+    ).join('');
+    const recon = q.reconciliation;
+    const reconBlock = recon ? `<div class="quote-recon">
+      <b>对账 LLM 解释</b><div>${escapeHtml(recon.summary || '')}</div>
+      ${Array.isArray(recon.conflicts) && recon.conflicts.length ? `<ul class="quote-conflicts">${recon.conflicts.map((c) => `<li>${escapeHtml(c.field || '')}（${escapeHtml(c.severity || '')}）：${escapeHtml(c.explanation || '')}</li>`).join('')}</ul>` : ''}
+    </div>` : '';
+    const decisionLabel = decisionStatusLabel(q);
+    return `<div class="quote-compare" data-signal-id="${escapeHtml(sig.signalId)}" data-quote-version-id="${escapeHtml(q.versionId)}">
+      <div class="quote-compare-head"><b>新报价 ${escapeHtml(q.versionId)}</b> · ${escapeHtml(q.quoteDate || q.signalDate)} · 与当前有效交易单关系：<span class="rel rel-${escapeHtml(diff.relation || 'aligned')}">${relationLabel(diff.relation)}</span> · ${decisionLabel}</div>
+      ${diffNotes ? `<div class="quote-diff-notes"><b>差异字段</b><ul>${diffNotes}</ul></div>` : '<div class="quote-diff-notes muted">两份交易单无字段差异。</div>'}
+      <div class="quote-compare-grid">
+        <div class="quote-col"><div class="quote-col-head">当前有效交易单 ${escapeHtml(living.versionId)}</div>${ticketCompareTable(living, changed)}</div>
+        <div class="quote-col"><div class="quote-col-head">新报价 ${escapeHtml(q.versionId)}</div>${ticketCompareTable(q, changed)}</div>
+      </div>
+      ${reconBlock}
+      <div class="quote-decision">
+        <input class="quote-reason" type="text" placeholder="决策理由（必填）" maxlength="200">
+        <button type="button" class="quote-decide" data-action="adopt">采用新报价</button>
+        <button type="button" class="quote-decide" data-action="keep">维持旧单</button>
+        <button type="button" class="quote-decide" data-action="pause">暂停信号</button>
+        <button type="button" class="quote-decide danger" data-action="close">关闭信号</button>
+      </div>
+      <div class="quote-decision-state muted"></div>
+    </div>`;
+  }).join('');
+}
+
 function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyTheme = null, storyChainId = null, contract = null } = {}) {
   const sig = { ...(detail || {}), ...s, versions: (detail && Array.isArray(detail.versions) ? detail.versions : []) };
   const versions = sig.versions;
@@ -1055,15 +1138,19 @@ function signalPanelHtml(s, detail = {}, { closed = false, bars = null, storyThe
     priceLine = `<div class="sig-price-line">价格：入池 ${fmt(p.startClose)} → 最新 <b>${fmt(p.latestClose)}</b>${chgText} · <span class="up">最大有利 ${fav}</span> · <span class="down">最大不利 ${adv}</span></div>`;
   }
   const timeline = signalTimelineHtml(sig, versions, { closed: isClosed });
+  const comparison = !isClosed ? quoteComparisonHtml(sig) : '';
+  const pendingCount = versions.filter((v) => v.decision && v.decision.status === 'pending').length;
   const chart = lifecycleChart(sig, versions, bars);
   const chartHtml = chart || '<div class="sig-chart-missing muted">暂无价格序列，无法绘制价格轨迹。</div>';
   const headHtml = `<span class="story-theme">${escapeHtml(sig.name || sig.symbol || '—')} <span class="muted">${escapeHtml(displayContract || sig.symbol || '')}</span></span>
       <span class="story-status ${badgeCls}">${escapeHtml(statusText)}</span>
       ${dirHtml}
       ${storyHtml}
-      <span class="story-proof">${versions.length} 版本${currentNum ? ` · 当前 ${escapeHtml(currentNum)}` : ''}${sig.createdDate ? ` · 入池 ${escapeHtml(sig.createdDate)}` : ''}</span>`;
+      ${pendingCount > 0 ? `<span class="quote-pending-badge">报价对比 ${pendingCount}</span>` : ''}
+      <span class="story-proof">${versions.length} 报价${currentNum ? ` · 当前 ${escapeHtml(currentNum)}` : ''}${sig.createdDate ? ` · T0 ${escapeHtml(sig.createdDate)}` : ''}</span>`;
   const bodyHtml = `${sig.thesis ? `<div class="story-subtitle">${escapeHtml(typeof sig.thesis === 'string' ? sig.thesis : (sig.thesis.summary || ''))}</div>` : ''}
     ${priceLine}
+    ${comparison}
     <div class="sig-chart-block"><div class="sig-chart-head">📈 价格轨迹</div>${chartHtml}</div>
     ${!isClosed ? signalObservationLine(sig) : ''}
     ${signalAnchorGrid(sig, { closed: isClosed })}

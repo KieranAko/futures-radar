@@ -10,6 +10,7 @@ const {
   updateSignalPool,
   loadLedger,
   loadSignal,
+  saveSignal,
   buildView,
   transitionLabel,
   q5Triggered,
@@ -92,7 +93,7 @@ describe('signal-pool 信号池核心生命周期', () => {
     }
   });
 
-  it('追踪：同向后续 plan 追加版本，状态转移正确（维持/降级/升级/维持观察）', () => {
+  it('追踪：同向后续 plan 追加版本；可执行新报价不自动采纳，只有人类采纳后才重置降级计数', () => {
     const root = tmpRoot();
     try {
       const raw = { contracts: {} };
@@ -116,14 +117,16 @@ describe('signal-pool 信号池核心生命周期', () => {
       updateSignalPool({ runId: 'run-4', raw, rootOverride: root, plan: makePlan('run-4', 'PP0', { signalDate: '2026-08-29' }) });
       sig = loadSignal(sig.signalId, root);
       assert.equal(sig.versions[3].stateTransition, '升级执行');
+      assert.equal(sig.versions[3].decision.status, 'pending');
+      assert.equal(sig.livingVersionId, `${sig.signalId}:V1`);
       assert.equal(sig.poolStatus, 'active');
-      assert.equal(sig.consecutiveNonExecutable, 0);
+      assert.equal(sig.consecutiveNonExecutable, 2); // 未采纳前不重置
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }
   });
 
-  it('反向 executable 翻转：旧信号 closed(flipped)，新信号入池', () => {
+  it('反向 executable：只记录 conflicted 新报价待人类决策，不自动翻转关闭旧信号', () => {
     const root = tmpRoot();
     try {
       const raw = { contracts: {} };
@@ -136,15 +139,17 @@ describe('signal-pool 信号池核心生命周期', () => {
       });
       assert.equal(view.pool.length, 1);
       const ledger = loadLedger(root);
-      assert.equal(ledger.signals.length, 2);
-      const oldId = ledger.signals[0].signalId;
-      const old = loadSignal(oldId, root);
-      assert.equal(old.poolStatus, 'closed');
-      assert.equal(old.closeReason, 'flipped');
-      const newId = ledger.signals.find((s) => s.signalId !== oldId).signalId;
-      const neu = loadSignal(newId, root);
-      assert.equal(neu.direction, 'bearish');
-      assert.equal(neu.poolStatus, 'active');
+      assert.equal(ledger.signals.length, 1);
+      const old = loadSignal(ledger.signals[0].signalId, root);
+      assert.equal(old.poolStatus, 'active');
+      assert.equal(old.closeReason, null);
+      assert.equal(old.versions.length, 2);
+      const quote = old.versions[1];
+      assert.equal(quote.decision.status, 'pending');
+      assert.equal(quote.diff.relation, 'conflicted');
+      assert.ok(quote.diff.changedFields.some((d) => d.field === 'direction'));
+      assert.equal(old.livingVersionId, `${old.signalId}:V1`);
+      assert.equal(old.direction, 'bullish'); // livingTicket 仍是出生单方向
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }
@@ -404,21 +409,27 @@ describe('signal-pool 信号池核心生命周期', () => {
     const root = tmpRoot();
     try {
       const raw = { contracts: {} };
-      // 创建 7 个信号（不同品种），逐个翻转出池
       const symbols = ['A0', 'B0', 'C0', 'D0', 'E0', 'F0', 'G0'];
       for (const s of symbols) {
         updateSignalPool({ runId: `run-${s}`, raw, rootOverride: root, plan: makePlan(`run-${s}`, s) });
-        updateSignalPool({
-          runId: `run-${s}-flip`, raw, rootOverride: root,
-          plan: makePlan(`run-${s}-flip`, s, { reportBaseline: { direction: 'bearish', confidence: 'medium', driver: '翻转' } })
-        });
       }
       const ledger = loadLedger(root);
+      // 直接构造 7 个已出池信号（新模型下反向报价不再自动关闭，出池由市场/时间/人类决定）。
+      for (const row of ledger.signals) {
+        const sig = loadSignal(row.signalId, root);
+        sig.poolStatus = 'closed';
+        sig.closeReason = 'invalidated_q5';
+        sig.closedAt = '2026-08-27';
+        sig.closeClass = 'direction_wrong';
+        sig.directionVerdict = 'miss';
+        sig.executionVerdict = 'noexec';
+        saveSignal(sig, root);
+      }
       const view = buildView('final', ledger, root);
-      assert.equal(view.pool.length, 7); // 翻转后新信号在池
+      assert.equal(view.pool.length, 0);
       assert.equal(view.recentClosed.length, 5);
       assert.equal(view.historyStats.totalClosed, 7);
-      assert.equal(view.historyStats.byCloseReason.flipped, 7);
+      assert.equal(view.historyStats.byCloseReason.invalidated_q5, 7);
       assert.equal(view.historyStats.byCloseClass.direction_wrong, 7);
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
@@ -538,18 +549,17 @@ describe('signal-pool 出池质量分类（方向 × 执行）', () => {
     try {
       const raw = { contracts: {} };
       updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
-      updateSignalPool({
-        runId: 'run-2', raw, rootOverride: root,
-        plan: makePlan('run-2', 'PP0', { reportBaseline: { direction: 'bearish', confidence: 'medium', driver: '翻转' } })
-      });
       const ledger = loadLedger(root);
       const oldId = ledger.signals[0].signalId;
       const old = loadSignal(oldId, root);
+      old.poolStatus = 'closed';
+      old.closeReason = 'invalidated_q5';
+      old.closedAt = '2026-08-27';
       delete old.closeClass;
       delete old.directionVerdict;
       delete old.executionVerdict;
       delete old.executionBestPnlPts;
-      fs.writeFileSync(path.join(root, 'signals', `${oldId}.json`), JSON.stringify(old, null, 2) + '\n', 'utf8');
+      saveSignal(old, root);
       const view = buildView('final', ledger, root);
       const migrated = loadSignal(oldId, root);
       assert.ok(migrated.closeClass);
@@ -574,6 +584,91 @@ describe('signal-pool V2 前向盖章（故事席位血缘）', () => {
       assert.equal(sig.storyChainId, 'CH-BLACK-20260918-01');
       assert.equal(sig.versions[0].storyChainId, 'CH-BLACK-20260918-01');
       assert.equal(view.pool[0].storyChainId, 'CH-BLACK-20260918-01');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('signal-pool v6：信号身份、T0 锚点与报价决策', () => {
+  it('信号身份 = symbol + contract + storyChainId；换合约诞生新信号', () => {
+    const root = tmpRoot();
+    try {
+      const raw = { contracts: {} };
+      const plan1 = makePlan('run-1', 'RB0', { contract: 'RB2701', storyChainId: 'CH-1' });
+      const { view } = updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: plan1 });
+      assert.equal(view.pool.length, 1);
+      const plan2 = makePlan('run-2', 'RB0', { contract: 'RB2705', storyChainId: 'CH-1', signalDate: '2026-08-27' });
+      const r2 = updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: plan2 });
+      assert.equal(r2.meta.createdThisRun, 1);
+      assert.equal(r2.view.pool.length, 2);
+      const ledger = loadLedger(root);
+      assert.equal(ledger.signals.length, 2);
+      const old = loadSignal(ledger.signals[0].signalId, root);
+      const neu = loadSignal(ledger.signals[1].signalId, root);
+      assert.equal(old.contract, 'RB2701');
+      assert.equal(neu.contract, 'RB2705');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('T0 不变：后续报价的 T+1/T+2 仍按信号出生日计算', () => {
+    const root = tmpRoot();
+    try {
+      const raw = makeRaw('PP0',
+        ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28'],
+        [98, 99, 100, 101, 102], [100, 101, 103, 104, 105], [97, 98, 99, 100, 101], [100, 100, 100, 101, 103]);
+      const plan = makePlan('run-1', 'PP0', { riskAssessment: { atr5: 5, maxHoldingDays: 5, regimeGrade: 'normal', regimeDirection: 'stable' } });
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan });
+      // 08-27 的同向新报价（pending）：T+1/T+2 仍应从 T0=08-26 数起。
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { signalDate: '2026-08-27', riskAssessment: { atr5: 5, maxHoldingDays: 5, regimeGrade: 'normal', regimeDirection: 'stable' } }) });
+      // 08-28 只追踪不产生报价，触发对往期版本验证。
+      updateSignalPool({ runId: 'run-3', raw, rootOverride: root, plan: { meta: { runId: 'run-3', signalDate: '2026-08-28', inputsSha: 'x' }, plans: [] } });
+      const ledger = loadLedger(root);
+      const sig = loadSignal(ledger.signals[0].signalId, root);
+      const quote = sig.versions.find((v) => v.signalDate === '2026-08-27');
+      assert.ok(quote);
+      assert.equal(quote.decision.status, 'pending');
+      // 新报价验证：T+1 = 08-27（信号出生日 + 1），T+2 = 08-28，而不是从报价日 08-27 再 +1。
+      assert.equal(quote.verification.lastResult.triggerDate, '2026-08-27');
+      assert.equal(quote.verification.lastResult.entryDate, '2026-08-28');
+      assert.equal(quote.verification.lastResult.entryPrice, 102);
+      assert.equal(sig.livingVersionId, `${sig.signalId}:V1`);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('人类决策回填：采用同向报价更新 livingTicket，维持旧单留痕', () => {
+    const root = tmpRoot();
+    try {
+      const raw = { contracts: {} };
+      updateSignalPool({ runId: 'run-1', raw, rootOverride: root, plan: makePlan('run-1', 'PP0') });
+      updateSignalPool({ runId: 'run-2', raw, rootOverride: root, plan: makePlan('run-2', 'PP0', { signalDate: '2026-08-27' }) });
+      const ledger = loadLedger(root);
+      const sig = loadSignal(ledger.signals[0].signalId, root);
+      const quote = sig.versions.find((v) => v.signalDate === '2026-08-27');
+      const { applyDecisions } = require('../signals/cli/signal-pool-decision-cli.cjs');
+      const doc = {
+        schema: 'futures-radar-signal-decisions/1',
+        runId: 'run-2',
+        decisions: [{
+          signalId: sig.signalId,
+          quoteVersionId: quote.versionId,
+          action: 'adopt',
+          reason: '采用新报价作为当前有效交易单',
+          decidedAt: '2026-08-27'
+        }]
+      };
+      const file = path.join(root, 'decisions.json');
+      fs.writeFileSync(file, JSON.stringify(doc), 'utf8');
+      applyDecisions('run-2', file, root);
+      const updated = loadSignal(sig.signalId, root);
+      const adopted = updated.versions.find((v) => v.versionId === quote.versionId);
+      assert.equal(updated.livingVersionId, quote.versionId);
+      assert.equal(adopted.decision.status, 'adopted');
+      assert.equal(adopted.decision.reason, '采用新报价作为当前有效交易单');
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }

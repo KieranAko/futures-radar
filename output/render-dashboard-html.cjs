@@ -1122,6 +1122,37 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .sig-dir.down { background: #e7f6ec; color: var(--down); }
   .story-status.sig-closed { background: #f1f3f5; color: #6b7280; }
   .sig-price-line { font-size: 12px; color: var(--muted); background: #f7f8fa; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; margin: 8px 0 2px; }
+  .quote-pending-badge { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+  .quote-compare { margin: 10px 0; border: 1px solid #fde68a; border-radius: 8px; background: #fffbeb; padding: 10px 12px; }
+  .quote-compare-head { font-size: 13px; margin-bottom: 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .rel { font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); background: #fff; }
+  .rel-conflicted { color: #b91c1c; border-color: #fca5a5; background: #fef2f2; }
+  .rel-refined { color: #b45309; border-color: #fcd34d; background: #fffbeb; }
+  .rel-aligned { color: #047857; border-color: #a7f3d0; background: #ecfdf5; }
+  .quote-diff-notes { font-size: 12px; margin: 6px 0; }
+  .quote-diff-notes ul, .quote-conflicts { margin: 4px 0 4px 18px; padding: 0; }
+  .diff-old-val { color: #b91c1c; font-weight: 600; text-decoration: line-through; }
+  .diff-new-val { color: #047857; font-weight: 700; }
+  .quote-compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+  @media (max-width: 900px) { .quote-compare-grid { grid-template-columns: 1fr; } }
+  .quote-col { border: 1px solid var(--border); border-radius: 6px; background: #fff; overflow: hidden; }
+  .quote-col-head { font-weight: 700; padding: 5px 10px; background: #f7f8fa; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .ticket-fields { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .ticket-fields th, .ticket-fields td { padding: 4px 8px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+  .ticket-fields th { color: var(--muted); font-weight: 500; width: 90px; background: #fafafa; }
+  .ticket-fields tr:last-child th, .ticket-fields tr:last-child td { border-bottom: none; }
+  .ticket-fields tr.tk-diff th { color: #92400e; }
+  .ticket-fields tr.tk-diff td { background: #fef3c7; }
+  .quote-recon { margin: 8px 0; padding: 8px 10px; background: #eef4ff; border: 1px solid #dbeafe; border-radius: 6px; font-size: 12px; }
+  .quote-decision { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+  .quote-reason { flex: 1 1 260px; min-width: 180px; padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; }
+  .quote-decide { border: 1px solid var(--border); background: #fff; color: var(--text); border-radius: 6px; padding: 5px 10px; font-size: 12px; cursor: pointer; }
+  .quote-decide:hover { border-color: var(--accent); color: var(--accent); }
+  .quote-decide.danger { color: #b91c1c; border-color: #fca5a5; }
+  .quote-decide.danger:hover { background: #fef2f2; }
+  .quote-decision-state { font-size: 11px; margin-top: 4px; }
+  .decision-export-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; color: var(--muted); }
+  .decision-export-btn { border: 1px solid var(--border); background: #fff; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
   .sig-timeline { position: relative; margin: 10px 0 6px; }
   .tl-item { position: relative; padding: 0 0 14px 34px; }
   .tl-item::before { content: ""; position: absolute; left: 12px; top: 26px; bottom: -4px; width: 2px; background: #e5e7eb; }
@@ -1484,6 +1515,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
     <div class="pool-layout">
       <div class="pool-main">
         <h2>池内信号（全量追踪）</h2>
+        <div class="decision-export-bar"><span>人类决策：在下方报价对比中填写理由并点击按钮，决策保存在浏览器本地；导出 JSON 后由 agent 回填信号池。</span><button type="button" class="decision-export-btn" id="signal-decisions-export">导出决策 JSON</button></div>
         ${poolPanels}
         <h2>最近出池信号（最新 5 个）</h2>
         ${sigClosedPanels}
@@ -1504,6 +1536,7 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   </section>
 </main>
 <script>
+  const DASH_RUN_ID = ${JSON.stringify(runId)};
   const tabs = document.querySelectorAll('.tab');
   const panels = document.querySelectorAll('.tab-panel');
   tabs.forEach((tab) => {
@@ -1554,9 +1587,72 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
     });
   });
 
+  // 信号报价对比：人类决策（浏览器本地暂存 + 导出 JSON 供 agent 回填）
+  const DECISION_STORE_KEY = 'frSignalDecisions:' + DASH_RUN_ID;
+  function loadDecisions() {
+    try { return JSON.parse(localStorage.getItem(DECISION_STORE_KEY) || '{}'); } catch (e) { return {}; }
+  }
+  function saveDecisions(obj) {
+    localStorage.setItem(DECISION_STORE_KEY, JSON.stringify(obj));
+  }
+  function renderDecisionStates() {
+    const decisions = loadDecisions();
+    document.querySelectorAll('.quote-compare').forEach((box) => {
+      const key = box.dataset.signalId + '|' + box.dataset.quoteVersionId;
+      const d = decisions[key];
+      const state = box.querySelector('.quote-decision-state');
+      if (!state) return;
+      if (!d) { state.textContent = ''; return; }
+      const labels = { adopt: '已决定：采用新报价', keep: '已决定：维持旧单', pause: '已决定：暂停信号', close: '已决定：关闭信号' };
+      state.textContent = (labels[d.action] || d.action) + ' · 理由：' + d.reason;
+    });
+  }
+  document.querySelectorAll('.quote-decide').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const box = btn.closest('.quote-compare');
+      if (!box) return;
+      const reasonInput = box.querySelector('.quote-reason');
+      const reason = (reasonInput && reasonInput.value ? reasonInput.value : '').trim();
+      if (!reason) { alert('请先填写决策理由'); return; }
+      const decision = {
+        signalId: box.dataset.signalId,
+        quoteVersionId: box.dataset.quoteVersionId,
+        action: btn.dataset.action,
+        reason,
+        decidedAt: new Date().toISOString()
+      };
+      const decisions = loadDecisions();
+      decisions[decision.signalId + '|' + decision.quoteVersionId] = decision;
+      saveDecisions(decisions);
+      renderDecisionStates();
+    });
+  });
+  const exportBtn = document.getElementById('signal-decisions-export');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      const decisions = loadDecisions();
+      const list = Object.values(decisions);
+      if (list.length === 0) { alert('还没有任何决策'); return; }
+      const doc = {
+        schema: 'futures-radar-signal-decisions/1',
+        runId: DASH_RUN_ID,
+        decisions: list
+      };
+      const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'signal-pool-decisions-' + DASH_RUN_ID + '.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+  }
+  renderDecisionStates();
+
   // 信号池表格：点击行展开/折叠详情
-  document.querySelectorAll('.signal-row').forEach((row) => {
-    row.addEventListener('click', () => {
+  document.querySelectorAll('.signal-row').forEach((row) => {    row.addEventListener('click', () => {
       const d = document.getElementById(row.dataset.detailId);
       if (!d) return;
       const open = d.style.display !== 'none';

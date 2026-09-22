@@ -164,4 +164,40 @@ describe('signal-pool-html 看板渲染', () => {
     assert.ok(!html.includes('sig-closed-table'));
     assert.ok(!html.includes('<tr'));
   });
+
+  it('报价对比：待决策新报价并排展示、diff 高亮、对账解释与人类决策按钮', () => {
+    const base = makeView();
+    const living = base.details['SIG-PP0-20260910-01'].versions[0];
+    const quote = JSON.parse(JSON.stringify(living));
+    quote.versionId = 'SIG-PP0-20260910-01:V2';
+    quote.signalDate = '2026-09-11';
+    quote.quoteDate = '2026-09-11';
+    quote.stop = { stopPrice: 8700, basis: 'Q5 收紧' };
+    quote.decision = { status: 'pending', reason: '', decidedAt: null };
+    quote.diff = {
+      relation: 'refined',
+      changedFields: [{ field: 'stop.stopPrice', label: '止损价', oldValue: 8619, newValue: 8700 }]
+    };
+    quote.reconciliation = {
+      summary: '新旧报价仅止损位不同：新报价把空头容忍空间收紧。',
+      conflicts: [{ field: 'stop.stopPrice', severity: 'attention', explanation: '交易员对上方容忍空间收紧。' }]
+    };
+    const view = JSON.parse(JSON.stringify(base));
+    const detail = view.details['SIG-PP0-20260910-01'];
+    detail.versions = [living, quote];
+    detail.livingVersionId = living.versionId;
+    const html = signalPoolPanelsHtml(view);
+    assert.ok(html.includes('quote-compare'));
+    assert.ok(html.includes('新报价 SIG-PP0-20260910-01:V2'));
+    assert.ok(html.includes('rel-refined'));
+    assert.ok(html.includes('quote-compare-grid'));
+    assert.ok(html.includes('tk-diff'));
+    assert.ok(html.includes('止损价'));
+    assert.ok(html.includes('对账 LLM 解释'));
+    assert.ok(html.includes('交易员对上方容忍空间收紧'));
+    assert.ok(html.includes('data-action="adopt"'));
+    assert.ok(html.includes('data-action="keep"'));
+    assert.ok(html.includes('data-action="pause"'));
+    assert.ok(html.includes('data-action="close"'));
+  });
 });

@@ -1,16 +1,18 @@
 // signals/lib/signal-pool.cjs — 信号池（Signal Pool）
 //
-// 设计基线（v5）：
-//   - 信号池是跨 run、跨时间、跨周期存续的信号台账，替代原证伪反馈板块。
-//   - 入池：executable 策略版本诞生信号（该版本即 V1）。
-//   - 追踪：每期 run 给池内品种一个完整分析席位，追加新策略版本；
-//           同时做上期版本事后验证与信号级价格追踪。
+// 设计基线（v6）：
+//   - 信号 = 一张生效观察的交易单（机会分析→交易员LLM→交易单的产物）。
+//     信号身份 = symbol + contract + storyChainId/主题；T0 = 信号出生日，永不变，
+//     所有 T+N（确认/入场/时间止损）都从 T0 起算。
+//   - 追踪：市场兑现/证伪由池子自动做；每轮 run 的新交易单是同一信号的“新报价”，
+//     只做结构化 diff 与对账解释，采纳与否交给人类分析师（dashboard）。
 //   - 出池：closeReason（事件轴）只有 flipped / invalidated_q5 / faded / expired / fulfilled；
 //           closeClass（质量轴）四类：方向错误 / 方向正确·执行盈利 / 方向正确·未执行 / 方向正确·执行亏损。
 //           降级（watch/skip）不出池。
 //   - 报告：池内信号全量明细 + 最近出池 5 个明细 + 历史统计。
 //
 // 纪律：确定性、不联网、不调用 LLM；只读 strategy-plan.json 与本地行情。
+//       diff 由 ticket-diff.cjs 确定性计算；冲突解释由对账 LLM 输出后回填。
 'use strict';
 
 const fs = require('fs');
@@ -38,6 +40,7 @@ const {
   DIRECTION_EVENTS,
   EXIT_EVENTS
 } = require('../../shared/strategy-state.cjs');
+const { diffTickets, RELATIONS } = require('./ticket-diff.cjs');
 
 const SIGNAL_SCHEMA = 'futures-radar-signal-pool-signal/1';
 const LEDGER_SCHEMA = 'futures-radar-signal-pool-ledger/1';
@@ -99,6 +102,32 @@ function parseTarget1Level(text) {
   const m = String(text || '').match(/(\d{3,}(?:\.\d+)?)/);
   if (m) return parseFloat(m[1]);
   return parseFirstNumber(text);
+}
+
+// ── 信号身份（v6）────────────────────────────────────────────
+// 同一信号 = symbol + contract + storyChainId/主题。合约必须是具体合约（可执行）。
+// 合约或故事链变化 → 不同信号（新 T0）。
+function signalIdentityOf(symbol, contract, storyChainId) {
+  return [String(symbol || ''), String(contract || ''), String(storyChainId || '')].join('::');
+}
+
+function identityOfSignal(sig) {
+  return signalIdentityOf(sig && sig.symbol, sig && sig.contract, sig && sig.storyChainId);
+}
+
+function identityOfPlan(p) {
+  return signalIdentityOf(p && p.symbol, p && p.contract, p && p.storyChainId);
+}
+
+// 既有信号匹配：完整身份优先；legacy/迁移兜底：
+// 同 symbol+contract 视为同一信号（故事链 ID 因链换代/修复而变化时仍保持血缘连续）。
+function matchActiveSignal(byIdentity, bySymbol, p) {
+  const exact = byIdentity.get(identityOfPlan(p));
+  if (exact) return exact;
+  const legacy = bySymbol.get(p && p.symbol);
+  if (!legacy) return null;
+  if (!legacy.contract || !p || !p.contract || String(legacy.contract) === String(p.contract)) return legacy;
+  return null;
 }
 
 // ── Ledger / signal file ────────────────────────────────────
@@ -173,10 +202,11 @@ function versionFromPlan(signal, n, plan, p, prevVersion) {
   const curState = planStateOf(p);
   const curExec = executionOfPlan(p);
   const prevExec = prevVersion ? prevVersion.executionStatus : null;
-  return {
+  const v = {
     versionId: `${signal.signalId}:V${n}`,
     runId: plan.meta.runId,
-    signalDate: plan.meta.signalDate,
+    signalDate: plan.meta.signalDate, // 报价日期：只作版本/报价标识，不参与 T+N 计算
+    quoteDate: plan.meta.signalDate,
     contract: p.contract || null,
     ticket: p.ticket ? JSON.parse(JSON.stringify(p.ticket)) : null,
     storyChainId: p.storyChainId || signal.storyChainId || null, // V2 前向盖章：版本级血缘
@@ -232,6 +262,43 @@ function versionFromPlan(signal, n, plan, p, prevVersion) {
       lastResult: null
     }
   };
+  // v6 报价元数据：新报价与当前 livingTicket 的差异由 diff 确定性计算；
+  // 采纳与否交给人类（dashboard），池子不自动把新报价变成 livingTicket。
+  const living = livingVersionOf(signal) || (n === 1 ? null : prevVersion);
+  const diff = living ? diffTickets(living, v) : null;
+  v.diff = diff ? { relation: diff.relation, changedFields: diff.changedFields } : null;
+  v.reconciliation = null; // 对账 LLM 解释回填（{ schema, summary, conflicts[] }）
+  v.decision = n === 1
+    ? { status: 'born', reason: '信号出生交易单', decidedAt: plan.meta.signalDate, decidedRunId: plan.meta.runId }
+    : { status: 'pending', reason: '', decidedAt: null, decidedRunId: null };
+  return v;
+}
+
+// 从已采纳/待决策报价创建新信号（人类采用反向报价时用）：T0 = 决策执行日。
+function createSignalFromVersion(signal, version, runId, root = null) {
+  const plan = {
+    meta: { runId, signalDate: version.quoteDate || version.signalDate, inputsSha: 'human-decision' }
+  };
+  const p = {
+    symbol: signal.symbol,
+    name: signal.name,
+    contract: version.contract || signal.contract,
+    storyChainId: version.storyChainId || signal.storyChainId || null,
+    reportBaseline: { direction: version.direction, confidence: version.confidence, driver: signal.thesis || '' },
+    matchedStrategies: [{ strategyId: version.strategyId || 'BASE-01' }],
+    playbook: { playbookId: version.playbookId || 'PB-01' },
+    entry: version.entry,
+    stop: version.stop,
+    targets: version.targets,
+    invalidation: version.invalidation,
+    riskAssessment: {
+      atr5: version.atr5,
+      maxHoldingDays: version.maxHoldingDays,
+      regimeGrade: version.regime && version.regime.grade,
+      regimeDirection: version.regime && version.regime.direction
+    }
+  };
+  return createSignal(plan, p, root);
 }
 
 function createSignal(plan, p, root = null) {
@@ -251,6 +318,7 @@ function createSignal(plan, p, root = null) {
     lastSeenRunId: plan.meta.runId,
     lastSeenDate: plan.meta.signalDate,
     currentVersionId: `${signalId}:V1`,
+    livingVersionId: `${signalId}:V1`,
     consecutiveNonExecutable: 0,
     atr5AtCreation: p.riskAssessment && Number.isFinite(Number(p.riskAssessment.atr5)) ? Number(p.riskAssessment.atr5) : null,
     startClose: null,
@@ -279,12 +347,12 @@ function appendVersion(signal, plan, p) {
   signal.lastSeenDate = plan.meta.signalDate;
   signal.currentVersionId = version.versionId;
   if (version.contract) signal.contract = version.contract;
-  if (version.state === 'armed') {
-    signal.poolStatus = 'active';
-    signal.consecutiveNonExecutable = 0;
-  } else {
+  // 可执行的新报价不自动成为 livingTicket：留给人类在 dashboard 决策。
+  if (version.executionStatus !== 'executable') {
     signal.poolStatus = 'downgraded';
     signal.consecutiveNonExecutable = (signal.consecutiveNonExecutable || 0) + 1;
+  } else {
+    signal.poolStatus = 'active';
   }
   return version;
 }
@@ -310,12 +378,11 @@ function refreshPoolState(signal, version) {
   signal.lastSeenDate = version.signalDate;
   signal.currentVersionId = version.versionId;
   if (version.contract) signal.contract = version.contract;
-  if (version.state === 'armed') {
-    signal.poolStatus = 'active';
-    signal.consecutiveNonExecutable = 0;
-  } else {
+  if (version.executionStatus !== 'executable') {
     signal.poolStatus = 'downgraded';
     signal.consecutiveNonExecutable = (signal.consecutiveNonExecutable || 0) + 1;
+  } else {
+    signal.poolStatus = 'active';
   }
 }
 
@@ -333,6 +400,12 @@ function refreshVersionFromPlan(signal, version, plan, p) {
     versionId: version.versionId,
     verification: { status: 'pending_verification', terminal: false, verifiedRunId: null, lastResult: null }
   });
+  // 同日报价覆盖时，diff 相对当前 livingTicket 重算。
+  const living = livingVersionOf(signal);
+  if (living && version.versionId !== living.versionId) {
+    const diff = diffTickets(living, version);
+    version.diff = { relation: diff.relation, changedFields: diff.changedFields };
+  }
   return version;
 }
 
@@ -341,13 +414,14 @@ function refreshVersionFromPlan(signal, version, plan, p) {
 function normalizeVersions(signal) {
   const versions = Array.isArray(signal.versions) ? signal.versions : [];
   if (versions.length === 0) return false;
-  const byDate = new Map();
+  const byKey = new Map();
   for (const v of versions) {
-    const key = v.signalDate || '';
-    const prev = byDate.get(key);
-    if (!prev || versionNumber(v) > versionNumber(prev)) byDate.set(key, v);
+    // 同一天同一方向重复 plan 只保留最新；同一天反向报价必须保留为独立记录。
+    const key = `${v.signalDate || ''}|${v.direction || 'neutral'}`;
+    const prev = byKey.get(key);
+    if (!prev || versionNumber(v) > versionNumber(prev)) byKey.set(key, v);
   }
-  const collapsed = [...byDate.values()].sort((a, b) => {
+  const collapsed = [...byKey.values()].sort((a, b) => {
     const d = String(a.signalDate || '').localeCompare(String(b.signalDate || ''));
     if (d !== 0) return d;
     return versionNumber(a) - versionNumber(b);
@@ -356,7 +430,7 @@ function normalizeVersions(signal) {
   let changed = collapsed.length !== versions.length;
   collapsed.forEach((v, i) => {
     const newId = `${signal.signalId}:V${i + 1}`;
-    keptNewIds.set(v.signalDate || '', newId);
+    keptNewIds.set(`${v.signalDate || ''}|${v.direction || 'neutral'}`, newId);
     if (v.versionId !== newId) changed = true;
     if (v.verification && v.verification.lastResult && v.verification.lastResult.recordId === v.versionId) {
       v.verification.lastResult.recordId = newId;
@@ -365,7 +439,7 @@ function normalizeVersions(signal) {
   });
   const oldToNew = new Map();
   for (const v of versions) {
-    oldToNew.set(v.versionId, keptNewIds.get(v.signalDate || '') || v.versionId);
+    oldToNew.set(v.versionId, keptNewIds.get(`${v.signalDate || ''}|${v.direction || 'neutral'}`) || v.versionId);
   }
   signal.versions = collapsed;
   if (signal.currentVersionId && oldToNew.has(signal.currentVersionId)) {
@@ -378,12 +452,68 @@ function normalizeVersions(signal) {
     signal.currentVersionId = collapsed[collapsed.length - 1].versionId;
     changed = true;
   }
+  // v6 迁移：livingVersionId 与版本报价元数据（旧数据只读兼容回填）。
+  if (signal.livingVersionId && oldToNew.has(signal.livingVersionId)) {
+    const mapped = oldToNew.get(signal.livingVersionId);
+    if (mapped && signal.livingVersionId !== mapped) {
+      signal.livingVersionId = mapped;
+      changed = true;
+    }
+  } else if (!collapsed.some((v) => v.versionId === signal.livingVersionId)) {
+    signal.livingVersionId = signal.currentVersionId;
+    changed = true;
+  }
+  let prev = null;
+  for (const v of collapsed) {
+    if (!v.quoteDate) { v.quoteDate = v.signalDate; changed = true; }
+    if (!v.decision) {
+      // 旧数据：V1 为出生单，后续版本视为历史已采纳（不推翻历史台账）。
+      v.decision = prev
+        ? { status: 'adopted', reason: 'legacy 迁移：历史版本按已采纳处理', decidedAt: v.signalDate, decidedRunId: v.runId }
+        : { status: 'born', reason: '信号出生交易单', decidedAt: v.signalDate, decidedRunId: v.runId };
+      changed = true;
+    }
+    if (!v.diff && prev) {
+      const d = diffTickets(prev, v);
+      v.diff = { relation: d.relation, changedFields: d.changedFields };
+      changed = true;
+    }
+    if (!Object.prototype.hasOwnProperty.call(v, 'reconciliation')) { v.reconciliation = null; changed = true; }
+    prev = v;
+  }
   for (const o of Array.isArray(signal.observations) ? signal.observations : []) {
     for (const e of Array.isArray(o.events) ? o.events : []) {
       if (e && e.versionId && oldToNew.has(e.versionId)) e.versionId = oldToNew.get(e.versionId);
     }
   }
   return changed;
+}
+
+function currentVersionOf(signal) {
+  return signal.versions.find((v) => v.versionId === signal.currentVersionId) || signal.versions[signal.versions.length - 1] || null;
+}
+
+// livingTicket：市场实际正在追踪、已由人类采纳的交易单（出生单默认 living）。
+function livingVersionOf(signal) {
+  if (!signal) return null;
+  if (signal.livingVersionId) {
+    const hit = signal.versions.find((v) => v.versionId === signal.livingVersionId);
+    if (hit) return hit;
+  }
+  return currentVersionOf(signal);
+}
+
+function decisionStatusOf(v) {
+  return (v && v.decision && v.decision.status) || null;
+}
+
+function isAdoptedVersion(v) {
+  const st = decisionStatusOf(v);
+  return st === 'born' || st === 'adopted';
+}
+
+function adoptedVersionsOf(signal) {
+  return (signal.versions || []).filter(isAdoptedVersion);
 }
 
 // ── 出池质量分类（方向 × 执行）────────────────────────────
@@ -416,8 +546,7 @@ function directionVerdictOf(signal) {
 function executedOutcomesOf(signal) {
   const sign = signal.direction === 'bearish' ? -1 : 1;
   const outcomes = [];
-  for (const v of signal.versions || []) {
-    if (versionInitialState(v) !== 'armed') continue;
+  for (const v of executableVersionsOf(signal)) {
     const r = v.verification && v.verification.lastResult;
     const st = v.verification && v.verification.status;
     if (!r) continue;
@@ -494,12 +623,8 @@ function computeVerdict(signal) {
   return closeClassOf(signal) === 'direction_hit_profit' ? 'fulfilled' : 'invalidated';
 }
 
-function currentVersionOf(signal) {
-  return signal.versions.find((v) => v.versionId === signal.currentVersionId) || signal.versions[signal.versions.length - 1] || null;
-}
-
 function invalidationLevelOf(signal) {
-  const cur = currentVersionOf(signal);
+  const cur = livingVersionOf(signal) || currentVersionOf(signal);
   if (cur && cur.stop && Number.isFinite(Number(cur.stop.stopPrice))) return Number(cur.stop.stopPrice);
   const hard = cur && cur.invalidation ? cur.invalidation.hard : [];
   if (Array.isArray(hard) && hard.length > 0) {
@@ -509,8 +634,10 @@ function invalidationLevelOf(signal) {
   return null;
 }
 
+// 参与信号生命周期判定的版本 = 已被人类采纳（born/adopted）的可执行版本。
+// 未决策的新报价只做展示与对账，不驱动信号进出池。
 function executableVersionsOf(signal) {
-  return signal.versions.filter((v) => versionInitialState(v) === 'armed');
+  return adoptedVersionsOf(signal).filter((v) => versionInitialState(v) === 'armed');
 }
 
 function versionFulfillProgress(version, direction, latestClose) {
@@ -587,8 +714,10 @@ function positionStatusOf(signal) {
 }
 
 function anchorVersionOf(signal) {
+  const living = livingVersionOf(signal);
+  if (living && versionInitialState(living) === 'armed') return living;
   const execs = executableVersionsOf(signal);
-  return execs[execs.length - 1] || null;
+  return execs[execs.length - 1] || living || null;
 }
 
 function anchorSummaryOf(signal) {
@@ -663,7 +792,10 @@ function versionToRecord(signal, version) {
   return {
     recordId: version.versionId,
     runId: version.runId,
-    signalDate: version.signalDate,
+    // v6 T0 锚点：所有 T+N 都从信号出生日计算；版本日期只作报价标识。
+    signalDate: signal.createdDate,
+    anchorDate: signal.createdDate,
+    quoteDate: version.signalDate || version.quoteDate || null,
     symbol: signal.symbol,
     name: signal.name,
     contract: signal.contract,
@@ -794,9 +926,36 @@ function writeObservation(root, runId, plan, p, note) {
 // ── View building ────────────────────────────────────────────
 function summarizeSignal(signal) {
   const cur = signal.versions.find((v) => v.versionId === signal.currentVersionId) || signal.versions[signal.versions.length - 1];
+  const living = livingVersionOf(signal) || cur;
   const latestVerified = signal.versions
     .filter((v) => v.verification && (v.verification.terminal || v.verification.status !== 'pending_verification'))
     .slice(-1)[0] || null;
+  const versionToSummary = (v) => ({
+    versionId: v.versionId,
+    runId: v.runId,
+    signalDate: v.signalDate,
+    quoteDate: v.quoteDate || v.signalDate,
+    contract: v.contract || signal.contract,
+    storyChainId: v.storyChainId || signal.storyChainId || null,
+    state: versionStateOf(v),
+    executionStatus: v.executionStatus,
+    direction: v.direction,
+    confidence: v.confidence,
+    strategyId: v.strategyId,
+    playbookId: v.playbookId,
+    stateTransition: v.stateTransition,
+    entry: v.entry,
+    stop: v.stop,
+    targets: v.targets,
+    invalidation: v.invalidation,
+    regime: v.regime,
+    atr5: v.atr5,
+    maxHoldingDays: v.maxHoldingDays,
+    decision: v.decision || null,
+    diff: v.diff || null,
+    reconciliation: v.reconciliation || null,
+    verification: v.verification
+  });
   return {
     signalId: signal.signalId,
     symbol: signal.symbol,
@@ -808,14 +967,18 @@ function summarizeSignal(signal) {
     poolStatus: signal.poolStatus,
     createdRunId: signal.createdRunId,
     createdDate: signal.createdDate,
+    bornDate: signal.createdDate,
     lastSeenRunId: signal.lastSeenRunId,
     lastSeenDate: signal.lastSeenDate,
     versionCount: signal.versions.length,
     consecutiveNonExecutable: signal.consecutiveNonExecutable || 0,
+    livingVersionId: signal.livingVersionId || (living ? living.versionId : null),
+    livingVersion: living ? versionToSummary(living) : null,
     currentVersion: cur ? {
       versionId: cur.versionId,
       runId: cur.runId,
       signalDate: cur.signalDate,
+      quoteDate: cur.quoteDate || cur.signalDate,
       contract: cur.contract || signal.contract,
       storyChainId: cur.storyChainId || signal.storyChainId || null,
       state: versionStateOf(cur),
@@ -829,8 +992,12 @@ function summarizeSignal(signal) {
       triggerLevel: cur.entry.triggerLevel,
       triggerTiming: cur.entry.triggerTiming,
       stopPrice: cur.stop.stopPrice,
-      t1: cur.targets.t1
+      t1: cur.targets.t1,
+      decision: cur.decision || null,
+      diff: cur.diff || null,
+      reconciliation: cur.reconciliation || null
     } : null,
+    ticketHistory: Array.isArray(signal.versions) ? signal.versions.map(versionToSummary) : [],
     latestVerification: latestVerified ? {
       versionId: latestVerified.versionId,
       status: latestVerified.verification.status,
@@ -892,10 +1059,10 @@ function deriveExecutionEvidence(signal) {
     if (best.pnlPts > 0) return outcomes.some((o) => o.exitType === 'target1_hit') ? 'target_hit' : 'time_exit_profit';
     return best.exitType === 'stopped_out' ? 'stopped_out' : 'time_exit_loss';
   }
-  const execVersions = signal.versions.filter((v) => versionInitialState(v) === 'armed');
+  const execVersions = executableVersionsOf(signal);
   if (execVersions.some((v) => v.verification && v.verification.status === 'skipped_gap')) return 'gap_skipped';
   if (execVersions.some((v) => v.verification && v.verification.status === 'invalidated_not_triggered')) return 'trigger_missed';
-  const watchVersions = signal.versions.filter((v) => versionInitialState(v) === 'watching');
+  const watchVersions = adoptedVersionsOf(signal).filter((v) => versionInitialState(v) === 'watching');
   if (watchVersions.some((v) => v.verification && v.verification.status === 'confirmed')) return 'confirmed';
   if (watchVersions.some((v) => v.verification && v.verification.status === 'invalidated_not_triggered')) return 'watch_missed';
   if (signal.versions.some((v) => v.verification && v.verification.status === 'unverifiable')) return 'unverifiable';
@@ -992,12 +1159,14 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
   const rawData = raw || readJSON(path.join(runDir(runId), 'raw.json'), { contracts: {} });
 
   const ledger = loadLedger(root);
+  const activeByIdentity = new Map();
   const activeBySymbol = new Map();
   for (const row of ledger.signals) {
     const sig = loadSignal(row.signalId, root);
     if (sig && sig.poolStatus !== 'closed') {
       if (normalizeVersions(sig)) saveSignal(sig, root);
-      activeBySymbol.set(sig.symbol, sig);
+      activeByIdentity.set(identityOfSignal(sig), sig);
+      if (!activeBySymbol.has(sig.symbol)) activeBySymbol.set(sig.symbol, sig);
     }
   }
 
@@ -1006,13 +1175,14 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
   let versionsAddedThisRun = 0;
   let versionsUpdatedThisRun = 0;
 
-  // 1) 入池 / 版本追加 / 反向翻转（先处理本期 plan）
+  // 1) 入池 / 新报价 / 反向报价（先处理本期 plan）
   for (const p of plans) {
     const dir = directionOfPlan(p);
-    const existing = activeBySymbol.get(p.symbol);
+    const existing = matchActiveSignal(activeByIdentity, activeBySymbol, p);
     if (!existing) {
       if (executionOfPlan(p) === 'executable') {
         const sig = createSignal(plan, p, root);
+        activeByIdentity.set(identityOfSignal(sig), sig);
         activeBySymbol.set(sig.symbol, sig);
         ledger.signals.push({ signalId: sig.signalId, symbol: sig.symbol });
         createdThisRun++;
@@ -1058,19 +1228,13 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
       }
     } else if (dir !== 'neutral') {
       if (executionOfPlan(p) === 'executable') {
+        // 反向 executable = 一份与 livingTicket 方向冲突的新报价：
+        // 池子只记录冲突并交 dashboard 给人类判断，不自动关闭旧信号。
         const already = existing.versions.some((v) => v.runId === plan.meta.runId);
         if (!already) {
-          closeSignal(existing, 'flipped');
-          existing.closedAt = plan.meta.signalDate;
-          const flipEvents = [{ code: 'flipped', kind: 'exit', label: eventLabel('flipped', 'exit') }];
-          applyExitProjection(existing, flipEvents);
-          appendObservation(existing, runId, plan.meta.signalDate, flipEvents);
+          appendVersion(existing, plan, p);
+          versionsAddedThisRun++;
           saveSignal(existing, root);
-          const sig = createSignal(plan, p, root);
-          activeBySymbol.set(sig.symbol, sig);
-          ledger.signals.push({ signalId: sig.signalId, symbol: sig.symbol });
-          createdThisRun++;
-          saveSignal(sig, root);
         }
       } else {
         writeObservation(root, runId, plan, p, '反向 watch/skip：只记录，不推翻在池信号');
@@ -1126,7 +1290,7 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
     if (hasOpenPosition(sig)) sig.poolStatus = 'active';
     // 出池判定：先兑现，后失效（flipped 已在匹配阶段处理）
     if (sig.poolStatus !== 'closed') {
-      const cur = currentVersionOf(sig);
+      const cur = livingVersionOf(sig) || currentVersionOf(sig);
       const q5Hit = cur && track.bars.length > 0 ? q5Triggered(sig, cur, track.bars) : false;
       if (hasFulfilled(sig)) {
         closeSignal(sig, 'fulfilled');
@@ -1171,6 +1335,14 @@ function updateSignalPool({ runId, raw, rootOverride = null, plan = null }) {
 
 module.exports = {
   currentVersionOf,
+  livingVersionOf,
+  adoptedVersionsOf,
+  isAdoptedVersion,
+  decisionStatusOf,
+  identityOfSignal,
+  identityOfPlan,
+  signalIdentityOf,
+  matchActiveSignal,
   invalidationLevelOf,
   executableVersionsOf,
   versionFulfillProgress,
@@ -1204,6 +1376,7 @@ module.exports = {
   nextSignalId,
   // lifecycle
   createSignal,
+  createSignalFromVersion,
   appendVersion,
   versionNumber,
   sameDayVersionOf,
