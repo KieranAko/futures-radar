@@ -840,6 +840,8 @@ describe('V2.1 并行观察与节点三态（观察中/已证明/已证伪）', 
     assert.match(src, /caliber-node/);
     assert.match(src, /closest\('\.dg-node-caliber'\)/);
     assert.match(src, /classList\.remove\('wide'\)/);
+    assert.match(src, /class="dg-detail sg-detail"/);
+    assert.match(src, /t\.closest\('\.dg-detail'\)/);
     assert.doesNotMatch(src, /className = 'sg-detail/);
     assert.doesNotMatch(src, /alignmentMarkerHtml/);
     assert.doesNotMatch(src, /node-align-marker/);

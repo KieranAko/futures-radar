@@ -129,7 +129,7 @@ function dagPanelHtml(c) {
   return `<div class="dg-canvas" data-nodes='${jsonAttr(graphNodes)}' data-edges='${jsonAttr(graphEdges)}'>
     <svg class="dg-edges"></svg>
     <div class="dg-layers">${columnsHtml}</div>
-    <div class="dg-detail"></div>
+    <div class="dg-detail sg-detail"></div>
   </div>`;
 }
 
@@ -880,7 +880,8 @@ function dagScript() {
     g.addEventListener('click', function (ev) {
       var t = ev.target || {};
       if (!t.closest) return;
-      if (t.closest('.dg-node') || t.closest('.dg-edges') || t.closest('.sg-detail')) return;
+      // 点节点、边、以及弹窗面板本身（含面板内部空白）都不关闭；只有点图区其他空白才关闭。
+      if (t.closest('.dg-node') || t.closest('.dg-edges') || t.closest('.dg-detail')) return;
       var d = g.querySelector('.dg-detail');
       if (!d) return;
       d.innerHTML = '';
