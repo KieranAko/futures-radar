@@ -1291,6 +1291,8 @@ function renderDashboardHtml({ runId, reportModel, signalPoolView, storyView = n
   .sg-detail-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; color: var(--muted); }
   .sg-detail-row b { color: var(--text); font-weight: 600; text-align: right; }
   .sg-detail-note { margin-top: 6px; color: var(--muted); font-size: 11px; }
+  .sg-detail-note.caliber-what { margin: 6px 0; padding: 6px 8px; border-radius: 6px; background: #f0f9ff; color: #0f172a; font-size: 12px; line-height: 1.6; }
+  .sg-detail-note.caliber-node { margin: 6px 0; padding: 6px 8px; border-radius: 6px; background: #f8fafc; color: #334155; font-size: 12px; line-height: 1.6; }
   .sg-hint { margin: 2px 0 4px; font-size: 11px; color: var(--muted); }
   .sg-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: var(--muted); margin: 2px 0 6px; }
   .sg-legend span { display: inline-flex; align-items: center; gap: 4px; }

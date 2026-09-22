@@ -1640,6 +1640,7 @@ function nodeCaliber(n, catDef) {
       kind: 'catalog',
       indicatorId: n.indicatorId || null,
       name: catDef.name || n.indicatorId || null,
+      description: catDef.description || null,
       unit: catDef.unit || n.unit || null,
       source: catDef.source || null,
       valueScale: catDef.valueScale || null,

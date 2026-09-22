@@ -602,6 +602,7 @@ describe('V2.1 计量尺度与变化语义（引擎算，渲染只显示）', ()
       assert.ok(validChanges.includes(ind.changeKind), `${key} changeKind 非法: ${ind.changeKind}`);
       assert.ok(validSourceClasses.includes(ind.sourceClass), `${key} sourceClass 非法: ${ind.sourceClass}`);
       assert.equal(typeof ind.allowAsRoot, 'boolean', `${key} 缺 allowAsRoot`);
+      assert.ok(ind.description && ind.description.length >= 10, `${key} 缺人类可读的 description`);
       if (key.startsWith('macro.') && key.endsWith('.change5d')) {
         assert.equal(ind.unit, '%', `${key} 公式为 (last/base-1)*100，unit 必须是 %`);
         assert.equal(ind.valueScale, 'rate');
@@ -698,8 +699,9 @@ describe('V2.1 计量尺度与变化语义（引擎算，渲染只显示）', ()
     const nodes = view.active[0].nodes;
     assert.equal(nodes[0].caliber.kind, 'catalog');
     assert.equal(nodes[0].caliber.name, 'SC0 原油 5 交易日涨跌');
+    assert.match(nodes[0].caliber.description, /原油在上涨/);
     assert.equal(nodes[1].caliber.name, '板块指数 5 交易日收益');
-    assert.equal(nodes[2].caliber.name, '品种收盘相对 MA20 位置');
+    assert.match(nodes[2].caliber.description, /收盘在均线上方/);
     assert.equal(nodes[1].changeLabel, '个百分点');
     assert.equal(Number(nodes[1].changeValue).toFixed(2), '0.08');
     assert.equal(nodes[1].unit, '%');
@@ -833,6 +835,10 @@ describe('V2.1 并行观察与节点三态（观察中/已证明/已证伪）', 
     assert.match(src, /dg-node-caliber/);
     assert.match(src, /showCaliberDetail/);
     assert.match(src, /指标口径/);
+    assert.match(src, /指标是什么/);
+    assert.match(src, /caliber-what/);
+    assert.match(src, /caliber-node/);
+    assert.match(src, /closest\('\.dg-node-caliber'\)/);
     assert.doesNotMatch(src, /alignmentMarkerHtml/);
     assert.doesNotMatch(src, /node-align-marker/);
     assert.doesNotMatch(src, /dg-stack/);

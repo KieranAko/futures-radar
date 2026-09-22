@@ -761,6 +761,7 @@ function dagScript() {
   }
   function showNodeDetail(g, n) {
     var d = g.querySelector('.dg-detail');
+    d.className = 'sg-detail';
     var rows = [];
     rows.push('<div class="sg-detail-head"><b>' + n.label + '</b><button class="sg-detail-close">×</button></div>');
     var st = n.status === 'confirmed' ? '已证明' : n.status === 'broken' ? '已证伪' : '观察中';
@@ -793,6 +794,15 @@ function dagScript() {
     var rows = [];
     rows.push('<div class="sg-detail-head"><b>指标口径</b><button class="sg-detail-close">×</button></div>');
     if (c.name) rows.push(rowHtml('指标名称', c.name));
+    if (c.description) rows.push('<div class="sg-detail-note caliber-what"><b>指标是什么</b><br>' + esc(c.description) + '</div>');
+    if (c.kind === 't2') {
+      rows.push('<div class="sg-detail-note caliber-what"><b>指标是什么</b><br>这是一个通过 WebSearch 检索并冻结口径的指标：' + esc(c.name || c.concept || '—') + '。它的数值含义以概念声明和来源为准，正负号需要对照传导链的预期方向来读。</div>');
+    }
+    var curVal = n.lastValue != null ? n.lastValue : n.observedValue;
+    if (curVal != null && isFinite(Number(curVal))) {
+      rows.push(rowHtml('当前值', Number(curVal).toFixed(2) + (c.unit || n.unit ? ' ' + (c.unit || n.unit) : '') + (n.lastValueAt ? '（' + n.lastValueAt + '）' : '')));
+    }
+    rows.push('<div class="sg-detail-note caliber-node"><b>节点观察</b><br>状态：' + esc(n.status === 'confirmed' ? '已证明' : n.status === 'broken' ? '已证伪' : '观察中') + '；预期方向：' + (n.expectation === 1 ? '多' : n.expectation === -1 ? '空' : '—') + '；进度：' + (n.sameStreak > 0 ? '同向 ' + n.sameStreak + '/3' : n.oppStreak > 0 ? '反向 ' + n.oppStreak + '/2' : '未计数') + '。</div>');
     if (c.indicatorId) rows.push(rowHtml('指标 ID', c.indicatorId));
     if (c.unit) rows.push(rowHtml('单位', c.unit));
     if (c.kind === 'catalog') {
@@ -843,16 +853,15 @@ function dagScript() {
     var nodes = JSON.parse(g.getAttribute('data-nodes') || '[]');
     var edges = JSON.parse(g.getAttribute('data-edges') || '[]');
     g.querySelectorAll('.dg-node').forEach(function (el) {
-      el.addEventListener('click', function () {
+      el.addEventListener('click', function (ev) {
         var n = nodes.find(function (x) { return x.id === el.getAttribute('data-node-id'); });
-        if (n) showNodeDetail(g, n);
-      });
-    });
-    g.querySelectorAll('.dg-node-caliber').forEach(function (btn) {
-      btn.addEventListener('click', function (ev) {
-        ev.stopPropagation();
-        var n = nodes.find(function (x) { return x.id === btn.getAttribute('data-node-caliber'); });
-        if (n) showCaliberDetail(g, n);
+        if (!n) return;
+        var target = ev.target || {};
+        if (target.closest && target.closest('.dg-node-caliber')) {
+          showCaliberDetail(g, n);
+        } else {
+          showNodeDetail(g, n);
+        }
       });
     });
     g.querySelector('.dg-edges').addEventListener('click', function (ev) {
@@ -864,6 +873,14 @@ function dagScript() {
           d.querySelector('.sg-detail-close').addEventListener('click', function () { d.innerHTML = ''; });
         }
       }
+    });
+    g.addEventListener('click', function (ev) {
+      var t = ev.target || {};
+      if (!t.closest) return;
+      if (t.closest('.dg-node') || t.closest('.dg-edges') || t.closest('.sg-detail')) return;
+      var d = g.querySelector('.dg-detail');
+      d.innerHTML = '';
+      d.className = 'sg-detail';
     });
   });
   window.addEventListener('resize', function () { document.querySelectorAll('.dg-canvas').forEach(drawDag); });
